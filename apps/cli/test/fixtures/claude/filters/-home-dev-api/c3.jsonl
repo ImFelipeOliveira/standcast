@@ -1,0 +1,8 @@
+{"type":"user","sessionId":"c3","timestamp":"2026-10-31T10:00:00.000Z","cwd":"/home/dev/api","gitBranch":"","isMeta":true,"message":{"role":"user","content":"Caveat: meta line that is not typed"}}
+{"type":"user","sessionId":"c3","timestamp":"2026-10-31T10:00:01.000Z","cwd":"/home/dev/api","gitBranch":"","message":{"role":"user","content":"<command-name>/clear</command-name>"}}
+{"type":"user","sessionId":"c3","timestamp":"2026-10-31T10:00:02.000Z","cwd":"/home/dev/api","gitBranch":"","message":{"role":"user","content":"<local-command-stdout>done</local-command-stdout>"}}
+{"type":"user","sessionId":"c3","timestamp":"2026-10-31T10:00:03.000Z","cwd":"/home/dev/api","gitBranch":"","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"x","content":"tool output text"}]}}
+{"type":"user","sessionId":"c3","timestamp":"2026-10-31T10:00:04.000Z","cwd":"/home/dev/api","gitBranch":"","message":{"role":"user","content":[{"type":"text","text":"<system-reminder>hidden reminder</system-reminder>"}]}}
+{"type":"user","sessionId":"c3","timestamp":"2026-10-31T10:00:05.000Z","cwd":"/home/dev/api","gitBranch":"","message":{"role":"user","content":"Rename the endpoint <system-reminder>hidden reminder</system-reminder>please"}}
+{"type":"system","sessionId":"c3","timestamp":"2026-10-31T10:00:06.000Z","cwd":"/home/dev/api","content":"hook output"}
+{"type":"assistant","sessionId":"c3","timestamp":"2026-10-31T10:00:07.000Z","cwd":"/home/dev/api","gitBranch":"","message":{"role":"assistant","content":[{"type":"tool_use","id":"y","name":"Write","input":{"file_path":"/etc/outside.conf","content":"x"}},{"type":"tool_use","id":"z","name":"NotebookEdit","input":{"notebook_path":"/home/dev/api/nb/explore.ipynb"}}]}}
