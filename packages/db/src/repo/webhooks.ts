@@ -69,7 +69,7 @@ export async function insertWebhookEndpoint(
   db: Db,
   p: { installationId: number; url: string; events: WebhookEventType[]; secret: string },
   key: Uint8Array,
-): Promise<{ id: string }> {
+): Promise<WebhookEndpointSummary> {
   const [row] = await db
     .insert(webhookEndpoints)
     .values({
@@ -78,7 +78,7 @@ export async function insertWebhookEndpoint(
       events: p.events,
       secretCiphertext: encryptSecret(p.secret, key),
     })
-    .returning({ id: webhookEndpoints.id });
+    .returning(summaryColumns);
   if (!row) throw new Error('insertWebhookEndpoint returned no row');
   return row;
 }

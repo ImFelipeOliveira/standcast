@@ -1,6 +1,7 @@
 import {
   API_KEY_SCOPES,
   type ApiKeyScope,
+  type ApiKeySummary,
   createApiKey,
   type MemberRow,
   revokeApiKey,
@@ -20,7 +21,7 @@ export async function createInstallationApiKey(
   isMember: MembershipCheck,
   member: MemberRow,
   input: CreateApiKeyInput,
-): Promise<{ id: string; key: string }> {
+): Promise<{ id: string; key: string; summary: ApiKeySummary }> {
   const { member: current } = await requireAdmin(deps, isMember, member, input.installationId);
   const name = input.name.trim();
   if (name.length === 0 || name.length > MAX_NAME_LENGTH) {

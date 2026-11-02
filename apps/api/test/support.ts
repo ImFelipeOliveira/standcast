@@ -74,6 +74,7 @@ export function createTestApp(
       supportEmail: 'help@sw.test',
       docsUrl: 'https://docs.sw.test',
       landingUrl: 'https://landing.sw.test',
+      appUrl: 'https://app.test',
       githubClientId: 'cid',
       githubClientSecret: 'secret',
       sessionSecret: 'sess',
@@ -90,6 +91,7 @@ export function createTestApp(
       getClientIp: options.getClientIp ?? headerIp,
       ...(options.healthTimeoutMs ? { healthTimeoutMs: options.healthTimeoutMs } : {}),
     }),
+    deps,
     queue,
     setNow: (d: Date) => (now = d),
   };

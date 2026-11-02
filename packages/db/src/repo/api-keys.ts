@@ -19,10 +19,20 @@ export type ApiKeySummary = {
   revokedAt: Date | null;
 };
 
+const summaryColumns = {
+  id: apiKeys.id,
+  name: apiKeys.name,
+  prefix: apiKeys.prefix,
+  scopes: apiKeys.scopes,
+  createdAt: apiKeys.createdAt,
+  lastUsedAt: apiKeys.lastUsedAt,
+  revokedAt: apiKeys.revokedAt,
+};
+
 export async function createApiKey(
   db: Db,
   p: { installationId: number; name: string; scopes: ApiKeyScope[]; createdBy: string },
-): Promise<{ id: string; key: string }> {
+): Promise<{ id: string; key: string; summary: ApiKeySummary }> {
   const key = `${KEY_PREFIX}${randomBytes(32).toString('base64url')}`;
   const [row] = await db
     .insert(apiKeys)
@@ -34,9 +44,9 @@ export async function createApiKey(
       scopes: p.scopes,
       createdBy: p.createdBy,
     })
-    .returning({ id: apiKeys.id });
+    .returning(summaryColumns);
   if (!row) throw new Error('createApiKey returned no row');
-  return { id: row.id, key };
+  return { id: row.id, key, summary: row };
 }
 
 export async function resolveApiKey(
@@ -64,15 +74,7 @@ export async function resolveApiKey(
 
 export async function listApiKeys(db: Db, installationId: number): Promise<ApiKeySummary[]> {
   return db
-    .select({
-      id: apiKeys.id,
-      name: apiKeys.name,
-      prefix: apiKeys.prefix,
-      scopes: apiKeys.scopes,
-      createdAt: apiKeys.createdAt,
-      lastUsedAt: apiKeys.lastUsedAt,
-      revokedAt: apiKeys.revokedAt,
-    })
+    .select(summaryColumns)
     .from(apiKeys)
     .where(eq(apiKeys.installationId, installationId))
     .orderBy(desc(apiKeys.createdAt), apiKeys.id);

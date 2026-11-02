@@ -16,9 +16,41 @@ const base = {
   SLACK_CLIENT_SECRET: 'ssecret',
   LINEAR_CLIENT_ID: 'lid',
   LINEAR_CLIENT_SECRET: 'lsecret',
+  APP_URL: 'https://app.standcast.app',
 };
 
 describe('parseEnv', () => {
+  test('APP_URL is required', () => {
+    const { APP_URL: _, ...withoutAppUrl } = base;
+    expect(() => parseEnv(withoutAppUrl)).toThrow(/APP_URL/);
+  });
+
+  test('APP_URL must be https without trailing slash', () => {
+    expect(parseEnv(base).APP_URL).toBe('https://app.standcast.app');
+    expect(parseEnv({ ...base, APP_URL: 'http://localhost:4173' }).APP_URL).toBe(
+      'http://localhost:4173',
+    );
+    for (const APP_URL of ['http://x', 'https://x/', 'http://localhost:4173/']) {
+      expect(() => parseEnv({ ...base, APP_URL }), APP_URL).toThrow();
+    }
+  });
+
+  test('APP_URL must be an exact origin', () => {
+    for (const APP_URL of [
+      'https://app.standcast.app/web',
+      'https://app.standcast.app?x=1',
+      'https://App.Standcast.app',
+      'https://app.standcast.app:443',
+      'http://localhost:80',
+      'not a url',
+    ]) {
+      expect(() => parseEnv({ ...base, APP_URL }), APP_URL).toThrow(/APP_URL/);
+    }
+    expect(parseEnv({ ...base, APP_URL: 'https://app.standcast.app:8443' }).APP_URL).toBe(
+      'https://app.standcast.app:8443',
+    );
+  });
+
   test('strips trailing slashes from PUBLIC_URL', () => {
     for (const raw of ['https://api.standcast.app/', 'https://api.standcast.app///']) {
       expect(parseEnv({ ...base, PUBLIC_URL: raw }).PUBLIC_URL).toBe('https://api.standcast.app');
