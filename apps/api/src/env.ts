@@ -13,6 +13,14 @@ const schema = z.object({
     .url({ protocol: /^https$/ })
     .refine((url) => !url.endsWith('/'), 'must not end with a slash')
     .default('https://standcast.usefachada.dev'),
+  APP_URL: z
+    .url()
+    .refine(
+      (url) => url.startsWith('https://') || /^http:\/\/localhost(:\d+)?$/.test(url),
+      'must be https, or http://localhost with an optional port',
+    )
+    .refine((url) => !url.endsWith('/'), 'must not end with a slash')
+    .default('https://app.standcast.app'),
   TRUST_PROXY: z
     .enum(['true', 'false'])
     .default('false')

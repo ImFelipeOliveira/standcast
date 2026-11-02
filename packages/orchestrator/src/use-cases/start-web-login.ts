@@ -13,12 +13,17 @@ export function sanitizeNext(next: string | undefined): string {
 
 export function startWebLogin(
   deps: Deps,
-  input: { next?: string },
+  input: { next?: string; target?: string },
 ): { url: string; nonce: string } {
   const nonce = newNonce();
   const state = signState(
     deps.env.sessionSecret,
-    { kind: 'login', next: sanitizeNext(input.next), nonceHash: hashNonce(nonce) },
+    {
+      kind: 'login',
+      next: sanitizeNext(input.next),
+      nonceHash: hashNonce(nonce),
+      target: input.target === 'app' ? 'app' : 'api',
+    },
     deps.now(),
   );
   return {

@@ -217,7 +217,10 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
   );
 
   app.get('/auth/github/login', (c) => {
-    const { url, nonce } = startWebLogin(deps, { next: c.req.query('next') });
+    const { url, nonce } = startWebLogin(deps, {
+      next: c.req.query('next'),
+      target: c.req.query('target'),
+    });
     setCookie(c, LOGIN_COOKIE, nonce, {
       httpOnly: true,
       secure: true,
@@ -229,7 +232,7 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
   });
 
   app.get('/auth/github/callback', async (c) => {
-    const { token, next } = await completeWebLogin(deps, {
+    const { token, next, target } = await completeWebLogin(deps, {
       code: c.req.query('code'),
       state: c.req.query('state'),
       nonce: getCookie(c, LOGIN_COOKIE),
@@ -243,7 +246,7 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       path: '/',
       maxAge: WEB_SESSION_SECONDS,
     });
-    return c.redirect(next);
+    return c.redirect(target === 'app' ? `${deps.env.appUrl}${next}` : next);
   });
 
   app.post('/logout', async (c) => {

@@ -19,6 +19,16 @@ const base = {
 };
 
 describe('parseEnv', () => {
+  test('APP_URL must be https without trailing slash', () => {
+    expect(parseEnv(base).APP_URL).toBe('https://app.standcast.app');
+    expect(parseEnv({ ...base, APP_URL: 'http://localhost:4173' }).APP_URL).toBe(
+      'http://localhost:4173',
+    );
+    for (const APP_URL of ['http://x', 'https://x/', 'http://localhost:4173/']) {
+      expect(() => parseEnv({ ...base, APP_URL }), APP_URL).toThrow();
+    }
+  });
+
   test('strips trailing slashes from PUBLIC_URL', () => {
     for (const raw of ['https://api.standcast.app/', 'https://api.standcast.app///']) {
       expect(parseEnv({ ...base, PUBLIC_URL: raw }).PUBLIC_URL).toBe('https://api.standcast.app');
