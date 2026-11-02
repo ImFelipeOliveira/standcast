@@ -26,6 +26,11 @@ describe('redact', () => {
     expect(redact('/q8Zx3kP0vLmN7wR2tYb9HcJ4sDfGa1eUoI5nQ')).toBe('[redacted]');
     expect(redact('otp JBSWY3DPEHPK3PXP4QZ7MNA2RCV6TLFG')).toBe('otp [redacted]');
     expect(redact('blob q8Zx/3kP0vLmN7wR2tYb+9HcJ4sDfGa1eUoI5nQ= end')).toBe('blob [redacted] end');
+    expect(
+      redact(
+        'jwt eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U end',
+      ),
+    ).toBe('jwt [redacted] end');
   });
 
   test('redacts secret segments inside paths', () => {
@@ -84,6 +89,7 @@ describe('redact', () => {
       '/home/dev/client-2024/project-alpha-v2',
     );
     expect(redactPath('feat/sk-abcdefghijklmnop1234')).toBe('feat/[redacted]');
+    expect(redactPath('fix/abcDEF123ghiJKL456mn')).toBe('fix/[redacted]');
     expect(redactPath('/srv/q8Zx3kP0vLmN7wR2tYb9HcJ4sDfGa1eUoI5nQ/app')).toBe(
       '/srv/[redacted]/app',
     );
@@ -128,6 +134,16 @@ describe('redact', () => {
     );
     expect(redact('very-long-hyphenated-compound-word-without-digits')).toBe(
       'very-long-hyphenated-compound-word-without-digits',
+    );
+  });
+
+  test('keeps ticket-style names', () => {
+    expect(redact('on feature/PROJ-4521-fix-login-redirect-loop now')).toBe(
+      'on feature/PROJ-4521-fix-login-redirect-loop now',
+    );
+    expect(redact('branch fel-12-login-flow-v2')).toBe('branch fel-12-login-flow-v2');
+    expect(redact('see release-2026-11-01-draft-from-sessions-rollout-plan')).toBe(
+      'see release-2026-11-01-draft-from-sessions-rollout-plan',
     );
   });
 

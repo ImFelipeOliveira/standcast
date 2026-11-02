@@ -62,7 +62,13 @@ function isPathLike(run: string): boolean {
   return signal && named;
 }
 
+function isWordRun(run: string): boolean {
+  const pieces = run.split(/[/\-_.]/).filter((piece) => piece.length > 0);
+  return pieces.length > 0 && pieces.every((piece) => WORD_PIECE.test(piece));
+}
+
 function looksLikeSecret(run: string): boolean {
+  if (isWordRun(run)) return false;
   return (run.match(/\d/g)?.length ?? 0) >= MIN_DIGITS && entropy(run) >= MIN_ENTROPY;
 }
 
