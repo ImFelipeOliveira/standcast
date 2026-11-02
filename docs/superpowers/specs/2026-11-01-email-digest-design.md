@@ -1,5 +1,7 @@
 # Email digest
 
+> **Phase 2 (Felipe, 2026-11-01).** This ships with the React web app, not before. The setup page "Email" section below becomes a screen of personal settings in that app; everything else in this design stands.
+
 ## Why
 
 Standcast is in public beta and needs more teams able to try it. Today the digest, the reminders and the forwarded blockers reach people only through Slack. Two kinds of teams are left out or underserved:
