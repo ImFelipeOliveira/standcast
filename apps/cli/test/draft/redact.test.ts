@@ -28,6 +28,31 @@ describe('redact', () => {
     expect(redact('blob q8Zx/3kP0vLmN7wR2tYb+9HcJ4sDfGa1eUoI5nQ= end')).toBe('blob [redacted] end');
   });
 
+  test('redacts secret segments inside paths', () => {
+    expect(redact('cat /tmp/ghp_AbCdEfGhIjKlMnOpQrStUvWxYz012345/file.txt')).toBe(
+      'cat /tmp/[redacted]/file.txt',
+    );
+    expect(redact('cat /tmp/Zq8Xv3Lm9Pw2Rt7Ky4Nb1Hc6/file.txt')).toBe(
+      'cat /tmp/[redacted]/file.txt',
+    );
+    expect(redact('use ~/keys/9fA3kQ7zLmP2xR8vT4wN1bY6cH5jD0sE.pem')).toBe('use ~/keys/[redacted]');
+    expect(redact('/srv/app/K7MDENG/releases/v2/index.ts')).toBe(
+      '/srv/app/K7MDENG/releases/v2/index.ts',
+    );
+  });
+
+  test('redacts secret values inside urls', () => {
+    expect(redact('go to https://x.test/cb?code=4f9Kq2LmZx81PwR7tY3v&state=ok now')).toBe(
+      'go to https://x.test/cb?code=[redacted]&state=ok now',
+    );
+    expect(redact('http://x.test/files/Zq8Xv3Lm9Pw2Rt7Ky4Nb1Hc6/raw?page=2')).toBe(
+      'http://x.test/files/[redacted]/raw?page=2',
+    );
+    expect(redact('https://github.com/acme/shop/pull/42?tab=files#diff-1')).toBe(
+      'https://github.com/acme/shop/pull/42?tab=files#diff-1',
+    );
+  });
+
   test('keeps ordinary text', () => {
     expect(redact('Fix the cart total rounding')).toBe('Fix the cart total rounding');
     expect(redact('sk-short')).toBe('sk-short');

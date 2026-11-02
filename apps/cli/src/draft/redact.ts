@@ -10,12 +10,15 @@ const TOKEN_PATTERNS = [
 ];
 
 const LONG_RUN = /[A-Za-z0-9+/=_.~-]{32,}/g;
+const URL_PATTERN = /https?:\/\/[^\s"'<>()[\]{}]+/g;
 const PATH_START = /^(\/|\.\/|~\/)/;
 const FILE_EXTENSION = /\.[A-Za-z0-9]{1,6}$/;
-const WORD_TOKEN = /^(\d+|[a-z]+\d*|[A-Z][a-z]*\d*|[A-Z]+\d*)$/;
-const MAX_DENSE_RATIO = 0.3;
+const WORD_PIECE = /^(\d+|[a-z]+\d*|[A-Z][a-z]*\d*|[A-Z]+\d*)$/;
+const PATH_MARKERS = new Set(['~', '.', '..']);
 const MIN_DIGITS = 1;
 const MIN_ENTROPY = 3.5;
+const MIN_SECRET_SEGMENT = 20;
+const MIN_SECRET_QUERY_VALUE = 16;
 
 function entropy(text: string): number {
   const counts = new Map<string, number>();
@@ -29,10 +32,22 @@ function entropy(text: string): number {
 }
 
 function isWordLike(segment: string): boolean {
-  const dense = segment.match(/[A-Z0-9]/g)?.length ?? 0;
-  if (dense / segment.length < MAX_DENSE_RATIO) return true;
-  const tokens = segment.split(/[-_.]/).filter((token) => token.length > 0);
-  return tokens.length > 0 && tokens.every((token) => WORD_TOKEN.test(token));
+  if (PATH_MARKERS.has(segment)) return true;
+  const pieces = segment.split(/[-_.]/).filter((piece) => piece.length > 0);
+  return pieces.length > 0 && pieces.every((piece) => WORD_PIECE.test(piece));
+}
+
+function isSecretSegment(segment: string): boolean {
+  return (
+    segment.length >= MIN_SECRET_SEGMENT && !isWordLike(segment) && entropy(segment) >= MIN_ENTROPY
+  );
+}
+
+function redactSegments(path: string): string {
+  return path
+    .split('/')
+    .map((segment) => (isSecretSegment(segment) ? MARK : segment))
+    .join('/');
 }
 
 function isPathLike(run: string): boolean {
@@ -40,17 +55,49 @@ function isPathLike(run: string): boolean {
   const last = segments.at(-1);
   if (!last) return false;
   const signal = PATH_START.test(run) || FILE_EXTENSION.test(last);
-  return signal && segments.every(isWordLike);
+  const named = segments.some((segment) => !PATH_MARKERS.has(segment) && isWordLike(segment));
+  return signal && named;
 }
 
 function looksLikeSecret(run: string): boolean {
-  return (
-    (run.match(/\d/g)?.length ?? 0) >= MIN_DIGITS && entropy(run) >= MIN_ENTROPY && !isPathLike(run)
-  );
+  return (run.match(/\d/g)?.length ?? 0) >= MIN_DIGITS && entropy(run) >= MIN_ENTROPY;
+}
+
+function redactRun(run: string): string {
+  if (isPathLike(run)) return redactSegments(run);
+  return looksLikeSecret(run) ? MARK : run;
+}
+
+function redactQuery(query: string): string {
+  return query
+    .split('&')
+    .map((pair) => {
+      const at = pair.indexOf('=');
+      if (at === -1) return pair;
+      const value = pair.slice(at + 1);
+      const secret = value.length >= MIN_SECRET_QUERY_VALUE && entropy(value) >= MIN_ENTROPY;
+      return secret ? `${pair.slice(0, at + 1)}${MARK}` : pair;
+    })
+    .join('&');
+}
+
+function redactUrl(url: string): string {
+  const hashAt = url.indexOf('#');
+  const beforeHash = hashAt === -1 ? url : url.slice(0, hashAt);
+  const fragment = hashAt === -1 ? '' : url.slice(hashAt);
+  const queryAt = beforeHash.indexOf('?');
+  const base = queryAt === -1 ? beforeHash : beforeHash.slice(0, queryAt);
+  const query = queryAt === -1 ? '' : beforeHash.slice(queryAt + 1);
+  const schemeEnd = base.indexOf('://') + 3;
+  const scheme = base.slice(0, schemeEnd);
+  const [host = '', ...segments] = base.slice(schemeEnd).split('/');
+  const path = [host, ...segments.map((s) => (isSecretSegment(s) ? MARK : s))].join('/');
+  return `${scheme}${path}${queryAt === -1 ? '' : `?${redactQuery(query)}`}${fragment}`;
 }
 
 export function redact(text: string): string {
   let out = text;
   for (const pattern of TOKEN_PATTERNS) out = out.replace(pattern, MARK);
-  return out.replace(LONG_RUN, (run) => (looksLikeSecret(run) ? MARK : run));
+  out = out.replace(URL_PATTERN, redactUrl);
+  return out.replace(LONG_RUN, redactRun);
 }
