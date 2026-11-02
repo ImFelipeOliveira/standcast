@@ -19,7 +19,7 @@ describe('redact', () => {
     expect(redact('token: aGVsbG8gd29ybGQgaGVsbG8gd29ybGQ1234== end')).toBe(
       'token: [redacted] end',
     );
-    expect(redact('sha 3f2a9c0b7d1e4f5a6b8c9d0e1f2a3b4c5d6e7f80')).toBe('sha [redacted]');
+    expect(redact('key 9fQx2LmZ7pRt4WvB8nKc3HdJ6sYa1GeU0iOb end')).toBe('key [redacted] end');
   });
 
   test('keeps ordinary text', () => {
@@ -29,5 +29,17 @@ describe('redact', () => {
     expect(redact('a'.repeat(40))).toBe('a'.repeat(40));
     expect(redact('1'.repeat(40))).toBe('1'.repeat(40));
     expect(redact('abc123')).toBe('abc123');
+    expect(redact('see apps/cli/src/v2/components/item42/view1234/index.ts')).toBe(
+      'see apps/cli/src/v2/components/item42/view1234/index.ts',
+    );
+    expect(redact('the release-2026-11-01-draft-from-sessions-rollout-plan')).toBe(
+      'the release-2026-11-01-draft-from-sessions-rollout-plan',
+    );
+    expect(redact('sha 3f2a9c0b7d1e4f5a6b8c9d0e1f2a3b4c5d6e7f80')).toBe(
+      'sha 3f2a9c0b7d1e4f5a6b8c9d0e1f2a3b4c5d6e7f80',
+    );
+    expect(redact('ABCDEFGHIJKLMNOPqrstuvwxyz12abcdefgh')).toBe(
+      'ABCDEFGHIJKLMNOPqrstuvwxyz12abcdefgh',
+    );
   });
 });

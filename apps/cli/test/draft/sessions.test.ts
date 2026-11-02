@@ -181,6 +181,65 @@ describe('readSessions', () => {
     expect(await readSessions({ dir, since, until, env: {} })).toEqual([]);
   });
 
+  test('skips interrupted markers', async () => {
+    const dir = await tempDir();
+    await mkdir(join(dir, 'proj'));
+    const lines = [
+      line({
+        type: 'user',
+        message: {
+          role: 'user',
+          content: [{ type: 'text', text: '[Request interrupted by user]' }],
+        },
+      }),
+      line({
+        type: 'user',
+        timestamp: '2026-10-31T08:01:00.000Z',
+        message: { role: 'user', content: '[Request interrupted by user for tool use]' },
+      }),
+      line({
+        type: 'user',
+        timestamp: '2026-10-31T08:02:00.000Z',
+        message: { role: 'user', content: 'Ship the fix' },
+      }),
+    ];
+    await writeFile(join(dir, 'proj', 's1.jsonl'), `${lines.join('\n')}\n`);
+    const [session] = await readSessions({ dir, since, until, env: {} });
+    expect(session?.prompts).toEqual(['Ship the fix']);
+  });
+
+  test('reads only the tail of large files', async () => {
+    const dir = await tempDir();
+    await mkdir(join(dir, 'proj'));
+    const lines: string[] = [];
+    for (let i = 0; i < 40; i++) {
+      lines.push(
+        line({
+          type: 'user',
+          timestamp: `2026-10-31T08:${String(i).padStart(2, '0')}:00.000Z`,
+          message: { role: 'user', content: `prompt ${String(i).padStart(2, '0')}` },
+        }),
+      );
+    }
+    const body = `${lines.join('\n')}\n`;
+    await writeFile(join(dir, 'proj', 's1.jsonl'), body);
+    const lineBytes = Buffer.byteLength(`${lines[0]}\n`);
+    const tailBytes = lineBytes * 3 + 10;
+
+    const [whole] = await readSessions(
+      { dir, since, until, env: {} },
+      { maxWholeBytes: body.length, tailBytes },
+    );
+    expect(whole?.prompts[0]).toBe('prompt 00');
+
+    const [tail] = await readSessions(
+      { dir, since, until, env: {} },
+      { maxWholeBytes: body.length - 1, tailBytes },
+    );
+    expect(tail?.prompts).toEqual(['prompt 37', 'prompt 38', 'prompt 39']);
+    expect(tail?.startedAt).toBe('2026-10-31T08:37:00.000Z');
+  });
+
   test('uses STANDCAST_CLAUDE_DIR when dir is not given', async () => {
     const sessions = await readSessions({
       since,

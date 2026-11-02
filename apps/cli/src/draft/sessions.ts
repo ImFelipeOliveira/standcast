@@ -21,6 +21,8 @@ type ReadSessionsInput = {
   env?: Record<string, string | undefined>;
 };
 
+type SessionFile = { path: string; size: number };
+
 type Accumulator = {
   id: string;
   titles: string[];
@@ -33,7 +35,13 @@ type Accumulator = {
   inWindow: boolean;
 };
 
-const MAX_FILE_BYTES = 50 * 1024 * 1024;
+export type SessionReadLimits = { maxWholeBytes: number; tailBytes: number };
+
+const DEFAULT_LIMITS: SessionReadLimits = {
+  maxWholeBytes: 50 * 1024 * 1024,
+  tailBytes: 20 * 1024 * 1024,
+};
+const INTERRUPTED = '[Request interrupted';
 const MAX_PROMPTS = 5;
 const MAX_PROMPT_CHARS = 300;
 const MAX_TITLE_CHARS = 120;
@@ -41,7 +49,10 @@ const MAX_FILES = 20;
 const FILE_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit']);
 const REMINDER = /<system-reminder>[\s\S]*?<\/system-reminder>/g;
 
-export async function readSessions(input: ReadSessionsInput): Promise<SessionSummary[]> {
+export async function readSessions(
+  input: ReadSessionsInput,
+  limits: SessionReadLimits = DEFAULT_LIMITS,
+): Promise<SessionSummary[]> {
   const env = input.env ?? process.env;
   if (env.STANDCAST_SESSIONS === 'off') return [];
   try {
@@ -49,7 +60,7 @@ export async function readSessions(input: ReadSessionsInput): Promise<SessionSum
     const window = { since: input.since.getTime(), until: input.until.getTime() };
     const sessions = new Map<string, Accumulator>();
     for (const file of await sessionFiles(dir, window.since)) {
-      await readFile(file, window, sessions);
+      await readFile(file, limits, window, sessions);
     }
     return [...sessions.values()]
       .map(summarize)
@@ -60,8 +71,8 @@ export async function readSessions(input: ReadSessionsInput): Promise<SessionSum
   }
 }
 
-async function sessionFiles(dir: string, since: number): Promise<string[]> {
-  const files: string[] = [];
+async function sessionFiles(dir: string, since: number): Promise<SessionFile[]> {
+  const files: SessionFile[] = [];
   for (const project of await safeReaddir(dir)) {
     const projectDir = join(dir, project);
     for (const name of await safeReaddir(projectDir)) {
@@ -69,12 +80,12 @@ async function sessionFiles(dir: string, since: number): Promise<string[]> {
       const path = join(projectDir, name);
       try {
         const info = await stat(path);
-        if (!info.isFile() || info.size > MAX_FILE_BYTES || info.mtimeMs < since) continue;
-        files.push(path);
+        if (!info.isFile() || info.mtimeMs < since) continue;
+        files.push({ path, size: info.size });
       } catch {}
     }
   }
-  return files.sort();
+  return files.sort((a, b) => a.path.localeCompare(b.path));
 }
 
 async function safeReaddir(dir: string): Promise<string[]> {
@@ -86,19 +97,30 @@ async function safeReaddir(dir: string): Promise<string[]> {
 }
 
 async function readFile(
-  path: string,
+  file: SessionFile,
+  limits: SessionReadLimits,
   window: { since: number; until: number },
   sessions: Map<string, Accumulator>,
 ): Promise<void> {
   try {
     const decoder = new TextDecoder();
+    const tail = file.size > limits.maxWholeBytes;
+    const source = tail
+      ? Bun.file(file.path).slice(file.size - limits.tailBytes, file.size)
+      : Bun.file(file.path);
+    let skipPartial = tail;
     let buffer = '';
-    for await (const chunk of Bun.file(path).stream()) {
+    for await (const chunk of source.stream()) {
       buffer += decoder.decode(chunk, { stream: true });
       const lines = buffer.split('\n');
       buffer = lines.pop() ?? '';
+      if (skipPartial && lines.length > 0) {
+        lines.shift();
+        skipPartial = false;
+      }
       for (const line of lines) handleLine(line, window, sessions);
     }
+    if (skipPartial) return;
     buffer += decoder.decode();
     handleLine(buffer, window, sessions);
   } catch {}
@@ -159,7 +181,7 @@ function promptText(content: unknown): string | null {
   } else if (Array.isArray(content)) {
     text = content
       .filter((b): b is { type: 'text'; text: string } => isRecord(b) && b.type === 'text')
-      .filter((b) => typeof b.text === 'string')
+      .filter((b) => typeof b.text === 'string' && !b.text.trimStart().startsWith(INTERRUPTED))
       .map((b) => b.text)
       .join('\n');
   } else {
@@ -167,6 +189,7 @@ function promptText(content: unknown): string | null {
   }
   const head = text.trimStart();
   if (head.startsWith('<command-') || head.startsWith('<local-command-')) return null;
+  if (head.startsWith(INTERRUPTED)) return null;
   const clean = text.replace(REMINDER, '').trim();
   return clean ? clean : null;
 }
