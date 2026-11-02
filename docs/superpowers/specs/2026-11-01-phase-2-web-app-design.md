@@ -34,10 +34,11 @@ Visual reference: **"Standcast — Painel v2"** (https://claude.ai/artifact/93d8
 ## Build order (each part ships on its own)
 
 1. **2a. Foundation and setup migration.** App shell, auth, org switcher, the setup screens (connections, config status, teams, failed deliveries, API keys, webhooks), redirect of the old `/setup`.
-2. **2b. Today.** The team's day, blocker lifecycle, support requests, "remind now".
-3. **2c. History.** Past digests, timeline with search, weekly shipped list, copy and export.
-4. **2d. Personal settings and email digest.** The approved email digest spec (`docs/superpowers/specs/2026-11-01-email-digest-design.md`) ships here; its setup "Email" section becomes a settings screen.
-5. **2e. Billing.** Per active person per month, only after the public beta ends (see the pricing decision in memory; out of scope for the first plans).
+2. **2a+. Draft from AI sessions (Felipe, 2026-11-01).** The `/daily` skill, MCP and CLI read the person's local Claude Code sessions (`~/.claude/projects/*.jsonl`) since the last workday and cross-reference them with the server draft: session → repository and git branch → pull request (by head branch) → Linear card (identifier in the branch name, PR title or body, or the link Linear adds to the PR). The draft then shows one item per piece of work ("Login simplificado (FEL-12, site#2914): opened the PR and adjusted the CPF and Pix flow"), with sessions that match no PR or card grouped by project. Everything runs on the person's machine: sessions never leave it, and only the daily text the person confirms reaches the server. Later: readers for Cursor and Codex sessions. Gets its own short spec and plan; touches no web app code.
+3. **2b. Today.** The team's day, blocker lifecycle, support requests, "remind now".
+4. **2c. History.** Past digests, timeline with search, weekly shipped list, copy and export.
+5. **2d. Personal settings and email digest.** The approved email digest spec (`docs/superpowers/specs/2026-11-01-email-digest-design.md`) ships here; its setup "Email" section becomes a settings screen.
+6. **2e. Billing.** Per active person per month, only after the public beta ends (see the pricing decision in memory; out of scope for the first plans).
 
 Support requests (`docs/superpowers/specs/2026-11-01-support-requests-design.md`) and the emoji labels are already built on `feat/support-requests` and merge before or with 2b.
 
