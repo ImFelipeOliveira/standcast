@@ -64,7 +64,14 @@ function looksLikeSecret(run: string): boolean {
 }
 
 function redactRun(run: string): string {
-  if (isPathLike(run)) return redactSegments(run);
+  if (isPathLike(run)) {
+    const segments = run.split('/').filter((segment) => segment.length > 0);
+    const redacted = redactSegments(run);
+    if (segments.every(isWordLike) || redacted !== run) return redacted;
+    return looksLikeSecret(segments.filter((segment) => !isWordLike(segment)).join(''))
+      ? MARK
+      : run;
+  }
   return looksLikeSecret(run) ? MARK : run;
 }
 

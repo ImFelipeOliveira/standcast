@@ -77,4 +77,11 @@ describe('redact', () => {
       'very-long-hyphenated-compound-word-without-digits',
     );
   });
+
+  test('redacts whole runs that mix word-like and random segments', () => {
+    expect(redact('key /abc/K7mDeNg9Xq/Zt4LpR2vW8yB/Qm3NxV7cD5hJ end')).toBe('key [redacted] end');
+    expect(redact('key /srv/app/wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY end')).toBe(
+      'key [redacted] end',
+    );
+  });
 });
