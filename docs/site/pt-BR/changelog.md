@@ -11,6 +11,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 ### Não lançado
 
 - O app web está no ar em [app-standcast.usefachada.dev](https://app-standcast.usefachada.dev), começando pela tela de Configuração. A página de setup renderizada pelo servidor continua funcionando.
+- Hoje no app web: um time no dia atual, com os impedimentos abertos e há quanto tempo estão abertos, pedidos de apoio, as dailies de hoje, o que foi entregue ontem e quem já enviou hoje. Gestores, admins e o autor podem resolver e reabrir um impedimento, e gestores e admins podem lembrar quem ainda não enviou. A tela não mostra métrica por pessoa nem histórico de quem não enviou. Veja [App web](/pt-BR/admin/web-app).
 - Pedidos de apoio: uma seção opcional da daily para o que você precisa de outra pessoa sem estar travado, como um review, uma decisão ou um pareamento. A skill `/daily`, o servidor MCP e a CLI perguntam por ela depois dos impedimentos, e o consolidado a mostra logo depois dos impedimentos, com quem pediu. Ela não é encaminhada por mensagem direta.
 - O consolidado e a daily atrasada marcam as seções com emoji para ficarem mais fáceis de ler no Slack: 📅 no título, 🗓️ Ontem, 🎯 Hoje, 🚧 Impedimentos, 🤝 Pedidos de apoio e ⏳ para quem não enviou. A confirmação mostrada antes de enviar a daily usa os mesmos rótulos.
 
