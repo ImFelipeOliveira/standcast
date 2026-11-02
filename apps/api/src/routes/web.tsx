@@ -29,6 +29,7 @@ import { z } from 'zod';
 import installScript from '../../../../scripts/install.sh' with { type: 'text' };
 import { STATUS } from '../http/errors';
 import { type GetClientIp, ipRateLimit } from '../middleware/rate-limit';
+import { WEB_COOKIE, WEB_COOKIE_PATH, WEB_SESSION_SECONDS } from '../middleware/web-session';
 import { ErrorPage } from '../web/error';
 import {
   FLASH_COOKIE,
@@ -41,12 +42,10 @@ import {
 import { PAGE_CSS } from '../web/layout';
 import { SetupPage } from '../web/setup';
 
-const COOKIE = 'sc_web';
 const LOGIN_COOKIE = 'sc_login';
 const LOGIN_COOKIE_PATH = '/auth/github';
 const LOGIN_NONCE_SECONDS = 600;
 const SIGN_IN_CODES = ['unauthorized', 'forbidden', 'invalid_state', 'access_denied'];
-const WEB_SESSION_SECONDS = 7 * 24 * 60 * 60;
 export const WEB_IP_LIMIT = 60;
 const RESYNC_CODES = ['forbidden', 'installation_pending'];
 const PAGE_PATHS = ['/setup/*', '/connect/*', '/auth/*', '/oauth/*', '/logout'];
@@ -96,7 +95,7 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
   for (const path of PAGE_PATHS) app.use(path, pageHeaders, limit);
 
   const readSession = async (c: Context): Promise<Session | null> => {
-    const token = getCookie(c, COOKIE);
+    const token = getCookie(c, WEB_COOKIE);
     const member = token ? await resolveSession(deps.db, token, 'web') : null;
     return token && member ? { token, member } : null;
   };
@@ -239,11 +238,11 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       error: c.req.query('error'),
     });
     deleteCookie(c, LOGIN_COOKIE, { path: LOGIN_COOKIE_PATH, secure: true });
-    setCookie(c, COOKIE, token, {
+    setCookie(c, WEB_COOKIE, token, {
       httpOnly: true,
       secure: true,
       sameSite: 'Lax',
-      path: '/',
+      path: WEB_COOKIE_PATH,
       maxAge: WEB_SESSION_SECONDS,
     });
     return c.redirect(target === 'app' ? `${deps.env.appUrl}${next}` : next);
@@ -254,13 +253,13 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       throw new DomainError('forbidden', 'cross-site request');
     }
     c.header('Cache-Control', 'no-store');
-    if (!getCookie(c, COOKIE)) return c.redirect('/', 303);
+    if (!getCookie(c, WEB_COOKIE)) return c.redirect('/', 303);
     const session = await readSession(c);
     if (session) {
       await readForm(c, session);
       await logoutWebSession(deps, session.token);
     }
-    deleteCookie(c, COOKIE, { path: '/', secure: true });
+    deleteCookie(c, WEB_COOKIE, { path: WEB_COOKIE_PATH, secure: true });
     return c.redirect('/', 303);
   });
 
