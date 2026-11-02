@@ -32,15 +32,17 @@ export function getLang(): Lang {
   return current;
 }
 
-export function setLang(lang: Lang): void {
+export function applyLang(lang: Lang): void {
   current = lang;
-  try {
-    localStorage.setItem(STORAGE_KEY, lang);
-  } catch {
-    void 0;
-  }
   if (typeof document !== 'undefined') document.documentElement.lang = lang;
   for (const listener of listeners) listener();
+}
+
+export function setLang(lang: Lang): void {
+  applyLang(lang);
+  try {
+    localStorage.setItem(STORAGE_KEY, lang);
+  } catch {}
 }
 
 function subscribe(listener: () => void): () => void {

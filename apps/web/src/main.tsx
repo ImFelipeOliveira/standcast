@@ -1,29 +1,28 @@
+import { QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { getLang, setLang, useT } from './i18n';
+import { createQueryClient } from './api/queries';
+import { applyLang, getLang } from './i18n';
+import { createAppRouter } from './router';
 import './styles.css';
 import { applyTheme, initialTheme, readStoredTheme } from './theme';
 
 applyTheme(
   initialTheme(readStoredTheme(), window.matchMedia('(prefers-color-scheme: dark)').matches),
 );
-setLang(getLang());
+applyLang(getLang());
 
-function App() {
-  const t = useT();
-  return (
-    <main className="p-6">
-      <h1 className="font-brand text-2xl text-ink">{t('app.name')}</h1>
-      <p className="text-muted">{t('app.tagline')}</p>
-    </main>
-  );
-}
+const queryClient = createQueryClient();
+const router = createAppRouter(queryClient);
 
 const root = document.getElementById('root');
 if (root) {
   createRoot(root).render(
     <StrictMode>
-      <App />
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
     </StrictMode>,
   );
 }

@@ -89,6 +89,8 @@
   --amber-line: #fde68a;
   --amber-ink: #92400e;
   --mark: #3b4bc8;
+  --on-accent: #ffffff;
+  --overlay: rgb(18 20 40 / 0.5);
   color-scheme: light;
 }
 
@@ -131,7 +133,13 @@
   --amber-line: #5a4a1a;
   --amber-ink: #f2c46b;
   --mark: #8c98f0;
+  --on-accent: #ffffff;
+  --overlay: rgb(0 0 0 / 0.6);
   color-scheme: dark;
+}
+
+@theme {
+  --breakpoint-desk: 900px;
 }
 
 @theme inline {
@@ -173,6 +181,8 @@
   --color-amber-line: var(--amber-line);
   --color-amber-ink: var(--amber-ink);
   --color-mark: var(--mark);
+  --color-on-accent: var(--on-accent);
+  --color-overlay: var(--overlay);
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --font-brand: "Saira", "Inter", sans-serif;

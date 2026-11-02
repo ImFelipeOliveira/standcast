@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test';
-import { applyTheme, initialTheme } from './theme';
+import { applyTheme, chooseTheme, getTheme, initialTheme } from './theme';
 
 describe('initialTheme', () => {
   test('stored value wins over the system preference', () => {
@@ -28,7 +28,7 @@ describe('applyTheme', () => {
     else Reflect.deleteProperty(globalThis, 'localStorage');
   });
 
-  test('applyTheme survives a throwing localStorage', () => {
+  function stubDocument(): Record<string, string> {
     const attributes: Record<string, string> = {};
     globalThis.document = {
       documentElement: {
@@ -37,15 +37,41 @@ describe('applyTheme', () => {
         },
       },
     } as unknown as Document;
+    return attributes;
+  }
+
+  function stubStorage(setItem: (key: string, value: string) => void): void {
     Object.defineProperty(globalThis, 'localStorage', {
       configurable: true,
-      value: {
-        setItem: () => {
-          throw new Error('blocked');
-        },
-      },
+      value: { setItem, getItem: () => null },
     });
-    expect(() => applyTheme('dark')).not.toThrow();
+  }
+
+  test('applyTheme only sets data-theme and never persists', () => {
+    const attributes = stubDocument();
+    const written: string[] = [];
+    stubStorage((key, value) => written.push(`${key}=${value}`));
+    applyTheme('dark');
+    expect(attributes['data-theme']).toBe('dark');
+    expect(getTheme()).toBe('dark');
+    expect(written).toEqual([]);
+  });
+
+  test('chooseTheme persists the choice', () => {
+    const attributes = stubDocument();
+    const written: string[] = [];
+    stubStorage((key, value) => written.push(`${key}=${value}`));
+    chooseTheme('light');
+    expect(attributes['data-theme']).toBe('light');
+    expect(written).toEqual(['standcast.theme=light']);
+  });
+
+  test('chooseTheme survives a throwing localStorage', () => {
+    const attributes = stubDocument();
+    stubStorage(() => {
+      throw new Error('blocked');
+    });
+    expect(() => chooseTheme('dark')).not.toThrow();
     expect(attributes['data-theme']).toBe('dark');
   });
 });
