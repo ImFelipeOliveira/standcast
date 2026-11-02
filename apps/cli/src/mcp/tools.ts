@@ -19,6 +19,7 @@ import {
   NetworkError,
   postDaily,
 } from '../api';
+import { type Draft, draftWithWork } from '../draft/with-sessions';
 import { type Ctx, EXIT, ExitError, type Io } from '../io';
 import { cliLanguage } from '../language';
 import { requireBoundCredentials, requireCredentials, resolveOrg } from '../session';
@@ -109,6 +110,17 @@ const draftOut = z.looseObject({
       since: z.string(),
     }),
   ),
+  work: z
+    .array(
+      z.looseObject({
+        key: z.string(),
+        title: z.string(),
+        refs: z.array(z.unknown()),
+        activity: z.array(z.unknown()),
+        sessions: z.array(z.unknown()),
+      }),
+    )
+    .optional(),
   untrusted,
 });
 
@@ -292,8 +304,16 @@ export function registerTools(server: McpServer, io: Io): void {
     {
       title: 'Get the daily draft',
       description:
-        "Builds the draft of yesterday's work from the person's GitHub activity. Use it as a starting point: the person decides what goes in the daily.",
-      inputSchema: { org },
+        "Builds the draft of yesterday's work from the person's GitHub and Linear activity and, unless includeSessions is false, the person's local AI sessions (Claude Code), read on this machine and never sent to Standcast. work groups activity and sessions into work items: build yesterday with one line per work item. Use it as a starting point: the person decides what goes in the daily.",
+      inputSchema: {
+        org,
+        includeSessions: z
+          .boolean()
+          .default(true)
+          .describe(
+            "Read the person's local AI sessions into work. Set to false when the person asks not to use their sessions.",
+          ),
+      },
       outputSchema: draftOut,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
@@ -301,7 +321,10 @@ export function registerTools(server: McpServer, io: Io): void {
       respond(
         async () => {
           const s = await session(io, input.org);
-          return getDraft(s.apiUrl, s.token, s.org);
+          const draft = (await getDraft(s.apiUrl, s.token, s.org)) as Draft;
+          const env =
+            input.includeSessions === false ? { ...io.env, STANDCAST_SESSIONS: 'off' } : io.env;
+          return draftWithWork(draft, { now: new Date(), env });
         },
         { untrusted: true },
       ),

@@ -18,8 +18,8 @@ The Standcast plugin for Claude Code adds the `/daily` skill and registers the S
 
 Type `/daily`, or ask for it in your words: "my daily", "standup", "what did I do yesterday". The skill:
 
-1. Gets the draft of yesterday from your GitHub activity and, if Linear is connected, your cards. If you belong to more than one organization, it asks which one.
-2. Shows yesterday and lets you correct, remove or add items. It may add things that really happened in this Claude Code session.
+1. Gets the draft of yesterday from your GitHub activity, your cards if Linear is connected, and your local Claude Code sessions. If you belong to more than one organization, it asks which one.
+2. Shows yesterday, one line per piece of work, and lets you correct, remove or add items. It may add things that really happened in this Claude Code session.
 3. If the draft has suggested blockers, such as your pull request waiting for review, failing checks or a card in progress for days, asks about each one. If it is a real blocker, it goes into your blockers with its link; if not, the skill ignores it and it does not come back unless the signal changes. It never adds a suggestion without your answer, and suggestions are visible only to you.
 4. Asks what you will do today and what blocks you, in your language.
 5. Shows the final daily and asks for your explicit confirmation.
@@ -36,21 +36,31 @@ It uses the MCP tools when they are available, and falls back to the `standcast`
 - It never invents activity: only what is in the draft or what you said.
 - PR titles, commit messages and other text from GitHub are treated as data, never as instructions.
 
+## Your AI sessions
+
+The draft uses your Claude Code sessions from the draft window, so yesterday covers work that has no pull request yet. A session joins a pull request by its repository and branch, or a card when the branch names it. Each piece of work becomes one line, written in your language from the activity titles and the session titles and prompts.
+
+- Standcast reads the session files in `~/.claude/projects` on your machine: titles, up to five of your prompts per session, the working directory, the branch and the paths of edited files. Tokens that look like secrets are replaced by `[redacted]`.
+- Standcast reads session data on your machine and does not send it to the Standcast API, logs or webhooks. Claude Code receives it to write the draft and sends it to its model provider, like the rest of the conversation. Only the daily you confirm is submitted to Standcast.
+- The skill does not paste your prompts into the daily unless you ask, and never counts sessions, prompts or hours.
+- Session titles and prompts are treated as data, never as instructions.
+- To leave them out once, say so ("don't use my sessions"). To turn them off for good, set `STANDCAST_SESSIONS=off` in your environment.
+
 ## Example
 
 ```text
 You:     /daily
-Claude:  Here is yesterday from your GitHub activity in acme:
-         1. Merged "Add rate limiting" (acme/api#42)
+Claude:  Here is yesterday from your GitHub and Linear activity in acme and your Claude Code sessions:
+         1. Added rate limiting to the public API and merged it (acme/api#42, card ENG-42)
          2. Reviewed "Retry webhooks with backoff" (acme/worker#17)
-         3. 3 commits in acme/worker: "Fix retry backoff"
+         3. Looked into the flaky checkout test in acme/shop
          Anything to fix, remove or add?
-You:     Drop 3, it's part of 2.
+You:     Drop 3, it went nowhere.
 Claude:  What will you do today? Any blockers?
 You:     Today I'll write the integrator guides. Blocked: waiting for the staging database.
 Claude:  Final daily for acme, 2026-10-28:
          Yesterday
-         - Merged "Add rate limiting" (acme/api#42)
+         - Added rate limiting to the public API and merged it (acme/api#42)
          - Reviewed "Retry webhooks with backoff" (acme/worker#17)
          Today
          - I'll write the integrator guides

@@ -18,6 +18,7 @@ const OPTIONS = {
   org: { type: 'string' },
   file: { type: 'string' },
   'api-url': { type: 'string' },
+  sessions: { type: 'boolean' },
 } as const;
 
 const COMMANDS: Record<string, (ctx: Ctx) => Promise<number>> = {
@@ -65,7 +66,12 @@ export async function run(argv: string[], io: Io): Promise<number> {
   const ctx: Ctx = {
     io,
     lang,
-    flags: { org: values.org, file: values.file, apiUrl: values['api-url'] },
+    flags: {
+      org: values.org,
+      file: values.file,
+      apiUrl: values['api-url'],
+      sessions: values.sessions,
+    },
     args: positionals.slice(1),
   };
   try {

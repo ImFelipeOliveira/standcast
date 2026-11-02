@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test';
+import { Octokit } from '@octokit/core';
 import { hasUnsafeChars } from '@standcast/core';
 import { listActivity } from '../src/activity';
-import { type Call, fixture, octokitWith } from './helpers';
+import { type Call, fakeFetch, fixture, octokitWith } from './helpers';
 
 function searchQueries(calls: Call[]): string[] {
   return calls
@@ -153,4 +154,65 @@ describe('listActivity', () => {
     expect(commits?.title.startsWith('Commit y')).toBe(true);
     expect(commits?.title.endsWith('…')).toBe(true);
   });
+
+  test('pull request items carry their head branch', async () => {
+    const { octokit } = octokitWith({
+      ...routes(),
+      'GET /repos/acme/api/pulls/1': { body: JSON.stringify({ head: { ref: 'fel-12-login' } }) },
+    });
+    const items = await listActivity(octokit, 'acme', 'alice', since);
+    const pulls = items.filter((i) => i.url === 'https://github.com/acme/api/pull/1');
+    expect(pulls.length).toBeGreaterThan(0);
+    for (const item of pulls) expect(item.branch).toBe('fel-12-login');
+  });
+
+  test('branch lookup is capped at 20 pulls', async () => {
+    const hits = Array.from({ length: 25 }, (_, i) => ({
+      title: `PR ${i + 1}`,
+      html_url: `https://github.com/acme/api/pull/${i + 1}`,
+      repository_url: 'https://api.github.com/repos/acme/api',
+      created_at: new Date(Date.UTC(2026, 9, 28, 10, i)).toISOString(),
+      pull_request: { merged_at: null },
+    }));
+    const { octokit, calls } = octokitWith({
+      'GET /search/issues': (url: URL) => {
+        const q = url.searchParams.get('q') ?? '';
+        const body = q.includes('is:merged') || q.includes('reviewed-by:') ? [] : hits;
+        return { body: JSON.stringify({ items: body }) };
+      },
+      'GET /search/commits': { body: JSON.stringify({ items: [] }) },
+      'GET /users/acme': { body: JSON.stringify({ type: 'Organization' }) },
+    });
+    await listActivity(octokit, 'acme', 'alice', since);
+    expect(calls.filter((c) => c.url.pathname.includes('/pulls/'))).toHaveLength(20);
+  });
+
+  test('a failed branch lookup leaves branch out', async () => {
+    const { octokit } = octokitWith({
+      ...routes(),
+      'GET /repos/acme/api/pulls/1': { status: 500, body: JSON.stringify({ message: 'boom' }) },
+    });
+    const items = await listActivity(octokit, 'acme', 'alice', since);
+    const pulls = items.filter((i) => i.url === 'https://github.com/acme/api/pull/1');
+    expect(pulls.length).toBeGreaterThan(0);
+    for (const item of pulls) expect('branch' in item).toBe(false);
+  });
+  test('a hung branch lookup is dropped after the timeout', async () => {
+    const fake = fakeFetch(routes());
+    const hanging = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : String(input));
+      if (!url.pathname.includes('/pulls/')) return fake.fetch(input, init);
+      const signal = init?.signal ?? (input instanceof Request ? input.signal : undefined);
+      return new Promise<Response>((_, reject) => {
+        signal?.addEventListener('abort', () => reject(signal.reason));
+      });
+    }) as typeof fetch;
+    const octokit = new Octokit({ request: { fetch: hanging } });
+    const started = Date.now();
+    const items = await listActivity(octokit, 'acme', 'alice', since);
+    expect(Date.now() - started).toBeLessThan(6000);
+    const pulls = items.filter((i) => i.kind === 'pr_opened' || i.kind === 'pr_merged');
+    expect(pulls.length).toBeGreaterThan(0);
+    for (const item of pulls) expect('branch' in item).toBe(false);
+  }, 8000);
 });

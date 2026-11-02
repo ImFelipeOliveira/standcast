@@ -10,6 +10,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- The daily draft can use your local AI sessions: `standcast draft --sessions`, the MCP `standcast_get_draft` tool (`includeSessions`, on by default) and the `/daily` skill read your Claude Code sessions on your machine and group them with your pull requests, cards and commits into `work`, so yesterday becomes one line per piece of work. Standcast never sends session data to its API; your AI client receives it and may send it to its model provider. Turn it off with `STANDCAST_SESSIONS=off`. See [Privacy](/privacy#your-ai-sessions-on-your-machine).
 - The setup page warns when a team's Slack channel is missing or the bot is not in it; digest links no longer unfold into previews and show a short label (repo#123, FEL-12); a pull request opened and merged in the same window appears once in the draft.
 - The web app is live at [app-standcast.usefachada.dev](https://app-standcast.usefachada.dev), starting with the setup screen. The server-rendered setup page still works.
 

@@ -1,0 +1,2 @@
+{"type":"user","sessionId":"b2","timestamp":"2026-10-29T10:00:00.000Z","cwd":"/home/dev/shop","gitBranch":"main","message":{"role":"user","content":"A session entirely before the window"}}
+{"type":"ai-title","aiTitle":"Old session","sessionId":"b2"}
