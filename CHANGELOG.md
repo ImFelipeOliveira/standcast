@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.4.0...standcast-v0.4.1) (2026-11-02)
+
+
+### Documentation
+
+* 0.4.0 changelog entries ([65d4618](https://github.com/ImFelipeOliveira/standcast/commit/65d46181261868d600e459a5965f6978eee67fba))
+* 0.4.0 changelog entries ([#52](https://github.com/ImFelipeOliveira/standcast/issues/52)) ([6f15c49](https://github.com/ImFelipeOliveira/standcast/commit/6f15c49f75138b0447b61af73d301db006893687))
+
 ## [0.4.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.3.1...standcast-v0.4.0) (2026-11-02)
 
 
