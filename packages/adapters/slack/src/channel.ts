@@ -1,5 +1,5 @@
 import { WebClient, type WebClientOptions } from '@slack/web-api';
-import type { ChatChannel, Message, MessageRef } from '@standcast/core';
+import type { ChannelCheck, ChatChannel, Message, MessageRef } from '@standcast/core';
 import { ChatDeliveryError, mapSlackErrors } from './errors';
 import { renderSlack } from './render';
 
@@ -27,28 +27,37 @@ export function createSlackChannel(
   const now = opts.now ?? Date.now;
   const channelIds = new Map<string, string>();
 
+  let listing: Promise<void> | undefined;
+
+  async function listChannels(): Promise<void> {
+    const startedAt = now();
+    let cursor: string | undefined;
+    do {
+      if (now() - startedAt > CHANNEL_LOOKUP_BUDGET_MS) {
+        channelIds.clear();
+        throw new ChatDeliveryError('timeout', 'channel lookup took too long');
+      }
+      const res = await client.conversations.list({
+        types: 'public_channel,private_channel',
+        exclude_archived: true,
+        limit: 200,
+        cursor,
+      });
+      for (const c of res.channels ?? []) {
+        if (c.id && c.name) channelIds.set(c.name, c.id);
+      }
+      cursor = res.response_metadata?.next_cursor || undefined;
+    } while (cursor);
+  }
+
   async function resolveChannel(channel: string): Promise<string> {
     if (!channel.startsWith('#')) return channel;
     const name = channel.slice(1);
-    if (channelIds.size === 0) {
-      const startedAt = now();
-      let cursor: string | undefined;
-      do {
-        if (now() - startedAt > CHANNEL_LOOKUP_BUDGET_MS) {
-          channelIds.clear();
-          throw new ChatDeliveryError('timeout', 'channel lookup took too long');
-        }
-        const res = await client.conversations.list({
-          types: 'public_channel,private_channel',
-          exclude_archived: true,
-          limit: 200,
-          cursor,
-        });
-        for (const c of res.channels ?? []) {
-          if (c.id && c.name) channelIds.set(c.name, c.id);
-        }
-        cursor = res.response_metadata?.next_cursor || undefined;
-      } while (cursor);
+    if (channelIds.size === 0 || listing) {
+      listing ??= listChannels().finally(() => {
+        listing = undefined;
+      });
+      await listing;
     }
     const id = channelIds.get(name);
     if (!id) throw new ChatDeliveryError('channel_not_found', `channel not found: ${channel}`);
@@ -62,11 +71,25 @@ export function createSlackChannel(
       text: rendered.text,
       blocks: rendered.blocks as never,
       thread_ts: threadTs,
+      unfurl_links: false,
+      unfurl_media: false,
     });
     if (!res.ts || !res.channel) {
       throw new ChatDeliveryError('invalid_response', 'slack response missing ts or channel');
     }
     return { channel: res.channel, id: res.ts };
+  }
+
+  async function checkChannel(channel: string): Promise<ChannelCheck> {
+    try {
+      const id = await mapSlackErrors(() => resolveChannel(channel));
+      const res = await mapSlackErrors(() => client.conversations.info({ channel: id }));
+      if (res.channel?.is_archived) return 'not_found';
+      return res.channel?.is_private && res.channel.is_member === false ? 'not_member' : 'ok';
+    } catch (e) {
+      if (e instanceof ChatDeliveryError && e.code === 'channel_not_found') return 'not_found';
+      throw e;
+    }
   }
 
   return {
@@ -90,5 +113,6 @@ export function createSlackChannel(
         throw e;
       }
     },
+    checkChannel,
   };
 }

@@ -10,6 +10,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- A página de setup avisa quando o canal do Slack de um time não existe ou o bot não está nele; os links do consolidado não abrem mais prévias e mostram um rótulo curto (repo#123, FEL-12); um pull request aberto e mergeado na mesma janela aparece uma vez só no rascunho.
 - O app web está no ar em [app-standcast.usefachada.dev](https://app-standcast.usefachada.dev), começando pela tela de Configuração. A página de setup renderizada pelo servidor continua funcionando.
 
 ### 0.3.1 — 01/11/2026
