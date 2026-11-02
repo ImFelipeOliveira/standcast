@@ -34,5 +34,9 @@ export const ptBR = {
   'error.title': 'Algo deu errado',
   'error.body': 'Não foi possível carregar esta tela. Tente de novo em instantes.',
   'error.retry': 'Tentar de novo',
+  'signOut.failed': 'Não foi possível sair agora. Tente de novo em instantes.',
+  'signedOut.title': 'Você saiu do Standcast.',
+  'signedOut.signIn': 'Entrar de novo',
+  'signedOut.docs': 'Ler a documentação',
   'dialog.close': 'Fechar',
 } as const;

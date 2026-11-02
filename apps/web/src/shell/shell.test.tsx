@@ -3,10 +3,13 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { OrgContext, Session } from '../api/client';
-import { createQueryClient, orgContextQuery } from '../api/queries';
+import { apiUrl } from '../api/client';
+import { createQueryClient, orgContextQuery, sessionQuery } from '../api/queries';
 import { applyLang } from '../i18n';
 import { createAppRouter } from '../router';
 import { OrgSelect } from './OrgSelect';
+import { signOut } from './sign-out';
+import { SignOutError } from './UserMenu';
 
 const originalFetch = globalThis.fetch;
 
@@ -34,6 +37,10 @@ function stubFetch(body: Session): void {
 
 async function renderAt(path: string, body: Session = session) {
   stubFetch(body);
+  return renderWithCurrentFetch(path);
+}
+
+async function renderWithCurrentFetch(path: string) {
   const queryClient = createQueryClient();
   queryClient.setQueryData(orgContextQuery(11).queryKey, context);
   const router = createAppRouter(queryClient, {
@@ -48,7 +55,7 @@ async function renderAt(path: string, body: Session = session) {
       <RouterProvider router={router} />
     </QueryClientProvider>,
   );
-  return { html, router };
+  return { html, router, queryClient };
 }
 
 function navLinks(html: string): string[] {
@@ -132,5 +139,64 @@ describe('shell', () => {
     ]);
     expect(html).toMatch(/<option value="12" selected="">Beta-Labs<\/option>/);
     expect(html).toContain('Organização');
+  });
+
+  test('signed-out page makes no api calls', async () => {
+    const fetchMock = mock(async () => Response.json(session));
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    const { html, router } = await renderWithCurrentFetch('/signed-out');
+    expect(router.state.location.pathname).toBe('/signed-out');
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(html).toContain('Você saiu do Standcast.');
+    expect(html).toContain(
+      `href="${apiUrl}/auth/github/login?target=app&amp;next=${encodeURIComponent('/')}"`,
+    );
+    expect(html).toContain('Entrar de novo');
+  });
+
+  test('sign out goes to the signed-out page', async () => {
+    const { router, queryClient } = await renderAt('/orgs/11/hoje');
+    const calls: string[] = [];
+    globalThis.fetch = mock(async (input: RequestInfo | URL, init?: RequestInit) => {
+      calls.push(`${init?.method ?? 'GET'} ${String(input)}`);
+      if (String(input).endsWith('/v1/app/logout')) return new Response(null, { status: 204 });
+      return Response.json(session);
+    }) as unknown as typeof fetch;
+    const ok = await signOut({
+      queryClient,
+      goToSignedOut: () => {
+        void router.navigate({ to: '/signed-out', replace: true });
+      },
+    });
+    expect(ok).toBe(true);
+    for (let i = 0; i < 50 && router.state.location.pathname !== '/signed-out'; i++) {
+      await Bun.sleep(10);
+    }
+    expect(calls).toContain(`POST ${apiUrl}/v1/app/logout`);
+    expect(router.state.location.pathname).toBe('/signed-out');
+    expect(queryClient.getQueryData(sessionQuery.queryKey)).toBeUndefined();
+  });
+
+  test('logout failure shows an error', async () => {
+    const { router, queryClient } = await renderAt('/orgs/11/hoje');
+    globalThis.fetch = mock(async (input: RequestInfo | URL) =>
+      String(input).endsWith('/v1/app/logout')
+        ? Response.json({ error: { code: 'internal', message: 'boom' } }, { status: 500 })
+        : Response.json(session),
+    ) as unknown as typeof fetch;
+    let navigated = false;
+    const ok = await signOut({
+      queryClient,
+      goToSignedOut: () => {
+        navigated = true;
+      },
+    });
+    expect(ok).toBe(false);
+    expect(navigated).toBe(false);
+    expect(router.state.location.pathname).toBe('/orgs/11/hoje');
+    expect(queryClient.getQueryData(sessionQuery.queryKey)).toEqual(session);
+    const html = renderToStaticMarkup(<SignOutError />);
+    expect(html).toContain('role="alert"');
+    expect(html).toContain('Não foi possível sair agora.');
   });
 });

@@ -36,5 +36,9 @@ export const en: Record<MessageKey, string> = {
   'error.title': 'Something went wrong',
   'error.body': 'This screen could not load. Try again in a moment.',
   'error.retry': 'Try again',
+  'signOut.failed': 'Could not sign out right now. Try again in a moment.',
+  'signedOut.title': 'You signed out of Standcast.',
+  'signedOut.signIn': 'Sign in again',
+  'signedOut.docs': 'Read the docs',
   'dialog.close': 'Close',
 };

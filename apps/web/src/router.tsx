@@ -11,6 +11,7 @@ import { sessionQuery } from './api/queries';
 import { ComingSoon } from './pages/ComingSoon';
 import { NoInstallations } from './pages/NoInstallations';
 import { Loading, NotFound, RouteError } from './pages/RouteStates';
+import { SignedOut } from './pages/SignedOut';
 import { AppShell } from './shell/AppShell';
 
 type RouterContext = { queryClient: QueryClient };
@@ -57,6 +58,12 @@ const setupRoute = createRoute({
       replace: true,
     });
   },
+});
+
+const signedOutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/signed-out',
+  component: SignedOut,
 });
 
 const orgRoute = createRoute({
@@ -120,6 +127,7 @@ const configuracaoRoute = createRoute({
 export const routeTree = rootRoute.addChildren([
   indexRoute,
   setupRoute,
+  signedOutRoute,
   orgRoute.addChildren([orgIndexRoute, hojeRoute, historicoRoute, configuracaoRoute]),
 ]);
 

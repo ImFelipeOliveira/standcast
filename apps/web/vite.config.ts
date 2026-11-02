@@ -12,7 +12,6 @@ export default defineConfig({
       '/auth': api,
       '/oauth': api,
       '/connect': api,
-      '/setup': api,
     },
   },
   build: { outDir: 'dist' },
