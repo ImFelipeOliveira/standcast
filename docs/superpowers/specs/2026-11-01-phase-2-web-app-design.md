@@ -62,7 +62,7 @@ Support requests (`docs/superpowers/specs/2026-11-01-support-requests-design.md`
 - **Local development.** The Vite dev server proxies `/v1`, `/auth` and `/oauth` to the local API, so the app and the API share an origin in development and the cookie works over http (the API already relaxes `Secure` outside production; keep that). Component and use-case tests run in CI; one end-to-end smoke test (Playwright) runs against the local API with a session created directly in the test database, without real GitHub OAuth.
 - App and API are same-site (both under `usefachada.dev`, later both under `standcast.app`), so `fetch(..., { credentials: 'include' })` carries the cookie. The API answers CORS only for `APP_URL` with credentials.
 - State-changing requests from the app require the existing CSRF token (`csrfToken`), returned by `GET /v1/app/session` and sent in an `X-Standcast-CSRF` header, plus an `Origin` equal to `APP_URL`.
-- New env var `APP_URL` on the api (https, no trailing slash, default `https://app.standcast.app`).
+- New env var `APP_URL` on the api (https, no trailing slash; required, no default).
 - A new route group `/v1/app/*`, session-cookie auth, internal (not in the public OpenAPI document, like `/v1/draft`). Routes stay thin and call use cases. Existing use cases are reused wherever they exist (`getSetupStatus`, API key and webhook use cases, `listOrgDailies`, `listOrgBlockers`, `listOrgDigests`, manager visibility rules from `readable-teams`/`list-managed`).
 
 ### Who sees what
