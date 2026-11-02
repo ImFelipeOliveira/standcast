@@ -1,4 +1,4 @@
-import type { ConfigError, StandcastConfig } from '@standcast/core';
+import type { ChannelCheck, ConfigError, StandcastConfig } from '@standcast/core';
 import {
   type ApiKeySummary,
   getConnection,
@@ -124,6 +124,58 @@ async function safeTeamNotices(
   );
 }
 
+const CHANNEL_NOTICES: Record<Exclude<ChannelCheck, 'ok'>, TeamNotice['kind']> = {
+  not_found: 'channel_not_found',
+  not_member: 'channel_not_member',
+};
+
+async function channelNotices(
+  deps: Deps,
+  installationId: number,
+  config: StandcastConfig,
+): Promise<TeamNotice[]> {
+  const teams = config.teams.filter((team) => team.chat.provider === 'slack' && team.chat.channel);
+  if (teams.length === 0) return [];
+  const chat = await deps.chatFor(installationId, 'slack');
+  if (!chat) return [];
+  const channels = [...new Set(teams.map((team) => team.chat.channel))];
+  const checks = await Promise.all(
+    channels.map((channel) =>
+      guarded<ChannelCheck | null>(
+        chat.checkChannel(channel),
+        null,
+        TEAM_NOTICES_TIMEOUT_MS,
+        'setup channel check failed',
+        { installationId: String(installationId), channel },
+      ),
+    ),
+  );
+  const results = new Map<string, ChannelCheck | null>();
+  channels.forEach((channel, i) => {
+    results.set(channel, checks[i] ?? null);
+  });
+  return teams.flatMap((team) => {
+    const result = results.get(team.chat.channel);
+    if (!result || result === 'ok') return [];
+    return [{ team: team.name, reference: team.chat.channel, kind: CHANNEL_NOTICES[result] }];
+  });
+}
+
+async function safeChannelNotices(
+  deps: Deps,
+  installationId: number,
+  config: StandcastConfig | null,
+): Promise<TeamNotice[]> {
+  if (!config) return [];
+  return guarded(
+    channelNotices(deps, installationId, config),
+    [],
+    TEAM_NOTICES_TIMEOUT_MS * 2,
+    'setup channel check failed',
+    { installationId: String(installationId) },
+  );
+}
+
 export async function getSetupStatus(
   deps: Deps,
   isMember: MembershipCheck,
@@ -143,6 +195,7 @@ export async function getSetupStatus(
     installation.accountLogin,
     operational,
   );
+  const channelNoticesPromise = safeChannelNotices(deps, installation.id, operational);
   const octokit = await deps.github.installationOctokit(installation.id);
   const [configRepo, connection, linearConnection, teamFailures, personFailures, admin, linked] =
     await Promise.all([
@@ -181,7 +234,7 @@ export async function getSetupStatus(
         invalid: linearConnection.invalidatedAt !== null || !linearConnection.externalKey,
       }
     : { connected: false };
-  const teamNotices = await teamNoticesPromise;
+  const teamNotices = [...(await teamNoticesPromise), ...(await channelNoticesPromise)];
   return {
     installationId: installation.id,
     owner: installation.accountLogin,
