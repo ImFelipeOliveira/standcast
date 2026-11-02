@@ -6,6 +6,7 @@ import type { OrgContext, Session } from '../api/client';
 import { apiUrl } from '../api/client';
 import { createQueryClient, orgContextQuery, sessionQuery } from '../api/queries';
 import { applyLang } from '../i18n';
+import { SignInStuck } from '../pages/RouteStates';
 import { createAppRouter } from '../router';
 import { OrgSelect } from './OrgSelect';
 import { signOut } from './sign-out';
@@ -198,5 +199,47 @@ describe('shell', () => {
     const html = renderToStaticMarkup(<SignOutError />);
     expect(html).toContain('role="alert"');
     expect(html).toContain('Não foi possível sair agora.');
+  });
+  test('logout with an expired session goes to the signed-out page without signing in', async () => {
+    const { router, queryClient } = await renderAt('/orgs/11/hoje');
+    const assigned: string[] = [];
+    const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: {
+        location: {
+          pathname: '/orgs/11/hoje',
+          search: '',
+          assign: (url: string) => assigned.push(url),
+        },
+      },
+    });
+    globalThis.fetch = mock(async () =>
+      Response.json({ error: { code: 'unauthorized', message: 'sign in' } }, { status: 401 }),
+    ) as unknown as typeof fetch;
+    let navigated = false;
+    try {
+      const ok = await signOut({
+        queryClient,
+        goToSignedOut: () => {
+          navigated = true;
+          void router.navigate({ to: '/signed-out', replace: true });
+        },
+      });
+      expect(ok).toBe(true);
+    } finally {
+      if (originalWindow) Object.defineProperty(globalThis, 'window', originalWindow);
+      else Reflect.deleteProperty(globalThis, 'window');
+    }
+    expect(navigated).toBe(true);
+    expect(assigned).toEqual([]);
+    expect(queryClient.getQueryData(sessionQuery.queryKey)).toBeUndefined();
+  });
+
+  test('sign-in that did not stick explains and offers to try again', () => {
+    const html = renderToStaticMarkup(<SignInStuck />);
+    expect(html).toContain('role="alert"');
+    expect(html).toContain('O login não se manteve');
+    expect(html).toContain('Tentar de novo');
   });
 });

@@ -34,6 +34,10 @@ export const ptBR = {
   'error.title': 'Algo deu errado',
   'error.body': 'Não foi possível carregar esta tela. Tente de novo em instantes.',
   'error.retry': 'Tentar de novo',
+  'signInStuck.title': 'O login não se manteve',
+  'signInStuck.body':
+    'Você entrou com o GitHub, mas o navegador não guardou a sessão do Standcast. Verifique se cookies estão permitidos para este site e tente de novo.',
+  'signInStuck.retry': 'Tentar de novo',
   'signOut.failed': 'Não foi possível sair agora. Tente de novo em instantes.',
   'signedOut.title': 'Você saiu do Standcast.',
   'signedOut.signIn': 'Entrar de novo',

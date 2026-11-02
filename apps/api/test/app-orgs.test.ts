@@ -1,7 +1,10 @@
 import { describe, expect, test } from 'bun:test';
 import { parseConfig } from '@standcast/core';
 import {
+  createApiKey,
   createSession,
+  insertWebhookEndpoint,
+  listApiKeys,
   listInstallationWebhookEndpoints,
   type MemberRow,
   setInstallationConfig,
@@ -233,6 +236,39 @@ describe('/v1/app/orgs', () => {
     expect(endpoint?.active).toBe(false);
     const testDisabled = await post(app, alice, `${INST}/webhooks/${hook.endpoint.id}/test`);
     expect(testDisabled.status).toBe(404);
+  });
+
+  test("admin of one installation cannot revoke, disable or test another installation's key or endpoint", async () => {
+    const { app, deps, queue, alice } = await harness();
+    const foreignKey = await createApiKey(db, {
+      installationId: FOREIGN,
+      name: 'Other CI',
+      scopes: ['teams:read'],
+      createdBy: alice.member.id,
+    });
+    const foreignHook = await insertWebhookEndpoint(
+      db,
+      { installationId: FOREIGN, url: HOOK_URL, events: ['daily.submitted'], secret: 'whsec_x' },
+      deps.encryptionKey,
+    );
+    const attempts: [string, number, string][] = [
+      [`${INST}/api-keys/${foreignKey.id}/revoke`, 404, 'not_found'],
+      [`${INST}/webhooks/${foreignHook.id}/disable`, 404, 'not_found'],
+      [`${INST}/webhooks/${foreignHook.id}/test`, 404, 'not_found'],
+      [`${FOREIGN}/api-keys/${foreignKey.id}/revoke`, 403, 'forbidden'],
+      [`${FOREIGN}/webhooks/${foreignHook.id}/disable`, 403, 'forbidden'],
+      [`${FOREIGN}/webhooks/${foreignHook.id}/test`, 403, 'forbidden'],
+    ];
+    for (const [path, status, code] of attempts) {
+      const res = await post(app, alice, path);
+      expect({ path, status: res.status }).toEqual({ path, status });
+      expect((await res.json()).error.code).toBe(code);
+    }
+    const [key] = await listApiKeys(db, FOREIGN);
+    expect(key?.revokedAt).toBeNull();
+    const [hook] = await listInstallationWebhookEndpoints(db, FOREIGN);
+    expect(hook?.active).toBe(true);
+    expect(queue.enqueued.filter((j) => j.name === 'deliver-webhook')).toHaveLength(0);
   });
 
   test('writes need the csrf header', async () => {

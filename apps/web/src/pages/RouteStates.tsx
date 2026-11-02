@@ -1,5 +1,5 @@
 import { type ErrorComponentProps, Link, useRouter } from '@tanstack/react-router';
-import { ApiError } from '../api/client';
+import { ApiError, isSignInStuck, retrySignIn } from '../api/client';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { useT } from '../i18n';
@@ -13,9 +13,23 @@ export function Loading() {
   );
 }
 
+export function SignInStuck() {
+  const t = useT();
+  return (
+    <Card role="alert" className="m-4 items-start">
+      <h1 className="m-0 font-bold text-[17px]">{t('signInStuck.title')}</h1>
+      <p className="m-0 text-text2">{t('signInStuck.body')}</p>
+      <Button type="button" variant="outline" onClick={retrySignIn}>
+        {t('signInStuck.retry')}
+      </Button>
+    </Card>
+  );
+}
+
 export function RouteError({ error }: ErrorComponentProps) {
   const t = useT();
   const router = useRouter();
+  if (isSignInStuck(error)) return <SignInStuck />;
   if (error instanceof ApiError && error.status === 401) return <Loading />;
   return (
     <Card role="alert" className="m-4 items-start">

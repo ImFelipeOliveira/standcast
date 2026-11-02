@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import { setMemberInstallations } from '@standcast/db';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { createMembershipCheck, DomainError, getOrgContext } from '../../src';
@@ -77,4 +77,26 @@ describe('getOrgContext', () => {
     expect(await codeOf(getOrgContext(deps, isMember, member, INST))).toBe('forbidden');
     expect(await codeOf(getOrgContext(deps, isMember, member, 99))).toBe('forbidden');
   });
+  test('context survives a failing github', async () => {
+    const { deps, isMember, member, roles } = await setup('Carol', 3);
+    roles.set('carol', { role: 'admin', state: 'active' });
+    deps.github.resolveTeamMembers = async () => {
+      throw new Error('github down');
+    };
+    const spy = spyOn(console, 'error').mockImplementation(() => {});
+    const context = await getOrgContext(deps, isMember, member, INST);
+    const logged = spy.mock.calls.length;
+    spy.mockRestore();
+    expect(context).toEqual({ admin: true, managerOf: ['Beta'], memberOf: [] });
+    expect(logged).toBeGreaterThan(0);
+  });
+
+  test('context gives up after the timeout', async () => {
+    const { deps, isMember, member } = await setup('carol', 3);
+    deps.github.resolveTeamMembers = () => new Promise(() => {});
+    const started = Date.now();
+    const context = await getOrgContext(deps, isMember, member, INST);
+    expect(context).toEqual({ admin: false, managerOf: ['Beta'], memberOf: [] });
+    expect(Date.now() - started).toBeLessThan(4500);
+  }, 10000);
 });

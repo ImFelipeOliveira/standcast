@@ -17,7 +17,7 @@ export function createQueryClient(): QueryClient {
 
 export const sessionQuery = queryOptions({
   queryKey: ['session'],
-  queryFn: fetchSession,
+  queryFn: () => fetchSession(),
   staleTime: 5 * 60_000,
 });
 

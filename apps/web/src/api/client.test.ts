@@ -1,5 +1,15 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
-import { ApiError, apiGet, apiPost, apiUrl, forgetSession } from './client';
+import {
+  ApiError,
+  apiGet,
+  apiPost,
+  apiUrl,
+  fetchSession,
+  forgetSession,
+  retrySignIn,
+  SIGN_IN_DID_NOT_STICK,
+  SIGN_IN_MARKER,
+} from './client';
 
 const originalFetch = globalThis.fetch;
 const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
@@ -16,14 +26,46 @@ function stubFetch(responder: (call: Call) => Response): Call[] {
   return calls;
 }
 
-function stubWindow(pathname: string, search = ''): string[] {
+function memoryStorage(): Storage {
+  const values = new Map<string, string>();
+  return {
+    get length() {
+      return values.size;
+    },
+    clear: () => values.clear(),
+    getItem: (key: string) => values.get(key) ?? null,
+    key: (index: number) => [...values.keys()][index] ?? null,
+    removeItem: (key: string) => {
+      values.delete(key);
+    },
+    setItem: (key: string, value: string) => {
+      values.set(key, value);
+    },
+  };
+}
+
+let storage: Storage = memoryStorage();
+
+function stubWindow(
+  pathname: string,
+  search = '',
+  sessionStorage: () => Storage = () => storage,
+): string[] {
   const assigned: string[] = [];
+  storage = memoryStorage();
   Object.defineProperty(globalThis, 'window', {
     configurable: true,
-    value: { location: { pathname, search, assign: (url: string) => assigned.push(url) } },
+    value: {
+      location: { pathname, search, assign: (url: string) => assigned.push(url) },
+      get sessionStorage() {
+        return sessionStorage();
+      },
+    },
   });
   return assigned;
 }
+
+const unauthorized = () => json(401, { error: { code: 'unauthorized', message: 'sign in' } });
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -146,5 +188,62 @@ describe('api client', () => {
     const error = (await apiGet('/v1/app/session').catch((caught: unknown) => caught)) as ApiError;
     expect(error.status).toBe(502);
     expect(error.code).toBe('http_error');
+  });
+  test('logout with an expired session does not redirect to sign-in', async () => {
+    const assigned = stubWindow('/orgs/11/hoje');
+    stubFetch(unauthorized);
+    const error = await apiPost('/v1/app/logout', undefined, { skipAuthRedirect: true }).catch(
+      (caught: unknown) => caught,
+    );
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).status).toBe(401);
+    expect(assigned).toEqual([]);
+  });
+
+  test('a second 401 within a minute stops redirecting', async () => {
+    const assigned = stubWindow('/orgs/11/hoje');
+    stubFetch(unauthorized);
+    await expect(apiGet('/v1/app/session')).rejects.toBeInstanceOf(ApiError);
+    const error = (await apiGet('/v1/app/session').catch((caught: unknown) => caught)) as ApiError;
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error.status).toBe(401);
+    expect(error.code).toBe(SIGN_IN_DID_NOT_STICK);
+    expect(assigned).toHaveLength(1);
+  });
+
+  test('a 401 more than a minute after the last sign-in redirects again', async () => {
+    const assigned = stubWindow('/orgs/11/hoje');
+    storage.setItem(SIGN_IN_MARKER, String(Date.now() - 61_000));
+    stubFetch(unauthorized);
+    await expect(apiGet('/v1/app/session')).rejects.toBeInstanceOf(ApiError);
+    expect(assigned).toHaveLength(1);
+  });
+
+  test('try again clears the marker and signs in', async () => {
+    const assigned = stubWindow('/orgs/11/hoje');
+    storage.setItem(SIGN_IN_MARKER, String(Date.now()));
+    retrySignIn();
+    expect(storage.getItem(SIGN_IN_MARKER)).toBeNull();
+    expect(assigned).toEqual([
+      `${apiUrl}/auth/github/login?target=app&next=${encodeURIComponent('/orgs/11/hoje')}`,
+    ]);
+  });
+
+  test('a working session clears the marker', async () => {
+    stubWindow('/');
+    storage.setItem(SIGN_IN_MARKER, String(Date.now()));
+    stubFetch(() => json(200, { login: 'ana', avatarUrl: 'x', csrf: 't', installations: [] }));
+    await fetchSession();
+    expect(storage.getItem(SIGN_IN_MARKER)).toBeNull();
+  });
+
+  test('a broken sessionStorage still redirects', async () => {
+    const assigned = stubWindow('/orgs/11/hoje', '', () => {
+      throw new Error('denied');
+    });
+    stubFetch(unauthorized);
+    await expect(apiGet('/v1/app/session')).rejects.toBeInstanceOf(ApiError);
+    await expect(apiGet('/v1/app/session')).rejects.toBeInstanceOf(ApiError);
+    expect(assigned).toHaveLength(2);
   });
 });

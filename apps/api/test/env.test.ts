@@ -16,9 +16,15 @@ const base = {
   SLACK_CLIENT_SECRET: 'ssecret',
   LINEAR_CLIENT_ID: 'lid',
   LINEAR_CLIENT_SECRET: 'lsecret',
+  APP_URL: 'https://app.standcast.app',
 };
 
 describe('parseEnv', () => {
+  test('APP_URL is required', () => {
+    const { APP_URL: _, ...withoutAppUrl } = base;
+    expect(() => parseEnv(withoutAppUrl)).toThrow(/APP_URL/);
+  });
+
   test('APP_URL must be https without trailing slash', () => {
     expect(parseEnv(base).APP_URL).toBe('https://app.standcast.app');
     expect(parseEnv({ ...base, APP_URL: 'http://localhost:4173' }).APP_URL).toBe(

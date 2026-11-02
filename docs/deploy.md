@@ -29,6 +29,8 @@ The image no longer builds the documentation site. If the api and worker service
 
 Set these on the api service. The worker needs `DATABASE_URL`, `STANDCAST_ENCRYPTION_KEY`, the five `GITHUB_*` variables and the two `LINEAR_*` variables, plus `SUPPORT_EMAIL` and `BETA_EMAIL_FROM` when `RESEND_API_KEY` is set; setting all of them on both is harmless.
 
+**Required since the web app:** `APP_URL` must be set on the api. The api fails to start without it, so set it before you deploy this version.
+
 **Required since the Linear integration:** `LINEAR_CLIENT_ID` and `LINEAR_CLIENT_SECRET` must be set on both the api and the worker. Both services fail to start without them, so set them before you deploy this version. See [linear-app.md](linear-app.md).
 
 | Variable | Notes |
@@ -39,7 +41,7 @@ Set these on the api service. The worker needs `DATABASE_URL`, `STANDCAST_ENCRYP
 | `SUPPORT_EMAIL` | Shown in the setup and error pages and the OpenAPI document |
 | `DOCS_URL` | Address of the documentation site, `https` with no trailing slash, for example `https://docs-standcast.usefachada.dev`. Defaults to `https://docs.standcast.app`. The setup header links to it, and the api redirects `/docs` and `/docs/*` to it with a 301 |
 | `LANDING_URL` | Address of the landing page, `https` with no trailing slash. Defaults to `https://standcast.usefachada.dev`. It is where the api sends the browser back when the beta request form is invalid |
-| `APP_URL` | Address of the web app, `https` with no trailing slash (or `http://localhost` with a port for local development). Defaults to `https://app.standcast.app`. The api allows cross-origin requests with cookies from this origin only, for example `https://app-standcast.usefachada.dev` |
+| `APP_URL` | **Required.** Address of the web app, `https` with no trailing slash (or `http://localhost` with a port for local development). The api fails to start without it. The api allows cross-origin requests with cookies from this origin only, for example `https://app-standcast.usefachada.dev` |
 | `TRUST_PROXY` | `true` behind Railway |
 | `TRUSTED_PROXY_HOPS` | `1` behind Railway |
 | `STANDCAST_ENCRYPTION_KEY` | 32 random bytes, base64: `openssl rand -base64 32`. Keep it identical on api and worker |
@@ -118,4 +120,5 @@ Change every place that names the interim address:
 6. Update the Slack and Linear redirect URLs to the final domain.
 7. Update the install command and API URLs in `README.md` and `packages/plugin/skills/daily/SKILL.md`. Change `PUBLISHED_INSTALL_URL` in `scripts/check-docs.ts` to match, or `check-docs` fails.
 8. Add `docs.standcast.app` as a custom domain of the Cloudflare Pages project, set `DOCS_URL` on the api to `https://docs.standcast.app` and update the docs links in `README.md`. Keep `docs-standcast.usefachada.dev` on the Pages project so old links keep working.
-9. Keep the interim domain pointing at the api. The CLI saves the `apiUrl` it signed in with in the user's credentials, and keeps using it until the person signs in again with `standcast login --api-url <url>`. Removing the old domain breaks every CLI that was installed before.
+9. If the api domain changes, update `connect-src` in `apps/web/public/_headers` together with `VITE_API_URL` (in `apps/web/.env.production` and the build command above), then rebuild and redeploy the web app. The header names the api origin, so the app cannot reach a new api address until both change.
+10. Keep the interim domain pointing at the api. The CLI saves the `apiUrl` it signed in with in the user's credentials, and keeps using it until the person signs in again with `standcast login --api-url <url>`. Removing the old domain breaks every CLI that was installed before.

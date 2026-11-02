@@ -1,5 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
-import { apiPost, forgetSession } from '../api/client';
+import { ApiError, apiPost, forgetSession } from '../api/client';
 
 type SignOutDeps = {
   queryClient: QueryClient;
@@ -8,9 +8,9 @@ type SignOutDeps = {
 
 export async function signOut({ queryClient, goToSignedOut }: SignOutDeps): Promise<boolean> {
   try {
-    await apiPost<void>('/v1/app/logout');
-  } catch {
-    return false;
+    await apiPost<void>('/v1/app/logout', undefined, { skipAuthRedirect: true });
+  } catch (error) {
+    if (!(error instanceof ApiError && error.status === 401)) return false;
   }
   forgetSession();
   await goToSignedOut();

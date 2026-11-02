@@ -36,6 +36,10 @@ export const en: Record<MessageKey, string> = {
   'error.title': 'Something went wrong',
   'error.body': 'This screen could not load. Try again in a moment.',
   'error.retry': 'Try again',
+  'signInStuck.title': 'Sign-in did not stick',
+  'signInStuck.body':
+    'You signed in with GitHub, but the browser did not keep the Standcast session. Check that cookies are allowed for this site and try again.',
+  'signInStuck.retry': 'Try again',
   'signOut.failed': 'Could not sign out right now. Try again in a moment.',
   'signedOut.title': 'You signed out of Standcast.',
   'signedOut.signIn': 'Sign in again',
