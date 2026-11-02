@@ -20,6 +20,7 @@ function entry(
       yesterday: [{ text: `${login} did y` }],
       today: [{ text: `${login} does t` }],
       blockers: [],
+      support: [],
       ...over,
     },
   };
@@ -66,6 +67,44 @@ describe('buildDigest', () => {
   test('no blockers section when none', () => {
     const msg = buildDigest({ ...base, entries: [other] });
     expect(JSON.stringify(msg.blocks)).not.toContain('Blockers');
+  });
+
+  test('support requests come right after the blockers, with who asked', () => {
+    const asking = entry('bob', 'U2', { support: [{ text: 'need a review on the API PR' }] });
+    const msg = buildDigest({ ...base, entries: [asking, blocked] });
+    const texts = msg.blocks.map(blockText);
+    const idxBlockers = texts.indexOf('Blockers');
+    const idxSupport = texts.indexOf('Support requests');
+    const idxAsk = texts.findIndex((t) => t.includes('need a review on the API PR'));
+    const idxAlice = texts.findIndex((t) => t.includes('alice did y'));
+    expect(idxBlockers).toBeGreaterThan(0);
+    expect(idxSupport).toBeGreaterThan(idxBlockers);
+    expect(idxAsk).toBe(idxSupport + 1);
+    expect(idxAlice).toBeGreaterThan(idxAsk);
+    expect(texts[idxAsk]).toBe('<U2>: need a review on the API PR');
+  });
+
+  test('support requests are only in their own section', () => {
+    const asking = entry('bob', 'U2', { support: [{ text: 'pair on the migration' }] });
+    const text = buildDigest({ ...base, entries: [asking] })
+      .blocks.map(blockText)
+      .join('\n');
+    expect(text.split('pair on the migration')).toHaveLength(2);
+  });
+
+  test('no support section when nobody asked, including dailies stored without it', () => {
+    const { support: _, ...stored } = entry('bob', 'U2').daily;
+    const msg = buildDigest({
+      ...base,
+      entries: [{ login: 'bob', chatUserId: 'U2', daily: stored }],
+    });
+    expect(JSON.stringify(msg.blocks)).not.toContain('Support requests');
+  });
+
+  test('support heading is localized', () => {
+    const asking = entry('bob', 'U2', { support: [{ text: 'ajuda com o deploy' }] });
+    const pt = buildDigest({ ...base, team: team('pt-BR', ['bob']), entries: [asking] });
+    expect(pt.blocks.map(blockText)).toContain('Pedidos de apoio');
   });
 
   test('one section per person in config member order', () => {
@@ -158,5 +197,20 @@ describe('buildLateDaily', () => {
     expect(text).toContain('stuck');
     expect(msg.fallbackText).not.toContain('[object');
     expect(msg.fallbackText.length).toBeGreaterThan(0);
+  });
+
+  test('shows support requests after the blockers', () => {
+    const msg = buildLateDaily(
+      entry('alice', 'U1', {
+        blockers: [{ text: 'stuck' }],
+        support: [{ text: 'need a reviewer' }],
+      }),
+      'en',
+    );
+    const texts = msg.blocks.map(blockText);
+    const idxBlocker = texts.findIndex((t) => t.includes('stuck'));
+    const idxSupport = texts.indexOf('Support requests');
+    expect(idxSupport).toBeGreaterThan(idxBlocker);
+    expect(texts[idxSupport + 1]).toBe('<U1>: need a reviewer');
   });
 });

@@ -1,4 +1,4 @@
-import type { DailyConfirmation, DailySubmission, Item } from '@standcast/core';
+import type { DailyConfirmation, DailySubmission, Item, StoredDaily } from '@standcast/core';
 import {
   confirmSuggestionsByUrl,
   getDelivery,
@@ -118,7 +118,7 @@ async function emitDailyEvents(
     id: string;
     teams: string[];
     payload: DailySubmission;
-    previous: DailySubmission | null;
+    previous: StoredDaily | null;
     fresh: Item[];
   },
 ): Promise<void> {
@@ -133,6 +133,7 @@ async function emitDailyEvents(
       yesterday: p.payload.yesterday,
       today: p.payload.today,
       blockers: p.payload.blockers,
+      support: p.payload.support,
       replaced: p.previous !== null,
     },
   });

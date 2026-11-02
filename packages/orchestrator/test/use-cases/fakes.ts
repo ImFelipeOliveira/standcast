@@ -335,6 +335,7 @@ export const daily = {
   yesterday: [{ text: 'did a thing' }],
   today: [{ text: 'do another' }],
   blockers: [],
+  support: [],
 };
 
 export function fakeChat() {

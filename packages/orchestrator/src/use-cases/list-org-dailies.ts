@@ -23,6 +23,7 @@ export type OrgDaily = {
   yesterday: OrgItem[];
   today: OrgItem[];
   blockers: OrgItem[];
+  support: OrgItem[];
 };
 
 export type OrgDailyQuery = {
@@ -53,6 +54,7 @@ export function toOrgDaily(record: DailyRecord, teams: string[]): OrgDaily {
     yesterday: record.payload.yesterday.map(toOrgItem),
     today: record.payload.today.map(toOrgItem),
     blockers: record.payload.blockers.map(toOrgItem),
+    support: (record.payload.support ?? []).map(toOrgItem),
   };
 }
 

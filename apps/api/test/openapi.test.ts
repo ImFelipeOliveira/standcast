@@ -11,6 +11,7 @@ type Operation = {
   parameters?: { name: string; in: string; required?: boolean; description?: string }[];
   responses: Record<string, { content?: Record<string, { example?: unknown; examples?: object }> }>;
 };
+type Json = Record<string, unknown>;
 type Doc = {
   openapi: string;
   info: { title: string; version: string; description: string; contact: { email: string } };
@@ -54,6 +55,24 @@ describe('public openapi document', () => {
     const result = await new Validator().validate(doc);
     expect(result.errors).toBeUndefined();
     expect(result.valid).toBe(true);
+  });
+
+  test('dailies and the daily.submitted webhook document support requests', async () => {
+    const doc = (await (await load('/openapi.json')).json()) as Doc & {
+      components: { schemas: Record<string, { required?: string[]; properties?: object }> };
+      webhooks: Record<string, { post: { requestBody: { content: Record<string, Json> } } }>;
+    };
+    const daily = doc.components.schemas.OrgDaily;
+    expect(daily?.required).toContain('support');
+    expect(daily?.properties).toHaveProperty('support');
+    const example = doc.components.schemas.OrgDaily as unknown as { example: Json };
+    expect(example.example).toHaveProperty('support');
+    const submitted = doc.components.schemas.DailySubmittedEvent as unknown as {
+      properties: { data: { required: string[] } };
+    };
+    expect(submitted.properties.data.required).toContain('support');
+    const hook = doc.webhooks['daily.submitted']?.post.requestBody.content['application/json'];
+    expect((hook?.example as { data?: Json } | undefined)?.data).toHaveProperty('support');
   });
 
   test('every public route documented', async () => {

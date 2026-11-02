@@ -3,6 +3,7 @@ import type { Language } from './config';
 const ptBR = {
   digestTitle: 'Daily — {team} — {date}',
   blockers: 'Impedimentos',
+  support: 'Pedidos de apoio',
   yesterday: 'Ontem',
   today: 'Hoje',
   missing: 'Não enviaram a daily:',
@@ -177,6 +178,7 @@ const ptBR = {
   'cli.confirm.yesterday': 'Ontem:',
   'cli.confirm.today': 'Hoje:',
   'cli.confirm.blockers': 'Impedimentos:',
+  'cli.confirm.support': 'Pedidos de apoio:',
   'cli.confirm.none': '(nenhum)',
   'cli.confirm.title': 'Enviar esta daily',
   'cli.confirm.description': 'Marque para enviar a daily exatamente como mostrada.',
@@ -221,6 +223,7 @@ const ptBR = {
 const en = {
   digestTitle: 'Daily — {team} — {date}',
   blockers: 'Blockers',
+  support: 'Support requests',
   yesterday: 'Yesterday',
   today: 'Today',
   missing: 'Did not send the daily:',
@@ -395,6 +398,7 @@ const en = {
   'cli.confirm.yesterday': 'Yesterday:',
   'cli.confirm.today': 'Today:',
   'cli.confirm.blockers': 'Blockers:',
+  'cli.confirm.support': 'Support requests:',
   'cli.confirm.none': '(none)',
   'cli.confirm.title': 'Send this daily',
   'cli.confirm.description': 'Check to send the daily exactly as shown.',
