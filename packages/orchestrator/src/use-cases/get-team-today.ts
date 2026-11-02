@@ -1,10 +1,4 @@
-import {
-  addCalendarDays,
-  type Item,
-  localInstant,
-  parsePullRequestUrl,
-  type Ref,
-} from '@standcast/core';
+import { addCalendarDays, type Item, parsePullRequestUrl, type Ref } from '@standcast/core';
 import {
   getInstallationMemberIds,
   listBlockerRouteRecipients,
@@ -19,7 +13,7 @@ import { guarded } from '../guarded';
 import { logError } from '../log-error';
 import { DomainError } from './errors';
 import type { MembershipCheck } from './org-context';
-import { digestState, loadTeamAccess, type TeamAccess } from './team-access';
+import { digestState, loadTeamAccess, remindWindowOpen, type TeamAccess } from './team-access';
 
 const HINT_TIMEOUT_MS = 3000;
 const MAX_HINT_CALLS = 10;
@@ -260,8 +254,6 @@ export async function getTeamToday(
     openBlockers(deps, access),
     supportRequests(deps, access, rows),
   ]);
-  const beforeDigest =
-    deps.now().getTime() < localInstant(date, team.digestAt, team.timezone).getTime();
   return {
     team: {
       name: team.name,
@@ -271,7 +263,7 @@ export async function getTeamToday(
     },
     date,
     digest: { status: digest.status, sentAt: digest.sentAt?.toISOString() ?? null },
-    canRemind: access.elevated && digest.status !== 'sent' && beforeDigest,
+    canRemind: access.elevated && digest.status !== 'sent' && remindWindowOpen(deps, access),
     canResolve: access.elevated,
     people,
     blockers,

@@ -297,6 +297,16 @@ teams:
     });
   });
 
+  test('a weekend now cannot remind', async () => {
+    const { deps, isMember, alice } = await setup();
+    deps.now = () => new Date('2026-10-31T12:00:00Z');
+    expect(await getTeamToday(deps, isMember, alice, team)).toMatchObject({
+      date: '2026-11-02',
+      canRemind: false,
+      canResolve: true,
+    });
+  });
+
   test('admin reads any team', async () => {
     const { deps, isMember, dave, roles } = await setup();
     roles.set('dave', { role: 'admin', state: 'active' });

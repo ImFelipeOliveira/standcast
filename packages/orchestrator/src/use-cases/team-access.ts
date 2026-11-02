@@ -1,4 +1,4 @@
-import { dailyDateFor, type ResolvedTeam } from '@standcast/core';
+import { dailyDateFor, localDate, localInstant, type ResolvedTeam } from '@standcast/core';
 import {
   getDelivery,
   type InstallationRow,
@@ -80,4 +80,11 @@ export async function digestState(deps: Deps, access: TeamAccess): Promise<Diges
     return { status: 'failed', sentAt: null };
   }
   return { status: 'scheduled', sentAt: null };
+}
+
+export function remindWindowOpen(deps: Deps, access: TeamAccess): boolean {
+  const { team, date } = access;
+  const now = deps.now();
+  if (localDate(now, team.timezone) !== date) return false;
+  return now.getTime() < localInstant(date, team.digestAt, team.timezone).getTime();
 }

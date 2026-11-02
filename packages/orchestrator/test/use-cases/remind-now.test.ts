@@ -72,7 +72,7 @@ describe('remindNow', () => {
     expect(enqueued).toEqual([]);
   });
 
-  test('remind twice is already_sent', async () => {
+  test('a settled reminder delivery gives already_sent', async () => {
     const { deps, isMember, alice, enqueued } = await setup();
     expect(await remindNow(deps, isMember, alice, input('carol'))).toBe('queued');
     await markDeliverySent(db, {
@@ -84,6 +84,13 @@ describe('remindNow', () => {
     });
     expect(await remindNow(deps, isMember, alice, input('carol'))).toBe('already_sent');
     expect(enqueued).toHaveLength(1);
+  });
+
+  test('a weekend now is too_late and enqueues nothing', async () => {
+    const { deps, isMember, alice, setNow, enqueued } = await setup();
+    setNow(new Date('2026-10-31T12:00:00Z'));
+    expect(await remindNow(deps, isMember, alice, input('carol'))).toBe('too_late');
+    expect(enqueued).toEqual([]);
   });
 
   test('a person who already sent the daily is already_sent', async () => {

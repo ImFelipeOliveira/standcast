@@ -1,4 +1,3 @@
-import { localInstant } from '@standcast/core';
 import {
   getDelivery,
   getInstallationMemberIds,
@@ -9,7 +8,7 @@ import {
 import type { Deps } from '../deps';
 import { DomainError } from './errors';
 import type { MembershipCheck } from './org-context';
-import { digestState, loadTeamAccess } from './team-access';
+import { digestState, loadTeamAccess, remindWindowOpen } from './team-access';
 
 export type RemindNowInput = { installationId: number; team: string; login: string };
 
@@ -27,10 +26,9 @@ export async function remindNow(
   if (!access.team.memberLogins.includes(login)) {
     throw new DomainError('not_found', 'person not found in this team');
   }
-  const { team, date } = access;
+  const { date } = access;
   const installationId = access.installation.id;
-  const digestAt = localInstant(date, team.digestAt, team.timezone).getTime();
-  if (deps.now().getTime() >= digestAt) return 'too_late';
+  if (!remindWindowOpen(deps, access)) return 'too_late';
   if ((await digestState(deps, access)).status === 'sent') return 'too_late';
   const memberId = (await getInstallationMemberIds(deps.db, installationId, [login])).get(login);
   if (memberId && (await getMemberDaily(deps.db, installationId, memberId, date))) {
