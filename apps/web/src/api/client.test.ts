@@ -90,6 +90,46 @@ describe('api client', () => {
     expect(calls.filter((call) => call.url.endsWith('/v1/app/session'))).toHaveLength(1);
   });
 
+  test('403 on post forgets the cached csrf', async () => {
+    stubWindow('/');
+    let token = 0;
+    let rejectNext = true;
+    const calls = stubFetch(({ url }) => {
+      if (url.endsWith('/v1/app/session')) {
+        token += 1;
+        return json(200, {
+          login: 'ana',
+          avatarUrl: 'x',
+          csrf: `token-${token}`,
+          installations: [],
+        });
+      }
+      if (rejectNext) {
+        rejectNext = false;
+        return json(403, { error: { code: 'forbidden', message: 'bad csrf' } });
+      }
+      return new Response(null, { status: 204 });
+    });
+    await expect(apiPost('/v1/app/orgs/11/api-keys/k1/revoke')).rejects.toBeInstanceOf(ApiError);
+    await apiPost('/v1/app/orgs/11/api-keys/k1/revoke');
+    expect(calls.filter((call) => call.url.endsWith('/v1/app/session'))).toHaveLength(2);
+    const posts = calls.filter((call) => call.init.method === 'POST');
+    const sent = posts.map(
+      (call) => (call.init.headers as Record<string, string>)['X-Standcast-CSRF'],
+    );
+    expect(sent).toEqual(['token-1', 'token-2']);
+  });
+
+  test('accepted without a body resolves to undefined', async () => {
+    stubWindow('/');
+    stubFetch(({ url }) =>
+      url.endsWith('/v1/app/session')
+        ? json(200, { login: 'ana', avatarUrl: 'x', csrf: 'token-3', installations: [] })
+        : new Response(null, { status: 202 }),
+    );
+    expect(await apiPost('/v1/app/orgs/11/webhooks/w1/test')).toBeUndefined();
+  });
+
   test('api error carries status and code', async () => {
     stubWindow('/');
     stubFetch(() => json(403, { error: { code: 'forbidden', message: 'not a member' } }));

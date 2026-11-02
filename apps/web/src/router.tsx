@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-router';
 import { sessionQuery } from './api/queries';
 import { ComingSoon } from './pages/ComingSoon';
+import { ConfiguracaoPage } from './pages/configuracao/ConfiguracaoPage';
 import { NoInstallations } from './pages/NoInstallations';
 import { Loading, NotFound, RouteError } from './pages/RouteStates';
 import { SignedOut } from './pages/SignedOut';
@@ -120,7 +121,7 @@ const configuracaoRoute = createRoute({
   path: 'configuracao',
   component: function Configuracao() {
     const { installationId } = orgRoute.useParams();
-    return <ComingSoon section="configuracao" installationId={installationId} />;
+    return <ConfiguracaoPage key={installationId} installationId={installationId} />;
   },
 });
 

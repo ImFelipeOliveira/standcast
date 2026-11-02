@@ -60,8 +60,8 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
     throw await toApiError(response);
   }
   if (!response.ok) throw await toApiError(response);
-  if (response.status === 204) return undefined as T;
-  return (await response.json()) as T;
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 
 export function apiGet<T>(path: string): Promise<T> {
@@ -81,11 +81,16 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
     'X-Standcast-CSRF': csrf,
   };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
-  return request<T>(path, {
-    method: 'POST',
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  try {
+    return await request<T>(path, {
+      method: 'POST',
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 403) csrfToken = null;
+    throw error;
+  }
 }
 
 export function forgetSession(): void {
