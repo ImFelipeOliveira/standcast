@@ -163,6 +163,25 @@ export const suggestions = pgTable(
   (t) => [unique().on(t.installationId, t.memberId, t.fingerprint)],
 );
 
+export const blockerStates = pgTable(
+  'blocker_states',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    installationId: installationRef(),
+    blockerId: text('blocker_id').notNull(),
+    authorMemberId: memberRef('author_member_id'),
+    text: text('text').notNull(),
+    ref: jsonb('ref').$type<Ref>(),
+    openedOn: date('opened_on', { mode: 'string' }).notNull(),
+    lastSeenOn: date('last_seen_on', { mode: 'string' }).notNull(),
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+    resolvedByMemberId: uuid('resolved_by_member_id').references(() => members.id, {
+      onDelete: 'set null',
+    }),
+  },
+  (t) => [unique().on(t.installationId, t.authorMemberId, t.blockerId)],
+);
+
 export const API_KEY_SCOPES = [
   'teams:read',
   'dailies:read',
@@ -240,6 +259,7 @@ export type InstallationRow = typeof installations.$inferSelect;
 export type WebhookDeliveryRow = typeof webhookDeliveries.$inferSelect;
 export type MemberRow = typeof members.$inferSelect;
 export type DeliveryRow = typeof deliveries.$inferSelect;
+export type BlockerStateRow = typeof blockerStates.$inferSelect;
 
 export const rateLimits = pgTable(
   'rate_limits',

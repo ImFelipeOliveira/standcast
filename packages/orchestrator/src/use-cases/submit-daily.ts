@@ -9,6 +9,7 @@ import {
 import type { Deps } from '../deps';
 import { blockerRouteId, newBlockers, newRoutedBlockers } from '../events';
 import { logError } from '../log-error';
+import { recordBlockers } from './blocker-states';
 import { emitEventSafely } from './emit-event';
 import { type MembershipCheck, type OrgContext, resolveOrgContext } from './org-context';
 import { ROUTE_BLOCKER_JOB, type RouteBlockerJob } from './route-blocker';
@@ -39,6 +40,19 @@ async function confirmBlockerSuggestions(
     await confirmSuggestionsByUrl(deps.db, ctx.installationId, ctx.member.id, urls);
   } catch (error) {
     logError('suggestion confirmation failed', error);
+  }
+}
+
+async function recordBlockerStates(deps: Deps, ctx: OrgContext, blockers: Item[]): Promise<void> {
+  try {
+    await recordBlockers(deps, {
+      installationId: ctx.installationId,
+      memberId: ctx.member.id,
+      date: ctx.date,
+      blockers,
+    });
+  } catch (error) {
+    logError('blocker state record failed', error);
   }
 }
 
@@ -83,6 +97,7 @@ export async function submitDaily(
     payload: options.confirmation ? { ...payload, confirmation: options.confirmation } : payload,
     submittedAt: deps.now(),
   });
+  await recordBlockerStates(deps, ctx, payload.blockers);
   await confirmBlockerSuggestions(deps, ctx, payload.blockers);
   const teams = ctx.mine.map((t) => t.name);
   const late = await isLate(deps, ctx);
