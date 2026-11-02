@@ -349,6 +349,23 @@ describe('getSetupStatus channel notices', () => {
     expect(status.owner).toBe('acme');
   });
 
+  test('a hanging check keeps the notices of the other channels', async () => {
+    const { fake, member } = await run({}, beta.replace('"#alpha"', '"#beta"'));
+    fake.deps.chatFor = async () =>
+      ({
+        checkChannel: (channel: string) =>
+          channel === '#alpha' ? new Promise(() => {}) : Promise.resolve('not_found'),
+      }) as never;
+    const spy = spyOn(console, 'error').mockImplementation(() => {});
+    const started = Date.now();
+    const status = await getSetupStatus(fake.deps, createMembershipCheck(fake.deps), member, INST);
+    spy.mockRestore();
+    expect(status.teamNotices).toEqual([
+      { team: 'Beta', reference: '#beta', kind: 'channel_not_found' },
+    ]);
+    expect(Date.now() - started).toBeLessThan(4500);
+  }, 10000);
+
   test('a hanging check gives up after about 3 seconds', async () => {
     const { fake, member } = await run();
     fake.deps.chatFor = async () => ({ checkChannel: () => new Promise(() => {}) }) as never;

@@ -112,13 +112,14 @@ async function guarded(
   work: Promise<TeamNotice[]>,
   label: string,
   installationId: number,
+  timeoutMs = TEAM_NOTICES_TIMEOUT_MS,
 ): Promise<TeamNotice[]> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<TeamNotice[]>((resolve) => {
     timer = setTimeout(() => {
       logError(label, new Error('timed out'), { installationId: String(installationId) });
       resolve([]);
-    }, TEAM_NOTICES_TIMEOUT_MS);
+    }, timeoutMs);
   });
   const safe = work.catch((error) => {
     logError(label, error, { installationId: String(installationId) });
@@ -145,6 +146,14 @@ async function safeTeamNotices(
   );
 }
 
+function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('timed out')), ms);
+  });
+  return Promise.race([work, timeout]).finally(() => clearTimeout(timer));
+}
+
 const CHANNEL_NOTICES: Record<Exclude<ChannelCheck, 'ok'>, TeamNotice['kind']> = {
   not_found: 'channel_not_found',
   not_member: 'channel_not_member',
@@ -160,7 +169,9 @@ async function channelNotices(
   const chat = await deps.chatFor(installationId, 'slack');
   if (!chat) return [];
   const channels = [...new Set(teams.map((team) => team.chat.channel))];
-  const settled = await Promise.allSettled(channels.map((channel) => chat.checkChannel(channel)));
+  const settled = await Promise.allSettled(
+    channels.map((channel) => withTimeout(chat.checkChannel(channel), TEAM_NOTICES_TIMEOUT_MS)),
+  );
   const results = new Map<string, ChannelCheck>();
   settled.forEach((outcome, i) => {
     const channel = channels[i];
@@ -189,6 +200,7 @@ async function safeChannelNotices(
     channelNotices(deps, installationId, config),
     'setup channel check failed',
     installationId,
+    TEAM_NOTICES_TIMEOUT_MS * 2,
   );
 }
 
