@@ -9,9 +9,12 @@ const TOKEN_PATTERNS = [
   /AKIA[0-9A-Z]{16}/g,
 ];
 
-const LONG_RUN = /[A-Za-z0-9+/=_-]{32,}/g;
-const PATH_SEGMENT = /^[A-Za-z0-9._-]{1,40}$/;
-const MIN_DIGITS = 2;
+const LONG_RUN = /[A-Za-z0-9+/=_.~-]{32,}/g;
+const PATH_START = /^(\/|\.\/|~\/)/;
+const FILE_EXTENSION = /\.[A-Za-z0-9]{1,6}$/;
+const WORD_TOKEN = /^(\d+|[a-z]+\d*|[A-Z][a-z]*\d*|[A-Z]+\d*)$/;
+const MAX_DENSE_RATIO = 0.3;
+const MIN_DIGITS = 1;
 const MIN_ENTROPY = 3.5;
 
 function entropy(text: string): number {
@@ -25,14 +28,19 @@ function entropy(text: string): number {
   return bits;
 }
 
+function isWordLike(segment: string): boolean {
+  const dense = segment.match(/[A-Z0-9]/g)?.length ?? 0;
+  if (dense / segment.length < MAX_DENSE_RATIO) return true;
+  const tokens = segment.split(/[-_.]/).filter((token) => token.length > 0);
+  return tokens.length > 0 && tokens.every((token) => WORD_TOKEN.test(token));
+}
+
 function isPathLike(run: string): boolean {
-  if (!run.includes('/')) return false;
   const segments = run.split('/').filter((segment) => segment.length > 0);
-  return (
-    segments.length > 0 &&
-    segments.every((segment) => PATH_SEGMENT.test(segment)) &&
-    segments.some((segment) => /[A-Za-z]{3,}/.test(segment))
-  );
+  const last = segments.at(-1);
+  if (!last) return false;
+  const signal = PATH_START.test(run) || FILE_EXTENSION.test(last);
+  return signal && segments.every(isWordLike);
 }
 
 function looksLikeSecret(run: string): boolean {

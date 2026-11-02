@@ -21,6 +21,9 @@ describe('redact', () => {
     );
     expect(redact('key 9fQx2LmZ7pRt4WvB8nKc3HdJ6sYa1GeU0iOb end')).toBe('key [redacted] end');
     expect(redact('sha 3f2a9c0b7d1e4f5a6b8c9d0e1f2a3b4c5d6e7f80')).toBe('sha [redacted]');
+    expect(redact('aws wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY end')).toBe('aws [redacted] end');
+    expect(redact('x abc/DEF123ghiJKL/mno456PQR/stu789VWXyz y')).toBe('x [redacted] y');
+    expect(redact('/q8Zx3kP0vLmN7wR2tYb9HcJ4sDfGa1eUoI5nQ')).toBe('[redacted]');
     expect(redact('otp JBSWY3DPEHPK3PXP4QZ7MNA2RCV6TLFG')).toBe('otp [redacted]');
     expect(redact('blob q8Zx/3kP0vLmN7wR2tYb+9HcJ4sDfGa1eUoI5nQ= end')).toBe('blob [redacted] end');
   });
@@ -37,6 +40,13 @@ describe('redact', () => {
     );
     expect(redact('open /Users/ana/projects/standcast/docs/2026-11-01-plan.md now')).toBe(
       'open /Users/ana/projects/standcast/docs/2026-11-01-plan.md now',
+    );
+    expect(redact('see ./apps/cli/src/draft/redact.ts')).toBe('see ./apps/cli/src/draft/redact.ts');
+    expect(redact('open ~/Repositories/Personal/standcast/README.md.')).toBe(
+      'open ~/Repositories/Personal/standcast/README.md.',
+    );
+    expect(redact('notes in docs/specs/2026-11-01-draft-from-sessions-design.md')).toBe(
+      'notes in docs/specs/2026-11-01-draft-from-sessions-design.md',
     );
     expect(redact('very-long-hyphenated-compound-word-without-digits')).toBe(
       'very-long-hyphenated-compound-word-without-digits',
