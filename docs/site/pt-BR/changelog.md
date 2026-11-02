@@ -10,7 +10,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
-- O rascunho da daily pode usar as suas sessões locais de IA: o `standcast draft --sessions`, a tool `standcast_get_draft` do MCP (`includeSessions`, ligado por padrão) e a skill `/daily` leem as suas sessões do Claude Code na sua máquina e as agrupam com os seus pull requests, cards e commits no `work`, então o ontem vira uma linha por trabalho. Os dados das sessões nunca saem da sua máquina. Para desligar, use `STANDCAST_SESSIONS=off`. Veja [Privacidade](/pt-BR/privacy#suas-sessoes-de-ia-na-sua-maquina).
+- O rascunho da daily pode usar as suas sessões locais de IA: o `standcast draft --sessions`, a tool `standcast_get_draft` do MCP (`includeSessions`, ligado por padrão) e a skill `/daily` leem as suas sessões do Claude Code na sua máquina e as agrupam com os seus pull requests, cards e commits no `work`, então o ontem vira uma linha por trabalho. O Standcast nunca envia os dados das sessões para a API dele; o seu cliente de IA recebe esses dados e pode enviá-los ao provedor do modelo dele. Para desligar, use `STANDCAST_SESSIONS=off`. Veja [Privacidade](/pt-BR/privacy#suas-sessoes-de-ia-na-sua-maquina).
 
 ### 0.3.1 — 01/11/2026
 

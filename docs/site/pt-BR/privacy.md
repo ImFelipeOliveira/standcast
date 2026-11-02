@@ -51,7 +51,7 @@ Quando você escreve a daily com a skill do Claude Code, o servidor MCP ou o `st
 - os caminhos dos arquivos editados na sessão, nunca o conteúdo deles;
 - o remote `origin` da pasta de trabalho, para ligar a sessão a um repositório.
 
-Trechos que parecem segredos (API keys, tokens do GitHub, do Slack, do Standcast e da AWS, sequências aleatórias longas) viram `[redacted]`. Esses dados nunca saem da sua máquina: não vão para a API do Standcast, para logs nem para webhooks, e o Standcast não guarda nada deles. Eles vão só para o agente de IA com que você está escrevendo a daily, que roda com a sua própria conta. Só o texto da daily que você confirma é enviado.
+Trechos que parecem segredos (API keys, tokens do GitHub, do Slack, do Standcast e da AWS, sequências aleatórias longas) viram `[redacted]` nos títulos, nos prompts, na pasta de trabalho, na branch e nos caminhos dos arquivos. O Standcast lê esses dados na sua máquina: não os envia para a API do Standcast, para logs nem para webhooks, e não guarda nada deles. O cliente de IA com que você escreve a daily (o Claude Code ou outro cliente MCP) recebe esses dados e pode enviá-los ao provedor do modelo dele, com a sua conta e nos termos desse provedor. Só o texto da daily que você confirma é enviado ao Standcast.
 
 Para desligar, defina `STANDCAST_SESSIONS=off` no seu ambiente, ou peça ao agente para não usar as suas sessões.
 

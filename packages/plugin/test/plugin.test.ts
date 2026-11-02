@@ -103,6 +103,7 @@ describe('daily skill', () => {
     expect(skill).toContain('one line per work item');
     expect(skill).toContain('includeSessions: false');
     expect(skill).toContain('standcast draft --sessions');
+    expect(skill).toContain('standcast draft --sessions --org <org>');
     expect(skill).toContain('não use as sessões');
     expect(skill).toContain('Never paste prompts verbatim');
     expect(skill).toContain('never sent to Standcast');

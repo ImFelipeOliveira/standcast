@@ -48,7 +48,7 @@ Use this when the MCP tools are not available.
    - If the shell reports command not found (exit code 127), explain that the plugin cannot install the binary: they need to install it with `curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh`, then run `standcast login`. Stop.
    - Exit code 2 (not authenticated): tell them to install and log in (`curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh`, then `standcast login`). Stop. If the failure is an origin mismatch, relay the CLI's message as is and stop.
 2. Run `standcast draft --sessions` (plain `standcast draft` if the person asked not to use their sessions).
-   - Exit code 3 (ambiguous org): ask which org they mean, then repeat with `standcast draft --org <org>` and keep using `--org` afterwards.
+   - Exit code 3 (ambiguous org): ask which org they mean, then repeat the same command with `--org <org>` added (`standcast draft --sessions --org <org>`, or `standcast draft --org <org>` if the person opted out of sessions) and keep using `--org` afterwards.
    - Other non-zero codes: show the CLI's message and stop.
    - The output is JSON: `{ org, date, since, teams, activity, suggestions }`, plus `work` with `--sessions`.
 3. Build "yesterday" from `work` when present (one line per work item), otherwise from `activity`, show it, and let the person correct it. Ask for today and blockers in their language, keeping their answers verbatim.

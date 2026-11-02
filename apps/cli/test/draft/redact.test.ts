@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { redact } from '../../src/draft/redact';
+import { redact, redactPath } from '../../src/draft/redact';
 
 describe('redact', () => {
   test('replaces known token shapes', () => {
@@ -52,6 +52,40 @@ describe('redact', () => {
     );
     expect(redact('see https://github.com/acme/app and git@github.com:acme/app.git')).toBe(
       'see https://github.com/acme/app and git@github.com:acme/app.git',
+    );
+  });
+
+  test('redacts the whole password when it contains @', () => {
+    expect(redact('db postgres://user:p@ss@db.host/app now')).toBe(
+      'db postgres://[redacted]@db.host/app now',
+    );
+    expect(redact('https://user:pw@host/x?mail=a@b.com#c@d')).toBe(
+      'https://[redacted]@host/x?mail=a@b.com#c@d',
+    );
+    expect(redact('https://host/x?q=a:b@c')).toBe('https://host/x?q=a:b@c');
+  });
+
+  test('token prefixes need a boundary before them', () => {
+    expect(redact('feat/task-assignment-notifications')).toBe('feat/task-assignment-notifications');
+    expect(redact('misc_settings and desc_abcdefghijklmnopqr')).toBe(
+      'misc_settings and desc_abcdefghijklmnopqr',
+    );
+    expect(redact('risk-abcdefghijklmnopqr')).toBe('risk-abcdefghijklmnopqr');
+    expect(redact('key=sk-abcdefghijklmnop1234')).toBe('key=[redacted]');
+    expect(redact('(sc_abcdefghijklmnop)')).toBe('([redacted])');
+    expect(redact('"sck_abcdefghijklmnop"')).toBe('"[redacted]"');
+  });
+
+  test('redactPath keeps ticket branches and paths and removes secrets', () => {
+    expect(redactPath('feature/PROJ-4521-fix-login-redirect-loop')).toBe(
+      'feature/PROJ-4521-fix-login-redirect-loop',
+    );
+    expect(redactPath('/home/dev/client-2024/project-alpha-v2')).toBe(
+      '/home/dev/client-2024/project-alpha-v2',
+    );
+    expect(redactPath('feat/sk-abcdefghijklmnop1234')).toBe('feat/[redacted]');
+    expect(redactPath('/srv/q8Zx3kP0vLmN7wR2tYb9HcJ4sDfGa1eUoI5nQ/app')).toBe(
+      '/srv/[redacted]/app',
     );
   });
 

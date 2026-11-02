@@ -152,6 +152,47 @@ describe('readSessions', () => {
     expect(fallback?.title).toBe('token [redacted] now');
   });
 
+  test('redacts secrets in the working directory, branch and files', async () => {
+    const dir = await tempDir();
+    await mkdir(join(dir, 'proj'));
+    const secret = 'q8Zx3kP0vLmN7wR2tYb9HcJ4sDfGa1eUoI5nQ';
+    const lines = [
+      line({
+        type: 'user',
+        cwd: `/work/${secret}`,
+        gitBranch: 'feat/ghp_abcdefghijklmnopqrstuvwxyz0123',
+        message: { role: 'user', content: 'ship it' },
+      }),
+      line({
+        type: 'assistant',
+        cwd: `/work/${secret}`,
+        gitBranch: 'feat/ghp_abcdefghijklmnopqrstuvwxyz0123',
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              type: 'tool_use',
+              id: 't1',
+              name: 'Edit',
+              input: { file_path: `/work/${secret}/src/${secret}.ts` },
+            },
+            {
+              type: 'tool_use',
+              id: 't2',
+              name: 'Edit',
+              input: { file_path: '/elsewhere/sk-abcdefghijklmnop1234' },
+            },
+          ],
+        },
+      }),
+    ];
+    await writeFile(join(dir, 'proj', 's1.jsonl'), `${lines.join('\n')}\n`);
+    const [session] = await readSessions({ dir, since, until, env: {} });
+    expect(session?.cwd).toBe('/work/[redacted]');
+    expect(session?.branch).toBe('feat/[redacted]');
+    expect(session?.files).toEqual(['src/[redacted]', '/elsewhere/[redacted]']);
+  });
+
   test('missing and malformed files', async () => {
     expect(
       await readSessions({ dir: join(fixtures, 'does-not-exist'), since, until, env: {} }),

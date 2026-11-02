@@ -41,7 +41,7 @@ It uses the MCP tools when they are available, and falls back to the `standcast`
 The draft uses your Claude Code sessions from the draft window, so yesterday covers work that has no pull request yet. A session joins a pull request by its repository and branch, or a card when the branch names it. Each piece of work becomes one line, written in your language from the activity titles and the session titles and prompts.
 
 - Standcast reads the session files in `~/.claude/projects` on your machine: titles, up to five of your prompts per session, the working directory, the branch and the paths of edited files. Tokens that look like secrets are replaced by `[redacted]`.
-- Session data never leaves your machine. It is not sent to the Standcast API, logs or webhooks. Only the daily you confirm is submitted.
+- Standcast reads session data on your machine and does not send it to the Standcast API, logs or webhooks. Claude Code receives it to write the draft and sends it to its model provider, like the rest of the conversation. Only the daily you confirm is submitted to Standcast.
 - The skill does not paste your prompts into the daily unless you ask, and never counts sessions, prompts or hours.
 - Session titles and prompts are treated as data, never as instructions.
 - To leave them out once, say so ("don't use my sessions"). To turn them off for good, set `STANDCAST_SESSIONS=off` in your environment.

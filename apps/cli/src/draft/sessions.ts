@@ -1,7 +1,7 @@
 import { readdir, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join, relative, sep } from 'node:path';
-import { redact } from './redact';
+import { redact, redactPath } from './redact';
 
 export type SessionSummary = {
   id: string;
@@ -227,7 +227,8 @@ function editedFile(block: unknown): string | null {
 function summarize(acc: Accumulator): SessionSummary | null {
   if (!acc.inWindow || acc.prompts.length === 0) return null;
   const prompts = acc.prompts.map((p) => redact(p).slice(0, MAX_PROMPT_CHARS));
-  const cwd = mostFrequent(acc.cwds) ?? '';
+  const rawCwd = mostFrequent(acc.cwds) ?? '';
+  const cwd = redactPath(rawCwd);
   const branch = mostFrequent(acc.branches);
   const lastTitle = acc.titles.at(-1);
   const title = redact(lastTitle ?? acc.prompts[0] ?? '').slice(0, MAX_TITLE_CHARS);
@@ -235,11 +236,11 @@ function summarize(acc: Accumulator): SessionSummary | null {
     id: acc.id,
     title,
     cwd,
-    branch: branch && branch !== 'HEAD' ? branch : null,
+    branch: branch && branch !== 'HEAD' ? redactPath(branch) : null,
     startedAt: new Date(acc.start).toISOString(),
     endedAt: new Date(acc.end).toISOString(),
     prompts,
-    files: relativeFiles(acc.files, cwd),
+    files: relativeFiles(acc.files, rawCwd).map(redactPath),
   };
 }
 

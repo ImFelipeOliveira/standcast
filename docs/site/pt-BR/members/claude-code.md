@@ -41,7 +41,7 @@ Ela usa as tools do MCP quando estão disponíveis e, senão, a CLI `standcast`.
 O rascunho usa as suas sessões do Claude Code na janela do rascunho, então o ontem cobre também o trabalho que ainda não tem pull request. Uma sessão se junta a um pull request pelo repositório e pela branch, ou a um card quando a branch cita o card. Cada trabalho vira uma linha, escrita no seu idioma a partir dos títulos da atividade e dos títulos e prompts das sessões.
 
 - O Standcast lê os arquivos das sessões em `~/.claude/projects` na sua máquina: títulos, até cinco dos seus prompts por sessão, a pasta de trabalho, a branch e os caminhos dos arquivos editados. Trechos que parecem segredos viram `[redacted]`.
-- Os dados das sessões nunca saem da sua máquina. Eles não vão para a API do Standcast, para logs nem para webhooks. Só a daily que você confirma é enviada.
+- O Standcast lê os dados das sessões na sua máquina e não os envia para a API do Standcast, para logs nem para webhooks. O Claude Code recebe esses dados para montar o rascunho e os envia ao provedor do modelo dele, como o resto da conversa. Só a daily que você confirma é enviada ao Standcast.
 - A skill não cola os seus prompts na daily, a menos que você peça, e nunca conta sessões, prompts ou horas.
 - Títulos e prompts das sessões são tratados como dados, nunca como instruções.
 - Para deixar as sessões de fora uma vez, é só dizer ("não use as sessões"). Para desligar de vez, defina `STANDCAST_SESSIONS=off` no seu ambiente.

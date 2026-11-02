@@ -51,7 +51,7 @@ When you write your daily with the Claude Code skill, the MCP server or `standca
 - the paths of the files edited in the session, never their contents;
 - the `origin` remote of the working directory, to match the session to a repository.
 
-Tokens that look like secrets (API keys, GitHub, Slack, Standcast and AWS tokens, long random strings) are replaced by `[redacted]`. This data never leaves your machine: it is not sent to the Standcast API, logs or webhooks, and Standcast stores none of it. It goes only to the AI agent you are writing the daily with, which runs under your own account. Only the daily text you confirm is submitted.
+Tokens that look like secrets (API keys, GitHub, Slack, Standcast and AWS tokens, long random strings) are replaced by `[redacted]` in the titles, prompts, working directory, branch and file paths. Standcast reads this data on your machine: it does not send it to the Standcast API, logs or webhooks, and it stores none of it. The AI client you write the daily with (Claude Code or another MCP client) receives it and may send it to its model provider, under your account and that provider's terms. Only the daily text you confirm is submitted to Standcast.
 
 To turn it off, set `STANDCAST_SESSIONS=off` in your environment, or ask the agent not to use your sessions.
 

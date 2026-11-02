@@ -79,7 +79,7 @@ Every tool declares an input schema, an output schema and annotations, and retur
 
 `standcast_get_draft` also reads your local Claude Code sessions from the draft window and adds `work`: one entry per piece of work, grouping the pull requests, cards, commits and sessions that belong together. Each entry is `{ key, title, refs, activity, sessions }`. Each session has its title, working directory, branch, start and end, up to five of your prompts (cut to 300 characters) and up to 20 edited file paths. Tokens that look like secrets are replaced by `[redacted]`.
 
-The MCP server runs on your machine and reads the session files itself, from `~/.claude/projects` (or `STANDCAST_CLAUDE_DIR`). Session data never leaves your machine: it is not sent to the Standcast API, logs or webhooks. Only the daily you confirm is submitted.
+The MCP server runs on your machine and reads the session files itself, from `~/.claude/projects` (or `STANDCAST_CLAUDE_DIR`). Standcast does not send session data to the Standcast API, logs or webhooks. The MCP client you connect receives it and may send it to its model provider. Only the daily you confirm is submitted to Standcast.
 
 The agent builds yesterday with one line per work item, in your language, and does not paste your prompts into the daily unless you ask. To leave your sessions out, tell the agent (it calls again with `includeSessions: false`), or set `STANDCAST_SESSIONS=off` in the environment of the MCP server to turn it off everywhere.
 
