@@ -274,7 +274,20 @@ describe('submit', () => {
       path: '/v1/dailies',
       auth: 'Bearer sc_tok',
     });
-    expect(JSON.parse(api.seen[0]?.body ?? '{}')).toEqual(DAILY);
+    expect(JSON.parse(api.seen[0]?.body ?? '{}')).toEqual({ ...DAILY, support: [] });
+  });
+
+  test('submit sends support requests and validates them locally', async () => {
+    const api = serve(() => json({ date: '2026-10-28', teams: ['A'], late: false }));
+    const support = [{ text: 'need a review on the API PR' }];
+    const ctx = await loggedIn(api.url, ORGS, JSON.stringify({ ...DAILY, support }));
+    expect(await run(['submit'], ctx.io)).toBe(0);
+    expect(JSON.parse(api.seen[0]?.body ?? '{}').support).toEqual(support);
+    const many = Array.from({ length: 11 }, (_, i) => ({ text: `ask ${i}` }));
+    const bad = await loggedIn(api.url, ORGS, JSON.stringify({ ...DAILY, support: many }));
+    expect(await run(['submit'], bad.io)).toBe(4);
+    expect(bad.err.join('')).toContain('support');
+    expect(api.seen).toHaveLength(1);
   });
 
   test('submit reads --file and fills org from --org or the single org', async () => {

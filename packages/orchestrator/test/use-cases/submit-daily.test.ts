@@ -41,6 +41,14 @@ describe('submitDaily', () => {
     expect(plain?.payload).toEqual(daily);
   });
 
+  test('stores the support requests with the daily', async () => {
+    const { deps, isMember, member } = await setup();
+    const support = [{ text: 'pair on the flaky test' }];
+    await submitDaily(deps, isMember, member, { ...daily, support });
+    const [row] = await listDailies(db, INST, '2026-10-28');
+    expect(row?.payload.support).toEqual(support);
+  });
+
   test('getToday returns the standup date without fetching activity', async () => {
     const { deps, isMember, member, calls, setNow } = await setup();
     setNow(new Date('2026-10-31T15:00:00Z'));

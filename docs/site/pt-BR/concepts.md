@@ -28,11 +28,12 @@ O dono de uma conta pessoal, ou um membro com o papel `admin` na organização d
 
 ## Daily
 
-A daily de uma pessoa para uma data, numa organização. Ela tem três listas:
+A daily de uma pessoa para uma data, numa organização. Ela tem quatro listas:
 
 - **Ontem:** o que a pessoa fez desde a última daily.
 - **Hoje:** o que ela planeja fazer. Pelo menos um item.
 - **Impedimentos:** o que a trava. Pode ficar vazia.
+- **Pedidos de apoio:** o que ela precisa de outra pessoa sem estar travada, como um review, uma decisão ou um pareamento. Opcional, pode ficar vazia.
 
 Cada item é uma linha de texto, com link opcional para um pull request, issue, commit ou card. Enviar de novo no mesmo dia substitui a daily anterior. Uma única daily aparece no consolidado de todos os times da pessoa.
 
@@ -46,7 +47,7 @@ O ponto de partida do "ontem", montado pelo Standcast a partir da atividade da p
 
 ## Consolidado
 
-Uma mensagem no Slack por time por dia útil, publicada no `digest_at` do time. Primeiro os impedimentos, depois a daily de cada pessoa e, no fim, a lista de quem não enviou.
+Uma mensagem no Slack por time por dia útil, publicada no `digest_at` do time. Primeiro os impedimentos, depois os pedidos de apoio, depois a daily de cada pessoa e, no fim, a lista de quem não enviou.
 
 ## Daily atrasada
 

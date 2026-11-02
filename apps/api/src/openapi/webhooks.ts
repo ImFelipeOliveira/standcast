@@ -55,6 +55,7 @@ export const WEBHOOK_EXAMPLES = {
       ],
       today: [{ text: 'Write the integrator guides' }],
       blockers: [BLOCKER],
+      support: [{ text: 'Need a review on the migration before Friday' }],
       replaced: false,
     },
   },
@@ -98,6 +99,10 @@ const DailySubmittedSchema = envelope(
     yesterday: z.array(ItemSchema),
     today: z.array(ItemSchema),
     blockers: z.array(ItemSchema),
+    support: z.array(ItemSchema).openapi({
+      description:
+        'What the author needs help with from others, without being blocked. Empty when none.',
+    }),
     replaced: z
       .boolean()
       .openapi({ description: '`true` when the person resent the daily of the same day.' }),

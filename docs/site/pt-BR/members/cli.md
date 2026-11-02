@@ -92,7 +92,8 @@ standcast submit --file daily.json
     }
   ],
   "today": [{ "text": "Escrever os guias para integradores" }],
-  "blockers": [{ "text": "Esperando o banco de staging" }]
+  "blockers": [{ "text": "Esperando o banco de staging" }],
+  "support": [{ "text": "Preciso de um review na migração antes de sexta" }]
 }
 ```
 
@@ -102,6 +103,7 @@ standcast submit --file daily.json
 | `yesterday` | Até 30 itens. Pode ficar vazio. |
 | `today` | De 1 a 30 itens. |
 | `blockers` | Até 10 itens. Pode ficar vazio. |
+| `support` | Opcional. Até 10 itens: o que você precisa de outra pessoa sem estar travado. Quando falta, fica vazio. |
 | `text` | De 1 a 500 caracteres, numa linha. |
 | `ref` | Opcional. `kind` é `pull_request`, `issue`, `commit` ou `card`; `url` usa `http` ou `https`; `title` tem até 200 caracteres. |
 

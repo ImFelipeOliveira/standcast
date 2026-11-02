@@ -92,7 +92,8 @@ standcast submit --file daily.json
     }
   ],
   "today": [{ "text": "Write the integrator guides" }],
-  "blockers": [{ "text": "Waiting for the staging database" }]
+  "blockers": [{ "text": "Waiting for the staging database" }],
+  "support": [{ "text": "Need a review on the migration before Friday" }]
 }
 ```
 
@@ -102,6 +103,7 @@ standcast submit --file daily.json
 | `yesterday` | Up to 30 items. Can be empty. |
 | `today` | 1 to 30 items. |
 | `blockers` | Up to 10 items. Can be empty. |
+| `support` | Optional. Up to 10 items: what you need from someone else without being blocked. When missing, it is empty. |
 | `text` | 1 to 500 characters, on one line. |
 | `ref` | Optional. `kind` is `pull_request`, `issue`, `commit` or `card`; `url` uses `http` or `https`; `title` has up to 200 characters. |
 

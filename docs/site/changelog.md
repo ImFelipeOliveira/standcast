@@ -11,6 +11,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 ### Unreleased
 
 - The web app is live at [app-standcast.usefachada.dev](https://app-standcast.usefachada.dev), starting with the setup screen. The server-rendered setup page still works.
+- Support requests: an optional section of the daily for what you need from someone else without being blocked, such as a review, a decision or a pairing session. The `/daily` skill, the MCP server and the CLI ask for it after the blockers, and the digest shows it right after the blockers, with who asked. It is not routed by direct message.
+- The digest and the late daily label their sections with emoji so they read faster in Slack: 📅 title, 🗓️ Yesterday, 🎯 Today, 🚧 Blockers, 🤝 Support requests and ⏳ for who did not send. The confirmation shown before sending a daily uses the same labels.
 
 ### 0.3.1 — 2026-11-01
 

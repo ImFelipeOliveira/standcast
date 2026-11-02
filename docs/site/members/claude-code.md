@@ -22,8 +22,9 @@ Type `/daily`, or ask for it in your words: "my daily", "standup", "what did I d
 2. Shows yesterday and lets you correct, remove or add items. It may add things that really happened in this Claude Code session.
 3. If the draft has suggested blockers, such as your pull request waiting for review, failing checks or a card in progress for days, asks about each one. If it is a real blocker, it goes into your blockers with its link; if not, the skill ignores it and it does not come back unless the signal changes. It never adds a suggestion without your answer, and suggestions are visible only to you.
 4. Asks what you will do today and what blocks you, in your language.
-5. Shows the final daily and asks for your explicit confirmation.
-6. Sends it, and tells you if it went to the digest thread because the digest was already posted.
+5. Asks whether you need support from anyone, without being blocked: a review, a decision, a pairing session. "No" leaves the section empty.
+6. Shows the final daily and asks for your explicit confirmation.
+7. Sends it, and tells you if it went to the digest thread because the digest was already posted.
 
 It uses the MCP tools when they are available, and falls back to the `standcast` CLI otherwise.
 
@@ -48,6 +49,8 @@ Claude:  Here is yesterday from your GitHub activity in acme:
 You:     Drop 3, it's part of 2.
 Claude:  What will you do today? Any blockers?
 You:     Today I'll write the integrator guides. Blocked: waiting for the staging database.
+Claude:  Do you need support from anyone, without being blocked?
+You:     A review on the migration PR before Friday.
 Claude:  Final daily for acme, 2026-10-28:
          Yesterday
          - Merged "Add rate limiting" (acme/api#42)
@@ -56,6 +59,8 @@ Claude:  Final daily for acme, 2026-10-28:
          - I'll write the integrator guides
          Blockers
          - waiting for the staging database
+         Support requests
+         - A review on the migration PR before Friday
          Send it?
 You:     Yes.
 Claude:  Sent for 2026-10-28. It goes into the backend digest.

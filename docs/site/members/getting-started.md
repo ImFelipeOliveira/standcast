@@ -63,7 +63,7 @@ Pick the way that fits your tools:
 In every case, the flow is the same:
 
 1. Standcast builds a draft of yesterday from your GitHub activity since your last daily, plus your own Linear cards if your organization connected Linear.
-2. You fix yesterday, then write today and any blockers.
+2. You fix yesterday, then write today, any blockers and, if you need something from someone, a support request.
 3. You see the final daily and confirm it. Nothing is sent before that.
 
 ## 4. After you send it
@@ -71,6 +71,6 @@ In every case, the flow is the same:
 - Your daily is stored for today's standup date. If you send again the same day, the new version replaces the old one.
 - At the team's `digest_at`, your daily appears in the digest of every team you are in.
 - If the digest already went out, your daily is posted as a reply in the digest thread, and the result says `late: true`.
-- Webhooks registered by your admin receive a `daily.submitted` event, and a `blocker.opened` event for each new blocker.
+- Webhooks registered by your admin receive a `daily.submitted` event, with your support requests in it, and a `blocker.opened` event for each new blocker.
 
 Something went wrong? See [Troubleshooting](/troubleshooting).
