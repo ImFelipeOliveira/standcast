@@ -240,6 +240,134 @@ describe('readSessions', () => {
     expect(tail?.startedAt).toBe('2026-10-31T08:37:00.000Z');
   });
 
+  test('skips harness lines', async () => {
+    const dir = await tempDir();
+    await mkdir(join(dir, 'proj'));
+    const texts = [
+      '<bash-input>ls</bash-input>',
+      '<bash-stdout>out</bash-stdout>',
+      '<bash-stderr>err</bash-stderr>',
+      '<task-notification>done</task-notification>',
+      'This session is being continued from a previous conversation.',
+      '<system-reminder>note</system-reminder><bash-input>pwd</bash-input>',
+    ];
+    const lines = texts.map((content, i) =>
+      line({
+        type: 'user',
+        timestamp: `2026-10-31T08:0${i}:00.000Z`,
+        message: { role: 'user', content },
+      }),
+    );
+    lines.push(
+      line({
+        type: 'user',
+        isCompactSummary: true,
+        message: { role: 'user', content: 'Summary of the earlier conversation' },
+      }),
+      line({
+        type: 'user',
+        isVisibleInTranscriptOnly: true,
+        message: { role: 'user', content: 'Transcript only text' },
+      }),
+      line({
+        type: 'user',
+        timestamp: '2026-10-31T08:08:00.000Z',
+        message: {
+          role: 'user',
+          content: [
+            { type: 'text', text: '<command-name>/review</command-name>' },
+            { type: 'text', text: '<system-reminder>x</system-reminder> <local-command-stdout>y' },
+            { type: 'text', text: 'Review the payment flow' },
+          ],
+        },
+      }),
+      line({
+        type: 'user',
+        timestamp: '2026-10-31T08:09:00.000Z',
+        message: { role: 'user', content: 'Then deploy <system-reminder>never closed tail' },
+      }),
+    );
+    await writeFile(join(dir, 'proj', 's1.jsonl'), `${lines.join('\n')}\n`);
+    const [session] = await readSessions({ dir, since, until, env: {} });
+    expect(session?.prompts).toEqual(['Review the payment flow', 'Then deploy']);
+  });
+
+  test('caps ai titles at 120 chars', async () => {
+    const dir = await tempDir();
+    await mkdir(join(dir, 'proj'));
+    const lines = [
+      line({ type: 'user', message: { role: 'user', content: 'hello' } }),
+      JSON.stringify({ type: 'ai-title', aiTitle: 't'.repeat(200), sessionId: 's1' }),
+    ];
+    await writeFile(join(dir, 'proj', 's1.jsonl'), `${lines.join('\n')}\n`);
+    const [session] = await readSessions({ dir, since, until, env: {} });
+    expect(session?.title).toBe('t'.repeat(120));
+  });
+
+  test('redacts a secret straddling the prompt cut', async () => {
+    const dir = await tempDir();
+    await mkdir(join(dir, 'proj'));
+    const secret = 'sk-abcdefghijklmnopqrstuvwxyz0123';
+    const content = `${'x'.repeat(290)} ${secret} tail`;
+    await writeFile(
+      join(dir, 'proj', 's1.jsonl'),
+      `${line({ type: 'user', message: { role: 'user', content } })}\n`,
+    );
+    const [session] = await readSessions({ dir, since, until, env: {} });
+    const prompt = session?.prompts[0] ?? '';
+    expect(prompt.length).toBe(300);
+    expect(prompt).not.toContain('sk-');
+    expect(prompt).not.toContain('abcdef');
+    expect(prompt.endsWith(' [redacted')).toBe(true);
+  });
+
+  test('a HEAD majority gives a null branch', async () => {
+    const dir = await tempDir();
+    await mkdir(join(dir, 'proj'));
+    const lines = [
+      line({ type: 'user', gitBranch: 'HEAD', message: { role: 'user', content: 'one' } }),
+      line({ type: 'assistant', gitBranch: 'HEAD', message: { role: 'assistant', content: [] } }),
+      line({ type: 'assistant', gitBranch: 'feat/x', message: { role: 'assistant', content: [] } }),
+    ];
+    await writeFile(join(dir, 'proj', 's1.jsonl'), `${lines.join('\n')}\n`);
+    const [session] = await readSessions({ dir, since, until, env: {} });
+    expect(session?.branch).toBeNull();
+  });
+
+  test('reads a 2 MB single line quickly', async () => {
+    const dir = await tempDir();
+    await mkdir(join(dir, 'proj'));
+    const big = line({
+      type: 'assistant',
+      message: {
+        role: 'assistant',
+        content: [{ type: 'text', text: 'y'.repeat(2 * 1024 * 1024) }],
+      },
+    });
+    const prompt = line({
+      type: 'user',
+      timestamp: '2026-10-31T08:01:00.000Z',
+      message: { role: 'user', content: 'after the big line' },
+    });
+    await writeFile(join(dir, 'proj', 's1.jsonl'), `${big}\n${prompt}\n`);
+    const started = performance.now();
+    const [session] = await readSessions({ dir, since, until, env: {} });
+    expect(performance.now() - started).toBeLessThan(1000);
+    expect(session?.prompts).toEqual(['after the big line']);
+  });
+
+  test('a tail larger than the file reads it whole', async () => {
+    const dir = await tempDir();
+    await mkdir(join(dir, 'proj'));
+    const body = `${line({ type: 'user', message: { role: 'user', content: 'first' } })}\n${line({ type: 'user', timestamp: '2026-10-31T08:01:00.000Z', message: { role: 'user', content: 'second' } })}\n`;
+    await writeFile(join(dir, 'proj', 's1.jsonl'), body);
+    const [session] = await readSessions(
+      { dir, since, until, env: {} },
+      { maxWholeBytes: 10, tailBytes: body.length * 2 },
+    );
+    expect(session?.prompts).toEqual(['first', 'second']);
+  });
+
   test('uses STANDCAST_CLAUDE_DIR when dir is not given', async () => {
     const sessions = await readSessions({
       since,

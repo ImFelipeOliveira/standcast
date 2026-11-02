@@ -41,13 +41,23 @@ const DEFAULT_LIMITS: SessionReadLimits = {
   maxWholeBytes: 50 * 1024 * 1024,
   tailBytes: 20 * 1024 * 1024,
 };
-const INTERRUPTED = '[Request interrupted';
+const SKIPPED_PREFIXES = [
+  '<command-',
+  '<local-command-',
+  '<bash-input',
+  '<bash-stdout',
+  '<bash-stderr',
+  '<task-notification',
+  'This session is being continued',
+  '[Request interrupted',
+];
 const MAX_PROMPTS = 5;
 const MAX_PROMPT_CHARS = 300;
 const MAX_TITLE_CHARS = 120;
 const MAX_FILES = 20;
 const FILE_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit']);
 const REMINDER = /<system-reminder>[\s\S]*?<\/system-reminder>/g;
+const UNCLOSED_REMINDER = /<system-reminder>[\s\S]*$/;
 
 export async function readSessions(
   input: ReadSessionsInput,
@@ -104,25 +114,33 @@ async function readFile(
 ): Promise<void> {
   try {
     const decoder = new TextDecoder();
-    const tail = file.size > limits.maxWholeBytes;
-    const source = tail
-      ? Bun.file(file.path).slice(file.size - limits.tailBytes, file.size)
-      : Bun.file(file.path);
-    let skipPartial = tail;
-    let buffer = '';
-    for await (const chunk of source.stream()) {
-      buffer += decoder.decode(chunk, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() ?? '';
-      if (skipPartial && lines.length > 0) {
-        lines.shift();
+    const start = file.size > limits.maxWholeBytes ? Math.max(0, file.size - limits.tailBytes) : 0;
+    const source = start > 0 ? Bun.file(file.path).slice(start, file.size) : Bun.file(file.path);
+    let skipPartial = start > 0;
+    const pieces: string[] = [];
+    const emit = (text: string) => {
+      pieces.push(text);
+      const line = pieces.join('');
+      pieces.length = 0;
+      if (skipPartial) {
         skipPartial = false;
+        return;
       }
-      for (const line of lines) handleLine(line, window, sessions);
-    }
-    if (skipPartial) return;
-    buffer += decoder.decode();
-    handleLine(buffer, window, sessions);
+      handleLine(line, window, sessions);
+    };
+    const consume = (text: string) => {
+      let from = 0;
+      let at = text.indexOf('\n', from);
+      while (at !== -1) {
+        emit(text.slice(from, at));
+        from = at + 1;
+        at = text.indexOf('\n', from);
+      }
+      if (from < text.length) pieces.push(text.slice(from));
+    };
+    for await (const chunk of source.stream()) consume(decoder.decode(chunk, { stream: true }));
+    consume(decoder.decode());
+    if (pieces.length > 0) emit('');
   } catch {}
 }
 
@@ -161,7 +179,8 @@ function handleLine(
   const message = isRecord(line.message) ? line.message : null;
   if (!message) return;
   if (type === 'user') {
-    if (line.isMeta === true || acc.prompts.length >= MAX_PROMPTS) return;
+    if (line.isMeta === true || line.isCompactSummary === true) return;
+    if (line.isVisibleInTranscriptOnly === true || acc.prompts.length >= MAX_PROMPTS) return;
     const prompt = promptText(message.content);
     if (prompt) acc.prompts.push(prompt);
     return;
@@ -175,23 +194,25 @@ function handleLine(
 }
 
 function promptText(content: unknown): string | null {
-  let text: string;
+  let texts: string[];
   if (typeof content === 'string') {
-    text = content;
+    texts = [content];
   } else if (Array.isArray(content)) {
-    text = content
-      .filter((b): b is { type: 'text'; text: string } => isRecord(b) && b.type === 'text')
-      .filter((b) => typeof b.text === 'string' && !b.text.trimStart().startsWith(INTERRUPTED))
+    texts = content
+      .filter((b): b is { type: 'text'; text: unknown } => isRecord(b) && b.type === 'text')
       .map((b) => b.text)
-      .join('\n');
+      .filter((text): text is string => typeof text === 'string');
   } else {
     return null;
   }
-  const head = text.trimStart();
-  if (head.startsWith('<command-') || head.startsWith('<local-command-')) return null;
-  if (head.startsWith(INTERRUPTED)) return null;
-  const clean = text.replace(REMINDER, '').trim();
-  return clean ? clean : null;
+  const kept = texts.map(cleanBlock).filter((text): text is string => text !== null);
+  return kept.length > 0 ? kept.join('\n') : null;
+}
+
+function cleanBlock(text: string): string | null {
+  const clean = text.replace(REMINDER, '').replace(UNCLOSED_REMINDER, '').trim();
+  if (!clean || SKIPPED_PREFIXES.some((prefix) => clean.startsWith(prefix))) return null;
+  return clean;
 }
 
 function editedFile(block: unknown): string | null {
@@ -208,9 +229,7 @@ function summarize(acc: Accumulator): SessionSummary | null {
   const cwd = mostFrequent(acc.cwds) ?? '';
   const branch = mostFrequent(acc.branches);
   const lastTitle = acc.titles.at(-1);
-  const title = lastTitle
-    ? redact(lastTitle)
-    : redact(acc.prompts[0] ?? '').slice(0, MAX_TITLE_CHARS);
+  const title = redact(lastTitle ?? acc.prompts[0] ?? '').slice(0, MAX_TITLE_CHARS);
   return {
     id: acc.id,
     title,
