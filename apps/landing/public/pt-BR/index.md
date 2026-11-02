@@ -2,7 +2,7 @@
 
 > Código aberto (MIT), grátis durante o beta público. Funciona hoje com GitHub e Slack. Google Chat e Jira vêm a seguir.
 
-Rode `/daily` no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack.
+O Standcast é uma ferramenta de código aberto para a daily de times de software. Rode `/daily` no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack.
 
 ```sh
 curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh

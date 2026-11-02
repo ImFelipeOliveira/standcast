@@ -33,7 +33,10 @@
 <link rel="stylesheet" href="/styles.css">
 <script src="/app.js" defer></script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Standcast","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","description":"Daily standup orchestrator: drafts each person's standup from GitHub and Linear activity inside their AI agent (Claude Code, Cursor, Codex, MCP), sends it only after confirmation, and posts one digest per team to Slack.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Free during the public beta"},"license":"https://opensource.org/licenses/MIT","codeRepository":"https://github.com/ImFelipeOliveira/standcast","url":"https://standcast.usefachada.dev/","inLanguage":"en","image":"https://standcast.usefachada.dev/og.png"}
+{"@context":"https://schema.org","@type":"Organization","@id":"https://standcast.usefachada.dev/#organization","name":"Standcast","url":"https://standcast.usefachada.dev/","logo":"https://standcast.usefachada.dev/favicon.svg","description":"Standcast makes an open source daily standup tool for software teams that drafts each person's standup from GitHub and Linear in their AI agent and posts one digest per team to Slack.","sameAs":["https://github.com/ImFelipeOliveira/standcast","https://docs-standcast.usefachada.dev/"]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Standcast","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","description":"Daily standup orchestrator: drafts each person's standup from GitHub and Linear activity inside their AI agent (Claude Code, Cursor, Codex, MCP), sends it only after confirmation, and posts one digest per team to Slack.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Free during the public beta"},"license":"https://opensource.org/licenses/MIT","publisher":{"@id":"https://standcast.usefachada.dev/#organization"},"codeRepository":"https://github.com/ImFelipeOliveira/standcast","url":"https://standcast.usefachada.dev/","inLanguage":"en","image":"https://standcast.usefachada.dev/og.png"}
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","inLanguage":"en","mainEntity":[
@@ -68,7 +71,7 @@
     <div class="hero-copy">
       <span class="pill"><b>Beta</b> Open source · MIT · free while in beta</span>
       <h1>Your daily standup, written in <em>your AI agent</em>.</h1>
-      <p class="lede">Run <code>/daily</code> in Claude Code, Cursor or the terminal. Standcast drafts yesterday from your GitHub and Linear activity, you confirm, and your team gets one digest in Slack.</p>
+      <p class="lede">Standcast is an open source daily standup tool for software teams. Run <code>/daily</code> in Claude Code, Cursor or the terminal. Standcast drafts yesterday from your GitHub and Linear activity, you confirm, and your team gets one digest in Slack.</p>
       <div class="install">
         <code id="cmd" data-copy="curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh"><span>$</span> curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh</code>
         <button class="copy" id="copy" type="button" aria-describedby="cmd" data-done="Copied">Copy</button>
