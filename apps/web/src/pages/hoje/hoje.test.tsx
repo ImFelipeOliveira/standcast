@@ -7,7 +7,8 @@ import { createQueryClient, sessionQuery, teamTodayQuery } from '../../api/queri
 import { applyLang, translate } from '../../i18n';
 import { errorMessage } from '../configuracao/labels';
 import { Dailies } from './DailyCard';
-import { HojePage } from './HojePage';
+import { keyed } from './format';
+import { HojePage, listBlockers } from './HojePage';
 import { refLabel } from './refLabel';
 
 const originalFetch = globalThis.fetch;
@@ -225,6 +226,47 @@ describe('hoje', () => {
     );
     expect(sent).toContain('@ana');
     expect(sent).not.toContain('@diego');
+  });
+
+  test('a reopened blocker stays listed until the refetch brings it back', () => {
+    const [stuck, fresh] = fixture().blockers;
+    if (!stuck || !fresh) throw new Error('fixture');
+    const afterResolve = listBlockers([fresh], { [stuck.id]: stuck }, {});
+    expect(afterResolve.open.map((b) => b.id)).toEqual([fresh.id]);
+    expect(afterResolve.listed).toEqual([
+      { blocker: stuck, resolved: true },
+      { blocker: fresh, resolved: false },
+    ]);
+    const beforeRefetch = listBlockers([fresh], {}, { [stuck.id]: stuck });
+    expect(beforeRefetch.open.map((b) => b.id).sort()).toEqual([stuck.id, fresh.id].sort());
+    expect(beforeRefetch.listed).toEqual([
+      { blocker: stuck, resolved: false },
+      { blocker: fresh, resolved: false },
+    ]);
+    const afterRefetch = listBlockers([stuck, fresh], {}, { [stuck.id]: stuck });
+    expect(afterRefetch.listed.map((item) => item.blocker.id)).toEqual([stuck.id, fresh.id]);
+  });
+
+  test('keys stay unique for repeated items', () => {
+    const items = [{ text: 'a' }, { text: 'a' }, { text: 'b' }];
+    expect(keyed(items, (item) => item.text).map((entry) => entry.key)).toEqual(['a', 'a#1', 'b']);
+  });
+
+  test('the remind result region is always present', () => {
+    const today = fixture();
+    const render = (reminders: Record<string, 'queued'>) =>
+      renderToStaticMarkup(
+        <Dailies
+          today={today}
+          filter="missing"
+          onFilter={() => {}}
+          reminders={reminders}
+          onRemind={() => {}}
+          onView={() => {}}
+        />,
+      );
+    expect(render({})).toMatch(/<span role="status"[^>]*><\/span>/);
+    expect(render({ diego: 'queued' })).toMatch(/<span role="status"[^>]*>[^<]+<\/span>/);
   });
 
   test('remind button hidden when canRemind is false', () => {

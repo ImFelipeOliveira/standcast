@@ -132,6 +132,14 @@ describe('shell', () => {
     expect(hojeLink).not.toContain('em breve');
     expect(html).toContain('href="/orgs/11/hoje?team=backend"');
     expect(html).toContain('1/2');
+    const teamLink = html.match(/<a [^>]*href="\/orgs\/11\/hoje\?team=backend"[^>]*>/)?.[0];
+    expect(teamLink).toContain('aria-current="page"');
+  });
+
+  test('sidebar outside hoje lists teams without today counts', async () => {
+    const { html } = await renderAt('/orgs/11/historico');
+    expect(html).toContain('href="/orgs/11/hoje?team=backend"');
+    expect(html).not.toContain('1/2');
   });
 
   test('setup redirects to the installation from the query string', async () => {

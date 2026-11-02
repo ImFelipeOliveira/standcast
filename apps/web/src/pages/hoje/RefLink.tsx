@@ -8,7 +8,7 @@ export function RefLink({ refValue, className }: { refValue: Ref; className?: st
       target="_blank"
       rel="noreferrer"
       className={cn(
-        'inline-flex min-w-0 max-w-full items-center truncate whitespace-nowrap rounded-md bg-accent-soft px-[7px] py-0.5 font-mono text-[12px] text-accent-text no-underline hover:bg-accent-soft2 hover:text-accent-ink',
+        'inline-flex min-h-11 min-w-0 max-w-full items-center truncate whitespace-nowrap rounded-md bg-accent-soft px-[7px] py-0.5 font-mono desk:min-h-0 text-[12px] text-accent-text no-underline hover:bg-accent-soft2 hover:text-accent-ink',
         className,
       )}
     >

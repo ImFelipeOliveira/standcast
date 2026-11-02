@@ -2,6 +2,7 @@ import type { TeamToday, TodayBlocker } from '@standcast/orchestrator';
 import { Card, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { useT } from '../../i18n';
 import { BlockerCard } from './BlockerCard';
+import { keyed } from './format';
 import { SupportCard } from './SupportCard';
 
 type Props = {
@@ -12,7 +13,7 @@ type Props = {
   problem: string | null;
   onResolve: (blocker: TodayBlocker) => void;
   onReopen: (blocker: TodayBlocker) => void;
-  onView: ((login: string) => void) | null;
+  onView: (login: string) => void;
   hasDaily: (login: string) => boolean;
 };
 
@@ -28,7 +29,7 @@ export function NeedsYou({
   hasDaily,
 }: Props) {
   const t = useT();
-  const view = (login: string) => (onView && hasDaily(login) ? () => onView(login) : null);
+  const view = (login: string) => (hasDaily(login) ? () => onView(login) : null);
   return (
     <Card aria-labelledby="hoje-needs">
       <CardHeader>
@@ -56,14 +57,16 @@ export function NeedsYou({
           onViewDaily={view(blocker.author)}
         />
       ))}
-      {today.support.map((support) => (
-        <SupportCard
-          key={`${support.author}:${support.text}`}
-          support={support}
-          date={today.date}
-          onViewDaily={view(support.author)}
-        />
-      ))}
+      {keyed(today.support, (support) => `${support.author}:${support.text}`).map(
+        ({ key, item: support }) => (
+          <SupportCard
+            key={key}
+            support={support}
+            date={today.date}
+            onViewDaily={view(support.author)}
+          />
+        ),
+      )}
     </Card>
   );
 }

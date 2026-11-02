@@ -3,7 +3,7 @@ import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { type MessageKey, useLang, useT } from '../../i18n';
 import { cn } from '../../lib/utils';
-import { formatTime, initials } from './format';
+import { formatTime, initials, keyed } from './format';
 import { Avatar, RefLink } from './RefLink';
 
 export type DailyFilter = 'all' | 'sent' | 'missing';
@@ -25,9 +25,9 @@ const REMIND_MESSAGES: Record<Exclude<RemindStatus, 'pending'>, MessageKey> = {
 export function ItemList({ items }: { items: TodayDaily['today'] }) {
   return (
     <ul className="m-0 mt-1.5 flex list-none flex-col gap-1.5 p-0">
-      {items.map((item) => (
+      {keyed(items, (item) => `${item.text}:${item.ref?.url ?? ''}`).map(({ key, item }) => (
         <li
-          key={`${item.text}:${item.ref?.url ?? ''}`}
+          key={key}
           className="flex items-baseline justify-between gap-2 [overflow-wrap:anywhere]"
         >
           <span>{item.text}</span>
@@ -111,11 +111,9 @@ export function DailyCard({ person, timezone, canRemind, remind, onRemind, onVie
               {t('hoje.remind')}
             </Button>
           ) : null}
-          {remind && remind !== 'pending' ? (
-            <span role="status" className="text-[13px] text-text2">
-              {t(REMIND_MESSAGES[remind])}
-            </span>
-          ) : null}
+          <span role="status" className="text-[13px] text-text2 empty:sr-only">
+            {remind && remind !== 'pending' ? t(REMIND_MESSAGES[remind]) : null}
+          </span>
         </div>
       )}
     </article>

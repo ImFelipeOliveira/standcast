@@ -54,7 +54,7 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
   const t = useT();
   const context = useOrgContext(installationId);
   const teams = context.data ? teamsOf(context.data) : [];
-  const todays = useTeamsToday(installationId, teams);
+  const todays = useTeamsToday(installationId, section === 'hoje' ? teams : []);
   return (
     <aside className="box-border flex max-w-full flex-[1_1_232px] flex-col gap-6 border-border-strong border-b bg-surface px-4 py-5 text-text desk:sticky desk:top-0 desk:h-screen desk:flex-[0_0_248px] desk:self-start desk:overflow-y-auto desk:border-r desk:border-b-0">
       <div className="flex items-center gap-2.5 px-2">
@@ -118,7 +118,7 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
                     to="/orgs/$installationId/hoje"
                     params={{ installationId }}
                     search={{ team: name }}
-                    aria-current={active ? 'true' : undefined}
+                    aria-current={active ? 'page' : undefined}
                     className={cn(
                       'flex min-h-11 items-center justify-between gap-2 rounded-[9px] px-3 font-medium text-sm no-underline desk:min-h-10',
                       active ? 'bg-hover text-text' : 'text-text2 hover:bg-hover hover:text-text',

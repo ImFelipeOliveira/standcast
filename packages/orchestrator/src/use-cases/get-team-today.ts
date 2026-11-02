@@ -237,7 +237,7 @@ export async function getTeamToday(
   const people = logins.map((login): TodayPerson => {
     const row = byLogin.get(login);
     if (!row) return { login, status: 'missing', submittedAt: null, daily: null };
-    const late = digest.sentAt !== null && row.submittedAt.getTime() > digest.sentAt.getTime();
+    const late = digest.sentAt !== null && row.firstSubmittedAt.getTime() > digest.sentAt.getTime();
     return {
       login,
       status: late ? 'late' : 'sent',

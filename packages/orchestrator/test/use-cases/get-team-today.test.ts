@@ -126,6 +126,19 @@ describe('getTeamToday', () => {
     expect(JSON.stringify(today)).not.toContain('2026-10-27');
   });
 
+  test('an on-time daily edited after the digest is not late', async () => {
+    const { deps, isMember, alice, bob } = await setup();
+    await submitDaily(deps, isMember, bob, daily);
+    await digestSent('2026-10-28', new Date('2026-10-28T13:00:00Z'));
+    deps.now = () => new Date('2026-10-28T14:00:00Z');
+    await submitDaily(deps, isMember, bob, { ...daily, today: [{ text: 'edited plan' }] });
+    const today = await getTeamToday(deps, isMember, alice, team);
+    const person = today.people.find((p) => p.login === 'bob');
+    expect(person?.status).toBe('sent');
+    expect(person?.submittedAt).toBe('2026-10-28T14:00:00.000Z');
+    expect(person?.daily?.today).toEqual([{ text: 'edited plan' }]);
+  });
+
   test('old payloads without support read as empty', async () => {
     const { deps, isMember, alice, bob } = await setup();
     const { support: _, ...old } = daily;

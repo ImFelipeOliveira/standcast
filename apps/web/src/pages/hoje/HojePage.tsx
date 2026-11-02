@@ -25,6 +25,32 @@ function byOpening(a: TodayBlocker, b: TodayBlocker): number {
   );
 }
 
+function without(record: Record<string, TodayBlocker>, id: string): Record<string, TodayBlocker> {
+  const { [id]: _, ...rest } = record;
+  return rest;
+}
+
+export function listBlockers(
+  blockers: TodayBlocker[],
+  resolved: Record<string, TodayBlocker>,
+  reopened: Record<string, TodayBlocker>,
+): { open: TodayBlocker[]; listed: { blocker: TodayBlocker; resolved: boolean }[] } {
+  const known = (list: TodayBlocker[], blocker: TodayBlocker) =>
+    list.some((item) => item.id === blocker.id);
+  const current = [
+    ...blockers,
+    ...Object.values(reopened).filter((blocker) => !known(blockers, blocker)),
+  ];
+  const open = current.filter((blocker) => !resolved[blocker.id]);
+  const listed = [
+    ...current,
+    ...Object.values(resolved).filter((blocker) => !known(current, blocker)),
+  ]
+    .sort(byOpening)
+    .map((blocker) => ({ blocker, resolved: Boolean(resolved[blocker.id]) }));
+  return { open, listed };
+}
+
 function LoadError({ error, onRetry }: { error: unknown; onRetry: () => void }) {
   const t = useT();
   const status = error instanceof ApiError ? error.status : 0;
@@ -71,20 +97,13 @@ function TodayView({ installationId, today }: { installationId: number; today: T
   const [filter, setFilter] = useState<DailyFilter>('all');
   const [viewing, setViewing] = useState<string | null>(null);
   const [resolved, setResolved] = useState<Record<string, TodayBlocker>>({});
+  const [reopened, setReopened] = useState<Record<string, TodayBlocker>>({});
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [reminders, setReminders] = useState<Record<string, RemindStatus>>({});
 
   const me = session.data?.login.toLowerCase() ?? null;
-  const open = today.blockers.filter((blocker) => !resolved[blocker.id]);
-  const listed = [
-    ...today.blockers,
-    ...Object.values(resolved).filter(
-      (blocker) => !today.blockers.some((item) => item.id === blocker.id),
-    ),
-  ]
-    .sort(byOpening)
-    .map((blocker) => ({ blocker, resolved: Boolean(resolved[blocker.id]) }));
+  const { open, listed } = listBlockers(today.blockers, resolved, reopened);
   const withDaily = new Set(
     today.people.filter((person) => person.daily !== null).map((person) => person.login),
   );
@@ -93,7 +112,10 @@ function TodayView({ installationId, today }: { installationId: number; today: T
     setProblem(null);
     setPendingId(blocker.id);
     resolve.mutate(blocker.id, {
-      onSuccess: () => setResolved((current) => ({ ...current, [blocker.id]: blocker })),
+      onSuccess: () => {
+        setResolved((current) => ({ ...current, [blocker.id]: blocker }));
+        setReopened((current) => without(current, blocker.id));
+      },
       onError: (error) => setProblem(errorMessage(t, error)),
       onSettled: () => setPendingId(null),
     });
@@ -103,11 +125,10 @@ function TodayView({ installationId, today }: { installationId: number; today: T
     setProblem(null);
     setPendingId(blocker.id);
     reopen.mutate(blocker.id, {
-      onSuccess: () =>
-        setResolved((current) => {
-          const { [blocker.id]: _, ...rest } = current;
-          return rest;
-        }),
+      onSuccess: () => {
+        setResolved((current) => without(current, blocker.id));
+        setReopened((current) => ({ ...current, [blocker.id]: blocker }));
+      },
       onError: (error) => setProblem(errorMessage(t, error)),
       onSettled: () => setPendingId(null),
     });
