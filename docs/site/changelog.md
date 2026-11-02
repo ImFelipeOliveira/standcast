@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- The daily draft can use your local AI sessions: `standcast draft --sessions`, the MCP `standcast_get_draft` tool (`includeSessions`, on by default) and the `/daily` skill read your Claude Code sessions on your machine and group them with your pull requests, cards and commits into `work`, so yesterday becomes one line per piece of work. Session data never leaves your machine. Turn it off with `STANDCAST_SESSIONS=off`. See [Privacy](/privacy#your-ai-sessions-on-your-machine).
+
 ### 0.3.1 — 2026-11-01
 
 - The documentation site publishes `robots.txt` and a `sitemap.xml`, and the landing page serves its own fonts.

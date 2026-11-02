@@ -148,7 +148,7 @@ const ptBR = {
   'web.error.linear_oauth_failed.body':
     'Não foi possível concluir a conexão com o Linear. Tente conectar novamente.',
   'cli.usage':
-    'Uso: standcast <comando> [opções]\n\nComandos:\n  login     Entra com o GitHub\n  logout    Remove as credenciais locais\n  whoami    Mostra o usuário e as organizações\n  draft     Gera o rascunho da daily (JSON)\n  submit    Envia a daily (JSON em --file ou stdin)\n  suggestion confirm|ignore <id>\n            Confirma ou ignora uma sugestão de impedimento do rascunho\n  mcp       Inicia o servidor MCP (stdio) para agentes de IA\n\nOpções:\n  --org <login>      Organização\n  --file <caminho>   Arquivo JSON da daily\n  --api-url <url>    URL da API (STANDCAST_API_URL)\n  --help             Mostra esta ajuda\n  --version          Mostra a versão',
+    'Uso: standcast <comando> [opções]\n\nComandos:\n  login     Entra com o GitHub\n  logout    Remove as credenciais locais\n  whoami    Mostra o usuário e as organizações\n  draft     Gera o rascunho da daily (JSON)\n  submit    Envia a daily (JSON em --file ou stdin)\n  suggestion confirm|ignore <id>\n            Confirma ou ignora uma sugestão de impedimento do rascunho\n  mcp       Inicia o servidor MCP (stdio) para agentes de IA\n\nOpções:\n  --org <login>      Organização\n  --file <caminho>   Arquivo JSON da daily\n  --api-url <url>    URL da API (STANDCAST_API_URL)\n  --sessions         Inclui as sessões locais de IA no rascunho (draft)\n  --help             Mostra esta ajuda\n  --version          Mostra a versão',
   'cli.invalidArgs': 'Argumentos inválidos: {message}',
   'cli.suggestionUsage':
     'Uso: standcast suggestion confirm <id> [--org <login>]\n     standcast suggestion ignore <id> [--org <login>]',
@@ -366,7 +366,7 @@ const en = {
   'web.error.linear_oauth_failed.title': 'Linear connection failed',
   'web.error.linear_oauth_failed.body': 'Could not finish connecting Linear. Try connecting again.',
   'cli.usage':
-    'Usage: standcast <command> [options]\n\nCommands:\n  login     Sign in with GitHub\n  logout    Remove local credentials\n  whoami    Show the user and organizations\n  draft     Build the daily draft (JSON)\n  submit    Submit the daily (JSON from --file or stdin)\n  suggestion confirm|ignore <id>\n            Confirm or ignore a suggested blocker from the draft\n  mcp       Start the MCP server (stdio) for AI agents\n\nOptions:\n  --org <login>      Organization\n  --file <path>      Daily JSON file\n  --api-url <url>    API URL (STANDCAST_API_URL)\n  --help             Show this help\n  --version          Show the version',
+    'Usage: standcast <command> [options]\n\nCommands:\n  login     Sign in with GitHub\n  logout    Remove local credentials\n  whoami    Show the user and organizations\n  draft     Build the daily draft (JSON)\n  submit    Submit the daily (JSON from --file or stdin)\n  suggestion confirm|ignore <id>\n            Confirm or ignore a suggested blocker from the draft\n  mcp       Start the MCP server (stdio) for AI agents\n\nOptions:\n  --org <login>      Organization\n  --file <path>      Daily JSON file\n  --api-url <url>    API URL (STANDCAST_API_URL)\n  --sessions         Add local AI sessions to the draft (draft)\n  --help             Show this help\n  --version          Show the version',
   'cli.invalidArgs': 'Invalid arguments: {message}',
   'cli.suggestionUsage':
     'Usage: standcast suggestion confirm <id> [--org <login>]\n       standcast suggestion ignore <id> [--org <login>]',

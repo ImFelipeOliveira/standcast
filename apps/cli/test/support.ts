@@ -15,7 +15,12 @@ export async function makeIo(
   const sleeps: number[] = [];
   const opened: string[] = [];
   const io: Io = {
-    env: { XDG_CONFIG_HOME: home, STANDCAST_LANG: 'en', ...env },
+    env: {
+      XDG_CONFIG_HOME: home,
+      STANDCAST_LANG: 'en',
+      STANDCAST_CLAUDE_DIR: join(home, 'claude-projects'),
+      ...env,
+    },
     stdout: (text) => out.push(text),
     stderr: (text) => err.push(text),
     readStdin: async () => stdin,

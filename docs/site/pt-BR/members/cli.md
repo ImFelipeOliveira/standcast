@@ -74,6 +74,44 @@ Mostra o rascunho da sua daily na organização:
 - `activity`: até 50 itens, do mais recente para o mais antigo. `kind` é `pr_opened`, `pr_merged`, `review`, `commits`, `card_started` ou `card_done`. Os commits vêm agrupados por repositório, com `count`. Nos cards, `repo` é a chave do time no Linear e `url` é o link do card, que você pode usar como link de um impedimento.
 - `suggestions`: possíveis impedimentos que o Standcast percebeu por você, cada um `{ id, kind, ref, since }`. `kind` é `pr_no_review` (pull request seu sem revisão), `ci_failing` (checks falhando nele há 24 horas) ou `card_stale` (um card seu no Linear em andamento há `card_stale_days`). Só você vê. Veja [`standcast suggestion`](#standcast-suggestion).
 
+#### Com as suas sessões de IA
+
+```bash
+standcast draft --sessions
+```
+
+O `--sessions` também lê as suas sessões locais do Claude Code na janela do rascunho e adiciona o `work` ao mesmo JSON: uma entrada por trabalho, agrupando os pull requests, cards, commits e sessões que andam juntos.
+
+```json
+{
+  "work": [
+    {
+      "key": "pr:https://github.com/acme/api/pull/42",
+      "title": "Add rate limiting",
+      "refs": [{ "kind": "pull_request", "url": "https://github.com/acme/api/pull/42", "title": "Add rate limiting" }],
+      "activity": [{ "kind": "pr_merged", "title": "Add rate limiting", "url": "https://github.com/acme/api/pull/42", "repo": "acme/api", "at": "2026-10-27T18:20:00.000Z", "branch": "feat/rate-limit" }],
+      "sessions": [
+        {
+          "id": "3f9a…",
+          "title": "Adicionar rate limit na API pública",
+          "cwd": "/home/alice/acme/api",
+          "branch": "feat/rate-limit",
+          "startedAt": "2026-10-27T14:05:00.000Z",
+          "endedAt": "2026-10-27T17:40:00.000Z",
+          "prompts": ["Coloque um rate limit por API key nas rotas públicas"],
+          "files": ["src/rate-limit.ts"]
+        }
+      ]
+    }
+  ]
+}
+```
+
+- As sessões vêm de `~/.claude/projects`, ou de `STANDCAST_CLAUDE_DIR`. Uma sessão se junta a um pull request pelo repositório e pela branch, e a um card quando a branch cita o card; senão, ela ganha uma entrada própria, com o nome do projeto.
+- Cada sessão guarda até cinco dos seus prompts, cortados em 300 caracteres, e até 20 caminhos de arquivos editados. Trechos que parecem segredos viram `[redacted]`.
+- A CLI lê os arquivos na sua máquina. Os dados das sessões nunca vão para a API do Standcast, para logs nem para webhooks: só a daily que você envia sai da sua máquina.
+- `STANDCAST_SESSIONS=off` desliga a leitura: o `work` passa a ser montado só com a sua atividade. Sem `--sessions`, a saída é a mesma de antes.
+
 ### `standcast submit`
 
 Envia a sua daily. Lê o JSON do `--file`, ou da entrada padrão quando não há `--file`.
@@ -141,6 +179,7 @@ Inicia o servidor MCP local pela entrada e saída padrão, para clientes de IA. 
 | --- | --- |
 | `--org <login>` | A organização, quando você está em mais de uma. |
 | `--file <caminho>` | O arquivo JSON da daily para o `submit`. |
+| `--sessions` | No `draft`: adiciona o `work`, montado com as suas sessões locais de IA. |
 | `--api-url <url>` | A API do Standcast. Sem ela, a CLI usa `STANDCAST_API_URL` e, sem essa variável, a API do Standcast em `https://api.standcast.app`. |
 | `--help` | Mostra o uso. |
 | `--version` | Mostra a versão. |
@@ -152,6 +191,8 @@ Inicia o servidor MCP local pela entrada e saída padrão, para clientes de IA. 
 | `STANDCAST_API_URL` | A API do Standcast, quando não há `--api-url`. |
 | `STANDCAST_LANG` | Idioma das mensagens da CLI, `en` ou `pt-BR`. Se não houver, usa `LC_ALL`, depois `LANG` e, por fim, inglês. |
 | `XDG_CONFIG_HOME` | Onde fica o arquivo de credenciais. O padrão é `~/.config`. |
+| `STANDCAST_SESSIONS` | `off` impede a CLI e o servidor MCP de lerem as suas sessões locais de IA. |
+| `STANDCAST_CLAUDE_DIR` | Onde estão as suas sessões do Claude Code. O padrão é `~/.claude/projects`. |
 
 A URL da API tem que usar `https`. `http` só é aceito para `localhost`, `127.0.0.1` e `[::1]`. Uma sessão guardada só funciona com a API em que foi criada: usá-la com outra URL falha com o código de saída 2 e pede para você entrar de novo com `--api-url`.
 

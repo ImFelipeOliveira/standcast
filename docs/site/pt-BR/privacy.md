@@ -42,6 +42,19 @@ Se um admin conectar o Linear, o Standcast usa um app OAuth que age como ele mes
 
 Ele nunca lê descrições nem comentários, e nunca escreve no Linear. Cards de outro workspace nunca são lidos. Os cards de uma pessoa aparecem só no rascunho dela e nunca são usados para medir pessoas.
 
+### Suas sessões de IA, na sua máquina
+
+Quando você escreve a daily com a skill do Claude Code, o servidor MCP ou o `standcast draft --sessions`, a CLI `standcast` na sua máquina lê os arquivos das suas sessões do Claude Code (`~/.claude/projects`, ou `STANDCAST_CLAUDE_DIR`) na janela do rascunho. Ela lê:
+
+- o título da sessão, a pasta de trabalho, a branch e os horários de início e fim;
+- até cinco dos seus prompts por sessão, cortados em 300 caracteres, sem saída de ferramentas nem texto do sistema;
+- os caminhos dos arquivos editados na sessão, nunca o conteúdo deles;
+- o remote `origin` da pasta de trabalho, para ligar a sessão a um repositório.
+
+Trechos que parecem segredos (API keys, tokens do GitHub, do Slack, do Standcast e da AWS, sequências aleatórias longas) viram `[redacted]`. Esses dados nunca saem da sua máquina: não vão para a API do Standcast, para logs nem para webhooks, e o Standcast não guarda nada deles. Eles vão só para o agente de IA com que você está escrevendo a daily, que roda com a sua própria conta. Só o texto da daily que você confirma é enviado.
+
+Para desligar, defina `STANDCAST_SESSIONS=off` no seu ambiente, ou peça ao agente para não usar as suas sessões.
+
 ### Jira <Badge type="info" text="em breve" />
 
 O Standcast ainda não se conecta ao Jira, então não lê nada dele.
@@ -86,6 +99,7 @@ Quando alguém pede acesso ao beta na página do Standcast, o formulário coleta
 - Ler o seu código, as suas mensagens no Slack ou as suas mensagens diretas.
 - Escrever nos seus repositórios.
 - Mandar os seus dados para um modelo de IA.
+- Receber as suas sessões de IA: elas são lidas na sua máquina e nunca vão para o Standcast.
 - Vender os seus dados, ou compartilhá-los com alguém além dos provedores que operam o serviço (como a Resend, para os e-mails de pedidos do beta).
 
 ## Quem vê o quê
