@@ -13,9 +13,16 @@ const TOKEN_PATTERNS = [
 const URL_CREDENTIALS =
   /\b([A-Za-z][A-Za-z0-9+.-]{0,31}:\/\/)[^\s/@?#"'<>:]{0,256}:[^\s/?#"'<>]{0,512}@/g;
 
-const CREDENTIAL_LABEL =
-  /\b(token|secret|password|passwd|pwd|api_key|api-key|apikey|access_key|client_secret|authorization|auth|bearer|key)\b([ \t]*[:=]?[ \t]*)([^\s]{8,})/gi;
-const TRAILING_PUNCTUATION = /[.,;:!?)\]}'"]+$/;
+const STRONG_LABELS =
+  'password|passwd|pwd|secret|token|api_key|api-key|apikey|client_secret|access_key';
+const WEAK_LABELS = 'authorization|auth|bearer|key';
+const CREDENTIAL_LABEL = new RegExp(
+  `(?<![A-Za-z0-9])((?:[A-Za-z0-9]+[_-])*(?:${STRONG_LABELS}|${WEAK_LABELS}))(?![A-Za-z0-9])(["']?(?:[ \\t]*[:=][ \\t]*|[ \\t]+)["']?)((?:Bearer|Basic)[ \\t]+)?([^\\s"']+)`,
+  'gi',
+);
+const STRONG_LABEL = new RegExp(`(?:^|[_-])(?:${STRONG_LABELS})$`, 'i');
+const ASSIGNMENT = /[:=]/;
+const TRAILING_PUNCTUATION = /[.,;:!?)\]}]+$/;
 const MIN_LABELED_VALUE = 16;
 
 const LONG_RUN = /[A-Za-z0-9+/=_.~-]{32,}/g;
@@ -124,12 +131,17 @@ function redactTokens(text: string): string {
 }
 
 function redactLabeled(text: string): string {
-  return text.replace(CREDENTIAL_LABEL, (match, label: string, gap: string, raw: string) => {
-    const value = raw.replace(TRAILING_PUNCTUATION, '');
-    const credential = value.length >= 8 && (/\d/.test(value) || value.length >= MIN_LABELED_VALUE);
-    if (!credential) return match;
-    return `${label}${gap}${MARK}${raw.slice(value.length)}`;
-  });
+  return text.replace(
+    CREDENTIAL_LABEL,
+    (match, label: string, gap: string, scheme: string | undefined, raw: string) => {
+      const value = raw.replace(TRAILING_PUNCTUATION, '');
+      if (value.length === 0) return match;
+      const explicit = ASSIGNMENT.test(gap) && STRONG_LABEL.test(label);
+      const shaped = value.length >= 8 && (/\d/.test(value) || value.length >= MIN_LABELED_VALUE);
+      if (!explicit && !shaped) return match;
+      return `${label}${gap}${scheme ?? ''}${MARK}${raw.slice(value.length)}`;
+    },
+  );
 }
 
 export function redact(text: string): string {

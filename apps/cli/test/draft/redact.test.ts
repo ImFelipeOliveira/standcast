@@ -177,4 +177,13 @@ describe('redact', () => {
       'see run abcdef01-abcd-4567-aaaa-abcdef123456',
     );
   });
+
+  test('redacts prefixed and quoted credential labels', () => {
+    expect(redact('GITHUB_TOKEN=abc')).toBe('GITHUB_TOKEN=[redacted]');
+    expect(redact('MY_API_KEY: x1')).toBe('MY_API_KEY: [redacted]');
+    expect(redact('db-password=hunter2')).toBe('db-password=[redacted]');
+    expect(redact('{"password": "hunter2"}')).toBe('{"password": "[redacted]"}');
+    expect(redact("'secret'='v'")).toBe("'secret'='[redacted]'");
+    expect(redact('the secret is out')).toBe('the secret is out');
+  });
 });
