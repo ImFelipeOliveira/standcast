@@ -1,4 +1,4 @@
-import type { SetupStatus } from '@standcast/orchestrator';
+import type { SetupStatus, TeamSummary, TeamToday } from '@standcast/orchestrator';
 import { QueryClient, queryOptions, useQuery } from '@tanstack/react-query';
 import { ApiError, apiGet, fetchSession, type OrgContext } from './client';
 
@@ -35,6 +35,21 @@ export function setupStatusQuery(installationId: number) {
   });
 }
 
+export function teamTodayQuery(installationId: number, team: string) {
+  return queryOptions({
+    queryKey: ['org', installationId, 'team', team, 'today'],
+    queryFn: () =>
+      apiGet<TeamToday>(`/v1/app/orgs/${installationId}/teams/${encodeURIComponent(team)}/today`),
+  });
+}
+
+export function teamsSummaryQuery(installationId: number) {
+  return queryOptions({
+    queryKey: ['org', installationId, 'teams', 'summary'],
+    queryFn: () => apiGet<TeamSummary[]>(`/v1/app/orgs/${installationId}/teams/summary`),
+  });
+}
+
 export function useSession() {
   return useQuery(sessionQuery);
 }
@@ -45,4 +60,12 @@ export function useOrgContext(installationId: number) {
 
 export function useSetupStatus(installationId: number) {
   return useQuery(setupStatusQuery(installationId));
+}
+
+export function useTeamToday(installationId: number, team: string) {
+  return useQuery(teamTodayQuery(installationId, team));
+}
+
+export function useTeamsSummary(installationId: number, enabled: boolean) {
+  return useQuery({ ...teamsSummaryQuery(installationId), enabled });
 }

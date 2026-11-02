@@ -214,11 +214,11 @@ describe('configuração', () => {
   });
 
   test('channel notice renders on its team', () => {
-    const channelNotice = {
+    const channelNotice: Notice = {
       team: 'plataforma',
       reference: '#daily-plataforma',
       kind: 'channel_not_found',
-    } as unknown as Notice;
+    };
     const html = renderPage(baseStatus({ teamNotices: [channelNotice] }));
     const notice =
       'Time plataforma: o canal #daily-plataforma do Slack não foi encontrado. Crie o canal ou, se ele for privado, convide o bot do Standcast com /invite @Standcast.';

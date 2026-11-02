@@ -49,13 +49,16 @@ export const DailySubmissionSchema = z.object({
   yesterday: z.array(ItemSchema).max(30),
   today: z.array(ItemSchema).min(1).max(30),
   blockers: z.array(ItemSchema).max(10),
+  support: z.array(ItemSchema).max(10).default([]),
 });
 
 export type Ref = z.infer<typeof RefSchema>;
 export type Item = z.infer<typeof ItemSchema>;
-export type DailySubmission = z.infer<typeof DailySubmissionSchema>;
+export type DailySubmission = z.output<typeof DailySubmissionSchema>;
+export type DailySubmissionInput = z.input<typeof DailySubmissionSchema>;
 export type DailyConfirmation = 'agent' | 'human';
-export type StoredDaily = DailySubmission & { confirmation?: DailyConfirmation };
+export type DailyContent = Omit<DailySubmission, 'support'> & { support?: Item[] };
+export type StoredDaily = DailyContent & { confirmation?: DailyConfirmation };
 
 export type ResolvedTeam = TeamConfig & { memberLogins: string[] };
 

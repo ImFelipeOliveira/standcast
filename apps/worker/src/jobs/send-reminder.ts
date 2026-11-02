@@ -5,6 +5,7 @@ const schema = z.object({
   installationId: z.number().int(),
   login: z.string().min(1),
   date: z.iso.date(),
+  team: z.string().min(1).optional(),
 });
 
 export function sendReminderJob(deps: WorkerDeps): (data: object) => Promise<void> {

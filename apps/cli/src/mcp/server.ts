@@ -15,7 +15,7 @@ const LANGUAGE_RULES =
 
 export const INSTRUCTIONS = [
   'Standcast helps a person write and send their daily standup to their teams.',
-  'To write the daily: call standcast_get_draft, show the draft, ask what they will do today and whether anything blocks them, show the final daily and get their explicit confirmation. Only then call standcast_submit_daily with confirmed: true. Never submit a daily without explicit confirmation.',
+  'To write the daily: call standcast_get_draft, show the draft, ask what they will do today, whether anything blocks them and whether they need support from anyone, show the final daily and get their explicit confirmation. Only then call standcast_submit_daily with confirmed: true. Never submit a daily without explicit confirmation.',
   SUGGESTION_RULES,
   SESSION_RULES,
   LANGUAGE_RULES,
@@ -30,8 +30,9 @@ export function dailyPrompt(org?: string): string {
     '1. Call standcast_get_draft and show me the draft of what I did yesterday, one line per work item when the draft has work. I can add, remove or edit items.',
     "2. If the draft lists suggestions, present each one and ask me whether it is a real blocker. If I say yes, add it to blockers in my own words with its ref; submitting the daily confirms it. If I say no, call standcast_decide_suggestion with decision ignored. Never add a suggestion without the person's answer.",
     '3. Ask me what I will do today and whether anything else is blocking me.',
-    '4. Show me the final daily (yesterday, today, blockers) and ask for my explicit confirmation. Do not assume it.',
-    '5. Only after I explicitly confirm, call standcast_submit_daily with confirmed: true and tell me the result.',
+    '4. Ask me whether I need support from anyone without being blocked, such as a review, a decision or a pairing session. Put my answer in support, or leave it empty if I say no.',
+    '5. Show me the final daily (yesterday, today, blockers, support) and ask for my explicit confirmation. Do not assume it.',
+    '6. Only after I explicitly confirm, call standcast_submit_daily with confirmed: true and tell me the result.',
     LANGUAGE_RULES,
   ].join('\n');
 }

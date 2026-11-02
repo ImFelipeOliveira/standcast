@@ -48,6 +48,7 @@ export type FakeOptions = {
   snapshots?: Record<string, PullRequestSnapshot[]>;
   teams?: Record<string, string[]>;
   truncatedTeams?: string[];
+  merged?: Record<string, { merged: boolean; mergedAt: string | null } | null | Error>;
   channels?: Record<string, ChannelCheck>;
 };
 
@@ -147,6 +148,7 @@ export function fakeDeps(opts: FakeOptions = {}) {
     users: [] as number[],
     configRefs: [] as (string | undefined)[],
     getPullRequest: [] as string[],
+    pullRequestMerged: [] as string[],
     listPullRequestFiles: [] as string[],
     snapshots: [] as string[],
     codeowners: [] as { repo: string; ref: string }[],
@@ -239,6 +241,13 @@ export function fakeDeps(opts: FakeOptions = {}) {
         const key = `${ref.owner}/${ref.repo}#${ref.number}`;
         calls.getPullRequest.push(key);
         return opts.pulls?.[key] ?? null;
+      },
+      pullRequestMerged: async (_o, ref) => {
+        const key = `${ref.owner}/${ref.repo}#${ref.number}`;
+        calls.pullRequestMerged.push(key);
+        const found = opts.merged?.[key];
+        if (found instanceof Error) throw found;
+        return found ?? null;
       },
       listPullRequestFiles: async (_o, ref) => {
         const key = `${ref.owner}/${ref.repo}#${ref.number}`;
@@ -339,6 +348,7 @@ export const daily = {
   yesterday: [{ text: 'did a thing' }],
   today: [{ text: 'do another' }],
   blockers: [],
+  support: [],
 };
 
 export function fakeChat() {

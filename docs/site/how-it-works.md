@@ -19,7 +19,7 @@ Alice runs `/daily` in Claude Code. The skill asks Standcast for a draft. Standc
 
 The window starts when she sent her last daily, if that was on or after the previous workday. Otherwise it starts at midnight of the previous workday. On Monday, the previous workday is Friday, so the weekend is covered. The cards use the same window. The draft has up to 50 items in total, newest first. If Linear fails, the draft still comes back with the GitHub activity.
 
-Alice edits yesterday, writes today and one blocker, and confirms. Standcast stores the daily for today's date. She can send it again until the digest goes out: the last version wins.
+Alice edits yesterday, writes today and one blocker, asks for a review on her migration as a support request, and confirms. Standcast stores the daily for today's date. She can send it again until the digest goes out: the last version wins.
 
 ## 09:30 · Reminder
 
@@ -36,8 +36,9 @@ At `digest_at`, in the team's time zone and only on workdays, Standcast posts on
 
 1. the title, with the team and the date;
 2. **Blockers**, with who reported each one;
-3. each person's yesterday and today, in the order of `members` in `standcast.yml`;
-4. the people who did not send the daily.
+3. **Support requests**, with who asked for each one, when anyone did;
+4. each person's yesterday and today, in the order of `members` in `standcast.yml`;
+5. the people who did not send the daily.
 
 People are mentioned in Slack when Standcast knows their Slack user. Otherwise they appear as `@` followed by their GitHub login, as plain text. See [Slack](/admin/slack#how-people-are-mentioned).
 
@@ -73,6 +74,16 @@ Rules:
 - If there is no recipient at all, for example when the author is the team's only manager, the failed delivery `no_route_target` shows on the setup page. A manager without a Slack identity shows as `no_chat_identity`.
 
 Blockers also appear at the top of the digest, in the `blocker.opened` webhook and in the manager tools.
+
+## Support requests
+
+A support request is something you need from someone else without being blocked: a review, a decision, a pairing session. It is an optional section of the daily, asked for right after the blockers, and it goes exactly as you wrote it.
+
+- It appears in the digest right after the blockers, with who asked, and in a late daily after its blockers.
+- It is not routed by direct message, and Standcast does not track whether anyone answered it.
+- It is in the `support` field of the dailies in the organization API, the `daily.submitted` webhook and the manager tools. There is no separate event.
+- A suggested blocker never becomes a support request.
+- Like blockers, support requests are content you chose to share. Standcast never counts them or turns them into a metric about anyone.
 
 ## Suggested blockers
 

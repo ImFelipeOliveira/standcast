@@ -73,7 +73,13 @@ type Items = { text: string; ref?: { kind: 'pull_request'; url: string; title?: 
 async function submit(
   login: string,
   date: string,
-  overrides: { installationId?: number; blockers?: Items; today?: Items; yesterday?: Items } = {},
+  overrides: {
+    installationId?: number;
+    blockers?: Items;
+    today?: Items;
+    yesterday?: Items;
+    support?: Items;
+  } = {},
 ) {
   const member = who(login);
   await upsertDaily(db, {
@@ -85,6 +91,7 @@ async function submit(
       yesterday: overrides.yesterday ?? [{ text: `y ${login}` }],
       today: overrides.today ?? [{ text: `t ${login}` }],
       blockers: overrides.blockers ?? [],
+      ...(overrides.support ? { support: overrides.support } : {}),
     },
     submittedAt: new Date(`${date}T12:00:00Z`),
   });
@@ -150,7 +157,28 @@ describe('listOrgDailies', () => {
       ],
       today: [{ text: 't bob', ref: null }],
       blockers: [{ text: 'waiting on infra', ref: null }],
+      support: [],
     });
+  });
+
+  test('returns the support requests of the daily', async () => {
+    await seedOrg(twoTeams());
+    const { deps } = fakeDeps();
+    await submit('bob', '2026-10-27', {
+      support: [
+        {
+          text: 'need a review',
+          ref: { kind: 'pull_request', url: 'https://github.com/a/b/pull/2', title: 'Migrate' },
+        },
+      ],
+    });
+    const [daily] = (await listOrgDailies(deps, INST, {})).data;
+    expect(daily?.support).toEqual([
+      {
+        text: 'need a review',
+        ref: { kind: 'pull_request', url: 'https://github.com/a/b/pull/2', title: 'Migrate' },
+      },
+    ]);
   });
 
   test('filters by date and team', async () => {
@@ -273,6 +301,7 @@ teams:
       'id',
       'login',
       'submittedAt',
+      'support',
       'teams',
       'today',
       'yesterday',

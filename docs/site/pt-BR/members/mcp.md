@@ -39,7 +39,7 @@ Qualquer outro cliente: `{"command": "standcast", "args": ["mcp"]}`.
 
 O Standcast nunca envia uma daily em seu nome sem a sua confirmação explícita. O agente tem que mostrar a daily final e perguntar antes. Além disso, a `standcast_submit_daily` confirma de um destes dois jeitos:
 
-1. **Elicitation (preferido).** Quando o seu cliente suporta elicitation do MCP, o Standcast pergunta direto a você, fora do agente. Você vê a organização, a data da daily, cada item de ontem, hoje e impedimentos (texto, tipo do link, título e URL) e uma caixa "Send this daily". O que você vê é exatamente o que vai ser publicado. A daily só é publicada quando você aceita com a caixa marcada. Recusar, cancelar ou deixar a caixa desmarcada devolve `not_confirmed`, e nada é enviado. A pergunta expira em 10 minutos. O resultado traz `confirmation: "human"`. Se a API publicar a daily numa data diferente da mostrada, por exemplo porque a pergunta foi respondida depois da meia-noite, o resultado avisa.
+1. **Elicitation (preferido).** Quando o seu cliente suporta elicitation do MCP, o Standcast pergunta direto a você, fora do agente. Você vê a organização, a data da daily, cada item de ontem, hoje e impedimentos, mais os pedidos de apoio quando houver (texto, tipo do link, título e URL) e uma caixa "Send this daily". O que você vê é exatamente o que vai ser publicado. A daily só é publicada quando você aceita com a caixa marcada. Recusar, cancelar ou deixar a caixa desmarcada devolve `not_confirmed`, e nada é enviado. A pergunta expira em 10 minutos. O resultado traz `confirmation: "human"`. Se a API publicar a daily numa data diferente da mostrada, por exemplo porque a pergunta foi respondida depois da meia-noite, o resultado avisa.
 2. **Alternativa.** Quando o seu cliente não suporta elicitation, a tool exige `confirmed: true` do agente. Sem esse campo, ela recusa com `confirmation_required`, e nada é enviado. O resultado traz `confirmation: "agent"` e pede ao agente para avisar você de que foi ele, e não você, quem confirmou a daily. Nesse modo, você depende do agente para perguntar.
 
 O Standcast registra qual dos dois confirmou cada daily. O servidor MCP manda `X-Standcast-Confirmation: human` ou `agent` com a daily, e a API guarda isso junto. Isso não é devolvido pela API da organização. O header é informado pelo próprio cliente e serve só de registro, não como controle de segurança.
@@ -73,11 +73,11 @@ Toda tool que recebe `org` aceita esse campo como opcional. Quando você está n
 | --- | --- | --- |
 | `standcast_whoami` | nenhuma | `{ login, orgs }` |
 | `standcast_get_draft` | `org?`, `includeSessions?` (padrão `true`) | O rascunho do trabalho de ontem, montado a partir da sua atividade no GitHub e no Linear, mais o `work` agrupado com as suas sessões locais de IA |
-| `standcast_submit_daily` | `org?`, `yesterday`, `today`, `blockers`, `confirmed?` (`true` quando o cliente não tem elicitation) | `{ date, teams, late, confirmation }` |
+| `standcast_submit_daily` | `org?`, `yesterday`, `today`, `blockers`, `support?` (o que você precisa de outra pessoa sem estar travado; vazio quando falta), `confirmed?` (`true` quando o cliente não tem elicitation) | `{ date, teams, late, confirmation }` |
 | `standcast_decide_suggestion` | `org?`, `id`, `decision` (`confirmed` ou `ignored`) | `{ id, decision }` |
 | `standcast_list_teams` | `org?` | Os times que você pode ler |
 | `standcast_get_digest` | `org?`, `team`, `date` | `{ digest }`: o consolidado do time naquela data, ou `null` |
-| `standcast_list_dailies` | `org?`, `team`, `from`, `to`, `cursor?` | Uma página das dailies confirmadas do time |
+| `standcast_list_dailies` | `org?`, `team`, `from`, `to`, `cursor?` | Uma página das dailies confirmadas do time, cada uma com os pedidos de apoio em `support` |
 | `standcast_list_blockers` | `org?`, `team`, `from?`, `to?`, `cursor?` | Uma página dos impedimentos confirmados do time |
 
 Toda tool declara um schema de entrada, um schema de saída e anotações, e devolve o resultado como `structuredContent`. Todas as tools, menos a `standcast_submit_daily` e a `standcast_decide_suggestion`, são somente leitura. A `standcast_submit_daily` não é destrutiva e é idempotente: enviar de novo no mesmo dia substitui a daily anterior. A `standcast_decide_suggestion` não é destrutiva e é idempotente: repetir a mesma decisão não muda nada. As datas são `YYYY-MM-DD`.
@@ -98,7 +98,7 @@ O rascunho pode trazer `suggestions`: possíveis impedimentos que o Standcast pe
 
 O agente apresenta cada sugestão e pergunta se é um impedimento de verdade. Nunca adicione uma sugestão sem a resposta da pessoa.
 
-- **Sim:** o agente adiciona aos `blockers` com as suas palavras, com o `ref` da sugestão. Enviar a daily marca a sugestão como confirmada.
+- **Sim:** o agente adiciona aos `blockers` com as suas palavras, com o `ref` da sugestão. Enviar a daily marca a sugestão como confirmada. Uma sugestão nunca vira pedido de apoio.
 - **Não:** o agente chama a `standcast_decide_suggestion` com `decision: "ignored"`. Ela não volta, a menos que o sinal mude, por exemplo um novo commit falhando, ou um card reiniciado.
 
 Pelo terminal, `standcast suggestion ignore <id>` e `standcast suggestion confirm <id>` fazem o mesmo (acrescente `--org <login>` quando você está em mais de uma organização). Decidir uma sugestão que não é sua, ou que não existe, devolve `not_found`. Mudar uma decisão já tomada devolve `suggestion_already_decided`.
@@ -113,7 +113,7 @@ As quatro últimas tools são para os gestores listados em `managers` de um time
 
 ## Prompt
 
-Clientes que suportam prompts do MCP recebem um prompt `daily` (argumento opcional `org`). Ele segue o mesmo fluxo da skill do Claude Code: busca o rascunho, pergunta sobre cada impedimento sugerido, pergunta o que você vai fazer hoje e o que está travando você, mostra a daily final, pede a confirmação explícita e então envia.
+Clientes que suportam prompts do MCP recebem um prompt `daily` (argumento opcional `org`). Ele segue o mesmo fluxo da skill do Claude Code: busca o rascunho, pergunta sobre cada impedimento sugerido, pergunta o que você vai fazer hoje, o que está travando você e se você precisa de apoio de alguém, mostra a daily final, pede a confirmação explícita e então envia.
 
 ## Erros
 

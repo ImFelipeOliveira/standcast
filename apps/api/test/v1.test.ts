@@ -111,6 +111,7 @@ function harness(
       }),
       fetchConfigSource: async () => ({ found: false, reason: 'no_repo' }),
       getPullRequest: async () => null,
+      pullRequestMerged: async () => null,
       listPullRequestFiles: async () => [],
       listOpenPullRequestSnapshots: async () => [],
       fetchCodeowners: async () => null,
@@ -528,13 +529,13 @@ describe('dailies', () => {
       });
     const stored = async () => (await listDailies(db, INST, '2026-10-28'))[0]?.payload;
     expect((await send('agent')).status).toBe(200);
-    expect(await stored()).toEqual({ ...daily, confirmation: 'agent' });
+    expect(await stored()).toEqual({ ...daily, support: [], confirmation: 'agent' });
     expect((await send('human')).status).toBe(200);
-    expect(await stored()).toEqual({ ...daily, confirmation: 'human' });
+    expect(await stored()).toEqual({ ...daily, support: [], confirmation: 'human' });
     expect((await send('robot')).status).toBe(200);
-    expect(await stored()).toEqual(daily);
+    expect(await stored()).toEqual({ ...daily, support: [] });
     expect((await send()).status).toBe(200);
-    expect(await stored()).toEqual(daily);
+    expect(await stored()).toEqual({ ...daily, support: [] });
   });
 
   test('rejects control and bidi characters', async () => {
@@ -579,6 +580,12 @@ describe('dailies', () => {
     const second = await events();
     expect(second.map((e) => e.type)).toEqual(['daily.submitted']);
     expect(second[0]?.data.replaced).toBe(true);
+    expect(second[0]?.data.support).toEqual([]);
+    const support = [{ text: 'Need a review on the migration' }];
+    expect((await post(h, token, { ...daily, support })).status).toBe(200);
+    const third = await events();
+    expect(third.map((e) => e.type)).toEqual(['daily.submitted']);
+    expect(third[0]?.data.support).toEqual(support);
   });
 
   test('submit not in team', async () => {

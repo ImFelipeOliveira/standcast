@@ -1,0 +1,1 @@
+ALTER TABLE "blocker_states" ADD COLUMN "resolved_on" date;

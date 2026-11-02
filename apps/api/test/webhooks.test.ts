@@ -45,6 +45,7 @@ function harness(source: Source) {
         truncatedTeams: [],
       }),
       getPullRequest: async () => null,
+      pullRequestMerged: async () => null,
       listPullRequestFiles: async () => [],
       listOpenPullRequestSnapshots: async () => [],
       fetchCodeowners: async () => null,

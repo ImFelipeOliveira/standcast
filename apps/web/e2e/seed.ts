@@ -1,4 +1,4 @@
-import { parseConfig } from '@standcast/core';
+import { dailyDateFor, parseConfig } from '@standcast/core';
 import {
   createDb,
   createSession,
@@ -6,12 +6,15 @@ import {
   migrate,
   setInstallationConfig,
   setMemberInstallations,
+  upsertDaily,
   upsertInstallation,
   upsertMember,
 } from '@standcast/db';
+import { recordBlockers } from '@standcast/orchestrator';
 
 export const INSTALLATION_ID = 4242;
 export const TEAM_NAME = 'Plataforma';
+export const BLOCKER_TEXT = 'Aguardando acesso ao banco de produção';
 
 const CONFIG = `
 teams:
@@ -44,6 +47,29 @@ export async function seed(
     email: 'alice@acme.test',
   });
   await setMemberInstallations(db, member.id, [INSTALLATION_ID]);
+  const team = parsed.config.teams[0];
+  if (!team) throw new Error('missing e2e team');
+  const date = dailyDateFor(new Date(), team);
+  const blockers = [{ text: BLOCKER_TEXT }];
+  await upsertDaily(db, {
+    installationId: INSTALLATION_ID,
+    memberId: member.id,
+    date,
+    payload: {
+      org: 'acme',
+      yesterday: [{ text: 'Revisei o fluxo de login' }],
+      today: [{ text: 'Migrar o serviço de filas' }],
+      blockers,
+      support: [],
+    },
+    submittedAt: new Date(),
+  });
+  await recordBlockers({ db } as Parameters<typeof recordBlockers>[0], {
+    installationId: INSTALLATION_ID,
+    memberId: member.id,
+    date,
+    blockers,
+  });
   const token = await createSession(db, member.id, 'web');
   return { db, token };
 }

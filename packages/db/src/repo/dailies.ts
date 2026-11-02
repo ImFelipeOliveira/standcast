@@ -15,7 +15,7 @@ export async function upsertDaily(
 ): Promise<{ id: string }> {
   const [row] = await db
     .insert(dailies)
-    .values(d)
+    .values({ ...d, firstSubmittedAt: d.submittedAt })
     .onConflictDoUpdate({
       target: [dailies.installationId, dailies.memberId, dailies.date],
       set: { payload: d.payload, submittedAt: d.submittedAt },
@@ -69,13 +69,22 @@ export async function listDailies(
   db: Db,
   installationId: number,
   date: string,
-): Promise<{ login: string; memberId: string; payload: StoredDaily; submittedAt: Date }[]> {
+): Promise<
+  {
+    login: string;
+    memberId: string;
+    payload: StoredDaily;
+    submittedAt: Date;
+    firstSubmittedAt: Date;
+  }[]
+> {
   return db
     .select({
       login: members.login,
       memberId: dailies.memberId,
       payload: dailies.payload,
       submittedAt: dailies.submittedAt,
+      firstSubmittedAt: dailies.firstSubmittedAt,
     })
     .from(dailies)
     .innerJoin(members, eq(members.id, dailies.memberId))

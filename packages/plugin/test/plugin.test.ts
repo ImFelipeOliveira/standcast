@@ -59,6 +59,26 @@ describe('daily skill', () => {
     expect(skill).toContain('card URL');
   });
 
+  test('asks for support requests after the blockers, in both flows', () => {
+    expect(skill).toContain('need support from anyone');
+    expect(skill).not.toContain('"support"');
+    expect(skill).toContain('`blockers`, `support`)');
+    expect(skill).toContain('suggestion never becomes a support request');
+    const mcpFlow = skill.slice(
+      skill.indexOf('## Flow with the MCP tools'),
+      skill.indexOf('MCP errors'),
+    );
+    const cliFlow = skill.slice(
+      skill.indexOf('## Flow with the CLI'),
+      skill.indexOf('## Exit codes'),
+    );
+    for (const flow of [mcpFlow, cliFlow]) {
+      expect(flow).toContain('support');
+      expect(flow.indexOf('blockers')).toBeLessThan(flow.indexOf('support'));
+      expect(flow).toMatch(/^\d+\. Ask whether they need support from anyone/m);
+    }
+  });
+
   test('body drives the CLI', () => {
     expect(skill).toContain('standcast_get_draft');
     expect(skill).toContain('standcast_submit_daily');

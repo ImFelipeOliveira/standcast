@@ -18,7 +18,7 @@ A API do Standcast permite que os seus sistemas leiam os dados da sua organizaç
   | Operação | Escopo | Devolve |
   | --- | --- | --- |
   | `GET /v1/org/teams` | `teams:read` | Os times do `standcast.yml`: nome, fuso, dias úteis, horários e membros |
-  | `GET /v1/org/dailies` | `dailies:read` | Dailies confirmadas, filtradas por `date` e `team` |
+  | `GET /v1/org/dailies` | `dailies:read` | Dailies confirmadas com ontem, hoje, impedimentos e pedidos de apoio, filtradas por `date` e `team` |
   | `GET /v1/org/dailies/{id}` | `dailies:read` | Uma daily |
   | `GET /v1/org/digests` | `digests:read` | Entregas do consolidado, com quem não enviou a daily, filtradas por `team`, `from` e `to` |
   | `GET /v1/org/blockers` | `blockers:read` | Impedimentos confirmados, filtrados por `date` e `team` |

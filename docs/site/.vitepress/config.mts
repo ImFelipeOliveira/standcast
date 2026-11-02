@@ -33,6 +33,7 @@ function sidebar(prefix: string, labels: Record<string, string>): DefaultTheme.S
       items: [
         { text: labels.install, link: `${prefix}/admin/install` },
         { text: labels.configuration, link: `${prefix}/admin/configuration` },
+        { text: labels.webApp, link: `${prefix}/admin/web-app` },
         { text: 'Slack', link: `${prefix}/admin/slack` },
         { text: labels.apiKeys, link: `${prefix}/admin/api-keys` },
         { text: 'Webhooks', link: `${prefix}/admin/webhooks` },
@@ -75,6 +76,7 @@ const en = {
   admins: 'For admins',
   install: 'Install',
   configuration: 'standcast.yml reference',
+  webApp: 'Web app',
   apiKeys: 'API keys',
   members: 'For members',
   gettingStarted: 'Getting started',
@@ -95,6 +97,7 @@ const ptBR = {
   admins: 'Para admins',
   install: 'Instalação',
   configuration: 'Referência do standcast.yml',
+  webApp: 'App web',
   apiKeys: 'API keys',
   members: 'Para membros',
   gettingStarted: 'Primeiros passos',

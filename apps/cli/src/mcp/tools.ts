@@ -3,6 +3,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import {
   type DailyConfirmation,
   type DailySubmission,
+  type DailySubmissionInput,
   DailySubmissionSchema,
   hasUnsafeChars,
   type Language,
@@ -86,6 +87,7 @@ const dailyOut = z.looseObject({
   yesterday: z.array(itemOut),
   today: z.array(itemOut),
   blockers: z.array(itemOut),
+  support: z.array(itemOut).optional(),
 });
 
 const blockerOut = z.looseObject({
@@ -204,6 +206,9 @@ export function dailySummary(lang: Language, daily: DailySubmission, date: strin
     `${t(lang, 'cli.confirm.yesterday')}\n${itemLines(lang, daily.yesterday)}`,
     `${t(lang, 'cli.confirm.today')}\n${itemLines(lang, daily.today)}`,
     `${t(lang, 'cli.confirm.blockers')}\n${itemLines(lang, daily.blockers)}`,
+    ...(daily.support.length > 0
+      ? [`${t(lang, 'cli.confirm.support')}\n${itemLines(lang, daily.support)}`]
+      : []),
   ].join('\n\n');
 }
 
@@ -211,7 +216,7 @@ export const ELICITATION_TIMEOUT_MS = 10 * 60 * 1000;
 
 type Session = { token: string; apiUrl: string; org: string };
 
-function validDaily(daily: DailySubmission): DailySubmission {
+function validDaily(daily: DailySubmissionInput): DailySubmission {
   const parsed = DailySubmissionSchema.safeParse(daily);
   if (!parsed.success || hasUnsafeChars(daily.org)) {
     const issues = parsed.success
@@ -341,6 +346,9 @@ export function registerTools(server: McpServer, io: Io): void {
         yesterday: DailySubmissionSchema.shape.yesterday.describe('What the person did.'),
         today: DailySubmissionSchema.shape.today.describe('What the person will do today.'),
         blockers: DailySubmissionSchema.shape.blockers.describe('What is blocking the person.'),
+        support: DailySubmissionSchema.shape.support.describe(
+          'What the person needs help with from others, without being blocked.',
+        ),
         confirmed: z
           .literal(true, { error: CONFIRMATION_RULE })
           .optional()
@@ -370,6 +378,7 @@ export function registerTools(server: McpServer, io: Io): void {
           yesterday: input.yesterday,
           today: input.today,
           blockers: input.blockers,
+          support: input.support,
         });
         const { confirmation, shownDate } = await confirmSubmission(
           server,

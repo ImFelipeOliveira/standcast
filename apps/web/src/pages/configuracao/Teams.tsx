@@ -57,7 +57,7 @@ function TeamCard({ t, team, notices }: { t: Translate; team: Team; notices: str
 
 export function LooseNotices({ notices }: { notices: TeamNotice[] }) {
   const t = useT();
-  const texts = notices.map((notice) => noticeText(t, notice)).filter((text) => text !== null);
+  const texts = notices.map((notice) => noticeText(t, notice));
   if (texts.length === 0) return null;
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-warn-line bg-warn-wash p-4">
@@ -84,8 +84,7 @@ export function Teams({ teams, notices }: { teams: Team[]; notices: TeamNotice[]
             team={team}
             notices={notices
               .filter((notice) => notice.team === team.name)
-              .map((notice) => noticeText(t, notice))
-              .filter((text) => text !== null)}
+              .map((notice) => noticeText(t, notice))}
           />
         ))}
       </div>

@@ -1,11 +1,12 @@
 import type { Language } from './config';
 
 const ptBR = {
-  digestTitle: 'Daily — {team} — {date}',
-  blockers: 'Impedimentos',
-  yesterday: 'Ontem',
-  today: 'Hoje',
-  missing: 'Não enviaram a daily:',
+  digestTitle: '📅 Daily — {team} — {date}',
+  blockers: '🚧 Impedimentos',
+  support: '🤝 Pedidos de apoio',
+  yesterday: '🗓️ Ontem',
+  today: '🎯 Hoje',
+  missing: '⏳ Não enviaram a daily:',
   lateDaily: 'Daily enviada depois do consolidado:',
   'web.setup.title': 'Configuração do Standcast',
   'web.setup.heading': 'Configuração',
@@ -174,9 +175,10 @@ const ptBR = {
   'cli.githubUrlIgnored':
     'STANDCAST_GITHUB_URL ignorada: só localhost é aceito. Usando https://github.com.',
   'cli.confirm.question': 'Enviar esta daily para {org}? Data: {date}.',
-  'cli.confirm.yesterday': 'Ontem:',
-  'cli.confirm.today': 'Hoje:',
-  'cli.confirm.blockers': 'Impedimentos:',
+  'cli.confirm.yesterday': '🗓️ Ontem:',
+  'cli.confirm.today': '🎯 Hoje:',
+  'cli.confirm.blockers': '🚧 Impedimentos:',
+  'cli.confirm.support': '🤝 Pedidos de apoio:',
   'cli.confirm.none': '(nenhum)',
   'cli.confirm.title': 'Enviar esta daily',
   'cli.confirm.description': 'Marque para enviar a daily exatamente como mostrada.',
@@ -223,11 +225,12 @@ const ptBR = {
 } as const;
 
 const en = {
-  digestTitle: 'Daily — {team} — {date}',
-  blockers: 'Blockers',
-  yesterday: 'Yesterday',
-  today: 'Today',
-  missing: 'Did not send the daily:',
+  digestTitle: '📅 Daily — {team} — {date}',
+  blockers: '🚧 Blockers',
+  support: '🤝 Support requests',
+  yesterday: '🗓️ Yesterday',
+  today: '🎯 Today',
+  missing: '⏳ Did not send the daily:',
   lateDaily: 'Daily sent after the digest:',
   'web.setup.title': 'Standcast setup',
   'web.setup.heading': 'Setup',
@@ -396,9 +399,10 @@ const en = {
   'cli.githubUrlIgnored':
     'STANDCAST_GITHUB_URL ignored: only localhost is accepted. Using https://github.com.',
   'cli.confirm.question': 'Send this daily to {org}? Date: {date}.',
-  'cli.confirm.yesterday': 'Yesterday:',
-  'cli.confirm.today': 'Today:',
-  'cli.confirm.blockers': 'Blockers:',
+  'cli.confirm.yesterday': '🗓️ Yesterday:',
+  'cli.confirm.today': '🎯 Today:',
+  'cli.confirm.blockers': '🚧 Blockers:',
+  'cli.confirm.support': '🤝 Support requests:',
   'cli.confirm.none': '(none)',
   'cli.confirm.title': 'Send this daily',
   'cli.confirm.description': 'Check to send the daily exactly as shown.',
