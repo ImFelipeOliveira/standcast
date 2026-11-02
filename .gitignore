@@ -5,3 +5,5 @@ dist
 *.bun-build
 docs/site/.vitepress/cache
 .worktrees/
+test-results
+playwright-report

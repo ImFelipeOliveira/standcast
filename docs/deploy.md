@@ -39,6 +39,7 @@ Set these on the api service. The worker needs `DATABASE_URL`, `STANDCAST_ENCRYP
 | `SUPPORT_EMAIL` | Shown in the setup and error pages and the OpenAPI document |
 | `DOCS_URL` | Address of the documentation site, `https` with no trailing slash, for example `https://docs-standcast.usefachada.dev`. Defaults to `https://docs.standcast.app`. The setup header links to it, and the api redirects `/docs` and `/docs/*` to it with a 301 |
 | `LANDING_URL` | Address of the landing page, `https` with no trailing slash. Defaults to `https://standcast.usefachada.dev`. It is where the api sends the browser back when the beta request form is invalid |
+| `APP_URL` | Address of the web app, `https` with no trailing slash (or `http://localhost` with a port for local development). Defaults to `https://app.standcast.app`. The api allows cross-origin requests with cookies from this origin only, for example `https://app-standcast.usefachada.dev` |
 | `TRUST_PROXY` | `true` behind Railway |
 | `TRUSTED_PROXY_HOPS` | `1` behind Railway |
 | `STANDCAST_ENCRYPTION_KEY` | 32 random bytes, base64: `openssl rand -base64 32`. Keep it identical on api and worker |
@@ -78,11 +79,25 @@ The documentation site is a static VitePress build hosted on Cloudflare Pages, o
 
 The Pages project settings, variables and custom domain are in [cloudflare-pages.md](cloudflare-pages.md). Set `DOCS_URL` on the api to the Pages custom domain.
 
+## Web app (Cloudflare Worker)
+
+The web app is a static single-page build served by a Cloudflare Worker, configured in `apps/web/wrangler.jsonc`. It talks to the api with the session cookie, so the api needs `APP_URL` set to the app origin.
+
+Build with the api address, then deploy:
+
+```sh
+VITE_API_URL=https://api-standcast.usefachada.dev bun run web:build
+npx wrangler deploy -c apps/web/wrangler.jsonc
+```
+
+Add the custom domain `app-standcast.usefachada.dev` to the Worker in Cloudflare, then set `APP_URL=https://app-standcast.usefachada.dev` on the api service.
+
 ## Deploying without the final domain
 
 You can deploy before the final domain exists, with an interim domain of your own (for example `api-standcast.usefachada.dev`) or the address Railway generates (`*.up.railway.app`). The interim domain points at the api service, which also serves setup, OAuth, webhooks, the API reference at `/reference` and `/install.sh`. The documentation site has its own interim domain on Cloudflare Pages, `docs-standcast.usefachada.dev`. Set `PUBLIC_URL` to that address, for example `https://api-standcast.usefachada.dev`, and point everything below at it:
 
 - **GitHub App:** the callback URL, the webhook URL and the setup URL. See [github-app.md](github-app.md).
+- **GitHub App setup URL:** keep it pointing at the api `/setup` page for now. It changes to the web app only in the later switch-over PR.
 - **Slack app:** the redirect URLs.
 - **Linear app:** the redirect URL. See [linear-app.md](linear-app.md).
 - **`SUPPORT_EMAIL`:** set it to an address you read, on the api runtime variable and on the Cloudflare Pages project.
