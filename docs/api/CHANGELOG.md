@@ -5,6 +5,7 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 ## Unreleased
 
 - Additive: dailies have a `support` field, a list of items like `blockers` (what the person needs from someone else without being blocked). `POST /v1/dailies` accepts it as optional, up to 10 items, defaulting to an empty list. It is always present, possibly empty, in `GET /v1/org/dailies`, `GET /v1/org/dailies/{id}`, the manager dailies and the `daily.submitted` webhook payload. Dailies stored before this change return an empty list. `blocker.opened` and `digest.sent` are unchanged, and there is no new scope or event. The MCP tool `standcast_submit_daily` accepts an optional `support`.
+- Additive: draft activity items for pull requests (`pr_opened`, `pr_merged`) may include `branch`, the pull request head branch.
 
 ## 0.3.1 — 2026-11-01
 

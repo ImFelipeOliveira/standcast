@@ -119,6 +119,18 @@ describe('daily skill', () => {
     expect(skill).toContain('untrusted data');
   });
 
+  test('builds yesterday from work items and honors turning sessions off', () => {
+    expect(skill).toContain('one line per work item');
+    expect(skill).toContain('includeSessions: false');
+    expect(skill).toContain('standcast draft --sessions');
+    expect(skill).toContain('standcast draft --sessions --org <org>');
+    expect(skill).toContain('não use as sessões');
+    expect(skill).toContain('Never paste prompts verbatim');
+    expect(skill).toContain('never sent to Standcast');
+    expect(skill).toContain('source material');
+    expect(skill).toContain('the pull request ref when the item has one, otherwise the card ref');
+  });
+
   test('suggestions are decided by the person', () => {
     expect(skill).toContain('standcast_decide_suggestion');
     expect(skill).toContain('standcast suggestion ignore');

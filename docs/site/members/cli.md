@@ -74,6 +74,44 @@ Prints the draft of your daily for the organization:
 - `activity`: up to 50 items, newest first. `kind` is `pr_opened`, `pr_merged`, `review`, `commits`, `card_started` or `card_done`. Commits are grouped per repository, with `count`. For cards, `repo` is the Linear team key and `url` is the card link, which you can use as the link of a blocker.
 - `suggestions`: possible blockers Standcast noticed for you, each `{ id, kind, ref, since }`. `kind` is `pr_no_review` (your pull request without review), `ci_failing` (checks failing on it for 24 hours) or `card_stale` (one of your Linear cards in progress for `card_stale_days`). Only you see them. See [`standcast suggestion`](#standcast-suggestion).
 
+#### With your AI sessions
+
+```bash
+standcast draft --sessions
+```
+
+`--sessions` also reads your local Claude Code sessions from the draft window and adds `work` to the same JSON: one entry per piece of work, grouping the pull requests, cards, commits and sessions that belong together.
+
+```json
+{
+  "work": [
+    {
+      "key": "pr:https://github.com/acme/api/pull/42",
+      "title": "Add rate limiting",
+      "refs": [{ "kind": "pull_request", "url": "https://github.com/acme/api/pull/42", "title": "Add rate limiting" }],
+      "activity": [{ "kind": "pr_merged", "title": "Add rate limiting", "url": "https://github.com/acme/api/pull/42", "repo": "acme/api", "at": "2026-10-27T18:20:00.000Z", "branch": "feat/rate-limit" }],
+      "sessions": [
+        {
+          "id": "3f9a…",
+          "title": "Add rate limiting to the public API",
+          "cwd": "/home/alice/acme/api",
+          "branch": "feat/rate-limit",
+          "startedAt": "2026-10-27T14:05:00.000Z",
+          "endedAt": "2026-10-27T17:40:00.000Z",
+          "prompts": ["Add a rate limit per API key on the public routes"],
+          "files": ["src/rate-limit.ts"]
+        }
+      ]
+    }
+  ]
+}
+```
+
+- The sessions come from `~/.claude/projects`, or `STANDCAST_CLAUDE_DIR`. A session joins a pull request by its repository and branch, and a card when the branch names it; otherwise it gets its own entry, named after the project.
+- Each session keeps up to five of your prompts, cut to 300 characters, and up to 20 edited file paths. Tokens that look like secrets are replaced by `[redacted]`.
+- The CLI reads the files on your machine. Session data is never sent to the Standcast API, logs or webhooks: only the daily you submit leaves your machine.
+- `STANDCAST_SESSIONS=off` turns it off: `work` is then built from your activity only. Without `--sessions`, the output is the same as before.
+
 ### `standcast submit`
 
 Sends your daily. It reads the JSON from `--file`, or from standard input when `--file` is missing.
@@ -143,6 +181,7 @@ Starts the local MCP server over standard input and output, for AI clients. See 
 | --- | --- |
 | `--org <login>` | The organization, when you belong to more than one. |
 | `--file <path>` | The daily JSON file for `submit`. |
+| `--sessions` | For `draft`: adds `work`, built with your local AI sessions. |
 | `--api-url <url>` | The Standcast API. Without it, the CLI uses `STANDCAST_API_URL`, and without that, the Standcast API at `https://api.standcast.app`. |
 | `--help` | Shows the usage. |
 | `--version` | Shows the version. |
@@ -154,6 +193,8 @@ Starts the local MCP server over standard input and output, for AI clients. See 
 | `STANDCAST_API_URL` | The Standcast API, when `--api-url` is not given. |
 | `STANDCAST_LANG` | Language of the CLI messages, `en` or `pt-BR`. Falls back to `LC_ALL`, then `LANG`, then English. |
 | `XDG_CONFIG_HOME` | Where the credentials file goes. Defaults to `~/.config`. |
+| `STANDCAST_SESSIONS` | `off` stops the CLI and the MCP server from reading your local AI sessions. |
+| `STANDCAST_CLAUDE_DIR` | Where your Claude Code sessions are. Defaults to `~/.claude/projects`. |
 
 The API URL must use `https`. `http` is accepted only for `localhost`, `127.0.0.1` and `[::1]`. A saved session works only with the API it was created for: using it with another URL fails with exit code 2 and asks you to sign in again with `--api-url`.
 

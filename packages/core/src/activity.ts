@@ -7,6 +7,7 @@ export type ActivityItem = {
   repo: string;
   at: Date;
   count?: number;
+  branch?: string;
 };
 
 export function activitySince(input: {

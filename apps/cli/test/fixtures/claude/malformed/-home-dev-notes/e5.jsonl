@@ -1,0 +1,9 @@
+this is not json
+{"type":"user","sessionId":"e5","timestamp":"2026-10-31T12:00:00.000Z","cwd":"/home/dev/notes","gitBranch":"docs","message":{"role":"user","content":"Write the release notes"}}
+{"type":"user","sessionId":
+[1,2,3]
+null
+{"type":"user","sessionId":"e5","timestamp":"not a date","cwd":"/home/dev/notes","message":{"role":"user","content":"Bad timestamp"}}
+{"type":"user","timestamp":"2026-10-31T12:00:05.000Z","message":{"role":"user","content":"No session id"}}
+{"type":"assistant","sessionId":"e5","timestamp":"2026-10-31T12:01:00.000Z","cwd":"/home/dev/notes","gitBranch":"docs","message":{"role":"assistant","content":"plain text reply"}}
+{"type":"assistant","sessionId":"e5","timestamp":"2026-10-31T12:02:00.000Z","cwd":"/home/dev/notes","gitBranch":"docs","message":null}
