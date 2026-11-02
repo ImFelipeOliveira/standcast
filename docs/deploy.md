@@ -41,7 +41,7 @@ Set these on the api service. The worker needs `DATABASE_URL`, `STANDCAST_ENCRYP
 | `SUPPORT_EMAIL` | Shown in the setup and error pages and the OpenAPI document |
 | `DOCS_URL` | Address of the documentation site, `https` with no trailing slash, for example `https://docs-standcast.usefachada.dev`. Defaults to `https://docs.standcast.app`. The setup header links to it, and the api redirects `/docs` and `/docs/*` to it with a 301 |
 | `LANDING_URL` | Address of the landing page, `https` with no trailing slash. Defaults to `https://standcast.usefachada.dev`. It is where the api sends the browser back when the beta request form is invalid |
-| `APP_URL` | **Required.** Address of the web app, `https` with no trailing slash (or `http://localhost` with a port for local development). The api fails to start without it. The api allows cross-origin requests with cookies from this origin only, for example `https://app-standcast.usefachada.dev` |
+| `APP_URL` | **Required.** Origin of the web app: `https`, lowercase host, no path, query, trailing slash or default port (or `http://localhost` with an optional port for local development). The api fails to start without it. The api allows cross-origin requests with cookies from this origin only, for example `https://app-standcast.usefachada.dev` |
 | `TRUST_PROXY` | `true` behind Railway |
 | `TRUSTED_PROXY_HOPS` | `1` behind Railway |
 | `STANDCAST_ENCRYPTION_KEY` | 32 random bytes, base64: `openssl rand -base64 32`. Keep it identical on api and worker |

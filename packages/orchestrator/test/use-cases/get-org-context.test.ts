@@ -99,4 +99,39 @@ describe('getOrgContext', () => {
     expect(context).toEqual({ admin: false, managerOf: ['Beta'], memberOf: [] });
     expect(Date.now() - started).toBeLessThan(4500);
   }, 10000);
+
+  test('a failing admin check logs and falls back to not admin', async () => {
+    const { deps, isMember, member, failRoles } = await setup('carol', 3);
+    failRoles(Object.assign(new Error('github down'), { status: 500 }));
+    const spy = spyOn(console, 'error').mockImplementation(() => {});
+    const context = await getOrgContext(deps, isMember, member, INST);
+    const logged = spy.mock.calls.map((call) => String(call[0]));
+    spy.mockRestore();
+    expect(context).toEqual({ admin: false, managerOf: ['Beta'], memberOf: [] });
+    expect(logged.some((line) => line.includes('org context admin check failed'))).toBe(true);
+  });
+
+  test('a hanging admin check logs and gives up after the timeout', async () => {
+    const { deps, isMember, member, roles } = await setup('carol', 3);
+    roles.set('carol', { role: 'admin', state: 'active' });
+    const installationOctokit = deps.github.installationOctokit;
+    deps.github.installationOctokit = async (id) => {
+      const octokit = await installationOctokit(id);
+      return {
+        request: (route: string, params: unknown) =>
+          route === 'GET /orgs/{org}/memberships/{username}'
+            ? new Promise(() => {})
+            : (octokit.request as (r: string, p: unknown) => Promise<unknown>)(route, params),
+      } as never;
+    };
+    const spy = spyOn(console, 'error').mockImplementation(() => {});
+    const started = Date.now();
+    const context = await getOrgContext(deps, isMember, member, INST);
+    const elapsed = Date.now() - started;
+    const logged = spy.mock.calls.map((call) => String(call[0]));
+    spy.mockRestore();
+    expect(context).toEqual({ admin: false, managerOf: ['Beta'], memberOf: [] });
+    expect(elapsed).toBeLessThan(4500);
+    expect(logged.some((line) => line.includes('org context admin check failed'))).toBe(true);
+  }, 10000);
 });

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import type { Message } from '@standcast/core';
+import { type Message, parseConfig, type StandcastConfig } from '@standcast/core';
 import {
   claimDelivery,
   createApiKey,
@@ -7,6 +7,7 @@ import {
   decideSuggestion,
   failDelivery,
   insertWebhookEndpoint,
+  saveConnection,
   setIdentity,
   setMemberInstallations,
   syncSuggestions,
@@ -113,8 +114,8 @@ function expectNoLeak(label: string, output: unknown, seeded: Seeded[]): void {
   }
 }
 
-async function setup() {
-  await seedOrg(config('[alice, bob]'));
+async function setup(cfg: StandcastConfig = config('[alice, bob]')) {
+  await seedOrg(cfg);
   const alice = await seedMember();
   const bob = await seedMember('bob', 2);
   await setMemberInstallations(db, alice.id, [INST]);
@@ -151,6 +152,31 @@ async function setup() {
   fake.roles.set('alice', { role: 'admin', state: 'active' });
   return { ...fake, alice, bob, seeded };
 }
+
+function trackedConfig(): StandcastConfig {
+  const parsed = parseConfig(`
+teams:
+  - name: Alpha
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [alice, bob]
+    members: [alice, bob]
+    chat: { provider: slack, channel: "#alpha" }
+    tracker: { provider: linear, team: ENG }
+`);
+  if (!parsed.ok) throw new Error(JSON.stringify(parsed.errors));
+  return parsed.config;
+}
+
+const cardNode = (prefix: string) => ({
+  id: `card-9${prefix}`,
+  identifier: 'ENG-9',
+  url: `https://linear.app/acme/issue/ENG-9${prefix}`,
+  title: `Stuck card ${prefix}`,
+  startedAt: CARD_STARTED,
+  completedAt: null,
+});
 
 describe('suggestions never leak outside the person', () => {
   test('org and manage routes, webhooks, the digest and the setup page carry no suggestion', async () => {
@@ -242,5 +268,47 @@ describe('suggestions never leak outside the person', () => {
     expect(html).toContain('acme');
     expectNoLeak('setup page', html, seeded);
     expect(html).not.toContain('no_chat_identity');
+  });
+
+  test('the web app org context and setup carry no suggestion for an admin or a manager', async () => {
+    const { deps, alice, bob, seeded, linear, orgMembers, users } = await setup(trackedConfig());
+    orgMembers.add('bob');
+    users.set(2, 'bob');
+    await setMemberInstallations(db, bob.id, [INST]);
+    await saveConnection(
+      db,
+      INST,
+      'linear',
+      'org-1',
+      JSON.stringify({ accessToken: 'lin_at_1', refreshToken: null, expiresAt: null }),
+      new Uint8Array(32).fill(7),
+      'Acme',
+      'acme',
+    );
+    await setIdentity(db, INST, alice.id, 'linear', 'u1');
+    await setIdentity(db, INST, bob.id, 'linear', 'u2');
+    linear.state.activity = [cardNode('alice'), cardNode('bob')];
+    linear.state.stale = [cardNode('alice'), cardNode('bob')];
+
+    const app = createApp(deps, { getClientIp: () => '192.0.2.1' });
+    const viewers = [
+      { label: 'admin', member: alice, admin: true },
+      { label: 'manager', member: bob, admin: false },
+    ];
+    for (const viewer of viewers) {
+      const web = await createSession(db, viewer.member.id, 'web');
+      for (const endpoint of ['context', 'setup']) {
+        const res = await app.request(`/v1/app/orgs/${INST}/${endpoint}`, {
+          headers: { cookie: `sc_web=${web}`, origin: deps.env.appUrl },
+        });
+        const body = await res.text();
+        const label = `${viewer.label} ${endpoint}`;
+        expect(res.status, `${label} ${body}`).toBe(200);
+        expectNoLeak(label, body, seeded);
+        const json = JSON.parse(body) as { admin: boolean; managerOf?: string[] };
+        expect(json.admin, label).toBe(viewer.admin);
+        if (endpoint === 'context') expect(json.managerOf, label).toEqual(['Alpha']);
+      }
+    }
   });
 });

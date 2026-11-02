@@ -35,6 +35,22 @@ describe('parseEnv', () => {
     }
   });
 
+  test('APP_URL must be an exact origin', () => {
+    for (const APP_URL of [
+      'https://app.standcast.app/web',
+      'https://app.standcast.app?x=1',
+      'https://App.Standcast.app',
+      'https://app.standcast.app:443',
+      'http://localhost:80',
+      'not a url',
+    ]) {
+      expect(() => parseEnv({ ...base, APP_URL }), APP_URL).toThrow(/APP_URL/);
+    }
+    expect(parseEnv({ ...base, APP_URL: 'https://app.standcast.app:8443' }).APP_URL).toBe(
+      'https://app.standcast.app:8443',
+    );
+  });
+
   test('strips trailing slashes from PUBLIC_URL', () => {
     for (const raw of ['https://api.standcast.app/', 'https://api.standcast.app///']) {
       expect(parseEnv({ ...base, PUBLIC_URL: raw }).PUBLIC_URL).toBe('https://api.standcast.app');

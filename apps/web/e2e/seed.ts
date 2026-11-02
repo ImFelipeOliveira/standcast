@@ -1,4 +1,4 @@
-import { parseConfig } from '../../../packages/core/src';
+import { parseConfig } from '@standcast/core';
 import {
   createDb,
   createSession,
@@ -8,7 +8,7 @@ import {
   setMemberInstallations,
   upsertInstallation,
   upsertMember,
-} from '../../../packages/db/src';
+} from '@standcast/db';
 
 export const INSTALLATION_ID = 4242;
 export const TEAM_NAME = 'Plataforma';

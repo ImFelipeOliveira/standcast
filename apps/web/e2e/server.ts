@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { type Deps, nullTracker } from '../../../packages/orchestrator/src';
-import { createMemoryQueue } from '../../../packages/queue/src';
-import { createApp } from '../../api/src/app';
+import { createApp } from '@standcast/api';
+import { type Deps, nullTracker } from '@standcast/orchestrator';
+import { createMemoryQueue } from '@standcast/queue';
 import { seed } from './seed';
 
 const databaseUrl = process.env.TEST_DATABASE_URL;

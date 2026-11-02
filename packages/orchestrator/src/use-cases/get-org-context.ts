@@ -8,6 +8,7 @@ import { isInstallationAdmin } from './is-installation-admin';
 import type { MembershipCheck } from './org-context';
 
 const TEAM_RESOLUTION_TIMEOUT_MS = 3000;
+const ADMIN_CHECK_TIMEOUT_MS = 3000;
 
 export type OrgMemberContext = { admin: boolean; managerOf: string[]; memberOf: string[] };
 
@@ -26,7 +27,13 @@ export async function getOrgContext(
   const config = operationalConfig(installation);
   const login = current.login.toLowerCase();
   const [admin, resolved] = await Promise.all([
-    isInstallationAdmin(deps, installation.id, current).catch(() => false),
+    guarded(
+      isInstallationAdmin(deps, installation.id, current),
+      false,
+      ADMIN_CHECK_TIMEOUT_MS,
+      'org context admin check failed',
+      { installationId: String(installation.id) },
+    ),
     config
       ? guarded(
           resolveTeams(deps, installation.id, installation.accountLogin, config),
