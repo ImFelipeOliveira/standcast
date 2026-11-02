@@ -1,7 +1,21 @@
-import { listMemberInstallations } from '@standcast/db';
-import { csrfToken, type Deps, logoutWebSession } from '@standcast/orchestrator';
-import { Hono, type MiddlewareHandler } from 'hono';
+import { API_KEY_SCOPES, listMemberInstallations, WEBHOOK_EVENTS } from '@standcast/db';
+import {
+  createInstallationApiKey,
+  createMembershipCheck,
+  createWebhookEndpoint,
+  csrfToken,
+  type Deps,
+  DomainError,
+  disableWebhookEndpoint,
+  getOrgContext,
+  getSetupStatus,
+  logoutWebSession,
+  revokeInstallationApiKey,
+  sendTestEvent,
+} from '@standcast/orchestrator';
+import { type Context, Hono, type MiddlewareHandler } from 'hono';
 import { deleteCookie } from 'hono/cookie';
+import { z } from 'zod';
 import {
   type GetClientIp,
   IP_LIMIT,
@@ -15,6 +29,32 @@ import {
   type WebSessionEnv,
   webSessionAuth,
 } from '../middleware/web-session';
+
+const createKeyBody = z.object({
+  name: z.string(),
+  scopes: z.array(z.enum(API_KEY_SCOPES)),
+});
+
+const createWebhookBody = z.object({
+  url: z.string(),
+  events: z.array(z.enum(WEBHOOK_EVENTS)),
+});
+
+const ORG = '/v1/app/orgs/:installationId';
+
+function installationIdOf(c: Context): number {
+  const raw = c.req.param('installationId') ?? '';
+  return /^\d{1,15}$/.test(raw) ? Number(raw) : Number.NaN;
+}
+
+async function parseBody<T extends z.ZodType>(c: Context, schema: T): Promise<z.infer<T>> {
+  const body: unknown = await c.req.json().catch(() => undefined);
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    throw new DomainError('invalid_request', 'invalid request', parsed.error.issues);
+  }
+  return parsed.data;
+}
 
 function appCors(appUrl: string): MiddlewareHandler {
   return async (c, next) => {
@@ -37,6 +77,7 @@ function appCors(appUrl: string): MiddlewareHandler {
 
 export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Hono<WebSessionEnv> {
   const app = new Hono<WebSessionEnv>();
+  const isMember = createMembershipCheck(deps);
   app.use(
     '/v1/app/*',
     appCors(deps.env.appUrl),
@@ -69,6 +110,67 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
     await logoutWebSession(deps, c.get('sessionToken'));
     deleteCookie(c, WEB_COOKIE, { path: WEB_COOKIE_PATH, secure: true });
     return c.body(null, 204);
+  });
+
+  app.get(`${ORG}/context`, async (c) =>
+    c.json(await getOrgContext(deps, isMember, c.get('member'), installationIdOf(c)), 200),
+  );
+
+  app.get(`${ORG}/setup`, async (c) =>
+    c.json(await getSetupStatus(deps, isMember, c.get('member'), installationIdOf(c)), 200),
+  );
+
+  app.post(`${ORG}/api-keys`, async (c) => {
+    const { name, scopes } = await parseBody(c, createKeyBody);
+    const created = await createInstallationApiKey(deps, isMember, c.get('member'), {
+      installationId: installationIdOf(c),
+      name,
+      scopes,
+    });
+    return c.json({ key: created.summary, secret: created.key }, 201);
+  });
+
+  app.post(`${ORG}/api-keys/:keyId/revoke`, async (c) => {
+    await revokeInstallationApiKey(
+      deps,
+      isMember,
+      c.get('member'),
+      installationIdOf(c),
+      c.req.param('keyId'),
+    );
+    return c.body(null, 204);
+  });
+
+  app.post(`${ORG}/webhooks`, async (c) => {
+    const { url, events } = await parseBody(c, createWebhookBody);
+    const created = await createWebhookEndpoint(deps, isMember, c.get('member'), {
+      installationId: installationIdOf(c),
+      url,
+      events,
+    });
+    return c.json({ endpoint: created.endpoint, secret: created.secret }, 201);
+  });
+
+  app.post(`${ORG}/webhooks/:endpointId/disable`, async (c) => {
+    await disableWebhookEndpoint(
+      deps,
+      isMember,
+      c.get('member'),
+      installationIdOf(c),
+      c.req.param('endpointId'),
+    );
+    return c.body(null, 204);
+  });
+
+  app.post(`${ORG}/webhooks/:endpointId/test`, async (c) => {
+    await sendTestEvent(
+      deps,
+      isMember,
+      c.get('member'),
+      installationIdOf(c),
+      c.req.param('endpointId'),
+    );
+    return c.body(null, 202);
   });
 
   return app;

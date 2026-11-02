@@ -91,6 +91,7 @@ export function createTestApp(
       getClientIp: options.getClientIp ?? headerIp,
       ...(options.healthTimeoutMs ? { healthTimeoutMs: options.healthTimeoutMs } : {}),
     }),
+    deps,
     queue,
     setNow: (d: Date) => (now = d),
   };
