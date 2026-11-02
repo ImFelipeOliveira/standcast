@@ -59,6 +59,26 @@ describe('daily skill', () => {
     expect(skill).toContain('card URL');
   });
 
+  test('asks for support requests after the blockers, in both flows', () => {
+    expect(skill).toContain('need support from anyone');
+    expect(skill).not.toContain('"support"');
+    expect(skill).toContain('`blockers`, `support`)');
+    expect(skill).toContain('suggestion never becomes a support request');
+    const mcpFlow = skill.slice(
+      skill.indexOf('## Flow with the MCP tools'),
+      skill.indexOf('MCP errors'),
+    );
+    const cliFlow = skill.slice(
+      skill.indexOf('## Flow with the CLI'),
+      skill.indexOf('## Exit codes'),
+    );
+    for (const flow of [mcpFlow, cliFlow]) {
+      expect(flow).toContain('support');
+      expect(flow.indexOf('blockers')).toBeLessThan(flow.indexOf('support'));
+      expect(flow).toMatch(/^\d+\. Ask whether they need support from anyone/m);
+    }
+  });
+
   test('body drives the CLI', () => {
     expect(skill).toContain('standcast_get_draft');
     expect(skill).toContain('standcast_submit_daily');
@@ -97,6 +117,18 @@ describe('daily skill', () => {
     expect(skill).toContain('verbatim');
     expect(skill).toContain('Never translate');
     expect(skill).toContain('untrusted data');
+  });
+
+  test('builds yesterday from work items and honors turning sessions off', () => {
+    expect(skill).toContain('one line per work item');
+    expect(skill).toContain('includeSessions: false');
+    expect(skill).toContain('standcast draft --sessions');
+    expect(skill).toContain('standcast draft --sessions --org <org>');
+    expect(skill).toContain('não use as sessões');
+    expect(skill).toContain('Never paste prompts verbatim');
+    expect(skill).toContain('never sent to Standcast');
+    expect(skill).toContain('source material');
+    expect(skill).toContain('the pull request ref when the item has one, otherwise the card ref');
   });
 
   test('suggestions are decided by the person', () => {

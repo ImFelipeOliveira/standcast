@@ -9,7 +9,7 @@ export type Io = {
   openBrowser: (url: string) => void;
 };
 
-export type Flags = { org?: string; file?: string; apiUrl?: string };
+export type Flags = { org?: string; file?: string; apiUrl?: string; sessions?: boolean };
 
 export type Ctx = { io: Io; lang: Language; flags: Flags; args?: string[] };
 

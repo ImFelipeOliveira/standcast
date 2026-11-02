@@ -77,6 +77,18 @@ describe('dailies', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]?.payload).toEqual(daily('two'));
     expect(rows[0]?.login).toBe('Ana');
+    expect(rows[0]?.submittedAt).toEqual(new Date('2026-10-27T11:00:00Z'));
+    expect(rows[0]?.firstSubmittedAt).toEqual(new Date('2026-10-27T10:00:00Z'));
+  });
+
+  test('inserts without first_submitted_at still succeed', async () => {
+    const m = await seed();
+    await db.execute(sql`
+      insert into dailies (installation_id, member_id, date, payload, submitted_at)
+      values (${INST}, ${m.id}, '2026-10-27', ${JSON.stringify(daily('old'))}::jsonb, now())
+    `);
+    const rows = await listDailies(db, INST, '2026-10-27');
+    expect(rows[0]?.firstSubmittedAt).toBeInstanceOf(Date);
   });
 
   test('getLastDaily returns most recent strictly before', async () => {

@@ -63,7 +63,7 @@ Escolha o jeito que combina com as suas ferramentas:
 Em todos os casos, o fluxo é o mesmo:
 
 1. O Standcast monta um rascunho do ontem a partir da sua atividade no GitHub desde a última daily, mais os seus cards do Linear se a sua organização conectou o Linear.
-2. Você corrige o ontem e escreve o hoje e os impedimentos.
+2. Você corrige o ontem e escreve o hoje, os impedimentos e, se precisar de algo de alguém, um pedido de apoio.
 3. Você vê a daily final e confirma. Nada é enviado antes disso.
 
 ## 4. Depois de enviar
@@ -71,6 +71,6 @@ Em todos os casos, o fluxo é o mesmo:
 - A sua daily fica guardada na data de hoje. Se você reenviar no mesmo dia, a nova versão substitui a anterior.
 - No `digest_at` do time, a sua daily aparece no consolidado de todos os seus times.
 - Se o consolidado já saiu, a sua daily é publicada como resposta na thread dele, e o resultado traz `late: true`.
-- Os webhooks cadastrados pelo admin recebem um evento `daily.submitted`, e um `blocker.opened` para cada impedimento novo.
+- Os webhooks cadastrados pelo admin recebem um evento `daily.submitted`, com os seus pedidos de apoio, e um `blocker.opened` para cada impedimento novo.
 
 Deu algo errado? Veja [Solução de problemas](/pt-BR/troubleshooting).

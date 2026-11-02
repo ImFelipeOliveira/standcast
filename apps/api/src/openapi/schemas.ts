@@ -98,6 +98,7 @@ export const ActivityItemSchema = z
     repo: z.string(),
     at: z.string().openapi({ format: 'date-time' }),
     count: z.number().int().optional(),
+    branch: z.string().optional(),
   })
   .openapi('ActivityItem', {
     example: {
@@ -189,6 +190,7 @@ export const DAILY_EXAMPLE = {
   ],
   today: [{ text: 'Write the integrator guides' }],
   blockers: [],
+  support: [{ text: 'Need a review on the migration before Friday' }],
 };
 
 export const DailySubmissionSchema = CoreDailySubmission.meta({

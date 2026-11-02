@@ -246,6 +246,34 @@ describe('org data', () => {
     expect((await get(app, `/v1/org/dailies/${foreignId}`, other.key)).res.status).toBe(200);
   });
 
+  test('dailies carry support requests, and dailies stored without them read as empty', async () => {
+    await seed();
+    const { app } = createTestApp();
+    await dailyFor('bob', A, '2026-10-27');
+    const [row] = await db.execute(sql`SELECT id FROM members WHERE login = 'alice'`);
+    const url = 'https://github.com/acme/api/pull/43';
+    await upsertDaily(db, {
+      installationId: A,
+      memberId: (row as { id: string }).id,
+      date: '2026-10-28',
+      payload: {
+        org: 'acme',
+        yesterday: [],
+        today: [{ text: 't alice' }],
+        blockers: [],
+        support: [{ text: 'need a review', ref: { kind: 'pull_request', url } }],
+      },
+      submittedAt: new Date('2026-10-28T12:00:00Z'),
+    });
+    const { key } = await keyFor(A);
+    const page = (await get(app, '/v1/org/dailies', key)).body as unknown as Page;
+    const byLogin = Object.fromEntries(page.data.map((d) => [d.login, d.support]));
+    expect(byLogin).toEqual({
+      alice: [{ text: 'need a review', ref: { kind: 'pull_request', url, title: null } }],
+      bob: [],
+    });
+  });
+
   test('pagination: 120 dailies with limit 50 give 3 pages without repeats or gaps', async () => {
     await seed();
     const { app } = createTestApp();

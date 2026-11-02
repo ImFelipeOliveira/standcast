@@ -105,6 +105,29 @@ describe('DailySubmissionSchema', () => {
     expect(clampTitle('a'.repeat(200))).toBe('a'.repeat(200));
   });
 
+  test('support is optional and defaults to an empty list', () => {
+    const parsed = DailySubmissionSchema.parse(valid);
+    expect(parsed.support).toEqual([]);
+  });
+
+  test('accepts support requests with refs', () => {
+    const support = [
+      {
+        text: 'Need a review',
+        ref: { kind: 'pull_request' as const, url: 'https://github.com/a/b/pull/1' },
+      },
+    ];
+    const parsed = DailySubmissionSchema.parse({ ...valid, support });
+    expect(parsed.support).toEqual(support);
+  });
+
+  test('caps support requests at 10 and validates their text', () => {
+    const many = Array.from({ length: 11 }, (_, i) => ({ text: `ask ${i}` }));
+    expect(DailySubmissionSchema.safeParse({ ...valid, support: many }).success).toBe(false);
+    const unsafe = [{ text: 'a\u202eb' }];
+    expect(DailySubmissionSchema.safeParse({ ...valid, support: unsafe }).success).toBe(false);
+  });
+
   test('accepts plain spaces, accents and emoji', () => {
     const today = [{ text: 'Revisar os PRs do time, sem pressa 🙂 — ação' }];
     expect(DailySubmissionSchema.safeParse({ ...valid, today }).success).toBe(true);

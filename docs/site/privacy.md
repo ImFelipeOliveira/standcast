@@ -42,6 +42,19 @@ If an admin connects Linear, Standcast uses an OAuth app that acts as itself (`a
 
 It never reads descriptions or comments, and it never writes to Linear. Cards from another workspace are never read. A person's own cards show only in their own draft and are never used to measure people.
 
+### Your AI sessions, on your machine
+
+When you write your daily with the Claude Code skill, the MCP server or `standcast draft --sessions`, the `standcast` CLI on your machine reads your Claude Code session files (`~/.claude/projects`, or `STANDCAST_CLAUDE_DIR`) from the draft window. It reads:
+
+- the session title, the working directory, the branch and the start and end times;
+- up to five of your prompts per session, cut to 300 characters, without tool output or system text;
+- the paths of the files edited in the session, never their contents;
+- the `origin` remote of the working directory, to match the session to a repository.
+
+Tokens that look like secrets (API keys, GitHub, Slack, Standcast and AWS tokens, long random strings) are replaced by `[redacted]` in the titles, prompts, working directory, branch and file paths. Standcast reads this data on your machine: it does not send it to the Standcast API, logs or webhooks, and it stores none of it. The AI client you write the daily with (Claude Code or another MCP client) receives it and may send it to its model provider, under your account and that provider's terms. Only the daily text you confirm is submitted to Standcast.
+
+To turn it off, set `STANDCAST_SESSIONS=off` in your environment, or ask the agent not to use your sessions.
+
 ### Jira <Badge type="info" text="coming soon" />
 
 Standcast does not connect to Jira yet, so it reads nothing from it.
@@ -58,7 +71,8 @@ Standcast does not connect to Jira yet, so it reads nothing from it.
 | Linear connection | Workspace id, name and URL key, and the access and refresh tokens | Tokens encrypted with AES-256-GCM |
 | Linear identity | The Linear user id of each person, per installation. The email is never stored | |
 | Sessions | A SHA-256 hash of each CLI and web session token, its kind and when it was created and last used | Only the hash; the token itself is never stored |
-| Dailies | Date, submission time, the yesterday, today and blocker items with their links, and whether the person (`human`) or the agent (`agent`) confirmed it | |
+| Dailies | Date, first and latest submission time, the yesterday, today, blocker and support request items with their links, and whether the person (`human`) or the agent (`agent`) confirmed it | |
+| Blocker states | For each blocker someone listed: its text and link, the first and last day it was seen, and when it was resolved and who resolved it. Kept until the app is uninstalled | |
 | Suggestions | For each suggested blocker: the pull request link and title (or the card link and title), the kind, when it was noticed and your decision | Visible only to you |
 | Deliveries | For each digest, late daily, reminder and routed blocker: team, date, status, attempts, the Slack channel and message id, and the error if it failed | |
 | API keys | Name, the first 8 characters after `sck_`, scopes, who created it, creation, last use and revocation times | Only a SHA-256 hash of the secret |
@@ -85,7 +99,8 @@ When someone asks for beta access on the Standcast landing page, the form collec
 - Computes rankings, scores, productivity metrics or per-person aggregates.
 - Reads your code, your Slack messages or your direct messages.
 - Writes to your repositories.
-- Sends your data to an AI model.
+- Standcast itself never sends your data to an AI model; the agent you choose to write your daily with receives the draft.
+- Receives your AI sessions: they are read on your machine and never sent to Standcast.
 - Sells your data, or shares it with anyone other than the providers that run the service (such as Resend, for beta request emails).
 
 ## Who sees what
@@ -115,7 +130,7 @@ CLI sessions stop working after 90 days without use, and web sessions after 7 da
 
 ## Removing your data
 
-- **Uninstall the GitHub App.** Standcast deletes the installation and everything that belongs to it: configuration, dailies, deliveries, Slack connection and identities, API keys, webhook endpoints and their deliveries.
+- **Uninstall the GitHub App.** Standcast deletes the installation and everything that belongs to it: configuration, dailies, blocker states, deliveries, Slack connection and identities, API keys, webhook endpoints and their deliveries.
 - **Sign out.** `standcast logout` revokes your CLI session on the server and deletes the local credentials file.
 - **Your person record.** Your GitHub user id, login and email are not tied to one installation, so uninstalling does not remove them. To delete them, email support.
 

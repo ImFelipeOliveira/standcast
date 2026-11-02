@@ -56,6 +56,7 @@ const event = {
     yesterday: [{ text: SECRET_TEXT }],
     today: [],
     blockers: [],
+    support: [],
     replaced: false,
   },
 };

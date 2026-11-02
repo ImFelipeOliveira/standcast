@@ -1,11 +1,12 @@
 import type { Language } from './config';
 
 const ptBR = {
-  digestTitle: 'Daily — {team} — {date}',
-  blockers: 'Impedimentos',
-  yesterday: 'Ontem',
-  today: 'Hoje',
-  missing: 'Não enviaram a daily:',
+  digestTitle: '📅 Daily — {team} — {date}',
+  blockers: '🚧 Impedimentos',
+  support: '🤝 Pedidos de apoio',
+  yesterday: '🗓️ Ontem',
+  today: '🎯 Hoje',
+  missing: '⏳ Não enviaram a daily:',
   lateDaily: 'Daily enviada depois do consolidado:',
   'web.setup.title': 'Configuração do Standcast',
   'web.setup.heading': 'Configuração',
@@ -148,7 +149,7 @@ const ptBR = {
   'web.error.linear_oauth_failed.body':
     'Não foi possível concluir a conexão com o Linear. Tente conectar novamente.',
   'cli.usage':
-    'Uso: standcast <comando> [opções]\n\nComandos:\n  login     Entra com o GitHub\n  logout    Remove as credenciais locais\n  whoami    Mostra o usuário e as organizações\n  draft     Gera o rascunho da daily (JSON)\n  submit    Envia a daily (JSON em --file ou stdin)\n  suggestion confirm|ignore <id>\n            Confirma ou ignora uma sugestão de impedimento do rascunho\n  mcp       Inicia o servidor MCP (stdio) para agentes de IA\n\nOpções:\n  --org <login>      Organização\n  --file <caminho>   Arquivo JSON da daily\n  --api-url <url>    URL da API (STANDCAST_API_URL)\n  --help             Mostra esta ajuda\n  --version          Mostra a versão',
+    'Uso: standcast <comando> [opções]\n\nComandos:\n  login     Entra com o GitHub\n  logout    Remove as credenciais locais\n  whoami    Mostra o usuário e as organizações\n  draft     Gera o rascunho da daily (JSON)\n  submit    Envia a daily (JSON em --file ou stdin)\n  suggestion confirm|ignore <id>\n            Confirma ou ignora uma sugestão de impedimento do rascunho\n  mcp       Inicia o servidor MCP (stdio) para agentes de IA\n\nOpções:\n  --org <login>      Organização\n  --file <caminho>   Arquivo JSON da daily\n  --api-url <url>    URL da API (STANDCAST_API_URL)\n  --sessions         Inclui as sessões locais de IA no rascunho (draft)\n  --help             Mostra esta ajuda\n  --version          Mostra a versão',
   'cli.invalidArgs': 'Argumentos inválidos: {message}',
   'cli.suggestionUsage':
     'Uso: standcast suggestion confirm <id> [--org <login>]\n     standcast suggestion ignore <id> [--org <login>]',
@@ -174,9 +175,10 @@ const ptBR = {
   'cli.githubUrlIgnored':
     'STANDCAST_GITHUB_URL ignorada: só localhost é aceito. Usando https://github.com.',
   'cli.confirm.question': 'Enviar esta daily para {org}? Data: {date}.',
-  'cli.confirm.yesterday': 'Ontem:',
-  'cli.confirm.today': 'Hoje:',
-  'cli.confirm.blockers': 'Impedimentos:',
+  'cli.confirm.yesterday': '🗓️ Ontem:',
+  'cli.confirm.today': '🎯 Hoje:',
+  'cli.confirm.blockers': '🚧 Impedimentos:',
+  'cli.confirm.support': '🤝 Pedidos de apoio:',
   'cli.confirm.none': '(nenhum)',
   'cli.confirm.title': 'Enviar esta daily',
   'cli.confirm.description': 'Marque para enviar a daily exatamente como mostrada.',
@@ -209,6 +211,10 @@ const ptBR = {
     'Time {team}: o time {reference} do GitHub não foi encontrado, ou o Standcast não consegue vê-lo. Confira o nome e se o app tem a permissão Members na organização.',
   'setup.teams.truncated':
     'Time {team}: o time {reference} do GitHub é grande demais; só os primeiros 5.000 membros são usados.',
+  'setup.teams.channelNotFound':
+    'Time {team}: o canal {reference} do Slack não foi encontrado. Crie o canal ou, se ele for privado, convide o bot do Standcast com /invite @Standcast.',
+  'setup.teams.channelNotMember':
+    'Time {team}: o bot do Standcast não está no canal {reference} do Slack. Convide-o com /invite @Standcast no canal.',
   'setup.tracker.jiraComingSoon': 'A integração com o Jira ainda não está disponível.',
   'setup.tracker.notConnected':
     'Este time usa o Linear, mas o Linear ainda não está conectado a esta instalação.',
@@ -219,11 +225,12 @@ const ptBR = {
 } as const;
 
 const en = {
-  digestTitle: 'Daily — {team} — {date}',
-  blockers: 'Blockers',
-  yesterday: 'Yesterday',
-  today: 'Today',
-  missing: 'Did not send the daily:',
+  digestTitle: '📅 Daily — {team} — {date}',
+  blockers: '🚧 Blockers',
+  support: '🤝 Support requests',
+  yesterday: '🗓️ Yesterday',
+  today: '🎯 Today',
+  missing: '⏳ Did not send the daily:',
   lateDaily: 'Daily sent after the digest:',
   'web.setup.title': 'Standcast setup',
   'web.setup.heading': 'Setup',
@@ -366,7 +373,7 @@ const en = {
   'web.error.linear_oauth_failed.title': 'Linear connection failed',
   'web.error.linear_oauth_failed.body': 'Could not finish connecting Linear. Try connecting again.',
   'cli.usage':
-    'Usage: standcast <command> [options]\n\nCommands:\n  login     Sign in with GitHub\n  logout    Remove local credentials\n  whoami    Show the user and organizations\n  draft     Build the daily draft (JSON)\n  submit    Submit the daily (JSON from --file or stdin)\n  suggestion confirm|ignore <id>\n            Confirm or ignore a suggested blocker from the draft\n  mcp       Start the MCP server (stdio) for AI agents\n\nOptions:\n  --org <login>      Organization\n  --file <path>      Daily JSON file\n  --api-url <url>    API URL (STANDCAST_API_URL)\n  --help             Show this help\n  --version          Show the version',
+    'Usage: standcast <command> [options]\n\nCommands:\n  login     Sign in with GitHub\n  logout    Remove local credentials\n  whoami    Show the user and organizations\n  draft     Build the daily draft (JSON)\n  submit    Submit the daily (JSON from --file or stdin)\n  suggestion confirm|ignore <id>\n            Confirm or ignore a suggested blocker from the draft\n  mcp       Start the MCP server (stdio) for AI agents\n\nOptions:\n  --org <login>      Organization\n  --file <path>      Daily JSON file\n  --api-url <url>    API URL (STANDCAST_API_URL)\n  --sessions         Add local AI sessions to the draft (draft)\n  --help             Show this help\n  --version          Show the version',
   'cli.invalidArgs': 'Invalid arguments: {message}',
   'cli.suggestionUsage':
     'Usage: standcast suggestion confirm <id> [--org <login>]\n       standcast suggestion ignore <id> [--org <login>]',
@@ -392,9 +399,10 @@ const en = {
   'cli.githubUrlIgnored':
     'STANDCAST_GITHUB_URL ignored: only localhost is accepted. Using https://github.com.',
   'cli.confirm.question': 'Send this daily to {org}? Date: {date}.',
-  'cli.confirm.yesterday': 'Yesterday:',
-  'cli.confirm.today': 'Today:',
-  'cli.confirm.blockers': 'Blockers:',
+  'cli.confirm.yesterday': '🗓️ Yesterday:',
+  'cli.confirm.today': '🎯 Today:',
+  'cli.confirm.blockers': '🚧 Blockers:',
+  'cli.confirm.support': '🤝 Support requests:',
   'cli.confirm.none': '(none)',
   'cli.confirm.title': 'Send this daily',
   'cli.confirm.description': 'Check to send the daily exactly as shown.',
@@ -428,6 +436,10 @@ const en = {
     'Team {team}: the GitHub team {reference} was not found, or Standcast cannot see it. Check the name, and that the app has the Members permission on the organization.',
   'setup.teams.truncated':
     'Team {team}: the GitHub team {reference} is too large; only the first 5,000 members are used.',
+  'setup.teams.channelNotFound':
+    'Team {team}: the Slack channel {reference} was not found. Create it, or if it is private, invite the Standcast bot with /invite @Standcast.',
+  'setup.teams.channelNotMember':
+    'Team {team}: the Standcast bot is not in the Slack channel {reference}. Invite it with /invite @Standcast in the channel.',
   'setup.tracker.jiraComingSoon': 'The Jira integration is not available yet.',
   'setup.tracker.notConnected':
     'This team uses Linear, but Linear is not connected to this installation yet.',

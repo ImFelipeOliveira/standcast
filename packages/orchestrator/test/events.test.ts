@@ -143,6 +143,7 @@ describe('emitEvent', () => {
         yesterday: [],
         today: [{ text: 'x' }],
         blockers: [],
+        support: [],
         replaced: false,
       },
     });
@@ -232,6 +233,7 @@ describe('events emitted', () => {
       yesterday: daily.yesterday,
       today: daily.today,
       blockers: [{ text: 'Waiting for the DB', ref }],
+      support: [],
       replaced: false,
     });
     const opened = envelopeOf(rows[1] as { payload: unknown });
@@ -244,6 +246,25 @@ describe('events emitted', () => {
       teams: ['Alpha'],
     });
     expect(stored?.memberId).toBe(member.id);
+  });
+
+  test('support requests ride on daily.submitted and open no blocker', async () => {
+    const { deps, isMember, member, queue } = await setup();
+    await endpoint();
+    const support = [
+      {
+        text: 'Need a review on the migration',
+        ref: { kind: 'pull_request' as const, url: 'https://github.com/acme/api/pull/43' },
+      },
+    ];
+    await submitDaily(deps, isMember, member, { ...daily, support });
+    const rows = await emitted(queue);
+    expect(rows.map((r) => r.event)).toEqual(['daily.submitted']);
+    expect(envelopeOf(rows[0] as { payload: unknown }).data).toMatchObject({
+      blockers: [],
+      support,
+    });
+    expect(queue.enqueued.filter((j) => j.name === 'route-blocker')).toEqual([]);
   });
 
   test('resubmitting with the same blocker emits only daily.submitted with replaced', async () => {

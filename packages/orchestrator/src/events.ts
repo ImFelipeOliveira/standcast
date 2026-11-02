@@ -9,6 +9,7 @@ export type DailySubmittedData = {
   yesterday: Item[];
   today: Item[];
   blockers: Item[];
+  support: Item[];
   replaced: boolean;
 };
 

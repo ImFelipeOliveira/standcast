@@ -1,4 +1,5 @@
 import {
+  type ChannelCheck,
   type ChatChannel,
   type Message,
   type MessageRef,
@@ -47,6 +48,8 @@ export type FakeOptions = {
   snapshots?: Record<string, PullRequestSnapshot[]>;
   teams?: Record<string, string[]>;
   truncatedTeams?: string[];
+  merged?: Record<string, { merged: boolean; mergedAt: string | null } | null | Error>;
+  channels?: Record<string, ChannelCheck>;
 };
 
 export function fakeLinear() {
@@ -145,6 +148,7 @@ export function fakeDeps(opts: FakeOptions = {}) {
     users: [] as number[],
     configRefs: [] as (string | undefined)[],
     getPullRequest: [] as string[],
+    pullRequestMerged: [] as string[],
     listPullRequestFiles: [] as string[],
     snapshots: [] as string[],
     codeowners: [] as { repo: string; ref: string }[],
@@ -238,6 +242,13 @@ export function fakeDeps(opts: FakeOptions = {}) {
         calls.getPullRequest.push(key);
         return opts.pulls?.[key] ?? null;
       },
+      pullRequestMerged: async (_o, ref) => {
+        const key = `${ref.owner}/${ref.repo}#${ref.number}`;
+        calls.pullRequestMerged.push(key);
+        const found = opts.merged?.[key];
+        if (found instanceof Error) throw found;
+        return found ?? null;
+      },
       listPullRequestFiles: async (_o, ref) => {
         const key = `${ref.owner}/${ref.repo}#${ref.number}`;
         calls.listPullRequestFiles.push(key);
@@ -269,6 +280,7 @@ export function fakeDeps(opts: FakeOptions = {}) {
           if (opts.findUserError) throw opts.findUserError;
           return 'U9';
         },
+        checkChannel: async (channel: string) => opts.channels?.[channel] ?? 'ok',
       }) as never,
     trackerFor: (...args) => createTrackerFor(deps)(...args),
     email: null,
@@ -278,6 +290,7 @@ export function fakeDeps(opts: FakeOptions = {}) {
       supportEmail: 'help@sw.test',
       docsUrl: 'https://docs.sw.test',
       landingUrl: 'https://landing.sw.test',
+      appUrl: 'https://app.test',
       appId: '1',
       webhookSecret: 'whsec',
       githubClientId: 'cid',
@@ -335,6 +348,7 @@ export const daily = {
   yesterday: [{ text: 'did a thing' }],
   today: [{ text: 'do another' }],
   blockers: [],
+  support: [],
 };
 
 export function fakeChat() {
@@ -367,6 +381,7 @@ export function fakeChat() {
       return { channel: `D${userId}`, id: `${counter}.2` };
     },
     findUserByEmail: async () => null,
+    checkChannel: async () => 'ok',
   };
   return {
     chat,

@@ -61,6 +61,7 @@ export const ORG_DAILY_EXAMPLE = {
   ],
   today: [{ text: 'Write the integrator guides', ref: null }],
   blockers: [{ text: 'Waiting for the staging database', ref: null }],
+  support: [{ text: 'Need a review on the migration before Friday', ref: null }],
 };
 
 export const OrgDailySchema = z
@@ -75,6 +76,10 @@ export const OrgDailySchema = z
     yesterday: z.array(ItemSchema),
     today: z.array(ItemSchema),
     blockers: z.array(ItemSchema),
+    support: z.array(ItemSchema).openapi({
+      description:
+        'What the author needs help with from others, without being blocked. Empty when none.',
+    }),
   })
   .openapi('OrgDaily', { example: ORG_DAILY_EXAMPLE });
 

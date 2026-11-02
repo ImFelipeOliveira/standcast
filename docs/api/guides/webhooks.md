@@ -19,7 +19,7 @@ The signing secret (`whsec_...`) is shown once, when the endpoint is created. St
 
 | Event | Sent when |
 | --- | --- |
-| `daily.submitted` | A person submits the daily. A resend on the same day is sent again with `replaced: true`. |
+| `daily.submitted` | A person submits the daily. A resend on the same day is sent again with `replaced: true`. `support` lists what the person needs from someone else without being blocked; it is empty when they asked for nothing. Support requests have no event of their own. |
 | `blocker.opened` | A daily reports a blocker that is new for that day. A blocker whose text (ignoring case and extra spaces) was already in the previous version of the same daily is not sent again. |
 | `digest.sent` | The team digest is posted to chat. |
 | `ping` | An admin clicks **Send test event**. Endpoints cannot subscribe to it; it goes only to the endpoint being tested. |
@@ -60,6 +60,7 @@ Every body is an envelope with the same fields:
         "ref": { "kind": "issue", "url": "https://github.com/acme/infra/issues/7" }
       }
     ],
+    "support": [{ "text": "Need a review on the migration before Friday" }],
     "replaced": false
   }
 }

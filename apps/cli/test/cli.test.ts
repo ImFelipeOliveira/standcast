@@ -173,6 +173,71 @@ describe('draft', () => {
     expect(api.seen[1]?.path).toBe('/v1/draft?org=beta');
   });
 
+  const SESSION_DRAFT = {
+    org: 'acme',
+    date: '2026-11-01',
+    since: '2026-10-31T00:00:00.000Z',
+    teams: ['backend'],
+    activity: [],
+    suggestions: [],
+  };
+  const CLAUDE_DIR = join(import.meta.dir, 'fixtures', 'claude', 'basic');
+
+  test('draft --sessions adds work', async () => {
+    const api = serve(() => json(SESSION_DRAFT));
+    const ctx = await loggedIn(api.url, [ORGS[0] as (typeof ORGS)[number]], '', {
+      STANDCAST_CLAUDE_DIR: CLAUDE_DIR,
+    });
+    expect(await run(['draft', '--sessions'], ctx.io)).toBe(0);
+    const out = JSON.parse(ctx.out.join(''));
+    expect(out).toMatchObject(SESSION_DRAFT);
+    expect(out.work).toHaveLength(1);
+    expect(out.work[0].sessions.map((s: { id: string }) => s.id)).toEqual(['a1']);
+    expect(out.work[0].sessions[0].prompts).toContain('Fix the cart total rounding');
+    expect(api.seen).toHaveLength(1);
+    expect(api.seen.map((s) => s.body)).toEqual(['']);
+    expect(api.seen[0]?.method).toBe('GET');
+    expect(api.seen[0]?.path).toBe('/v1/draft?org=acme');
+    for (const marker of ['cart', 'a1', '/home/dev', 'home-dev', 'rounding']) {
+      expect(api.seen[0]?.path).not.toContain(marker);
+    }
+  });
+
+  test('draft without flag is unchanged', async () => {
+    const api = serve(() => json(SESSION_DRAFT));
+    const ctx = await loggedIn(api.url, [ORGS[0] as (typeof ORGS)[number]], '', {
+      STANDCAST_CLAUDE_DIR: CLAUDE_DIR,
+    });
+    expect(await run(['draft'], ctx.io)).toBe(0);
+    expect(JSON.parse(ctx.out.join(''))).toEqual(SESSION_DRAFT);
+  });
+
+  test('draft --sessions with sessions off builds work from activity only', async () => {
+    const draft = {
+      ...SESSION_DRAFT,
+      activity: [
+        {
+          kind: 'pr_merged',
+          title: 'Ship it',
+          url: 'https://github.com/acme/api/pull/9',
+          repo: 'acme/api',
+          at: '2026-10-31T12:00:00.000Z',
+        },
+      ],
+    };
+    const api = serve(() => json(draft));
+    const ctx = await loggedIn(api.url, [ORGS[0] as (typeof ORGS)[number]], '', {
+      STANDCAST_CLAUDE_DIR: CLAUDE_DIR,
+      STANDCAST_SESSIONS: 'off',
+    });
+    expect(await run(['draft', '--sessions'], ctx.io)).toBe(0);
+    const out = JSON.parse(ctx.out.join(''));
+    expect(out.work.map((item: { key: string }) => item.key)).toEqual([
+      'pr:https://github.com/acme/api/pull/9',
+    ]);
+    expect(out.work[0].sessions).toEqual([]);
+  });
+
   test('--api-url overrides STANDCAST_API_URL', async () => {
     const api = serve(() => json({ ok: true }));
     const ctx = await loggedIn(api.url, [ORGS[0] as (typeof ORGS)[number]], '', {
@@ -274,7 +339,20 @@ describe('submit', () => {
       path: '/v1/dailies',
       auth: 'Bearer sc_tok',
     });
-    expect(JSON.parse(api.seen[0]?.body ?? '{}')).toEqual(DAILY);
+    expect(JSON.parse(api.seen[0]?.body ?? '{}')).toEqual({ ...DAILY, support: [] });
+  });
+
+  test('submit sends support requests and validates them locally', async () => {
+    const api = serve(() => json({ date: '2026-10-28', teams: ['A'], late: false }));
+    const support = [{ text: 'need a review on the API PR' }];
+    const ctx = await loggedIn(api.url, ORGS, JSON.stringify({ ...DAILY, support }));
+    expect(await run(['submit'], ctx.io)).toBe(0);
+    expect(JSON.parse(api.seen[0]?.body ?? '{}').support).toEqual(support);
+    const many = Array.from({ length: 11 }, (_, i) => ({ text: `ask ${i}` }));
+    const bad = await loggedIn(api.url, ORGS, JSON.stringify({ ...DAILY, support: many }));
+    expect(await run(['submit'], bad.io)).toBe(4);
+    expect(bad.err.join('')).toContain('support');
+    expect(api.seen).toHaveLength(1);
   });
 
   test('submit reads --file and fills org from --org or the single org', async () => {
@@ -530,6 +608,7 @@ describe('global flags', () => {
     const help = await makeIo();
     expect(await run(['--help'], help.io)).toBe(0);
     expect(help.out.join('')).toContain('standcast <command>');
+    expect(help.out.join('')).toContain('--sessions');
     const version = await makeIo();
     expect(await run(['--version'], version.io)).toBe(0);
     expect(version.out.join('').trim()).toMatch(/^\d+\.\d+\.\d+/);

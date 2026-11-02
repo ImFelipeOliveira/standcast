@@ -25,6 +25,7 @@
 <p align="center">
   <a href="#quick-start">Quick start</a> ·
   <a href="https://standcast.usefachada.dev">Landing</a> ·
+  <a href="https://app-standcast.usefachada.dev">App</a> ·
   <a href="https://docs-standcast.usefachada.dev/">Documentation</a> ·
   <a href="https://docs-standcast.usefachada.dev/admin/configuration">Configuration</a> ·
   <a href="#roadmap">Roadmap</a>

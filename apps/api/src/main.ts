@@ -10,6 +10,7 @@ import {
   listActivity,
   listOpenPullRequestSnapshots,
   listPullRequestFiles,
+  pullRequestMerged,
   resolveTeamMembers,
 } from '@standcast/github';
 import { exchangeLinearCode, refreshLinearToken } from '@standcast/linear';
@@ -48,6 +49,7 @@ const deps: Deps = {
     resolveTeamMembers,
     fetchConfigSource,
     getPullRequest,
+    pullRequestMerged,
     listPullRequestFiles,
     listOpenPullRequestSnapshots,
     fetchCodeowners,
@@ -68,6 +70,7 @@ const deps: Deps = {
     supportEmail: env.SUPPORT_EMAIL,
     docsUrl: env.DOCS_URL,
     landingUrl: env.LANDING_URL,
+    appUrl: env.APP_URL,
     appId: env.GITHUB_APP_ID,
     webhookSecret: env.GITHUB_WEBHOOK_SECRET,
     githubClientId: env.GITHUB_CLIENT_ID,

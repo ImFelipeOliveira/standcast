@@ -74,6 +74,27 @@ export async function getPullRequest(
   };
 }
 
+export type PullRequestMerge = { merged: boolean; mergedAt: string | null };
+
+export async function pullRequestMerged(
+  octokit: Octokit,
+  ref: GitHubPullRef,
+): Promise<PullRequestMerge | null> {
+  try {
+    const response = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+      owner: ref.owner,
+      repo: ref.repo,
+      pull_number: ref.number,
+    });
+    const data = response.data as { merged?: boolean; merged_at?: string | null };
+    const mergedAt = data.merged_at ?? null;
+    return { merged: data.merged === true || mergedAt !== null, mergedAt };
+  } catch (error) {
+    if (httpStatus(error) === 404) return null;
+    throw error;
+  }
+}
+
 export async function listPullRequestFiles(
   octokit: Octokit,
   ref: GitHubPullRef,

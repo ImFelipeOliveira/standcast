@@ -107,6 +107,7 @@ function harness(
       }),
       fetchConfigSource: async () => ({ found: false, reason: 'no_repo' }),
       getPullRequest: async () => null,
+      pullRequestMerged: async () => null,
       listPullRequestFiles: async () => [],
       listOpenPullRequestSnapshots: async () => [],
       fetchCodeowners: async () => null,
@@ -131,6 +132,7 @@ function harness(
       supportEmail: 'help@sw.test',
       docsUrl: 'https://docs.sw.test',
       landingUrl: 'https://landing.sw.test',
+      appUrl: 'https://app.test',
       appId: '1',
       webhookSecret: 'whsec',
       githubClientId: 'cid',
@@ -175,10 +177,11 @@ async function seed(setup: (installationId: number) => Promise<void> = async () 
 
 const location = (res: Response) => res.headers.get('location') ?? '';
 
-async function beginLogin(app: ReturnType<typeof createApp>, next?: string) {
-  const res = await app.request(
-    `/auth/github/login${next === undefined ? '' : `?next=${encodeURIComponent(next)}`}`,
-  );
+async function beginLogin(app: ReturnType<typeof createApp>, next?: string, target?: string) {
+  const query = new URLSearchParams();
+  if (next !== undefined) query.set('next', next);
+  if (target !== undefined) query.set('target', target);
+  const res = await app.request(`/auth/github/login${query.size ? `?${query}` : ''}`);
   const state = new URL(location(res)).searchParams.get('state') ?? '';
   const setCookie = res.headers.get('set-cookie') ?? '';
   const nonce = /sc_login=([^;]+)/.exec(setCookie)?.[1] ?? '';
@@ -244,6 +247,32 @@ describe('web login', () => {
     expect(cleared).toContain('Path=/auth/github');
     const token = /sc_web=([^;]+)/.exec(web)?.[1] ?? '';
     expect((await resolveSession(db, token, 'web'))?.login).toBe('alice');
+  });
+
+  test('app target redirects to APP_URL', async () => {
+    const { app } = harness();
+    await seed();
+    const { state, loginCookie } = await beginLogin(app, '/setup?installation_id=42', 'app');
+    const res = await callback(app, state, loginCookie);
+    expect(location(res)).toBe('https://app.test/setup?installation_id=42');
+  });
+
+  test('app target keeps next relative', async () => {
+    for (const next of ['https://evil.test', '//evil.test', '/\\evil.test']) {
+      const { app } = harness();
+      await seed();
+      const { state, loginCookie } = await beginLogin(app, next, 'app');
+      const res = await callback(app, state, loginCookie);
+      expect(location(res), next).toBe('https://app.test/');
+    }
+  });
+
+  test('no target keeps today behavior', async () => {
+    const { app } = harness();
+    await seed();
+    const { state, loginCookie } = await beginLogin(app, '/setup?installation_id=42', 'other');
+    const res = await callback(app, state, loginCookie);
+    expect(location(res)).toBe('/setup?installation_id=42');
   });
 
   test('callback rejects a tampered state', async () => {

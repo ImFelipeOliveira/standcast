@@ -27,17 +27,22 @@ export function importedPackages(source: string): string[] {
   return [...names];
 }
 
+type Manifest = {
+  name?: string;
+  dependencies?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+};
+
 export function undeclared(
   imported: string[],
-  manifest: {
-    name?: string;
-    dependencies?: Record<string, string>;
-    peerDependencies?: Record<string, string>;
-  },
+  manifest: Manifest,
+  options: { includeDev?: boolean } = {},
 ): string[] {
   const declared = new Set([
     ...Object.keys(manifest.dependencies ?? {}),
     ...Object.keys(manifest.peerDependencies ?? {}),
+    ...(options.includeDev ? Object.keys(manifest.devDependencies ?? {}) : []),
   ]);
   return imported.filter((name) => name !== manifest.name && !declared.has(name)).sort();
 }
@@ -70,17 +75,26 @@ async function workspaceDirs(root: string): Promise<string[]> {
   return dirs;
 }
 
+async function importsUnder(dir: string): Promise<string[]> {
+  const imported = new Set<string>();
+  for (const file of await sourceFiles(dir)) {
+    for (const name of importedPackages(await readFile(file, 'utf8'))) imported.add(name);
+  }
+  return [...imported];
+}
+
 export async function checkDeps(root: string): Promise<string[]> {
   const errors: string[] = [];
   for (const dir of await workspaceDirs(root)) {
-    const manifest = JSON.parse(await readFile(join(dir, 'package.json'), 'utf8'));
-    const imported = new Set<string>();
-    for (const file of await sourceFiles(join(dir, 'src'))) {
-      for (const name of importedPackages(await readFile(file, 'utf8'))) imported.add(name);
+    const manifest: Manifest = JSON.parse(await readFile(join(dir, 'package.json'), 'utf8'));
+    const label = manifest.name ?? dir;
+    for (const name of undeclared(await importsUnder(join(dir, 'src')), manifest)) {
+      errors.push(`${label}: imports ${name} but does not declare it in dependencies`);
     }
-    for (const name of undeclared([...imported], manifest)) {
+    const e2e = await importsUnder(join(dir, 'e2e'));
+    for (const name of undeclared(e2e, manifest, { includeDev: true })) {
       errors.push(
-        `${manifest.name ?? dir}: imports ${name} but does not declare it in dependencies`,
+        `${label}: e2e imports ${name} but does not declare it in dependencies or devDependencies`,
       );
     }
   }
