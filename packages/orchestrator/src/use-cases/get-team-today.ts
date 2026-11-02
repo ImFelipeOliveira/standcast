@@ -1,4 +1,10 @@
-import { addCalendarDays, type Item, parsePullRequestUrl, type Ref } from '@standcast/core';
+import {
+  addCalendarDays,
+  type Item,
+  localDate,
+  parsePullRequestUrl,
+  type Ref,
+} from '@standcast/core';
 import {
   getInstallationMemberIds,
   listBlockerRouteRecipients,
@@ -37,7 +43,7 @@ export type TodayBlocker = {
   ageDays: number;
   recurring: boolean;
   routedTo: { logins: string[]; reason: string } | null;
-  hint: { kind: 'pr_merged'; at: string } | null;
+  hint: { kind: 'pr_merged'; at: string; on: string } | null;
 };
 
 export type TodaySupport = { author: string; text: string; ref: Ref | null; since: string };
@@ -148,6 +154,7 @@ async function openBlockers(deps: Deps, access: TeamAccess): Promise<TodayBlocke
     .map((state) => {
       const logins = routes.get(`${state.authorMemberId}:${state.blockerId}`);
       const at = hints.get(state.id);
+      const on = at ? localDate(new Date(at), access.team.timezone) : null;
       const ref = state.ref ?? null;
       return {
         id: state.id,
@@ -158,7 +165,7 @@ async function openBlockers(deps: Deps, access: TeamAccess): Promise<TodayBlocke
         ageDays: Math.max(0, daysBetween(state.openedOn, access.date)),
         recurring: state.lastSeenOn > state.openedOn,
         routedTo: logins ? { logins, reason: routeReason(ref, logins, managers) } : null,
-        hint: at ? { kind: 'pr_merged' as const, at } : null,
+        hint: at && on && on >= state.openedOn ? { kind: 'pr_merged' as const, at, on } : null,
       };
     })
     .sort(

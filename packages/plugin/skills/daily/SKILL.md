@@ -52,10 +52,10 @@ Use this when the MCP tools are not available.
    - The output is JSON: `{ org, date, since, teams, activity, suggestions }`.
 3. Build "yesterday" from `activity`, show it, and let the person correct it. Ask for today and blockers in their language, keeping their answers verbatim.
    - For each entry in `suggestions` (`{ id, kind, ref, since }`), ask whether it is a real blocker. If yes, add it to `blockers` in the person's words with its `ref`. If no, run `standcast suggestion ignore <id>` (add `--org <org>` if one was chosen). Exit code 1 with `error suggestion_already_decided` means it was already decided; move on.
-   - Then ask whether they need support from anyone, without being blocked. Put their answer verbatim in `support`; "no" means an empty list.
-4. Build the final JSON (`org`, `yesterday`, `today`, `blockers`, `"support"`) and show it in a readable form (a short list per section, plus the raw JSON). Items are `{ "text": "...", "ref": { "kind": "...", "url": "https://...", "title": "..." } }`, where `ref` is optional, `url` must be http or https, and `title` is at most 200 characters.
-5. Ask for explicit confirmation. Only an unambiguous yes counts. If they want changes, go back and revise.
-6. Once confirmed, submit with ONE Bash command that creates the temp file, writes the payload, submits and always cleans up. Run this snippet with every line at column 0:
+4. Ask whether they need support from anyone, without being blocked. Put their answer verbatim in `support`; "no" means an empty list.
+5. Build the final JSON (`org`, `yesterday`, `today`, `blockers`, `support`) and show it in a readable form (a short list per section, plus the raw JSON). Items are `{ "text": "...", "ref": { "kind": "...", "url": "https://...", "title": "..." } }`, where `ref` is optional, `url` must be http or https, and `title` is at most 200 characters.
+6. Ask for explicit confirmation. Only an unambiguous yes counts. If they want changes, go back and revise.
+7. Once confirmed, submit with ONE Bash command that creates the temp file, writes the payload, submits and always cleans up. Run this snippet with every line at column 0:
 
 ```
 f="$(mktemp)"; trap 'rm -f "$f"' EXIT; cat > "$f" <<'STANDCAST_JSON'
@@ -65,7 +65,7 @@ standcast submit --file "$f"
 ```
 
    Add `--org <org>` to the submit if one was chosen. The heredoc delimiter must stay quoted (`'STANDCAST_JSON'`) so apostrophes, quotes, `$` and backticks in the person's words reach the file untouched. The closing `STANDCAST_JSON` line must have no leading spaces, or bash will not end the heredoc. All steps must run in a single command, because shell variables do not persist between Bash calls. The trap removes the temp file on every exit and keeps the exit status of `standcast submit`; report that exit code, not the cleanup's.
-7. Report the result. If the response says `late`, tell the person the daily was posted in the thread of the team's digest because the digest had already been sent.
+8. Report the result. If the response says `late`, tell the person the daily was posted in the thread of the team's digest because the digest had already been sent.
 
 ## Exit codes of the CLI
 

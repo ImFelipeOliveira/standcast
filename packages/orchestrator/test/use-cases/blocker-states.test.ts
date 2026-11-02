@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import type { Item } from '@standcast/core';
 import {
   getBlockerState,
+  listCurrentOpenBlockerStates,
   type MemberRow,
   setMemberInstallations,
   upsertMember,
@@ -142,6 +143,55 @@ describe('recordBlockers', () => {
     expect(rows.find((r) => r.text === pr.text)?.last_seen_on).toBe('2026-10-29');
   });
 
+  async function listed(member: MemberRow) {
+    const rows = await listCurrentOpenBlockerStates(db, INST, [member.id]);
+    return rows
+      .map((r) => ({ text: r.text, ref: r.ref }))
+      .sort((a, b) => a.text.localeCompare(b.text));
+  }
+
+  test('same-day resubmission with an edited text lists only the latest blocker', async () => {
+    const { deps, isMember, bob } = await setup();
+    await submitDaily(deps, isMember, bob, { ...daily, blockers: [access] });
+    await submitDaily(deps, isMember, bob, {
+      ...daily,
+      blockers: [{ text: 'need staging access' }],
+    });
+    expect(await listed(bob)).toEqual([{ text: 'need staging access', ref: null }]);
+    expect((await statesOf(bob)).map((r) => r.text)).toEqual(['need staging access']);
+  });
+
+  test('same-day resubmission with a ref added lists only the latest blocker', async () => {
+    const { deps, isMember, bob } = await setup();
+    await submitDaily(deps, isMember, bob, { ...daily, blockers: [{ text: pr.text }] });
+    await submitDaily(deps, isMember, bob, { ...daily, blockers: [pr] });
+    expect(await listed(bob)).toEqual([{ text: pr.text, ref: pr.ref ?? null }]);
+  });
+
+  test('same-day resubmission without the blocker lists nothing', async () => {
+    const { deps, isMember, bob } = await setup();
+    await submitDaily(deps, isMember, bob, { ...daily, blockers: [access] });
+    await submitDaily(deps, isMember, bob, { ...daily, blockers: [] });
+    expect(await listed(bob)).toEqual([]);
+    expect(await statesOf(bob)).toEqual([]);
+  });
+
+  test('a blocker opened yesterday and dropped on a same-day resubmission is kept but not listed', async () => {
+    const { deps, isMember, bob, setNow } = await setup();
+    setNow(new Date('2026-10-27T15:00:00Z'));
+    await submitDaily(deps, isMember, bob, { ...daily, blockers: [access] });
+    setNow(new Date('2026-10-28T15:00:00Z'));
+    await submitDaily(deps, isMember, bob, { ...daily, blockers: [access, pr] });
+    await submitDaily(deps, isMember, bob, { ...daily, blockers: [pr] });
+    expect(await listed(bob)).toEqual([{ text: pr.text, ref: pr.ref ?? null }]);
+    const kept = (await statesOf(bob)).find((r) => r.text === access.text);
+    expect(kept).toMatchObject({
+      opened_on: '2026-10-27',
+      last_seen_on: '2026-10-27',
+      resolved_at: null,
+    });
+  });
+
   test('duplicate blockers in one daily record once', async () => {
     const { deps, bob } = await setup();
     await recordBlockers(deps, {
@@ -223,6 +273,18 @@ describe('setBlockerResolved', () => {
       resolved: true,
     });
     await expect(attempt).rejects.toBeInstanceOf(DomainError);
+    await expect(attempt).rejects.toMatchObject({ code: 'forbidden' });
+    expect((await getBlockerState(db, INST, id))?.resolvedAt).toBeNull();
+  });
+
+  test('a failing admin check falls back to forbidden', async () => {
+    const { deps, isMember, carol, id, failRoles } = await opened();
+    failRoles(new Error('github down'));
+    const attempt = setBlockerResolved(deps, isMember, carol, {
+      installationId: INST,
+      blockerStateId: id,
+      resolved: true,
+    });
     await expect(attempt).rejects.toMatchObject({ code: 'forbidden' });
     expect((await getBlockerState(db, INST, id))?.resolvedAt).toBeNull();
   });

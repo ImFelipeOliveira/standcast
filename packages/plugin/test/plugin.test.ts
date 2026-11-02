@@ -61,7 +61,8 @@ describe('daily skill', () => {
 
   test('asks for support requests after the blockers, in both flows', () => {
     expect(skill).toContain('need support from anyone');
-    expect(skill).toContain('"support"');
+    expect(skill).not.toContain('"support"');
+    expect(skill).toContain('`blockers`, `support`)');
     expect(skill).toContain('suggestion never becomes a support request');
     const mcpFlow = skill.slice(
       skill.indexOf('## Flow with the MCP tools'),
@@ -74,6 +75,7 @@ describe('daily skill', () => {
     for (const flow of [mcpFlow, cliFlow]) {
       expect(flow).toContain('support');
       expect(flow.indexOf('blockers')).toBeLessThan(flow.indexOf('support'));
+      expect(flow).toMatch(/^\d+\. Ask whether they need support from anyone/m);
     }
   });
 

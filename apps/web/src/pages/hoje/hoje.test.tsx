@@ -93,7 +93,7 @@ function fixture(overrides: Partial<TeamToday> = {}): TeamToday {
         ageDays: 0,
         recurring: false,
         routedTo: null,
-        hint: { kind: 'pr_merged', at: '2026-11-03T14:40:00Z' },
+        hint: { kind: 'pr_merged', at: '2026-11-03T14:40:00Z', on: '2026-11-03' },
       },
     ],
     support: [
@@ -266,7 +266,28 @@ describe('hoje', () => {
         />,
       );
     expect(render({})).toMatch(/<span role="status"[^>]*><\/span>/);
-    expect(render({ diego: 'queued' })).toMatch(/<span role="status"[^>]*>[^<]+<\/span>/);
+    expect(render({ diego: 'queued' })).toMatch(
+      /<span role="status"[^>]*>Lembrete pedido\.<\/span>/,
+    );
+  });
+
+  test('a hint from an earlier day shows its date', () => {
+    const base = fixture();
+    const html = renderPage(
+      fixture({
+        blockers: base.blockers.map((b) =>
+          b.id === 'b-1'
+            ? { ...b, hint: { kind: 'pr_merged', at: '2026-11-02T14:40:00Z', on: '2026-11-02' } }
+            : b,
+        ),
+      }),
+    );
+    expect(blockerCard(html, 'Deploy da API travado')).toContain(
+      'Provavelmente resolvido: PR mergeado em 02/11 às 11:40',
+    );
+    expect(blockerCard(html, 'Esperando o contrato do webhook')).toContain(
+      'Provavelmente resolvido: PR mergeado às 11:40',
+    );
   });
 
   test('remind button hidden when canRemind is false', () => {
@@ -286,7 +307,7 @@ describe('hoje', () => {
     const html = renderPage(fixture());
     expect(html).toContain('Quem já enviou hoje');
     expect(html).toContain('@diego · falta');
-    expect(html).toContain('Só de hoje. O Standcast não guarda histórico de quem não enviou.');
+    expect(html).toContain('Só de hoje. O app não mostra histórico de quem não enviou.');
     const urls: string[] = [];
     globalThis.fetch = mock(async (input: RequestInfo | URL) => {
       urls.push(String(input));

@@ -21,12 +21,12 @@ The server-rendered setup page still works.
 Today shows one team on the current day, in the team's timezone. Pick the team in the sidebar. On a day that is not one of the team's workdays, Today shows the next workday.
 
 - **Summary**: how many people sent today's daily, open blockers, support requests and what shipped yesterday.
-- **Needs you**: open blockers and support requests. Each blocker shows how long it has been open, whether it came back on later dailies, who it was routed to and why, and, when the referenced pull request was merged, a hint that it is probably resolved.
+- **Needs you**: open blockers and support requests. Each blocker shows how long it has been open, whether it came back on later dailies, who it was routed to and why, and, when the referenced pull request was merged on or after the day the blocker opened, a hint that it is probably resolved, with the merge date when it was not today.
 - **Dailies**: today's dailies, with a filter for who sent and who did not. **View full daily** opens the whole daily.
 - **Shipped yesterday**: pull requests and cards mentioned in yesterday's items.
 - **Who sent today**: the names, for today only.
 
-A team member can open Today for their own team. Managers of the team and admins can open any team.
+A team member can open Today for their own team. Managers open the teams they manage. Only admins can open any team.
 
 ### Resolve a blocker
 

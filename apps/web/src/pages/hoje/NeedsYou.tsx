@@ -49,6 +49,7 @@ export function NeedsYou({
           key={blocker.id}
           blocker={blocker}
           timezone={today.team.timezone}
+          today={today.date}
           resolved={resolved}
           canResolve={canResolve(blocker)}
           pending={pendingId === blocker.id}

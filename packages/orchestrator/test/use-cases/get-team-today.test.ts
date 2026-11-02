@@ -196,7 +196,7 @@ teams:
         ageDays: 2,
         recurring: true,
         routedTo: { logins: ['dave'], reason: 'pull_request' },
-        hint: { kind: 'pr_merged', at: '2026-10-28T11:00:00Z' },
+        hint: { kind: 'pr_merged', at: '2026-10-28T11:00:00Z', on: '2026-10-28' },
       },
       {
         id: idOf(alice, 'flaky ci') as string,
@@ -268,6 +268,28 @@ teams:
       { author: 'bob', text: 'merged login', ref: prRef },
       { author: 'bob', text: 'moved card', ref: cardRef },
     ]);
+  });
+
+  test('a merge before the blocker opened gives no hint', async () => {
+    const { deps, isMember, alice, bob } = await setup({
+      merged: { 'acme/api#7': { merged: true, mergedAt: '2026-10-28T02:00:00Z' } },
+    });
+    await store(bob, '2026-10-28', { blockers: [pr(7)] });
+    const today = await getTeamToday(deps, isMember, alice, team);
+    expect(today.blockers[0]?.hint).toBeNull();
+  });
+
+  test('a merge on the opening day in the team calendar gives a hint', async () => {
+    const { deps, isMember, alice, bob } = await setup({
+      merged: { 'acme/api#7': { merged: true, mergedAt: '2026-10-28T04:00:00Z' } },
+    });
+    await store(bob, '2026-10-28', { blockers: [pr(7)] });
+    const today = await getTeamToday(deps, isMember, alice, team);
+    expect(today.blockers[0]?.hint).toEqual({
+      kind: 'pr_merged',
+      at: '2026-10-28T04:00:00Z',
+      on: '2026-10-28',
+    });
   });
 
   test('hint failure keeps the page', async () => {

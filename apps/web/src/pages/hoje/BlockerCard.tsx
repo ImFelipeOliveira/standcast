@@ -3,7 +3,7 @@ import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { type MessageKey, useLang, useT } from '../../i18n';
 import { cn } from '../../lib/utils';
-import { formatTime, initials } from './format';
+import { formatShortDate, formatTime, initials } from './format';
 import { Avatar, RefLink } from './RefLink';
 
 const REASONS: Record<string, MessageKey> = {
@@ -41,6 +41,7 @@ export function Author({ login }: { login: string }) {
 type Props = {
   blocker: TodayBlocker;
   timezone: string;
+  today: string;
   resolved: boolean;
   canResolve: boolean;
   pending: boolean;
@@ -52,6 +53,7 @@ type Props = {
 export function BlockerCard({
   blocker,
   timezone,
+  today,
   resolved,
   canResolve,
   pending,
@@ -94,7 +96,12 @@ export function BlockerCard({
         {blocker.hint && !resolved ? (
           <Badge variant="ok">
             <CheckIcon />
-            {t('hoje.blocker.hint', { time: formatTime(lang, blocker.hint.at, timezone) })}
+            {blocker.hint.on === today
+              ? t('hoje.blocker.hint', { time: formatTime(lang, blocker.hint.at, timezone) })
+              : t('hoje.blocker.hintOn', {
+                  date: formatShortDate(lang, blocker.hint.on),
+                  time: formatTime(lang, blocker.hint.at, timezone),
+                })}
           </Badge>
         ) : null}
         <Author login={blocker.author} />

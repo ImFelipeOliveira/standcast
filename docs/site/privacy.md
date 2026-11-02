@@ -58,7 +58,8 @@ Standcast does not connect to Jira yet, so it reads nothing from it.
 | Linear connection | Workspace id, name and URL key, and the access and refresh tokens | Tokens encrypted with AES-256-GCM |
 | Linear identity | The Linear user id of each person, per installation. The email is never stored | |
 | Sessions | A SHA-256 hash of each CLI and web session token, its kind and when it was created and last used | Only the hash; the token itself is never stored |
-| Dailies | Date, submission time, the yesterday, today, blocker and support request items with their links, and whether the person (`human`) or the agent (`agent`) confirmed it | |
+| Dailies | Date, first and latest submission time, the yesterday, today, blocker and support request items with their links, and whether the person (`human`) or the agent (`agent`) confirmed it | |
+| Blocker states | For each blocker someone listed: its text and link, the first and last day it was seen, and when it was resolved and who resolved it. Kept until the app is uninstalled | |
 | Suggestions | For each suggested blocker: the pull request link and title (or the card link and title), the kind, when it was noticed and your decision | Visible only to you |
 | Deliveries | For each digest, late daily, reminder and routed blocker: team, date, status, attempts, the Slack channel and message id, and the error if it failed | |
 | API keys | Name, the first 8 characters after `sck_`, scopes, who created it, creation, last use and revocation times | Only a SHA-256 hash of the secret |
@@ -115,7 +116,7 @@ CLI sessions stop working after 90 days without use, and web sessions after 7 da
 
 ## Removing your data
 
-- **Uninstall the GitHub App.** Standcast deletes the installation and everything that belongs to it: configuration, dailies, deliveries, Slack connection and identities, API keys, webhook endpoints and their deliveries.
+- **Uninstall the GitHub App.** Standcast deletes the installation and everything that belongs to it: configuration, dailies, blocker states, deliveries, Slack connection and identities, API keys, webhook endpoints and their deliveries.
 - **Sign out.** `standcast logout` revokes your CLI session on the server and deletes the local credentials file.
 - **Your person record.** Your GitHub user id, login and email are not tied to one installation, so uninstalling does not remove them. To delete them, email support.
 

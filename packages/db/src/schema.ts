@@ -114,7 +114,9 @@ export const dailies = pgTable(
     date: date('date', { mode: 'string' }).notNull(),
     payload: jsonb('payload').$type<StoredDaily>().notNull(),
     submittedAt: timestamp('submitted_at', { withTimezone: true }).notNull(),
-    firstSubmittedAt: timestamp('first_submitted_at', { withTimezone: true }).notNull(),
+    firstSubmittedAt: timestamp('first_submitted_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
   },
   (t) => [unique().on(t.installationId, t.memberId, t.date)],
 );

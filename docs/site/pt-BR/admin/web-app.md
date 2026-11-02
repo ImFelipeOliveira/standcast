@@ -21,12 +21,12 @@ A página de setup renderizada pelo servidor continua funcionando.
 Hoje mostra um time no dia atual, no fuso horário do time. Escolha o time na barra lateral. Em um dia que não é dia útil do time, Hoje mostra o próximo dia útil.
 
 - **Resumo**: quantas pessoas enviaram a daily de hoje, impedimentos abertos, pedidos de apoio e o que foi entregue ontem.
-- **Precisa de você**: impedimentos abertos e pedidos de apoio. Cada impedimento mostra há quanto tempo está aberto, se voltou em dailies seguintes, para quem foi encaminhado e por quê, e, quando o pull request citado foi mergeado, um aviso de que provavelmente foi resolvido.
+- **Precisa de você**: impedimentos abertos e pedidos de apoio. Cada impedimento mostra há quanto tempo está aberto, se voltou em dailies seguintes, para quem foi encaminhado e por quê, e, quando o pull request citado foi mergeado no dia em que o impedimento abriu ou depois, um aviso de que provavelmente foi resolvido, com a data do merge quando não foi hoje.
 - **Dailies**: as dailies de hoje, com um filtro para quem enviou e quem não enviou. **Ver daily completa** abre a daily inteira.
 - **Entregue ontem**: pull requests e cards citados nos itens de ontem.
 - **Quem já enviou hoje**: os nomes, só de hoje.
 
-Um membro do time abre Hoje do próprio time. Gestores do time e admins abrem qualquer time.
+Um membro do time abre Hoje do próprio time. Gestores abrem os times que gerenciam. Só admins abrem qualquer time.
 
 ### Resolver um impedimento
 

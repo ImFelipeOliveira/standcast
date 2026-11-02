@@ -58,7 +58,8 @@ O Standcast ainda não se conecta ao Jira, então não lê nada dele.
 | Conexão com o Linear | Id, nome e chave da URL do workspace e os tokens de acesso e de renovação | Tokens criptografados com AES-256-GCM |
 | Identidade no Linear | O id de usuário do Linear de cada pessoa, por instalação. O e-mail nunca é guardado | |
 | Sessões | Um hash SHA-256 de cada token de sessão da CLI e da web, o tipo e quando foi criada e usada pela última vez | Só o hash; o token em si nunca é guardado |
-| Dailies | Data, horário do envio, os itens de ontem, hoje, impedimentos e pedidos de apoio com os links, e se quem confirmou foi a pessoa (`human`) ou o agente (`agent`) | |
+| Dailies | Data, horário do primeiro e do último envio, os itens de ontem, hoje, impedimentos e pedidos de apoio com os links, e se quem confirmou foi a pessoa (`human`) ou o agente (`agent`) | |
+| Estados de impedimentos | Para cada impedimento que alguém listou: o texto e o link, o primeiro e o último dia em que apareceu, e quando foi resolvido e quem resolveu. Ficam guardados até o app ser desinstalado | |
 | Sugestões | Para cada impedimento sugerido: o link e o título do pull request (ou do card), o tipo, quando foi percebido e a sua decisão | Visível só para você |
 | Entregas | Para cada consolidado, daily atrasada, lembrete e impedimento encaminhado: time, data, estado, tentativas, o canal e o id da mensagem no Slack e o erro, se falhou | |
 | API keys | Nome, os 8 primeiros caracteres depois de `sck_`, escopos, quem criou, datas de criação, último uso e revogação | Só um hash SHA-256 do segredo |
@@ -115,7 +116,7 @@ As sessões da CLI param de funcionar depois de 90 dias sem uso, e as sessões d
 
 ## Remoção dos dados
 
-- **Desinstale o GitHub App.** O Standcast apaga a instalação e tudo o que pertence a ela: configuração, dailies, entregas, conexão com o Slack e identidades, API keys, endpoints de webhook e as entregas deles.
+- **Desinstale o GitHub App.** O Standcast apaga a instalação e tudo o que pertence a ela: configuração, dailies, estados de impedimentos, entregas, conexão com o Slack e identidades, API keys, endpoints de webhook e as entregas deles.
 - **Saia.** O `standcast logout` revoga a sua sessão da CLI no servidor e apaga o arquivo local de credenciais.
 - **O seu cadastro de pessoa.** O seu id de usuário no GitHub, o login e o e-mail não pertencem a uma instalação só, então desinstalar não os remove. Para apagá-los, mande um e-mail ao suporte.
 

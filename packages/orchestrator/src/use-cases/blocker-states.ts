@@ -4,13 +4,16 @@ import {
   getBlockerState,
   getInstallation,
   getMemberById,
+  type InstallationRow,
   type MemberRow,
   operationalConfig,
+  retireMissingBlockerStates,
   setBlockerStateResolved,
   upsertBlockerState,
 } from '@standcast/db';
 import type { Deps } from '../deps';
 import { blockerRouteId } from '../events';
+import { guarded } from '../guarded';
 import { resolveTeams } from '../teams';
 import { DomainError } from './errors';
 import { isInstallationAdmin } from './is-installation-admin';
@@ -36,6 +39,12 @@ export async function recordBlockers(deps: Deps, input: RecordBlockersInput): Pr
       date: input.date,
     });
   }
+  await retireMissingBlockerStates(deps.db, {
+    installationId: input.installationId,
+    authorMemberId: input.memberId,
+    date: input.date,
+    keep: [...unique.keys()],
+  });
 }
 
 export type SetBlockerResolvedInput = {
@@ -44,17 +53,18 @@ export type SetBlockerResolvedInput = {
   resolved: boolean;
 };
 
+const ADMIN_CHECK_TIMEOUT_MS = 3000;
+
 async function managesAuthor(
   deps: Deps,
-  installationId: number,
+  installation: InstallationRow,
   login: string,
   state: BlockerStateRow,
 ): Promise<boolean> {
-  const installation = await getInstallation(deps.db, installationId);
   const config = operationalConfig(installation);
   const author = await getMemberById(deps.db, state.authorMemberId);
-  if (!installation || !config || !author) return false;
-  const teams = await resolveTeams(deps, installationId, installation.accountLogin, config);
+  if (!config || !author) return false;
+  const teams = await resolveTeams(deps, installation.id, installation.accountLogin, config);
   const me = login.toLowerCase();
   return teamsForMember(author.login, teams).some((team) =>
     team.managers.some((m) => m.toLowerCase() === me),
@@ -76,12 +86,18 @@ export async function setBlockerResolved(
   if (!current) throw new DomainError('not_found', 'blocker not found');
   const allowed =
     state.authorMemberId === current.id ||
-    (await managesAuthor(deps, input.installationId, current.login, state)) ||
-    (await isInstallationAdmin(deps, input.installationId, current));
+    (await managesAuthor(deps, installation, current.login, state)) ||
+    (await guarded(
+      isInstallationAdmin(deps, installation.id, current),
+      false,
+      ADMIN_CHECK_TIMEOUT_MS,
+      'blocker resolve admin check failed',
+      { installationId: String(installation.id) },
+    ));
   if (!allowed) throw new DomainError('forbidden', 'you cannot change this blocker');
   await setBlockerStateResolved(
     deps.db,
-    input.installationId,
+    installation.id,
     state.id,
     input.resolved ? { at: deps.now(), by: current.id } : null,
   );

@@ -1,5 +1,5 @@
 import type { Ref } from '@standcast/core';
-import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, lt, notInArray, type SQL, sql } from 'drizzle-orm';
 import type { Db } from '../client';
 import { type BlockerStateRow, blockerStates, dailies, members } from '../schema';
 
@@ -41,6 +41,36 @@ export async function upsertBlockerState(
     .returning();
   if (!row) throw new Error('upsertBlockerState returned no row');
   return row;
+}
+
+export type RetireBlockerStatesInput = {
+  installationId: number;
+  authorMemberId: string;
+  date: string;
+  keep: string[];
+};
+
+export async function retireMissingBlockerStates(
+  db: Db,
+  input: RetireBlockerStatesInput,
+): Promise<void> {
+  const missing: SQL[] = [
+    eq(blockerStates.installationId, input.installationId),
+    eq(blockerStates.authorMemberId, input.authorMemberId),
+    eq(blockerStates.lastSeenOn, input.date),
+    isNull(blockerStates.resolvedAt),
+  ];
+  if (input.keep.length > 0) missing.push(notInArray(blockerStates.blockerId, input.keep));
+  const previous = sql`(select max(${dailies.date}) from ${dailies} where ${dailies.installationId} = ${input.installationId} and ${dailies.memberId} = ${input.authorMemberId} and ${dailies.date} < ${input.date})`;
+  await db.transaction(async (tx) => {
+    await tx.delete(blockerStates).where(and(...missing, eq(blockerStates.openedOn, input.date)));
+    await tx
+      .update(blockerStates)
+      .set({
+        lastSeenOn: sql`greatest(${blockerStates.openedOn}, coalesce(${previous}, ${blockerStates.openedOn}))`,
+      })
+      .where(and(...missing, lt(blockerStates.openedOn, input.date)));
+  });
 }
 
 export async function getBlockerState(
