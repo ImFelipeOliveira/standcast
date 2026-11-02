@@ -1,4 +1,10 @@
-import { type Item, teamsForMember } from '@standcast/core';
+import {
+  dailyDateFor,
+  type Item,
+  localDate,
+  type ResolvedTeam,
+  teamsForMember,
+} from '@standcast/core';
 import {
   type BlockerStateRow,
   getBlockerState,
@@ -55,20 +61,16 @@ export type SetBlockerResolvedInput = {
 
 const ADMIN_CHECK_TIMEOUT_MS = 3000;
 
-async function managesAuthor(
+async function authorTeams(
   deps: Deps,
   installation: InstallationRow,
-  login: string,
   state: BlockerStateRow,
-): Promise<boolean> {
+): Promise<ResolvedTeam[]> {
   const config = operationalConfig(installation);
   const author = await getMemberById(deps.db, state.authorMemberId);
-  if (!config || !author) return false;
+  if (!config || !author) return [];
   const teams = await resolveTeams(deps, installation.id, installation.accountLogin, config);
-  const me = login.toLowerCase();
-  return teamsForMember(author.login, teams).some((team) =>
-    team.managers.some((m) => m.toLowerCase() === me),
-  );
+  return teamsForMember(author.login, teams);
 }
 
 export async function setBlockerResolved(
@@ -84,9 +86,11 @@ export async function setBlockerResolved(
   if (!state || !installation) throw new DomainError('not_found', 'blocker not found');
   const current = await isMember(installation, member);
   if (!current) throw new DomainError('not_found', 'blocker not found');
+  const teams = await authorTeams(deps, installation, state);
+  const me = current.login.toLowerCase();
   const allowed =
     state.authorMemberId === current.id ||
-    (await managesAuthor(deps, installation, current.login, state)) ||
+    teams.some((team) => team.managers.some((m) => m.toLowerCase() === me)) ||
     (await guarded(
       isInstallationAdmin(deps, installation.id, current),
       false,
@@ -95,10 +99,13 @@ export async function setBlockerResolved(
       { installationId: String(installation.id) },
     ));
   if (!allowed) throw new DomainError('forbidden', 'you cannot change this blocker');
+  const now = deps.now();
+  const first = teams[0];
+  const resolvedOn = first ? dailyDateFor(now, first) : localDate(now, 'UTC');
   await setBlockerStateResolved(
     deps.db,
     installation.id,
     state.id,
-    input.resolved ? { at: deps.now(), by: current.id } : null,
+    input.resolved ? { at: now, by: current.id, on: resolvedOn } : null,
   );
 }

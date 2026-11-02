@@ -128,6 +128,17 @@ describe('/v1/app today', () => {
     expect((await get(app, bob, `12/teams/Alpha/today`)).status).toBe(403);
   });
 
+  test('teams summary counts today per readable team', async () => {
+    const { app, bob, carol } = await harness();
+    const res = await get(app, bob, `${INST}/teams/summary`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual([{ team: 'Alpha', sent: 1, total: 2 }]);
+    expect(await (await get(app, carol, `${INST}/teams/summary`)).json()).toEqual([
+      { team: 'Beta', sent: 0, total: 1 },
+    ]);
+    expect((await get(app, bob, `12/teams/summary`)).status).toBe(403);
+  });
+
   test('resolve and reopen are 204 for the author, 403 for others', async () => {
     const { app, bob, carol, blockerId } = await harness();
     expect((await post(app, carol, `${INST}/blockers/${blockerId}/resolve`)).status).toBe(403);
@@ -149,7 +160,10 @@ describe('/v1/app today', () => {
     expect(res.status).toBe(202);
     expect(await res.json()).toEqual({ result: 'queued' });
     expect(queue.enqueued.filter((j) => j.name === 'send-reminder')).toEqual([
-      { name: 'send-reminder', data: { installationId: INST, login: 'alice', date: '2026-10-28' } },
+      {
+        name: 'send-reminder',
+        data: { installationId: INST, login: 'alice', date: '2026-10-28', team: 'Alpha' },
+      },
     ]);
     const sent = await post(app, alice, `${INST}/teams/Alpha/remind/bob`);
     expect(await sent.json()).toEqual({ result: 'already_sent' });

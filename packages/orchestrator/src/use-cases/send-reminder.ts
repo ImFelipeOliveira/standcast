@@ -14,7 +14,12 @@ import type { WorkerDeps } from '../deps';
 import { resolveTeams } from '../teams';
 import { describeDeliveryError } from './delivery-error';
 
-export type SendReminderJob = { installationId: number; login: string; date: string };
+export type SendReminderJob = {
+  installationId: number;
+  login: string;
+  date: string;
+  team?: string;
+};
 
 export async function sendReminder(deps: WorkerDeps, job: SendReminderJob): Promise<void> {
   const login = job.login.toLowerCase();
@@ -22,10 +27,11 @@ export async function sendReminder(deps: WorkerDeps, job: SendReminderJob): Prom
   const config = operationalConfig(installation);
   if (!installation || !config) return;
 
-  const teams = teamsForMember(
+  const mine = teamsForMember(
     login,
     await resolveTeams(deps, installation.id, installation.accountLogin, config),
   );
+  const teams = job.team === undefined ? mine : mine.filter((team) => team.name === job.team);
   const first = teams[0];
   if (!first) return;
 

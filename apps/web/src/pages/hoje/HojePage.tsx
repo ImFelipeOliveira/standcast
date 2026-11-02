@@ -30,6 +30,25 @@ function without(record: Record<string, TodayBlocker>, id: string): Record<strin
   return rest;
 }
 
+type PendingUpdate = (update: (current: ReadonlySet<string>) => ReadonlySet<string>) => void;
+
+export async function withPending(
+  setPending: PendingUpdate,
+  id: string,
+  run: () => Promise<void>,
+): Promise<void> {
+  setPending((current) => new Set(current).add(id));
+  try {
+    await run();
+  } finally {
+    setPending((current) => {
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
+  }
+}
+
 export function listBlockers(
   blockers: TodayBlocker[],
   resolved: Record<string, TodayBlocker>,
@@ -98,7 +117,7 @@ function TodayView({ installationId, today }: { installationId: number; today: T
   const [viewing, setViewing] = useState<string | null>(null);
   const [resolved, setResolved] = useState<Record<string, TodayBlocker>>({});
   const [reopened, setReopened] = useState<Record<string, TodayBlocker>>({});
-  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [pendingIds, setPendingIds] = useState<ReadonlySet<string>>(() => new Set());
   const [problem, setProblem] = useState<string | null>(null);
   const [reminders, setReminders] = useState<Record<string, RemindStatus>>({});
 
@@ -110,36 +129,38 @@ function TodayView({ installationId, today }: { installationId: number; today: T
 
   const onResolve = (blocker: TodayBlocker) => {
     setProblem(null);
-    setPendingId(blocker.id);
-    resolve.mutate(blocker.id, {
-      onSuccess: () => {
+    void withPending(setPendingIds, blocker.id, async () => {
+      try {
+        await resolve.mutateAsync(blocker.id);
         setResolved((current) => ({ ...current, [blocker.id]: blocker }));
         setReopened((current) => without(current, blocker.id));
-      },
-      onError: (error) => setProblem(errorMessage(t, error)),
-      onSettled: () => setPendingId(null),
+      } catch (error) {
+        setProblem(errorMessage(t, error));
+      }
     });
   };
 
   const onReopen = (blocker: TodayBlocker) => {
     setProblem(null);
-    setPendingId(blocker.id);
-    reopen.mutate(blocker.id, {
-      onSuccess: () => {
+    void withPending(setPendingIds, blocker.id, async () => {
+      try {
+        await reopen.mutateAsync(blocker.id);
         setResolved((current) => without(current, blocker.id));
         setReopened((current) => ({ ...current, [blocker.id]: blocker }));
-      },
-      onError: (error) => setProblem(errorMessage(t, error)),
-      onSettled: () => setPendingId(null),
+      } catch (error) {
+        setProblem(errorMessage(t, error));
+      }
     });
   };
 
-  const onRemind = (login: string) => {
+  const onRemind = async (login: string) => {
     setReminders((current) => ({ ...current, [login]: 'pending' }));
-    remind.mutate(login, {
-      onSuccess: ({ result }) => setReminders((current) => ({ ...current, [login]: result })),
-      onError: () => setReminders((current) => ({ ...current, [login]: 'failed' })),
-    });
+    try {
+      const { result } = await remind.mutateAsync(login);
+      setReminders((current) => ({ ...current, [login]: result }));
+    } catch {
+      setReminders((current) => ({ ...current, [login]: 'failed' }));
+    }
   };
 
   return (
@@ -165,7 +186,7 @@ function TodayView({ installationId, today }: { installationId: number; today: T
             today={today}
             blockers={listed}
             canResolve={(blocker) => today.canResolve || blocker.author === me}
-            pendingId={pendingId}
+            pendingIds={pendingIds}
             problem={problem}
             onResolve={onResolve}
             onReopen={onReopen}

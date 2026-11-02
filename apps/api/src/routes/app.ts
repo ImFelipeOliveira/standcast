@@ -9,6 +9,7 @@ import {
   disableWebhookEndpoint,
   getOrgContext,
   getSetupStatus,
+  getTeamsSummary,
   getTeamToday,
   logoutWebSession,
   remindNow,
@@ -121,6 +122,10 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
 
   app.get(`${ORG}/setup`, async (c) =>
     c.json(await getSetupStatus(deps, isMember, c.get('member'), installationIdOf(c)), 200),
+  );
+
+  app.get(`${ORG}/teams/summary`, async (c) =>
+    c.json(await getTeamsSummary(deps, isMember, c.get('member'), installationIdOf(c)), 200),
   );
 
   app.get(`${ORG}/teams/:team/today`, async (c) =>

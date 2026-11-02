@@ -47,7 +47,7 @@ export async function remindNow(
   if (settled) return 'already_sent';
   await deps.queue.enqueue(
     'send-reminder',
-    { installationId, login, date },
+    { installationId, login, date, team: access.team.name },
     { singletonKey: `reminder:${installationId}:${login}:${date}` },
   );
   return 'queued';

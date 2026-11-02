@@ -8,7 +8,8 @@ import { applyLang, translate } from '../../i18n';
 import { errorMessage } from '../configuracao/labels';
 import { Dailies } from './DailyCard';
 import { keyed } from './format';
-import { HojePage, listBlockers } from './HojePage';
+import { HojePage, listBlockers, withPending } from './HojePage';
+import { NeedsYou } from './NeedsYou';
 import { refLabel } from './refLabel';
 
 const originalFetch = globalThis.fetch;
@@ -245,6 +246,53 @@ describe('hoje', () => {
     ]);
     const afterRefetch = listBlockers([stuck, fresh], {}, { [stuck.id]: stuck });
     expect(afterRefetch.listed.map((item) => item.blocker.id)).toEqual([stuck.id, fresh.id]);
+  });
+
+  test('two concurrent resolves keep both buttons disabled until each settles', async () => {
+    const today = fixture();
+    let pending: ReadonlySet<string> = new Set();
+    const setPending = (update: (current: ReadonlySet<string>) => ReadonlySet<string>) => {
+      pending = update(pending);
+    };
+    const gates = new Map<string, () => void>();
+    const start = (id: string) =>
+      withPending(setPending, id, () => new Promise<void>((done) => gates.set(id, done)));
+    const disabled = () => {
+      const html = renderToStaticMarkup(
+        <NeedsYou
+          today={today}
+          blockers={today.blockers.map((blocker) => ({ blocker, resolved: false }))}
+          canResolve={() => true}
+          pendingIds={pending}
+          problem={null}
+          onResolve={() => {}}
+          onReopen={() => {}}
+          onView={() => {}}
+          hasDaily={() => true}
+        />,
+      );
+      return today.blockers.map((b) => /<button[^>]* disabled=""/.test(blockerCard(html, b.text)));
+    };
+    const first = start('b-1');
+    const second = start('b-2');
+    expect(disabled()).toEqual([true, true]);
+    gates.get('b-2')?.();
+    await second;
+    expect(disabled()).toEqual([true, false]);
+    gates.get('b-1')?.();
+    await first;
+    expect(disabled()).toEqual([false, false]);
+  });
+
+  test('a failed action still clears only its own pending id', async () => {
+    let pending: ReadonlySet<string> = new Set(['other']);
+    const setPending = (update: (current: ReadonlySet<string>) => ReadonlySet<string>) => {
+      pending = update(pending);
+    };
+    await expect(
+      withPending(setPending, 'b-1', () => Promise.reject(new Error('boom'))),
+    ).rejects.toThrow('boom');
+    expect([...pending]).toEqual(['other']);
   });
 
   test('keys stay unique for repeated items', () => {

@@ -30,11 +30,11 @@ Um membro do time abre Hoje do próprio time. Gestores abrem os times que gerenc
 
 ### Resolver um impedimento
 
-Gestores, admins e a pessoa que escreveu o impedimento podem marcá-lo como resolvido e reabri-lo. Um impedimento resolvido sai da lista de abertos. Se a pessoa continuar listando o impedimento em uma daily seguinte, ele abre de novo.
+Gestores, admins e a pessoa que escreveu o impedimento podem marcá-lo como resolvido e reabri-lo. Um impedimento resolvido sai da lista de abertos. Se a pessoa listar o impedimento de novo na daily de um dia seguinte, ele abre de novo. Reenviar a daily do dia em que ele foi resolvido mantém o impedimento resolvido.
 
 ### Lembrar agora
 
-Gestores e admins veem **Lembrar agora** ao lado de quem ainda não enviou a daily de hoje. O botão manda a mesma mensagem direta do lembrete agendado, no máximo uma vez por dia. Ele só funciona em dia útil do time e antes de o consolidado ser publicado.
+Gestores e admins veem **Lembrar agora** ao lado de quem ainda não enviou a daily de hoje. O botão manda a mesma mensagem direta do lembrete agendado, no máximo uma vez por dia. Ele só funciona em dia útil do time e antes de o consolidado desse time ser publicado, mesmo quando a pessoa também está em um time com consolidado mais tarde.
 
 ## O que o app não mostra
 

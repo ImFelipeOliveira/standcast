@@ -11,6 +11,7 @@ export * from './get-draft';
 export * from './get-org-context';
 export * from './get-setup-status';
 export * from './get-team-today';
+export * from './get-teams-summary';
 export * from './get-today';
 export * from './handle-github-event';
 export * from './installation-api-keys';

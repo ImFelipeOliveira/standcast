@@ -217,6 +217,38 @@ describe('sendReminder', () => {
     expect(directs[0]?.msg.fallbackText).toContain('11:00');
   });
 
+  test('a reminder for one team is not kept alive by another team of the person', async () => {
+    const { deps, directs, setNow } = await setup(twoTeamsWithAlice());
+    await identify('alice', 'U1');
+    setNow(local('2026-10-28T10:30:00'));
+    await sendReminder(deps, { ...job('alice'), team: 'Alpha' });
+    expect(directs).toEqual([]);
+    expect(await getDelivery(db, reminderKey('alice'))).toBeNull();
+  });
+
+  test('a reminder for one team stops once that team had its digest sent', async () => {
+    const { deps, directs } = await setup(twoTeamsWithAlice());
+    await identify('alice', 'U1');
+    await markSent('Alpha');
+    await sendReminder(deps, { ...job('alice'), team: 'Alpha' });
+    expect(directs).toEqual([]);
+  });
+
+  test('a reminder for one team uses that team digest time', async () => {
+    const { deps, directs } = await setup(twoTeamsWithAlice());
+    await identify('alice', 'U1');
+    await sendReminder(deps, { ...job('alice'), team: 'Beta' });
+    expect(directs).toHaveLength(1);
+    expect(directs[0]?.msg.fallbackText).toContain('11:00');
+  });
+
+  test('a reminder for a team the person is not in sends nothing', async () => {
+    const { deps, directs } = await setup(twoTeamsWithAlice());
+    await identify('bob', 'U2');
+    await sendReminder(deps, { ...job('bob'), team: 'Alpha' });
+    expect(directs).toEqual([]);
+  });
+
   test('a team where the date is not a workday does not keep the reminder alive', async () => {
     const parsed = parseConfig(`
 teams:

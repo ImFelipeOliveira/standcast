@@ -181,6 +181,7 @@ export const blockerStates = pgTable(
     resolvedByMemberId: uuid('resolved_by_member_id').references(() => members.id, {
       onDelete: 'set null',
     }),
+    resolvedOn: date('resolved_on', { mode: 'string' }),
   },
   (t) => [unique().on(t.installationId, t.authorMemberId, t.blockerId)],
 );

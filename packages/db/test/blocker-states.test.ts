@@ -68,10 +68,13 @@ describe('blocker states', () => {
     const base = { installationId: INST, authorMemberId: ana.id, blockerId: 'b1', ref: null };
     const first = await upsertBlockerState(db, { ...base, text: 'a', date: '2026-10-28' });
     const at = new Date('2026-10-29T12:00:00Z');
-    expect(await setBlockerStateResolved(db, INST, first.id, { at, by: bob.id })).toBe(true);
+    expect(
+      await setBlockerStateResolved(db, INST, first.id, { at, by: bob.id, on: '2026-10-29' }),
+    ).toBe(true);
     const resolved = await getBlockerState(db, INST, first.id);
     expect(resolved?.resolvedAt?.toISOString()).toBe(at.toISOString());
     expect(resolved?.resolvedByMemberId).toBe(bob.id);
+    expect(resolved?.resolvedOn).toBe('2026-10-29');
     const again = await upsertBlockerState(db, { ...base, text: 'a', date: '2026-10-31' });
     expect(again).toMatchObject({
       id: first.id,
@@ -79,7 +82,43 @@ describe('blocker states', () => {
       lastSeenOn: '2026-10-31',
       resolvedAt: null,
       resolvedByMemberId: null,
+      resolvedOn: null,
     });
+  });
+
+  test('a resubmit on the day it was resolved keeps it resolved', async () => {
+    const { ana, bob } = await seed();
+    const base = { installationId: INST, authorMemberId: ana.id, blockerId: 'b1', ref: null };
+    const first = await upsertBlockerState(db, { ...base, text: 'a', date: '2026-10-28' });
+    const at = new Date('2026-10-28T15:00:00Z');
+    await setBlockerStateResolved(db, INST, first.id, { at, by: bob.id, on: '2026-10-28' });
+    const again = await upsertBlockerState(db, { ...base, text: 'b', ref, date: '2026-10-28' });
+    expect(again).toMatchObject({
+      id: first.id,
+      text: 'b',
+      ref,
+      openedOn: '2026-10-28',
+      lastSeenOn: '2026-10-28',
+      resolvedByMemberId: bob.id,
+      resolvedOn: '2026-10-28',
+    });
+    expect(again.resolvedAt?.toISOString()).toBe(at.toISOString());
+  });
+
+  test('the first daily on the day it was resolved keeps it resolved', async () => {
+    const { ana, bob } = await seed();
+    const base = { installationId: INST, authorMemberId: ana.id, blockerId: 'b1', ref: null };
+    const first = await upsertBlockerState(db, { ...base, text: 'a', date: '2026-10-27' });
+    const at = new Date('2026-10-28T11:00:00Z');
+    await setBlockerStateResolved(db, INST, first.id, { at, by: bob.id, on: '2026-10-28' });
+    const again = await upsertBlockerState(db, { ...base, text: 'a', date: '2026-10-28' });
+    expect(again).toMatchObject({
+      openedOn: '2026-10-27',
+      lastSeenOn: '2026-10-28',
+      resolvedByMemberId: bob.id,
+      resolvedOn: '2026-10-28',
+    });
+    expect(again.resolvedAt?.toISOString()).toBe(at.toISOString());
   });
 
   test('the same blocker id is separate per author', async () => {

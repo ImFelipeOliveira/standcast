@@ -37,7 +37,7 @@ describe('remindNow', () => {
     expect(enqueued).toEqual([
       {
         name: 'send-reminder',
-        data: { installationId: INST, login: 'carol', date: '2026-10-28' },
+        data: { installationId: INST, login: 'carol', date: '2026-10-28', team: 'Alpha' },
         opts: { singletonKey: `reminder:${INST}:carol:2026-10-28` },
       },
     ]);

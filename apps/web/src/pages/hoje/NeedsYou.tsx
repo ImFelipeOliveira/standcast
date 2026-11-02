@@ -9,7 +9,7 @@ type Props = {
   today: TeamToday;
   blockers: { blocker: TodayBlocker; resolved: boolean }[];
   canResolve: (blocker: TodayBlocker) => boolean;
-  pendingId: string | null;
+  pendingIds: ReadonlySet<string>;
   problem: string | null;
   onResolve: (blocker: TodayBlocker) => void;
   onReopen: (blocker: TodayBlocker) => void;
@@ -21,7 +21,7 @@ export function NeedsYou({
   today,
   blockers,
   canResolve,
-  pendingId,
+  pendingIds,
   problem,
   onResolve,
   onReopen,
@@ -52,7 +52,7 @@ export function NeedsYou({
           today={today.date}
           resolved={resolved}
           canResolve={canResolve(blocker)}
-          pending={pendingId === blocker.id}
+          pending={pendingIds.has(blocker.id)}
           onResolve={() => onResolve(blocker)}
           onReopen={() => onReopen(blocker)}
           onViewDaily={view(blocker.author)}

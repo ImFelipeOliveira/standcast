@@ -5,7 +5,13 @@ import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { OrgContext, Session } from '../api/client';
 import { apiUrl } from '../api/client';
-import { createQueryClient, orgContextQuery, sessionQuery, teamTodayQuery } from '../api/queries';
+import {
+  createQueryClient,
+  orgContextQuery,
+  sessionQuery,
+  teamsSummaryQuery,
+  teamTodayQuery,
+} from '../api/queries';
 import { applyLang } from '../i18n';
 import { SignInStuck } from '../pages/RouteStates';
 import { createAppRouter } from '../router';
@@ -61,6 +67,9 @@ async function renderWithCurrentFetch(path: string, orgContext: OrgContext = con
   const queryClient = createQueryClient();
   queryClient.setQueryData(orgContextQuery(11).queryKey, orgContext);
   queryClient.setQueryData(teamTodayQuery(11, 'backend').queryKey, backendToday);
+  queryClient.setQueryData(teamsSummaryQuery(11).queryKey, [
+    { team: 'backend', sent: 2, total: 3 },
+  ]);
   const router = createAppRouter(queryClient, {
     history: createMemoryHistory({ initialEntries: [path] }),
     isServer: false,
@@ -131,7 +140,7 @@ describe('shell', () => {
     expect(hojeLink).toContain('Hoje');
     expect(hojeLink).not.toContain('em breve');
     expect(html).toContain('href="/orgs/11/hoje?team=backend"');
-    expect(html).toContain('1/2');
+    expect(html).toContain('2/3');
     const teamLink = html.match(/<a [^>]*href="\/orgs\/11\/hoje\?team=backend"[^>]*>/)?.[0];
     expect(teamLink).toContain('aria-current="page"');
   });
@@ -139,7 +148,17 @@ describe('shell', () => {
   test('sidebar outside hoje lists teams without today counts', async () => {
     const { html } = await renderAt('/orgs/11/historico');
     expect(html).toContain('href="/orgs/11/hoje?team=backend"');
-    expect(html).not.toContain('1/2');
+    expect(html).not.toContain('2/3');
+  });
+
+  test('sidebar counts come from one summary request', async () => {
+    const urls: string[] = [];
+    globalThis.fetch = mock(async (input: RequestInfo | URL) => {
+      urls.push(String(input));
+      return Response.json([]);
+    }) as unknown as typeof fetch;
+    await createQueryClient().fetchQuery(teamsSummaryQuery(11));
+    expect(urls).toEqual([`${apiUrl}/v1/app/orgs/11/teams/summary`]);
   });
 
   test('setup redirects to the installation from the query string', async () => {

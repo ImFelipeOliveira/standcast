@@ -16,6 +16,7 @@ export async function upsertBlockerState(
   db: Db,
   input: BlockerStateInput,
 ): Promise<BlockerStateRow> {
+  const reopens = sql`${blockerStates.resolvedAt} is not null and excluded.last_seen_on > coalesce(${blockerStates.resolvedOn}, ${blockerStates.lastSeenOn})`;
   const [row] = await db
     .insert(blockerStates)
     .values({
@@ -32,10 +33,11 @@ export async function upsertBlockerState(
       set: {
         text: sql`excluded.text`,
         ref: sql`excluded.ref`,
-        openedOn: sql`case when ${blockerStates.resolvedAt} is null then least(${blockerStates.openedOn}, excluded.opened_on) else excluded.opened_on end`,
-        lastSeenOn: sql`case when ${blockerStates.resolvedAt} is null then greatest(${blockerStates.lastSeenOn}, excluded.last_seen_on) else excluded.last_seen_on end`,
-        resolvedAt: null,
-        resolvedByMemberId: null,
+        openedOn: sql`case when ${reopens} then excluded.opened_on else least(${blockerStates.openedOn}, excluded.opened_on) end`,
+        lastSeenOn: sql`case when ${reopens} then excluded.last_seen_on else greatest(${blockerStates.lastSeenOn}, excluded.last_seen_on) end`,
+        resolvedAt: sql`case when ${reopens} then null else ${blockerStates.resolvedAt} end`,
+        resolvedByMemberId: sql`case when ${reopens} then null else ${blockerStates.resolvedByMemberId} end`,
+        resolvedOn: sql`case when ${reopens} then null else ${blockerStates.resolvedOn} end`,
       },
     })
     .returning();
@@ -89,13 +91,14 @@ export async function setBlockerStateResolved(
   db: Db,
   installationId: number,
   id: string,
-  resolution: { at: Date; by: string } | null,
+  resolution: { at: Date; by: string; on: string } | null,
 ): Promise<boolean> {
   const rows = await db
     .update(blockerStates)
     .set({
       resolvedAt: resolution?.at ?? null,
       resolvedByMemberId: resolution?.by ?? null,
+      resolvedOn: resolution?.on ?? null,
     })
     .where(and(eq(blockerStates.id, id), eq(blockerStates.installationId, installationId)))
     .returning({ id: blockerStates.id });

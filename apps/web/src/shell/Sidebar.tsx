@@ -1,8 +1,8 @@
-import type { TeamToday } from '@standcast/orchestrator';
+import type { TeamSummary } from '@standcast/orchestrator';
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import type { Installation } from '../api/client';
-import { useOrgContext, useTeamsToday } from '../api/queries';
+import { useOrgContext, useTeamsSummary } from '../api/queries';
 import { Badge } from '../components/ui/badge';
 import { useT } from '../i18n';
 import { cn } from '../lib/utils';
@@ -44,17 +44,16 @@ type Props = {
   onOrgChange: (installationId: number) => void;
 };
 
-function sentOf(today: TeamToday | undefined): string | null {
-  if (!today) return null;
-  const sent = today.people.filter((person) => person.status !== 'missing').length;
-  return `${sent}/${today.people.length}`;
+function sentOf(summary: TeamSummary[] | undefined, team: string): string | null {
+  const entry = summary?.find((item) => item.team === team);
+  return entry ? `${entry.sent}/${entry.total}` : null;
 }
 
 export function Sidebar({ installations, installationId, section, team, onOrgChange }: Props) {
   const t = useT();
   const context = useOrgContext(installationId);
   const teams = context.data ? teamsOf(context.data) : [];
-  const todays = useTeamsToday(installationId, section === 'hoje' ? teams : []);
+  const summary = useTeamsSummary(installationId, section === 'hoje' && teams.length > 0);
   return (
     <aside className="box-border flex max-w-full flex-[1_1_232px] flex-col gap-6 border-border-strong border-b bg-surface px-4 py-5 text-text desk:sticky desk:top-0 desk:h-screen desk:flex-[0_0_248px] desk:self-start desk:overflow-y-auto desk:border-r desk:border-b-0">
       <div className="flex items-center gap-2.5 px-2">
@@ -109,9 +108,9 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
             {t('teams.label')}
           </span>
           <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
-            {teams.map((name, index) => {
+            {teams.map((name) => {
               const active = name === team;
-              const sent = sentOf(todays[index]?.data);
+              const sent = section === 'hoje' ? sentOf(summary.data, name) : null;
               return (
                 <li key={name}>
                   <Link

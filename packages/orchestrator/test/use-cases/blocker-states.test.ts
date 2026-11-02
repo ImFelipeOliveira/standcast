@@ -123,6 +123,28 @@ describe('recordBlockers', () => {
     });
   });
 
+  test('a resubmit on the day it was resolved keeps it resolved', async () => {
+    const { deps, isMember, alice, bob } = await setup();
+    await submitDaily(deps, isMember, bob, { ...daily, blockers: [access] });
+    const [opened] = await statesOf(bob);
+    await setBlockerResolved(deps, isMember, alice, {
+      installationId: INST,
+      blockerStateId: opened?.id ?? '',
+      resolved: true,
+    });
+    await submitDaily(deps, isMember, bob, {
+      ...daily,
+      today: [{ text: 'edited plan' }],
+      blockers: [access],
+    });
+    const [row] = await statesOf(bob);
+    expect(row?.id).toBe(opened?.id);
+    expect(row?.resolved_at).not.toBeNull();
+    expect(await listCurrentOpenBlockerStates(db, INST, [bob.id]).then((rows) => rows.length)).toBe(
+      0,
+    );
+  });
+
   test('blockers dropped from a later daily stay open with last_seen_on unchanged', async () => {
     const { deps, bob } = await setup();
     await recordBlockers(deps, {
@@ -227,6 +249,7 @@ describe('setBlockerResolved', () => {
     const row = await getBlockerState(db, INST, id);
     expect(row?.resolvedAt?.toISOString()).toBe('2026-10-28T15:00:00.000Z');
     expect(row?.resolvedByMemberId).toBe(bob.id);
+    expect(row?.resolvedOn).toBe('2026-10-28');
     await setBlockerResolved(deps, isMember, bob, {
       installationId: INST,
       blockerStateId: id,
@@ -235,6 +258,7 @@ describe('setBlockerResolved', () => {
     const reopened = await getBlockerState(db, INST, id);
     expect(reopened?.resolvedAt).toBeNull();
     expect(reopened?.resolvedByMemberId).toBeNull();
+    expect(reopened?.resolvedOn).toBeNull();
   });
 
   test('manager can resolve', async () => {

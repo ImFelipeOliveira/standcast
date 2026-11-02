@@ -30,11 +30,11 @@ A team member can open Today for their own team. Managers open the teams they ma
 
 ### Resolve a blocker
 
-Managers, admins and the person who wrote the blocker can mark it as resolved, and reopen it. A resolved blocker leaves the open list. If the person keeps listing it in a later daily, it opens again.
+Managers, admins and the person who wrote the blocker can mark it as resolved, and reopen it. A resolved blocker leaves the open list. If the person lists it again in the daily of a later day, it opens again. Resending the daily of the day it was resolved keeps it resolved.
 
 ### Remind now
 
-Managers and admins see **Remind now** next to a person who has not sent today's daily. It sends the same direct message as the scheduled reminder, at most once a day. It works only on the team's workday and before the digest is posted.
+Managers and admins see **Remind now** next to a person who has not sent today's daily. It sends the same direct message as the scheduled reminder, at most once a day. It works only on the team's workday and before that team's digest is posted, even when the person is also in a team whose digest comes later.
 
 ## What the app does not show
 
