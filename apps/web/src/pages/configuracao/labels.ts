@@ -99,16 +99,15 @@ export const TRACKER_NOTICES: Record<TrackerNotice, MessageKey> = {
 
 export type TeamNotice = SetupStatus['teamNotices'][number];
 
-const TEAM_NOTICES: Record<string, MessageKey> = {
+const TEAM_NOTICES: Record<TeamNotice['kind'], MessageKey> = {
   missing: 'setup.teams.missing',
   truncated: 'setup.teams.truncated',
   channel_not_found: 'setup.teams.channelNotFound',
   channel_not_member: 'setup.teams.channelNotMember',
 };
 
-export function noticeText(t: Translate, notice: TeamNotice): string | null {
-  const key = Object.hasOwn(TEAM_NOTICES, notice.kind) ? TEAM_NOTICES[notice.kind] : undefined;
-  return key ? t(key, { team: notice.team, reference: notice.reference }) : null;
+export function noticeText(t: Translate, notice: TeamNotice): string {
+  return t(TEAM_NOTICES[notice.kind], { team: notice.team, reference: notice.reference });
 }
 
 export const CONFIG_REASONS: Record<string, MessageKey> = {
