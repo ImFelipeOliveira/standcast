@@ -37,4 +37,17 @@ describe('check-deps', () => {
       }),
     ).toEqual(['drizzle-orm']);
   });
+
+  test('counts devDependencies only when asked', () => {
+    const manifest = {
+      name: '@standcast/web',
+      dependencies: { react: '19' },
+      devDependencies: { '@standcast/db': 'workspace:*' },
+    };
+    expect(undeclared(['react', '@standcast/db'], manifest)).toEqual(['@standcast/db']);
+    expect(undeclared(['react', '@standcast/db'], manifest, { includeDev: true })).toEqual([]);
+    expect(undeclared(['@standcast/api'], manifest, { includeDev: true })).toEqual([
+      '@standcast/api',
+    ]);
+  });
 });

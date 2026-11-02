@@ -13,7 +13,7 @@ import {
   type TeamFailure,
 } from '@standcast/db';
 import type { Deps } from '../deps';
-import { logError } from '../log-error';
+import { guarded } from '../guarded';
 import { statusOf } from '../membership';
 import { type TeamNotice, teamResolutionNotices } from '../teams';
 import { authorizeInstallation } from './authorize-installation';
@@ -115,19 +115,13 @@ async function safeTeamNotices(
   config: StandcastConfig | null,
 ): Promise<TeamNotice[]> {
   if (!config) return [];
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<TeamNotice[]>((resolve) => {
-    timer = setTimeout(() => resolve([]), TEAM_NOTICES_TIMEOUT_MS);
-  });
-  const resolution = teamResolutionNotices(deps, installationId, owner, config).catch((error) => {
-    logError('setup team resolution failed', error, { installationId: String(installationId) });
-    return [];
-  });
-  try {
-    return await Promise.race([resolution, timeout]);
-  } finally {
-    clearTimeout(timer);
-  }
+  return guarded(
+    teamResolutionNotices(deps, installationId, owner, config),
+    [],
+    TEAM_NOTICES_TIMEOUT_MS,
+    'setup team resolution failed',
+    { installationId: String(installationId) },
+  );
 }
 
 export async function getSetupStatus(

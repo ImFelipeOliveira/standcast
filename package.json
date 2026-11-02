@@ -13,13 +13,15 @@
     "api": "bun run apps/api/src/main.ts",
     "worker": "bun run apps/worker/src/main.ts",
     "lint": "biome check .",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json",
     "build:cli": "bun scripts/build-cli.ts",
     "docs:dev": "vitepress dev docs/site",
     "docs:build": "vitepress build docs/site",
     "check-docs": "bun scripts/check-docs.ts",
     "check-pins": "bun scripts/check-pins.ts",
-    "check-deps": "bun scripts/check-deps.ts"
+    "check-deps": "bun scripts/check-deps.ts",
+    "web:dev": "bun run --cwd apps/web dev",
+    "web:build": "bun run --cwd apps/web build"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.4",

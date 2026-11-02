@@ -14,7 +14,7 @@ export async function completeWebLogin(
     nonce: string | undefined;
     error?: string | undefined;
   },
-): Promise<{ token: string; next: string }> {
+): Promise<{ token: string; next: string; target: 'api' | 'app' }> {
   if (input.error === 'access_denied') {
     throw new DomainError('access_denied', 'GitHub authorization was denied');
   }
@@ -37,5 +37,9 @@ export async function completeWebLogin(
   });
   const { member } = await syncMemberFromGitHub(deps, githubToken);
   const token = await createSession(deps.db, member.id, 'web');
-  return { token, next: sanitizeNext(state.next) };
+  return {
+    token,
+    next: sanitizeNext(state.next),
+    target: state.target === 'app' ? 'app' : 'api',
+  };
 }

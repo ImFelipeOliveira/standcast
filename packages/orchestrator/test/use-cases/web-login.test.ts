@@ -33,6 +33,20 @@ describe('completeWebLogin', () => {
     expect((await resolveSession(db, result.token, 'web'))?.login).toBe('Alice');
   });
 
+  test('returns the app target only when asked for it', async () => {
+    await seedOrg();
+    const { deps } = fakeDeps();
+    for (const [target, expected] of [
+      ['app', 'app'],
+      ['other', 'api'],
+      [undefined, 'api'],
+    ] as const) {
+      const { url, nonce } = startWebLogin(deps, { next: '/x', target });
+      const result = await completeWebLogin(deps, { code: 'c', state: stateOf(url), nonce });
+      expect(result.target).toBe(expected);
+    }
+  });
+
   test('sanitizes an unsafe next carried by a signed state', async () => {
     const { deps } = fakeDeps();
     const state = signState(

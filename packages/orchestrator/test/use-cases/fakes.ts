@@ -278,6 +278,7 @@ export function fakeDeps(opts: FakeOptions = {}) {
       supportEmail: 'help@sw.test',
       docsUrl: 'https://docs.sw.test',
       landingUrl: 'https://landing.sw.test',
+      appUrl: 'https://app.test',
       appId: '1',
       webhookSecret: 'whsec',
       githubClientId: 'cid',

@@ -2,6 +2,7 @@ import type { Deps } from '@standcast/orchestrator';
 import { Hono } from 'hono';
 import { onError } from './http/errors';
 import type { GetClientIp } from './middleware/rate-limit';
+import { appRoutes } from './routes/app';
 import { betaRoutes } from './routes/beta';
 import { docsRoutes } from './routes/docs';
 import { publicRoutes } from './routes/public';
@@ -19,6 +20,7 @@ export function createApp(deps: Deps, options: AppOptions): Hono {
   });
   const internalApi = v1Routes(deps, { getClientIp: options.getClientIp });
   app.onError(onError);
+  app.route('/', appRoutes(deps, { getClientIp: options.getClientIp }));
   app.route('/', internalApi);
   app.route('/', publicApi);
   app.route(
