@@ -10,6 +10,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- The setup page warns when a team's Slack channel is missing or the bot is not in it; digest links no longer unfold into previews and show a short label (repo#123, FEL-12); a pull request opened and merged in the same window appears once in the draft.
 - The web app is live at [app-standcast.usefachada.dev](https://app-standcast.usefachada.dev), starting with the setup screen. The server-rendered setup page still works.
 - Today in the web app: one team on the current day, with open blockers and how long they have been open, support requests, today's dailies, what shipped yesterday and who sent today. Managers, admins and the author can resolve and reopen a blocker, and managers and admins can remind someone who has not sent yet. It shows no per-person metric and no history of who did not send. See [Web app](/admin/web-app).
 - Support requests: an optional section of the daily for what you need from someone else without being blocked, such as a review, a decision or a pairing session. The `/daily` skill, the MCP server and the CLI ask for it after the blockers, and the digest shows it right after the blockers, with who asked. It is not routed by direct message.

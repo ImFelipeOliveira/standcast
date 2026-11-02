@@ -10,6 +10,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- A página de setup avisa quando o canal do Slack de um time não existe ou o bot não está nele; os links do consolidado não abrem mais prévias e mostram um rótulo curto (repo#123, FEL-12); um pull request aberto e mergeado na mesma janela aparece uma vez só no rascunho.
 - O app web está no ar em [app-standcast.usefachada.dev](https://app-standcast.usefachada.dev), começando pela tela de Configuração. A página de setup renderizada pelo servidor continua funcionando.
 - Hoje no app web: um time no dia atual, com os impedimentos abertos e há quanto tempo estão abertos, pedidos de apoio, as dailies de hoje, o que foi entregue ontem e quem já enviou hoje. Gestores, admins e o autor podem resolver e reabrir um impedimento, e gestores e admins podem lembrar quem ainda não enviou. A tela não mostra métrica por pessoa nem histórico de quem não enviou. Veja [App web](/pt-BR/admin/web-app).
 - Pedidos de apoio: uma seção opcional da daily para o que você precisa de outra pessoa sem estar travado, como um review, uma decisão ou um pareamento. A skill `/daily`, o servidor MCP e a CLI perguntam por ela depois dos impedimentos, e o consolidado a mostra logo depois dos impedimentos, com quem pediu. Ela não é encaminhada por mensagem direta.

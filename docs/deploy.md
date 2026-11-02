@@ -108,6 +108,20 @@ You can deploy before the final domain exists, with an interim domain of your ow
 - **README.md and `packages/plugin/skills/daily/SKILL.md`:** they are read on GitHub and in the plugin, not built, so they name the interim address directly.
 - **CLI:** the released binary points at `https://api.standcast.app` unless the release is built with `STANDCAST_DEFAULT_API_URL`. The release workflow sets it to the interim address. Without a release build, people run `standcast login --api-url <url>` or set `STANDCAST_API_URL`.
 
+### External app settings checklist
+
+These settings live outside the repository, so a domain change does not update them. Check every row after changing the api domain. The symptom column is what a person sees when the row is wrong.
+
+| App | Setting | Value | Symptom when wrong |
+| --- | --- | --- | --- |
+| GitHub App | Setup URL | `<PUBLIC_URL>/setup` | After installing the app, the browser lands on a 404 page of another site |
+| GitHub App | Homepage URL | the landing address (`LANDING_URL`) | People who open the app from GitHub land on the old domain |
+| GitHub App | Callback URL | `<PUBLIC_URL>/auth/github/callback` | Signing in to the setup page fails with a redirect URI error on GitHub |
+| GitHub App | Webhook URL | `<PUBLIC_URL>/webhooks/github` | Installs and `standcast.yml` pushes are never seen; the setup page stays unconfigured |
+| GitHub App | Enable Device Flow | on | `standcast login` fails with `device_flow_disabled` |
+| Slack app | Redirect URL | `<PUBLIC_URL>/oauth/slack/callback` | Connecting Slack fails with `redirect_uri did not match any configured URIs` |
+| Linear app | Callback URL | `<PUBLIC_URL>/oauth/linear/callback` | Connecting Linear fails with a redirect URI error on Linear |
+
 ### When the final domain arrives
 
 Change every place that names the interim address:
@@ -116,7 +130,7 @@ Change every place that names the interim address:
 2. Update `SUPPORT_EMAIL`, on the api and on the Cloudflare Pages project, if the support address changes.
 3. Set `STANDCAST_PUBLIC_URL` on the Cloudflare Pages project to the final api domain and redeploy the site, so the docs show it.
 4. Change `STANDCAST_DEFAULT_API_URL` in `.github/workflows/release-please.yml` and publish a new release, so new installs use the final domain.
-5. Update the GitHub App callback, webhook and setup URLs to the final domain.
+5. Update the GitHub App callback, webhook and setup URLs, and its homepage URL, to the final domain.
 6. Update the Slack and Linear redirect URLs to the final domain.
 7. Update the install command and API URLs in `README.md` and `packages/plugin/skills/daily/SKILL.md`. Change `PUBLISHED_INSTALL_URL` in `scripts/check-docs.ts` to match, or `check-docs` fails.
 8. Add `docs.standcast.app` as a custom domain of the Cloudflare Pages project, set `DOCS_URL` on the api to `https://docs.standcast.app` and update the docs links in `README.md`. Keep `docs-standcast.usefachada.dev` on the Pages project so old links keep working.
