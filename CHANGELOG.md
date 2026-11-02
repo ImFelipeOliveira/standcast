@@ -1,5 +1,80 @@
 # Changelog
 
+## [0.4.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.3.1...standcast-v0.4.0) (2026-11-02)
+
+
+### Features
+
+* **api:** session, cors and csrf for the web app ([6e6ec43](https://github.com/ImFelipeOliveira/standcast/commit/6e6ec43173c1b695979821f72268e9af738a4f63))
+* **api:** setup endpoints for the web app ([a2317ba](https://github.com/ImFelipeOliveira/standcast/commit/a2317ba1e24c28073a7251b31b957f0bb2d9c186))
+* **api:** web login can return to the app ([8bbede2](https://github.com/ImFelipeOliveira/standcast/commit/8bbede2bc957ac2139288f7824313fe304a86b62))
+* ask for support requests in the MCP server, CLI and /daily skill ([294a63a](https://github.com/ImFelipeOliveira/standcast/commit/294a63a8b61fadfdf5d7c7864d076c0812da273e))
+* blocker states with age, resolve and reopen ([238aa20](https://github.com/ImFelipeOliveira/standcast/commit/238aa20c46fa1eba9ddeafbd9e0b459db870d2ab))
+* **cli:** cross-reference sessions, pull requests and cards into work items ([db0f612](https://github.com/ImFelipeOliveira/standcast/commit/db0f612e925d9ed6e6fdefe927103763a1ce1b65))
+* **cli:** read local claude code sessions for the draft ([04daf1f](https://github.com/ImFelipeOliveira/standcast/commit/04daf1f95d7409ae58ca42fbc2fac37e9de5d169))
+* emoji section labels in the digest ([d15beb0](https://github.com/ImFelipeOliveira/standcast/commit/d15beb069aa7a3e476e0e094969e0f28e757befa))
+* hoje screen with blocker states and support requests (phase 2b) ([#47](https://github.com/ImFelipeOliveira/standcast/issues/47)) ([1ebe2dc](https://github.com/ImFelipeOliveira/standcast/commit/1ebe2dca3acabb4e1de4b0988e4eba780d3d8df0))
+* pull request head branch in the draft activity ([4bd3a07](https://github.com/ImFelipeOliveira/standcast/commit/4bd3a07e84d07bd0c79925580dfc49233a6a636e))
+* support requests in the daily and the digest ([667ad30](https://github.com/ImFelipeOliveira/standcast/commit/667ad302eb4ea7e715eb1ac1118ebbc6907a5a0c))
+* the daily draft uses local ai sessions ([00b96e9](https://github.com/ImFelipeOliveira/standcast/commit/00b96e973688563a590becf365e022dc20cb1393))
+* the daily draft uses local ai sessions (phase 2a+) ([#46](https://github.com/ImFelipeOliveira/standcast/issues/46)) ([691c4e3](https://github.com/ImFelipeOliveira/standcast/commit/691c4e3c18f44bf2b4a5b3860eba517e7a395947))
+* today use case and endpoints for the web app ([ef18d7c](https://github.com/ImFelipeOliveira/standcast/commit/ef18d7c4fd72b8f994e89c41e7a992ed5d9f6a18))
+* web and draft sessions ([#48](https://github.com/ImFelipeOliveira/standcast/issues/48)) ([c1c96ed](https://github.com/ImFelipeOliveira/standcast/commit/c1c96ed4886716168e86529c60110c94e0810ff0))
+* web app foundation and configuração (phase 2a) ([#45](https://github.com/ImFelipeOliveira/standcast/issues/45)) ([c08d8bb](https://github.com/ImFelipeOliveira/standcast/commit/c08d8bbd3aa3dc4290362daf4b2b275eef74f4a5))
+* **web:** app workspace with theme, i18n and deploy config ([6678a20](https://github.com/ImFelipeOliveira/standcast/commit/6678a20b1dc3b8362db066a840c6ff53a62fdf4c))
+* **web:** configuração screen ([0edb51e](https://github.com/ImFelipeOliveira/standcast/commit/0edb51e2bee1882e384b25bb42ef706451b6ef24))
+* **web:** hoje screen ([aa1927d](https://github.com/ImFelipeOliveira/standcast/commit/aa1927d08ffe4be632abb4c651201167ec93f80b))
+* **web:** shell, api client, sign-in guard and org switcher ([d2b75e9](https://github.com/ImFelipeOliveira/standcast/commit/d2b75e9050d094f06c348f35420c744bec851657))
+
+
+### Bug Fixes
+
+* address coderabbit review of the draft from sessions ([a96d4e8](https://github.com/ImFelipeOliveira/standcast/commit/a96d4e8183c39a2db40dc89efbc985796013547c))
+* address coderabbit review of the today screen ([0e8c0bd](https://github.com/ImFelipeOliveira/standcast/commit/0e8c0bd9d4fdc667148c92d4b2627b353749a941))
+* address coderabbit review of the web app foundation ([636bcc4](https://github.com/ImFelipeOliveira/standcast/commit/636bcc4e2ee2b9e699bbb74f7de08e8c65ec846d))
+* cleaner digest links, deduped draft PRs and a setup warning for missing Slack channels ([37c067a](https://github.com/ImFelipeOliveira/standcast/commit/37c067a7b879cd266d20704f66753a710035fddb))
+* cleaner digest links, deduped draft PRs and a setup warning for missing Slack channels ([#44](https://github.com/ImFelipeOliveira/standcast/issues/44)) ([b84c6a9](https://github.com/ImFelipeOliveira/standcast/commit/b84c6a9a66acba9e2c79a2e9dd4a6b15fc75f9ba))
+* **cli:** entropy-based catch-all redaction ([c954dbb](https://github.com/ImFelipeOliveira/standcast/commit/c954dbb21954a69ffc2f4e2d3800ad8d5bee397d))
+* **cli:** keep ticket-style names visible in redaction ([2007ba6](https://github.com/ImFelipeOliveira/standcast/commit/2007ba623b7f8cb5de8e859baef1e514b81d0804))
+* **cli:** match prefixed and quoted credential labels in redaction ([3e46141](https://github.com/ImFelipeOliveira/standcast/commit/3e461412305d2bf76bd66459fbe6b53d41283ba7))
+* **cli:** read the tail of large session files and tighten redaction ([951500d](https://github.com/ImFelipeOliveira/standcast/commit/951500d41a0417e542c7db95be99cf42d5fd8e92))
+* **cli:** redact values after credential labels ([4863e97](https://github.com/ImFelipeOliveira/standcast/commit/4863e974e8a6ca058360fdbf038ece77b6225f70))
+* **cli:** redact whole runs with random segments ([2c4924c](https://github.com/ImFelipeOliveira/standcast/commit/2c4924cc093d87b7ca5188cbb284b9f2c27ac088))
+* **cli:** segment-level redaction in paths and urls ([d593ab8](https://github.com/ImFelipeOliveira/standcast/commit/d593ab8acd0fa99e603ef05f1105cfbd5a38549b))
+* **cli:** skip harness lines in session prompts ([7aea0af](https://github.com/ImFelipeOliveira/standcast/commit/7aea0afe6722d0d6d0aab18f63ca8074c3591cbe))
+* **cli:** stricter path detection in redaction ([da61402](https://github.com/ImFelipeOliveira/standcast/commit/da61402f3085993e478f1442ea5b8328bc5ec71d))
+* final review fixes for the draft from sessions ([dd638ef](https://github.com/ImFelipeOliveira/standcast/commit/dd638ef8abd95e3ec8c0b3caa0df6a79866288e0))
+* final review fixes for the today screen ([7f8d217](https://github.com/ImFelipeOliveira/standcast/commit/7f8d2175ecc7005861f72c945222f114b862ad22))
+* final review fixes for the web app foundation ([f552b72](https://github.com/ImFelipeOliveira/standcast/commit/f552b72076e357c6932b430bd5f4fc3374626709))
+* keep sessions on the org retry and bound the url credentials regex ([766ea8d](https://github.com/ImFelipeOliveira/standcast/commit/766ea8dd291a84097bd7254fe4efcfbb099ed251))
+* per-channel timeout for slack channel checks ([e9a4bbf](https://github.com/ImFelipeOliveira/standcast/commit/e9a4bbfa7d16da131f7bc55f275e04919dc5b4dc))
+* remind now only on the team's workday ([9bc4356](https://github.com/ImFelipeOliveira/standcast/commit/9bc43560fd996a41cb8fabebfdf9be8d524a2054))
+* share in-flight Slack channel listing and keep channel notices when one check fails ([912ff58](https://github.com/ImFelipeOliveira/standcast/commit/912ff583fa823e23aa0e540c7011b5c5585ed51f))
+* **web:** hoje polish ([b4a7492](https://github.com/ImFelipeOliveira/standcast/commit/b4a7492fc56119a79bc582b58c18f7db73af1f45))
+* **web:** signed-out page and app-owned /setup ([e0baf54](https://github.com/ImFelipeOliveira/standcast/commit/e0baf543a6004f448bd467d1d26c6c58a122339e))
+
+
+### Documentation
+
+* app url is required ([d559c73](https://github.com/ImFelipeOliveira/standcast/commit/d559c73ddb6115abe904ac065bf9ca3e4d8f1ba3))
+* draft from ai sessions design and plan ([14ca12c](https://github.com/ImFelipeOliveira/standcast/commit/14ca12c2d1aef95b39161a2a2bad8e2dbebc847d))
+* draft from ai sessions right after phase 2a ([6fa5204](https://github.com/ImFelipeOliveira/standcast/commit/6fa5204713fc12779034b2e91744bd46bf052df1))
+* email digest design ([4d3fcfb](https://github.com/ImFelipeOliveira/standcast/commit/4d3fcfb7e695ffb7e0ba1440a4e841392a264ddc))
+* email digest moves to phase 2 with the web app ([db9f52d](https://github.com/ImFelipeOliveira/standcast/commit/db9f52d34735aa0f0b0975797ea935e2867dbc1f))
+* github app homepage url in the deploy checklist ([d35c35c](https://github.com/ImFelipeOliveira/standcast/commit/d35c35ce4f6c28ad2b9a01e10c043e71b20baa81))
+* hoje screen and web app page ([5c33b23](https://github.com/ImFelipeOliveira/standcast/commit/5c33b23d17c0c830e8337b5733745fb706d0aaed))
+* phase 2 web app design ([c8c1e49](https://github.com/ImFelipeOliveira/standcast/commit/c8c1e49afc1f6f038a4891ff746cc28053655d09))
+* phase 2a plan, web app foundation and configuração ([c716742](https://github.com/ImFelipeOliveira/standcast/commit/c7167424a88b48cb894c1f52a51072ce37be430e))
+* phase 2b plan, today screen ([2d736ff](https://github.com/ImFelipeOliveira/standcast/commit/2d736ff2106c25254d49de3d7a53d4d3a5843fc0))
+* support requests ([93a0172](https://github.com/ImFelipeOliveira/standcast/commit/93a0172bca2f86f4adf9261176f82925baced3b1))
+* support requests design ([189ab9c](https://github.com/ImFelipeOliveira/standcast/commit/189ab9c5ed37570c6e46127385812fcb026ff6b9))
+* the app and the api must move to the same site together ([43c08f0](https://github.com/ImFelipeOliveira/standcast/commit/43c08f0208145e634f35eb37e70b5eb35194db1a))
+
+
+### Refactoring
+
+* **web:** type team notices exhaustively now that channel kinds are in core ([d851c3d](https://github.com/ImFelipeOliveira/standcast/commit/d851c3d154bae96e334a0cd68752f4baedd00618))
+
 ## [0.3.1](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.3.0...standcast-v0.3.1) (2026-11-01)
 
 
