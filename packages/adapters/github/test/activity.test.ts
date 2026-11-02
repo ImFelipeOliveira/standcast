@@ -126,4 +126,47 @@ describe('listActivity', () => {
     expect(commits?.title.startsWith('Commit y')).toBe(true);
     expect(commits?.title.endsWith('…')).toBe(true);
   });
+
+  test('pull request items carry their head branch', async () => {
+    const { octokit } = octokitWith({
+      ...routes(),
+      'GET /repos/acme/api/pulls/1': { body: JSON.stringify({ head: { ref: 'fel-12-login' } }) },
+    });
+    const items = await listActivity(octokit, 'acme', 'alice', since);
+    const pulls = items.filter((i) => i.url === 'https://github.com/acme/api/pull/1');
+    expect(pulls.length).toBeGreaterThan(0);
+    for (const item of pulls) expect(item.branch).toBe('fel-12-login');
+  });
+
+  test('branch lookup is capped at 20 pulls', async () => {
+    const hits = Array.from({ length: 25 }, (_, i) => ({
+      title: `PR ${i + 1}`,
+      html_url: `https://github.com/acme/api/pull/${i + 1}`,
+      repository_url: 'https://api.github.com/repos/acme/api',
+      created_at: new Date(Date.UTC(2026, 9, 28, 10, i)).toISOString(),
+      pull_request: { merged_at: null },
+    }));
+    const { octokit, calls } = octokitWith({
+      'GET /search/issues': (url: URL) => {
+        const q = url.searchParams.get('q') ?? '';
+        const body = q.includes('is:merged') || q.includes('reviewed-by:') ? [] : hits;
+        return { body: JSON.stringify({ items: body }) };
+      },
+      'GET /search/commits': { body: JSON.stringify({ items: [] }) },
+      'GET /users/acme': { body: JSON.stringify({ type: 'Organization' }) },
+    });
+    await listActivity(octokit, 'acme', 'alice', since);
+    expect(calls.filter((c) => c.url.pathname.includes('/pulls/'))).toHaveLength(20);
+  });
+
+  test('a failed branch lookup leaves branch out', async () => {
+    const { octokit } = octokitWith({
+      ...routes(),
+      'GET /repos/acme/api/pulls/1': { status: 500, body: JSON.stringify({ message: 'boom' }) },
+    });
+    const items = await listActivity(octokit, 'acme', 'alice', since);
+    const pulls = items.filter((i) => i.url === 'https://github.com/acme/api/pull/1');
+    expect(pulls.length).toBeGreaterThan(0);
+    for (const item of pulls) expect('branch' in item).toBe(false);
+  });
 });

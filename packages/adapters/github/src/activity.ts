@@ -1,9 +1,10 @@
 import type { Octokit } from '@octokit/core';
-import { type ActivityItem, clampTitle } from '@standcast/core';
+import { type ActivityItem, clampTitle, parsePullRequestUrl } from '@standcast/core';
 import { httpStatus } from './errors';
 
 const MAX_ITEMS = 50;
 const PER_PAGE = 100;
+const MAX_BRANCH_LOOKUPS = 20;
 
 type IssueHit = {
   title: string;
@@ -92,6 +93,32 @@ function groupCommits(hits: CommitHit[]): ActivityItem[] {
   return items;
 }
 
+async function headBranch(octokit: Octokit, url: string): Promise<string | undefined> {
+  const ref = parsePullRequestUrl(url);
+  if (!ref) return undefined;
+  const response = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+    owner: ref.owner,
+    repo: ref.repo,
+    pull_number: ref.number,
+  });
+  const branch = (response.data as { head?: { ref?: string } }).head?.ref;
+  return branch || undefined;
+}
+
+async function attachBranches(octokit: Octokit, items: ActivityItem[]): Promise<void> {
+  const byUrl = new Map<string, ActivityItem[]>();
+  for (const item of items) {
+    if (item.kind !== 'pr_opened' && item.kind !== 'pr_merged') continue;
+    byUrl.set(item.url, [...(byUrl.get(item.url) ?? []), item]);
+  }
+  const urls = [...byUrl.keys()].slice(0, MAX_BRANCH_LOOKUPS);
+  const results = await Promise.allSettled(urls.map((url) => headBranch(octokit, url)));
+  results.forEach((result, index) => {
+    if (result.status !== 'fulfilled' || !result.value) return;
+    for (const item of byUrl.get(urls[index] as string) ?? []) item.branch = result.value;
+  });
+}
+
 export async function listActivity(
   octokit: Octokit,
   owner: string,
@@ -114,5 +141,7 @@ export async function listActivity(
     ...reviewed.map((hit) => pullItem('review', hit, hit.updated_at ?? hit.created_at)),
     ...groupCommits(commits),
   ];
-  return items.sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, MAX_ITEMS);
+  const result = items.sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, MAX_ITEMS);
+  await attachBranches(octokit, result);
+  return result;
 }

@@ -4,6 +4,8 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 
 ## Unreleased
 
+- Additive: draft activity items for pull requests (`pr_opened`, `pr_merged`) may include `branch`, the pull request head branch.
+
 ## 0.3.1 — 2026-11-01
 
 - No API changes.
