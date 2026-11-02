@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import type { TeamToday } from '@standcast/orchestrator';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { OrgContext, Session } from '../api/client';
 import { apiUrl } from '../api/client';
-import { createQueryClient, orgContextQuery, sessionQuery } from '../api/queries';
+import { createQueryClient, orgContextQuery, sessionQuery, teamTodayQuery } from '../api/queries';
 import { applyLang } from '../i18n';
 import { SignInStuck } from '../pages/RouteStates';
 import { createAppRouter } from '../router';
@@ -26,24 +27,40 @@ const session: Session = {
 };
 
 const context: OrgContext = { admin: false, managerOf: ['backend'], memberOf: ['backend'] };
+const backendToday: TeamToday = {
+  team: { name: 'backend', timezone: 'UTC', remindAt: '09:00', digestAt: '10:00' },
+  date: '2026-11-03',
+  digest: { status: 'scheduled', sentAt: null },
+  canRemind: false,
+  canResolve: false,
+  people: [
+    { login: 'ana', status: 'sent', submittedAt: '2026-11-03T09:00:00.000Z', daily: null },
+    { login: 'bruno', status: 'missing', submittedAt: null, daily: null },
+  ],
+  blockers: [],
+  support: [],
+  shipped: [],
+};
+const noTeams: OrgContext = { admin: true, managerOf: [], memberOf: [] };
 
-function stubFetch(body: Session): void {
+function stubFetch(body: Session, orgContext: OrgContext = context): void {
   globalThis.fetch = mock(async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.endsWith('/v1/app/session')) return Response.json(body);
-    if (url.endsWith('/context')) return Response.json(context);
+    if (url.endsWith('/context')) return Response.json(orgContext);
     return Response.json({ error: { code: 'not_found', message: 'no' } }, { status: 404 });
   }) as unknown as typeof fetch;
 }
 
-async function renderAt(path: string, body: Session = session) {
-  stubFetch(body);
-  return renderWithCurrentFetch(path);
+async function renderAt(path: string, body: Session = session, orgContext: OrgContext = context) {
+  stubFetch(body, orgContext);
+  return renderWithCurrentFetch(path, orgContext);
 }
 
-async function renderWithCurrentFetch(path: string) {
+async function renderWithCurrentFetch(path: string, orgContext: OrgContext = context) {
   const queryClient = createQueryClient();
-  queryClient.setQueryData(orgContextQuery(11).queryKey, context);
+  queryClient.setQueryData(orgContextQuery(11).queryKey, orgContext);
+  queryClient.setQueryData(teamTodayQuery(11, 'backend').queryKey, backendToday);
   const router = createAppRouter(queryClient, {
     history: createMemoryHistory({ initialEntries: [path] }),
     isServer: false,
@@ -96,9 +113,25 @@ describe('shell', () => {
     expect(html).not.toContain('<nav');
   });
 
-  test('index redirects to the first installation', async () => {
+  test('index lands on hoje for the first team the person reads', async () => {
     const { router } = await renderAt('/');
+    expect(router.state.location.pathname).toBe('/orgs/11/hoje');
+    expect(router.state.location.search).toEqual({ team: 'backend' });
+  });
+
+  test('index lands on configuração when the person reads no team', async () => {
+    const { router } = await renderAt('/', session, noTeams);
     expect(router.state.location.pathname).toBe('/orgs/11/configuracao');
+  });
+
+  test('sidebar switches teams with today sent and total', async () => {
+    const { html } = await renderAt('/orgs/11/hoje?team=backend');
+    const nav = html.slice(html.indexOf('<nav'), html.indexOf('</nav>'));
+    const hojeLink = nav.slice(nav.indexOf('href="/orgs/11/hoje"'), nav.indexOf('</a>'));
+    expect(hojeLink).toContain('Hoje');
+    expect(hojeLink).not.toContain('em breve');
+    expect(html).toContain('href="/orgs/11/hoje?team=backend"');
+    expect(html).toContain('1/2');
   });
 
   test('setup redirects to the installation from the query string', async () => {
@@ -108,21 +141,27 @@ describe('shell', () => {
 
   test('setup without an id goes home', async () => {
     const { router } = await renderAt('/setup');
-    expect(router.state.location.pathname).toBe('/orgs/11/configuracao');
+    expect(router.state.location.pathname).toBe('/orgs/11/hoje');
   });
 
   test('unknown installation goes home', async () => {
     const { router } = await renderAt('/orgs/99/hoje');
-    expect(router.state.location.pathname).toBe('/orgs/11/configuracao');
+    expect(router.state.location.pathname).toBe('/orgs/11/hoje');
   });
 
   test('invalid installation id goes home', async () => {
     const { router } = await renderAt('/orgs/abc/hoje');
-    expect(router.state.location.pathname).toBe('/orgs/11/configuracao');
+    expect(router.state.location.pathname).toBe('/orgs/11/hoje');
   });
 
-  test('org without a section opens configuração', async () => {
+  test('org without a section opens hoje for the first team', async () => {
     const { router } = await renderAt('/orgs/12');
+    expect(router.state.location.pathname).toBe('/orgs/12/hoje');
+    expect(router.state.location.search).toEqual({ team: 'backend' });
+  });
+
+  test('org without a section opens configuração without teams', async () => {
+    const { router } = await renderAt('/orgs/12', session, noTeams);
     expect(router.state.location.pathname).toBe('/orgs/12/configuracao');
   });
 

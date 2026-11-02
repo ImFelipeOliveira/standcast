@@ -1,7 +1,7 @@
-import type { SetupStatus } from '@standcast/orchestrator';
+import type { RemindNowResult, SetupStatus } from '@standcast/orchestrator';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiPost } from './client';
-import { setupStatusQuery } from './queries';
+import { setupStatusQuery, teamTodayQuery } from './queries';
 
 type ManagedKeys = Extract<SetupStatus['apiKeys'], { manage: true }>;
 type ManagedWebhooks = Extract<SetupStatus['webhooks'], { manage: true }>;
@@ -58,5 +58,41 @@ export function useDisableWebhook(installationId: number) {
 export function useTestWebhook(installationId: number) {
   return useSetupMutation(installationId, (endpointId: string) =>
     apiPost<void>(`${orgPath(installationId)}/webhooks/${encodeURIComponent(endpointId)}/test`),
+  );
+}
+
+function useTodayMutation<TInput, TResult>(
+  installationId: number,
+  team: string,
+  run: (input: TInput) => Promise<TResult>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: run,
+    onSuccess: () => queryClient.invalidateQueries(teamTodayQuery(installationId, team)),
+  });
+}
+
+export function useResolveBlocker(installationId: number, team: string) {
+  return useTodayMutation(installationId, team, (blockerStateId: string) =>
+    apiPost<void>(
+      `${orgPath(installationId)}/blockers/${encodeURIComponent(blockerStateId)}/resolve`,
+    ),
+  );
+}
+
+export function useReopenBlocker(installationId: number, team: string) {
+  return useTodayMutation(installationId, team, (blockerStateId: string) =>
+    apiPost<void>(
+      `${orgPath(installationId)}/blockers/${encodeURIComponent(blockerStateId)}/reopen`,
+    ),
+  );
+}
+
+export function useRemindNow(installationId: number, team: string) {
+  return useTodayMutation(installationId, team, (login: string) =>
+    apiPost<{ result: RemindNowResult }>(
+      `${orgPath(installationId)}/teams/${encodeURIComponent(team)}/remind/${encodeURIComponent(login)}`,
+    ),
   );
 }

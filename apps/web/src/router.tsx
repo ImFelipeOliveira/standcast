@@ -7,19 +7,47 @@ import {
   type RouterHistory,
   redirect,
 } from '@tanstack/react-router';
-import { sessionQuery } from './api/queries';
+import { orgContextQuery, sessionQuery } from './api/queries';
 import { ComingSoon } from './pages/ComingSoon';
 import { ConfiguracaoPage } from './pages/configuracao/ConfiguracaoPage';
+import { HojePage } from './pages/hoje/HojePage';
 import { NoInstallations } from './pages/NoInstallations';
 import { Loading, NotFound, RouteError } from './pages/RouteStates';
 import { SignedOut } from './pages/SignedOut';
 import { AppShell } from './shell/AppShell';
+import { teamsOf } from './shell/roles';
 
 type RouterContext = { queryClient: QueryClient };
 
 function parseInstallationId(value: unknown): number | null {
   const id = typeof value === 'number' ? value : Number(value);
   return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
+
+async function firstTeam(queryClient: QueryClient, installationId: number): Promise<string | null> {
+  try {
+    const context = await queryClient.ensureQueryData(orgContextQuery(installationId));
+    return teamsOf(context)[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function landing(queryClient: QueryClient, installationId: number): Promise<never> {
+  const team = await firstTeam(queryClient, installationId);
+  if (team) {
+    throw redirect({
+      to: '/orgs/$installationId/hoje',
+      params: { installationId },
+      search: { team },
+      replace: true,
+    });
+  }
+  throw redirect({
+    to: '/orgs/$installationId/configuracao',
+    params: { installationId },
+    replace: true,
+  });
 }
 
 const rootRoute = createRootRouteWithContext<RouterContext>()({
@@ -33,13 +61,7 @@ const indexRoute = createRoute({
   beforeLoad: async ({ context }) => {
     const session = await context.queryClient.ensureQueryData(sessionQuery);
     const first = session.installations[0];
-    if (first) {
-      throw redirect({
-        to: '/orgs/$installationId/configuracao',
-        params: { installationId: first.id },
-        replace: true,
-      });
-    }
+    if (first) await landing(context.queryClient, first.id);
   },
   component: NoInstallations,
 });
@@ -89,21 +111,24 @@ const orgRoute = createRoute({
 const orgIndexRoute = createRoute({
   getParentRoute: () => orgRoute,
   path: '/',
-  beforeLoad: ({ params }) => {
-    throw redirect({
-      to: '/orgs/$installationId/configuracao',
-      params: { installationId: params.installationId },
-      replace: true,
-    });
-  },
+  beforeLoad: ({ context, params }) => landing(context.queryClient, params.installationId),
 });
 
 const hojeRoute = createRoute({
   getParentRoute: () => orgRoute,
   path: 'hoje',
+  validateSearch: (search: Record<string, unknown>): { team?: string } =>
+    typeof search.team === 'string' && search.team.length > 0 ? { team: search.team } : {},
+  beforeLoad: async ({ context, params, search }) => {
+    if (search.team === undefined) await landing(context.queryClient, params.installationId);
+  },
   component: function Hoje() {
     const { installationId } = orgRoute.useParams();
-    return <ComingSoon section="hoje" installationId={installationId} />;
+    const { team } = hojeRoute.useSearch();
+    if (!team) return null;
+    return (
+      <HojePage key={`${installationId}:${team}`} installationId={installationId} team={team} />
+    );
   },
 });
 

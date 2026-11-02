@@ -130,6 +130,6 @@ export function formatDate(lang: Lang, value: Date | string): string {
 
 export function errorMessage(t: Translate, error: unknown): string {
   return error instanceof ApiError && error.code === 'invalid_request'
-    ? `${t('setup.actionFailed')} ${error.message}`
+    ? t('error.invalidRequest')
     : t('setup.actionFailed');
 }

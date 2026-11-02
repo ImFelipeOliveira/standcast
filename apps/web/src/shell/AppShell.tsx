@@ -6,6 +6,7 @@ import { SECTION_PATHS, sectionOf } from './sections';
 export function AppShell({ installationId }: { installationId: number }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const search = useRouterState({ select: (state) => state.location.search });
   const session = useSession();
   const section = sectionOf(pathname);
   return (
@@ -14,6 +15,7 @@ export function AppShell({ installationId }: { installationId: number }) {
         installations={session.data?.installations ?? []}
         installationId={installationId}
         section={section}
+        team={section === 'hoje' && typeof search.team === 'string' ? search.team : null}
         onOrgChange={(next) =>
           void navigate({ to: SECTION_PATHS[section], params: { installationId: next } })
         }

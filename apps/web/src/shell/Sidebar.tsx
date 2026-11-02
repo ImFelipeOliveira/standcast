@@ -1,7 +1,8 @@
+import type { TeamToday } from '@standcast/orchestrator';
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import type { Installation } from '../api/client';
-import { useOrgContext } from '../api/queries';
+import { useOrgContext, useTeamsToday } from '../api/queries';
 import { Badge } from '../components/ui/badge';
 import { useT } from '../i18n';
 import { cn } from '../lib/utils';
@@ -39,13 +40,21 @@ type Props = {
   installations: Installation[];
   installationId: number;
   section: Section;
+  team: string | null;
   onOrgChange: (installationId: number) => void;
 };
 
-export function Sidebar({ installations, installationId, section, onOrgChange }: Props) {
+function sentOf(today: TeamToday | undefined): string | null {
+  if (!today) return null;
+  const sent = today.people.filter((person) => person.status !== 'missing').length;
+  return `${sent}/${today.people.length}`;
+}
+
+export function Sidebar({ installations, installationId, section, team, onOrgChange }: Props) {
   const t = useT();
   const context = useOrgContext(installationId);
   const teams = context.data ? teamsOf(context.data) : [];
+  const todays = useTeamsToday(installationId, teams);
   return (
     <aside className="box-border flex max-w-full flex-[1_1_232px] flex-col gap-6 border-border-strong border-b bg-surface px-4 py-5 text-text desk:sticky desk:top-0 desk:h-screen desk:flex-[0_0_248px] desk:self-start desk:overflow-y-auto desk:border-r desk:border-b-0">
       <div className="flex items-center gap-2.5 px-2">
@@ -100,12 +109,30 @@ export function Sidebar({ installations, installationId, section, onOrgChange }:
             {t('teams.label')}
           </span>
           <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
-            {teams.map((team) => (
-              <li key={team} className="flex items-center gap-2 px-3 py-1.5 text-sm text-text2">
-                <span aria-hidden="true" className="size-2 rounded-full bg-mark" />
-                {team}
-              </li>
-            ))}
+            {teams.map((name, index) => {
+              const active = name === team;
+              const sent = sentOf(todays[index]?.data);
+              return (
+                <li key={name}>
+                  <Link
+                    to="/orgs/$installationId/hoje"
+                    params={{ installationId }}
+                    search={{ team: name }}
+                    aria-current={active ? 'true' : undefined}
+                    className={cn(
+                      'flex min-h-11 items-center justify-between gap-2 rounded-[9px] px-3 font-medium text-sm no-underline desk:min-h-10',
+                      active ? 'bg-hover text-text' : 'text-text2 hover:bg-hover hover:text-text',
+                    )}
+                  >
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span aria-hidden="true" className="size-2 flex-none rounded-full bg-mark" />
+                      <span className="truncate">{name}</span>
+                    </span>
+                    {sent ? <span className="font-mono text-[12px] text-muted">{sent}</span> : null}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </div>
       ) : null}
