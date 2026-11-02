@@ -308,6 +308,24 @@ describe('getSetupStatus channel notices', () => {
     ]);
   });
 
+  test('a failing check keeps the notices of the other channels', async () => {
+    const { fake, member } = await run({}, beta.replace('"#alpha"', '"#beta"'));
+    fake.deps.chatFor = async () =>
+      ({
+        checkChannel: async (channel: string) => {
+          if (channel === '#alpha') throw new Error('slack down');
+          return 'not_found';
+        },
+      }) as never;
+    const spy = spyOn(console, 'error').mockImplementation(() => {});
+    const status = await getSetupStatus(fake.deps, createMembershipCheck(fake.deps), member, INST);
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
+    expect(status.teamNotices).toEqual([
+      { team: 'Beta', reference: '#beta', kind: 'channel_not_found' },
+    ]);
+  });
+
   test('without slack connected no channel is checked', async () => {
     const { fake, member } = await run({ channels: { '#alpha': 'not_found' } });
     fake.deps.chatFor = async () => null;

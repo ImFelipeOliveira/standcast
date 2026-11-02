@@ -27,28 +27,37 @@ export function createSlackChannel(
   const now = opts.now ?? Date.now;
   const channelIds = new Map<string, string>();
 
+  let listing: Promise<void> | undefined;
+
+  async function listChannels(): Promise<void> {
+    const startedAt = now();
+    let cursor: string | undefined;
+    do {
+      if (now() - startedAt > CHANNEL_LOOKUP_BUDGET_MS) {
+        channelIds.clear();
+        throw new ChatDeliveryError('timeout', 'channel lookup took too long');
+      }
+      const res = await client.conversations.list({
+        types: 'public_channel,private_channel',
+        exclude_archived: true,
+        limit: 200,
+        cursor,
+      });
+      for (const c of res.channels ?? []) {
+        if (c.id && c.name) channelIds.set(c.name, c.id);
+      }
+      cursor = res.response_metadata?.next_cursor || undefined;
+    } while (cursor);
+  }
+
   async function resolveChannel(channel: string): Promise<string> {
     if (!channel.startsWith('#')) return channel;
     const name = channel.slice(1);
-    if (channelIds.size === 0) {
-      const startedAt = now();
-      let cursor: string | undefined;
-      do {
-        if (now() - startedAt > CHANNEL_LOOKUP_BUDGET_MS) {
-          channelIds.clear();
-          throw new ChatDeliveryError('timeout', 'channel lookup took too long');
-        }
-        const res = await client.conversations.list({
-          types: 'public_channel,private_channel',
-          exclude_archived: true,
-          limit: 200,
-          cursor,
-        });
-        for (const c of res.channels ?? []) {
-          if (c.id && c.name) channelIds.set(c.name, c.id);
-        }
-        cursor = res.response_metadata?.next_cursor || undefined;
-      } while (cursor);
+    if (channelIds.size === 0 || listing) {
+      listing ??= listChannels().finally(() => {
+        listing = undefined;
+      });
+      await listing;
     }
     const id = channelIds.get(name);
     if (!id) throw new ChatDeliveryError('channel_not_found', `channel not found: ${channel}`);

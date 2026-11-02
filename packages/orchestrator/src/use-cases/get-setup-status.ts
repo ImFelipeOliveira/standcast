@@ -160,11 +160,18 @@ async function channelNotices(
   const chat = await deps.chatFor(installationId, 'slack');
   if (!chat) return [];
   const channels = [...new Set(teams.map((team) => team.chat.channel))];
-  const results = new Map(
-    await Promise.all(
-      channels.map(async (channel) => [channel, await chat.checkChannel(channel)] as const),
-    ),
-  );
+  const settled = await Promise.allSettled(channels.map((channel) => chat.checkChannel(channel)));
+  const results = new Map<string, ChannelCheck>();
+  settled.forEach((outcome, i) => {
+    const channel = channels[i];
+    if (channel === undefined) return;
+    if (outcome.status === 'fulfilled') results.set(channel, outcome.value);
+    else
+      logError('setup channel check failed', outcome.reason, {
+        installationId: String(installationId),
+        channel,
+      });
+  });
   return teams.flatMap((team) => {
     const result = results.get(team.chat.channel);
     if (!result || result === 'ok') return [];

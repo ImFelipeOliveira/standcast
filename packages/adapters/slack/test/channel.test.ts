@@ -56,6 +56,26 @@ describe('createSlackChannel', () => {
     expect(calls.filter((c) => c.method === 'conversations.list')).toHaveLength(1);
   });
 
+  test('concurrent lookups share one channel listing', async () => {
+    const { calls, url } = fake({
+      'conversations.list': () => ({
+        ok: true,
+        channels: [
+          { id: 'C1', name: 'alpha' },
+          { id: 'C2', name: 'beta' },
+        ],
+      }),
+      'chat.postMessage': (body) => ({ ok: true, channel: body.channel, ts: '1.1' }),
+    });
+    const ch = createSlackChannel('xoxb-t', { slackApiUrl: url });
+    const refs = await Promise.all([
+      ch.postToChannel('#alpha', msg),
+      ch.postToChannel('#beta', msg),
+    ]);
+    expect(refs.map((r) => r.channel)).toEqual(['C1', 'C2']);
+    expect(calls.filter((c) => c.method === 'conversations.list')).toHaveLength(1);
+  });
+
   test('postToChannel passes channel ids through', async () => {
     const { calls, url } = fake({
       'chat.postMessage': () => ({ ok: true, channel: 'G9', ts: '2.2' }),
