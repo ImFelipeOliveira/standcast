@@ -60,6 +60,13 @@ describe('redact', () => {
     );
   });
 
+  test('url credentials matching stays linear on hostile input', () => {
+    const started = performance.now();
+    redact(`x://${':'.repeat(40000)}`);
+    expect(performance.now() - started).toBeLessThan(100);
+    expect(redact('ssh://git@host')).toBe('ssh://git@host');
+  });
+
   test('redacts the whole password when it contains @', () => {
     expect(redact('db postgres://user:p@ss@db.host/app now')).toBe(
       'db postgres://[redacted]@db.host/app now',

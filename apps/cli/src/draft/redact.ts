@@ -10,7 +10,8 @@ const TOKEN_PATTERNS = [
   /glpat-[A-Za-z0-9_-]{20,}/g,
 ];
 
-const URL_CREDENTIALS = /\b([A-Za-z][A-Za-z0-9+.-]*:\/\/)[^\s/@?#"'<>]*:[^\s/?#"'<>]*@/g;
+const URL_CREDENTIALS =
+  /\b([A-Za-z][A-Za-z0-9+.-]{0,31}:\/\/)[^\s/@?#"'<>:]{0,256}:[^\s/?#"'<>]{0,512}@/g;
 
 const LONG_RUN = /[A-Za-z0-9+/=_.~-]{32,}/g;
 const URL_PATTERN = /https?:\/\/[^\s"'<>()[\]{}]+/g;
