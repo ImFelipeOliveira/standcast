@@ -1,6 +1,11 @@
 import { describe, expect, test } from 'bun:test';
 import { GitHubRateLimitError } from '../src/errors';
-import { getPullRequest, listOpenPullRequestSnapshots, listPullRequestFiles } from '../src/pulls';
+import {
+  getPullRequest,
+  listOpenPullRequestSnapshots,
+  listPullRequestFiles,
+  pullRequestMerged,
+} from '../src/pulls';
 import { fixture, octokitWith } from './helpers';
 
 const ref = { owner: 'acme', repo: 'api', number: 7 };
@@ -32,6 +37,33 @@ describe('getPullRequest', () => {
   test('other errors propagate', async () => {
     const { octokit } = octokitWith({ 'GET /repos/acme/api/pulls/7': { status: 500 } });
     await expect(getPullRequest(octokit, ref)).rejects.toThrow();
+  });
+});
+
+describe('pullRequestMerged', () => {
+  test('merged pull request gives the merge time', async () => {
+    const { octokit } = octokitWith({
+      'GET /repos/acme/api/pulls/7': {
+        body: JSON.stringify({ merged: true, merged_at: '2026-10-28T13:00:00Z' }),
+      },
+    });
+    expect(await pullRequestMerged(octokit, ref)).toEqual({
+      merged: true,
+      mergedAt: '2026-10-28T13:00:00Z',
+    });
+  });
+
+  test('open pull request is not merged', async () => {
+    const { octokit } = octokitWith({
+      'GET /repos/acme/api/pulls/7': { body: fixture('pull.json') },
+    });
+    expect(await pullRequestMerged(octokit, ref)).toEqual({ merged: false, mergedAt: null });
+  });
+
+  test('404 gives null and other errors propagate', async () => {
+    expect(await pullRequestMerged(octokitWith({}).octokit, ref)).toBeNull();
+    const { octokit } = octokitWith({ 'GET /repos/acme/api/pulls/7': { status: 500 } });
+    await expect(pullRequestMerged(octokit, ref)).rejects.toThrow();
   });
 });
 

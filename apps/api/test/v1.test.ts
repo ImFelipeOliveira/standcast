@@ -111,6 +111,7 @@ function harness(
       }),
       fetchConfigSource: async () => ({ found: false, reason: 'no_repo' }),
       getPullRequest: async () => null,
+      pullRequestMerged: async () => null,
       listPullRequestFiles: async () => [],
       listOpenPullRequestSnapshots: async () => [],
       fetchCodeowners: async () => null,

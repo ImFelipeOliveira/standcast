@@ -1,7 +1,7 @@
 import type { MessageRef } from '@standcast/core';
 import { and, desc, eq, gte, inArray, lt, lte, or, sql } from 'drizzle-orm';
 import type { Db } from '../client';
-import { type DeliveryKind, type DeliveryRow, deliveries } from '../schema';
+import { type DeliveryKind, type DeliveryRow, dailies, deliveries } from '../schema';
 import { PRUNE_BATCH } from './prune-batch';
 
 export type DeliveryKey = {
@@ -214,6 +214,35 @@ export async function reserveBlockerRoute(
       .onConflictDoNothing();
     return { status: 'reserved', recipients: null };
   });
+}
+
+export type BlockerRouteRecipient = { authorMemberId: string; blockerId: string; login: string };
+
+export async function listBlockerRouteRecipients(
+  db: Db,
+  installationId: number,
+  authorMemberIds: string[],
+  blockerIds: string[],
+): Promise<BlockerRouteRecipient[]> {
+  if (authorMemberIds.length === 0 || blockerIds.length === 0) return [];
+  const blockerId = sql<string>`split_part(${deliveries.subject}, ':', 2)`;
+  const login = sql<string>`split_part(${deliveries.subject}, ':', 3)`;
+  return db
+    .selectDistinct({ authorMemberId: dailies.memberId, blockerId, login })
+    .from(deliveries)
+    .innerJoin(dailies, sql`${dailies.id}::text = split_part(${deliveries.subject}, ':', 1)`)
+    .where(
+      and(
+        eq(deliveries.installationId, installationId),
+        eq(deliveries.kind, 'blocker_route'),
+        eq(deliveries.status, 'sent'),
+        eq(dailies.installationId, installationId),
+        inArray(dailies.memberId, authorMemberIds),
+        inArray(blockerId, blockerIds),
+        sql`${login} <> ${ROUTE_RESERVATION}`,
+      ),
+    )
+    .orderBy(login);
 }
 
 const TEAM_FAILURE_KINDS = ['digest', 'late_daily'] as const satisfies readonly DeliveryKind[];

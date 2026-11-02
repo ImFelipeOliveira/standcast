@@ -10,6 +10,7 @@ import {
   listActivity,
   listOpenPullRequestSnapshots,
   listPullRequestFiles,
+  pullRequestMerged,
   resolveTeamMembers,
 } from '@standcast/github';
 import { exchangeLinearCode, refreshLinearToken } from '@standcast/linear';
@@ -48,6 +49,7 @@ const deps: Deps = {
     resolveTeamMembers,
     fetchConfigSource,
     getPullRequest,
+    pullRequestMerged,
     listPullRequestFiles,
     listOpenPullRequestSnapshots,
     fetchCodeowners,

@@ -9,9 +9,12 @@ import {
   disableWebhookEndpoint,
   getOrgContext,
   getSetupStatus,
+  getTeamToday,
   logoutWebSession,
+  remindNow,
   revokeInstallationApiKey,
   sendTestEvent,
+  setBlockerResolved,
 } from '@standcast/orchestrator';
 import { type Context, Hono, type MiddlewareHandler } from 'hono';
 import { deleteCookie } from 'hono/cookie';
@@ -119,6 +122,39 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
   app.get(`${ORG}/setup`, async (c) =>
     c.json(await getSetupStatus(deps, isMember, c.get('member'), installationIdOf(c)), 200),
   );
+
+  app.get(`${ORG}/teams/:team/today`, async (c) =>
+    c.json(
+      await getTeamToday(deps, isMember, c.get('member'), {
+        installationId: installationIdOf(c),
+        team: c.req.param('team'),
+      }),
+      200,
+    ),
+  );
+
+  for (const [action, resolved] of [
+    ['resolve', true],
+    ['reopen', false],
+  ] as const) {
+    app.post(`${ORG}/blockers/:blockerStateId/${action}`, async (c) => {
+      await setBlockerResolved(deps, isMember, c.get('member'), {
+        installationId: installationIdOf(c),
+        blockerStateId: c.req.param('blockerStateId'),
+        resolved,
+      });
+      return c.body(null, 204);
+    });
+  }
+
+  app.post(`${ORG}/teams/:team/remind/:login`, async (c) => {
+    const result = await remindNow(deps, isMember, c.get('member'), {
+      installationId: installationIdOf(c),
+      team: c.req.param('team'),
+      login: c.req.param('login'),
+    });
+    return c.json({ result }, 202);
+  });
 
   app.post(`${ORG}/api-keys`, async (c) => {
     const { name, scopes } = await parseBody(c, createKeyBody);

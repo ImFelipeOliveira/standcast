@@ -11,6 +11,7 @@ import type {
   listOpenPullRequestSnapshots,
   listPullRequestFiles,
   Octokit,
+  pullRequestMerged,
   resolveTeamMembers,
 } from '@standcast/github';
 import type { exchangeLinearCode, LinearFetch, refreshLinearToken } from '@standcast/linear';
@@ -33,6 +34,7 @@ export type Deps = {
     resolveTeamMembers: typeof resolveTeamMembers;
     fetchConfigSource: typeof fetchConfigSource;
     getPullRequest: typeof getPullRequest;
+    pullRequestMerged: typeof pullRequestMerged;
     listPullRequestFiles: typeof listPullRequestFiles;
     listOpenPullRequestSnapshots: typeof listOpenPullRequestSnapshots;
     fetchCodeowners: typeof fetchCodeowners;
