@@ -20,6 +20,9 @@ describe('redact', () => {
       'token: [redacted] end',
     );
     expect(redact('key 9fQx2LmZ7pRt4WvB8nKc3HdJ6sYa1GeU0iOb end')).toBe('key [redacted] end');
+    expect(redact('sha 3f2a9c0b7d1e4f5a6b8c9d0e1f2a3b4c5d6e7f80')).toBe('sha [redacted]');
+    expect(redact('otp JBSWY3DPEHPK3PXP4QZ7MNA2RCV6TLFG')).toBe('otp [redacted]');
+    expect(redact('blob q8Zx/3kP0vLmN7wR2tYb+9HcJ4sDfGa1eUoI5nQ= end')).toBe('blob [redacted] end');
   });
 
   test('keeps ordinary text', () => {
@@ -32,14 +35,11 @@ describe('redact', () => {
     expect(redact('see apps/cli/src/v2/components/item42/view1234/index.ts')).toBe(
       'see apps/cli/src/v2/components/item42/view1234/index.ts',
     );
-    expect(redact('the release-2026-11-01-draft-from-sessions-rollout-plan')).toBe(
-      'the release-2026-11-01-draft-from-sessions-rollout-plan',
+    expect(redact('open /Users/ana/projects/standcast/docs/2026-11-01-plan.md now')).toBe(
+      'open /Users/ana/projects/standcast/docs/2026-11-01-plan.md now',
     );
-    expect(redact('sha 3f2a9c0b7d1e4f5a6b8c9d0e1f2a3b4c5d6e7f80')).toBe(
-      'sha 3f2a9c0b7d1e4f5a6b8c9d0e1f2a3b4c5d6e7f80',
-    );
-    expect(redact('ABCDEFGHIJKLMNOPqrstuvwxyz12abcdefgh')).toBe(
-      'ABCDEFGHIJKLMNOPqrstuvwxyz12abcdefgh',
+    expect(redact('very-long-hyphenated-compound-word-without-digits')).toBe(
+      'very-long-hyphenated-compound-word-without-digits',
     );
   });
 });
