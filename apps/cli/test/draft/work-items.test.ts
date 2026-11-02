@@ -183,4 +183,80 @@ describe('buildWorkItems', () => {
     ]);
     expect(items[1]?.sessions.map((s) => s.id)).toEqual(['new', 'old']);
   });
+  test('two pull requests on the same branch merge into one item', () => {
+    const items = buildWorkItems({
+      activity: [
+        pr({ url: 'https://github.com/acme/app/pull/10', title: 'First try', branch: 'feat/pay' }),
+        pr({
+          kind: 'pr_merged',
+          url: 'https://github.com/acme/app/pull/11',
+          title: 'Second try',
+          branch: 'feat/pay',
+          at: new Date('2026-10-31T12:00:00.000Z'),
+        }),
+      ],
+      sessions: [session({ id: 's1', branch: 'feat/pay' })],
+    });
+    expect(items).toHaveLength(1);
+    expect(items[0]?.sessions.map((s) => s.id)).toEqual(['s1']);
+    expect(items[0]?.refs.map((r) => r.url)).toEqual([
+      'https://github.com/acme/app/pull/11',
+      'https://github.com/acme/app/pull/10',
+    ]);
+  });
+
+  test('two pull requests on the same branch merge without a session', () => {
+    const items = buildWorkItems({
+      activity: [
+        pr({ url: 'https://github.com/acme/app/pull/12', branch: 'feat/pay' }),
+        pr({ url: 'https://github.com/acme/app/pull/13', branch: 'feat/pay' }),
+        pr({ url: 'https://github.com/acme/web/pull/14', repo: 'acme/web', branch: 'feat/pay' }),
+      ],
+      sessions: [],
+    });
+    expect(items).toHaveLength(2);
+    expect(items.map((i) => i.activity.length).sort()).toEqual([1, 2]);
+  });
+
+  test('accepts iso string dates', () => {
+    const items = buildWorkItems({
+      activity: [
+        pr({
+          url: 'https://github.com/acme/app/pull/15',
+          at: '2026-10-31T20:00:00.000Z' as unknown as Date,
+        }),
+        card('ENG-11', { at: '2026-10-31T06:00:00.000Z' as unknown as Date }),
+      ],
+      sessions: [],
+    });
+    expect(items.map((i) => i.key)).toEqual([
+      'pr:https://github.com/acme/app/pull/15',
+      'card:ENG-11',
+    ]);
+  });
+
+  test('a review is its own pull request item', () => {
+    const review = pr({
+      kind: 'review',
+      url: 'https://github.com/acme/web/pull/16',
+      title: 'Teammate change',
+      repo: 'acme/web',
+    });
+    const items = buildWorkItems({ activity: [review], sessions: [] });
+    expect(items).toEqual([
+      {
+        key: 'pr:https://github.com/acme/web/pull/16',
+        title: 'Teammate change',
+        refs: [
+          {
+            kind: 'pull_request',
+            url: 'https://github.com/acme/web/pull/16',
+            title: 'Teammate change',
+          },
+        ],
+        activity: [review],
+        sessions: [],
+      },
+    ]);
+  });
 });

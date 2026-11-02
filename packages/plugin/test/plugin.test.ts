@@ -106,6 +106,8 @@ describe('daily skill', () => {
     expect(skill).toContain('não use as sessões');
     expect(skill).toContain('Never paste prompts verbatim');
     expect(skill).toContain('never sent to Standcast');
+    expect(skill).toContain('source material');
+    expect(skill).toContain('the pull request ref when the item has one, otherwise the card ref');
   });
 
   test('suggestions are decided by the person', () => {

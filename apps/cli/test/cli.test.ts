@@ -194,8 +194,13 @@ describe('draft', () => {
     expect(out.work).toHaveLength(1);
     expect(out.work[0].sessions.map((s: { id: string }) => s.id)).toEqual(['a1']);
     expect(out.work[0].sessions[0].prompts).toContain('Fix the cart total rounding');
+    expect(api.seen).toHaveLength(1);
     expect(api.seen.map((s) => s.body)).toEqual(['']);
+    expect(api.seen[0]?.method).toBe('GET');
     expect(api.seen[0]?.path).toBe('/v1/draft?org=acme');
+    for (const marker of ['cart', 'a1', '/home/dev', 'home-dev', 'rounding']) {
+      expect(api.seen[0]?.path).not.toContain(marker);
+    }
   });
 
   test('draft without flag is unchanged', async () => {

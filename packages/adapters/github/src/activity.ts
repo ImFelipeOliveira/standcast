@@ -5,6 +5,7 @@ import { httpStatus } from './errors';
 const MAX_ITEMS = 50;
 const PER_PAGE = 100;
 const MAX_BRANCH_LOOKUPS = 20;
+const BRANCH_LOOKUP_TIMEOUT_MS = 5000;
 
 type IssueHit = {
   title: string;
@@ -100,6 +101,7 @@ async function headBranch(octokit: Octokit, url: string): Promise<string | undef
     owner: ref.owner,
     repo: ref.repo,
     pull_number: ref.number,
+    request: { signal: AbortSignal.timeout(BRANCH_LOOKUP_TIMEOUT_MS) },
   });
   const branch = (response.data as { head?: { ref?: string } }).head?.ref;
   return branch || undefined;

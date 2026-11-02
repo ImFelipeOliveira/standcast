@@ -109,6 +109,15 @@ export function buildWorkItems(input: BuildInput): WorkItem[] {
     return pr ? `pr:${pr.url}` : `project:${repo}`;
   });
 
+  const byBranch = new Map<string, string>();
+  for (const pr of ownPrs) {
+    if (!pr.branch) continue;
+    const branchKey = `${pr.repo.toLowerCase()}\n${pr.branch}`;
+    const first = byBranch.get(branchKey);
+    if (first) links.join(first, `pr:${pr.url}`);
+    else byBranch.set(branchKey, `pr:${pr.url}`);
+  }
+
   input.activity.forEach((item, index) => {
     const node = activityNodes[index] as string;
     links.add(node);

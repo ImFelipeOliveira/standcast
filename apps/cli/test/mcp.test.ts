@@ -279,7 +279,14 @@ describe('mcp server', () => {
     expect(sessions.map((s) => s.id)).toContain('a1');
     expect(sessions.flatMap((s) => s.prompts)).toContain('Fix the cart total rounding');
     expect((result.structuredContent as { untrusted: boolean }).untrusted).toBe(true);
-    expect(api.seen.map((s) => s.body).join('')).not.toContain('cart');
+    expect(api.seen).toHaveLength(1);
+    const [call] = api.seen;
+    expect(call?.method).toBe('GET');
+    expect(call?.path.startsWith('/v1/draft')).toBe(true);
+    expect(call?.body).toBe('');
+    for (const marker of ['cart', 'a1', '/home/dev', 'home-dev', 'rounding']) {
+      expect(call?.path).not.toContain(marker);
+    }
   });
 
   test('includeSessions false omits sessions', async () => {

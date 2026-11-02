@@ -7,7 +7,10 @@ const TOKEN_PATTERNS = [
   /sck_[A-Za-z0-9]{16,}/g,
   /sc_[A-Za-z0-9]{16,}/g,
   /AKIA[0-9A-Z]{16}/g,
+  /glpat-[A-Za-z0-9_-]{20,}/g,
 ];
+
+const URL_CREDENTIALS = /\b([A-Za-z][A-Za-z0-9+.-]*:\/\/)[^\s/@"'<>]*:[^\s/@"'<>]*@/g;
 
 const LONG_RUN = /[A-Za-z0-9+/=_.~-]{32,}/g;
 const URL_PATTERN = /https?:\/\/[^\s"'<>()[\]{}]+/g;
@@ -104,6 +107,7 @@ function redactUrl(url: string): string {
 
 export function redact(text: string): string {
   let out = text;
+  out = out.replace(URL_CREDENTIALS, `$1${MARK}@`);
   for (const pattern of TOKEN_PATTERNS) out = out.replace(pattern, MARK);
   out = out.replace(URL_PATTERN, redactUrl);
   return out.replace(LONG_RUN, redactRun);

@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test';
+import { Octokit } from '@octokit/core';
 import { hasUnsafeChars } from '@standcast/core';
 import { listActivity } from '../src/activity';
-import { type Call, fixture, octokitWith } from './helpers';
+import { type Call, fakeFetch, fixture, octokitWith } from './helpers';
 
 function searchQueries(calls: Call[]): string[] {
   return calls
@@ -169,4 +170,22 @@ describe('listActivity', () => {
     expect(pulls.length).toBeGreaterThan(0);
     for (const item of pulls) expect('branch' in item).toBe(false);
   });
+  test('a hung branch lookup is dropped after the timeout', async () => {
+    const fake = fakeFetch(routes());
+    const hanging = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : String(input));
+      if (!url.pathname.includes('/pulls/')) return fake.fetch(input, init);
+      const signal = init?.signal ?? (input instanceof Request ? input.signal : undefined);
+      return new Promise<Response>((_, reject) => {
+        signal?.addEventListener('abort', () => reject(signal.reason));
+      });
+    }) as typeof fetch;
+    const octokit = new Octokit({ request: { fetch: hanging } });
+    const started = Date.now();
+    const items = await listActivity(octokit, 'acme', 'alice', since);
+    expect(Date.now() - started).toBeLessThan(6000);
+    const pulls = items.filter((i) => i.kind === 'pr_opened' || i.kind === 'pr_merged');
+    expect(pulls.length).toBeGreaterThan(0);
+    for (const item of pulls) expect('branch' in item).toBe(false);
+  }, 8000);
 });

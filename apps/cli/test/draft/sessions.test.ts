@@ -292,6 +292,34 @@ describe('readSessions', () => {
     expect(session?.prompts).toEqual(['Review the payment flow', 'Then deploy']);
   });
 
+  test('skips sidechain lines', async () => {
+    const dir = await tempDir();
+    await mkdir(join(dir, 'proj'));
+    const lines = [
+      line({ type: 'user', message: { role: 'user', content: 'Ship the login page' } }),
+      line({
+        type: 'user',
+        isSidechain: true,
+        timestamp: '2026-10-31T08:30:00.000Z',
+        message: { role: 'user', content: 'Subagent brief about the login page' },
+      }),
+      line({
+        type: 'assistant',
+        isSidechain: true,
+        timestamp: '2026-10-31T08:40:00.000Z',
+        message: {
+          role: 'assistant',
+          content: [{ type: 'tool_use', name: 'Edit', input: { file_path: '/work/app/side.ts' } }],
+        },
+      }),
+    ];
+    await writeFile(join(dir, 'proj', 's1.jsonl'), `${lines.join('\n')}\n`);
+    const [session] = await readSessions({ dir, since, until, env: {} });
+    expect(session?.prompts).toEqual(['Ship the login page']);
+    expect(session?.files).toEqual([]);
+    expect(session?.endedAt).toBe('2026-10-31T08:00:00.000Z');
+  });
+
   test('caps ai titles at 120 chars', async () => {
     const dir = await tempDir();
     await mkdir(join(dir, 'proj'));

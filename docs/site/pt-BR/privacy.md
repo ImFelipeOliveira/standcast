@@ -98,7 +98,7 @@ Quando alguém pede acesso ao beta na página do Standcast, o formulário coleta
 - Calcular ranking, nota, métrica de produtividade ou agregado por pessoa.
 - Ler o seu código, as suas mensagens no Slack ou as suas mensagens diretas.
 - Escrever nos seus repositórios.
-- Mandar os seus dados para um modelo de IA.
+- Mandar, por conta própria, os seus dados para um modelo de IA; quem recebe o rascunho é o agente que você escolhe para escrever a sua daily.
 - Receber as suas sessões de IA: elas são lidas na sua máquina e nunca vão para o Standcast.
 - Vender os seus dados, ou compartilhá-los com alguém além dos provedores que operam o serviço (como a Resend, para os e-mails de pedidos do beta).
 

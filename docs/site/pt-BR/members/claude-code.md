@@ -50,17 +50,17 @@ O rascunho usa as suas sessões do Claude Code na janela do rascunho, então o o
 
 ```text
 Você:    /daily
-Claude:  Este é o seu ontem a partir da atividade no GitHub da acme:
-         1. Mergeou "Add rate limiting" (acme/api#42)
+Claude:  Este é o seu ontem a partir da atividade no GitHub e no Linear da acme e das suas sessões do Claude Code:
+         1. Adicionou rate limiting na API pública e mergeou (acme/api#42, card ENG-42)
          2. Revisou "Retry webhooks with backoff" (acme/worker#17)
-         3. 3 commits em acme/worker: "Fix retry backoff"
+         3. Investigou o teste instável do checkout em acme/shop
          Quer corrigir, remover ou adicionar algo?
-Você:    Tira o 3, ele faz parte do 2.
+Você:    Tira o 3, não deu em nada.
 Claude:  O que você vai fazer hoje? Algum impedimento?
 Você:    Hoje vou escrever os guias para integradores. Travado: esperando o banco de staging.
 Claude:  Daily final da acme, 2026-10-28:
          Ontem
-         - Mergeou "Add rate limiting" (acme/api#42)
+         - Adicionou rate limiting na API pública e mergeou (acme/api#42)
          - Revisou "Retry webhooks with backoff" (acme/worker#17)
          Hoje
          - vou escrever os guias para integradores

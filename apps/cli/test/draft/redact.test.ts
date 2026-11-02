@@ -41,6 +41,25 @@ describe('redact', () => {
     );
   });
 
+  test('redacts credentials inside urls of any scheme', () => {
+    expect(redact('db postgres://user:S3cr3tPassw0rd@db.host:5432/app now')).toBe(
+      'db postgres://[redacted]@db.host:5432/app now',
+    );
+    expect(redact('clone https://user:token@host/x')).toBe('clone https://[redacted]@host/x');
+    expect(redact('redis://:pw@cache:6379/0')).toBe('redis://[redacted]@cache:6379/0');
+    expect(redact('mongodb+srv://admin:hunter2@cluster.example.net/db')).toBe(
+      'mongodb+srv://[redacted]@cluster.example.net/db',
+    );
+    expect(redact('see https://github.com/acme/app and git@github.com:acme/app.git')).toBe(
+      'see https://github.com/acme/app and git@github.com:acme/app.git',
+    );
+  });
+
+  test('replaces gitlab tokens', () => {
+    expect(redact('token glpat-AbCdEfGhIjKlMnOpQrSt end')).toBe('token [redacted] end');
+    expect(redact('glpat-ab_cd-efghijklmnopqrstu')).toBe('[redacted]');
+  });
+
   test('redacts secret values inside urls', () => {
     expect(redact('go to https://x.test/cb?code=4f9Kq2LmZx81PwR7tY3v&state=ok now')).toBe(
       'go to https://x.test/cb?code=[redacted]&state=ok now',

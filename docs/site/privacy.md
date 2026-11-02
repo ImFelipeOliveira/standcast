@@ -98,7 +98,7 @@ When someone asks for beta access on the Standcast landing page, the form collec
 - Computes rankings, scores, productivity metrics or per-person aggregates.
 - Reads your code, your Slack messages or your direct messages.
 - Writes to your repositories.
-- Sends your data to an AI model.
+- Standcast itself never sends your data to an AI model; the agent you choose to write your daily with receives the draft.
 - Receives your AI sessions: they are read on your machine and never sent to Standcast.
 - Sells your data, or shares it with anyone other than the providers that run the service (such as Resend, for beta request emails).
 

@@ -159,6 +159,7 @@ function handleLine(
   if (!isRecord(line) || typeof line.sessionId !== 'string' || !line.sessionId) return;
   const type = line.type;
   if (type !== 'user' && type !== 'assistant' && type !== 'ai-title') return;
+  if (line.isSidechain === true) return;
 
   if (type === 'ai-title') {
     if (typeof line.aiTitle !== 'string' || !line.aiTitle.trim()) return;

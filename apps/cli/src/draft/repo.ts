@@ -47,7 +47,10 @@ export function resolveRepo(cwd: string, run: GitRunner = runGit): Promise<strin
   }
   const cached = cache.get(cwd);
   if (cached) return cached;
-  const pending = lookup(cwd, run);
+  const pending = lookup(cwd, run).then((repo) => {
+    if (repo === null && cache.get(cwd) === pending) cache.delete(cwd);
+    return repo;
+  });
   cache.set(cwd, pending);
   return pending;
 }

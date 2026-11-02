@@ -50,17 +50,17 @@ The draft uses your Claude Code sessions from the draft window, so yesterday cov
 
 ```text
 You:     /daily
-Claude:  Here is yesterday from your GitHub activity in acme:
-         1. Merged "Add rate limiting" (acme/api#42)
+Claude:  Here is yesterday from your GitHub and Linear activity in acme and your Claude Code sessions:
+         1. Added rate limiting to the public API and merged it (acme/api#42, card ENG-42)
          2. Reviewed "Retry webhooks with backoff" (acme/worker#17)
-         3. 3 commits in acme/worker: "Fix retry backoff"
+         3. Looked into the flaky checkout test in acme/shop
          Anything to fix, remove or add?
-You:     Drop 3, it's part of 2.
+You:     Drop 3, it went nowhere.
 Claude:  What will you do today? Any blockers?
 You:     Today I'll write the integrator guides. Blocked: waiting for the staging database.
 Claude:  Final daily for acme, 2026-10-28:
          Yesterday
-         - Merged "Add rate limiting" (acme/api#42)
+         - Added rate limiting to the public API and merged it (acme/api#42)
          - Reviewed "Retry webhooks with backoff" (acme/worker#17)
          Today
          - I'll write the integrator guides

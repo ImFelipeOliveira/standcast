@@ -52,4 +52,15 @@ describe('resolveRepo', () => {
     expect(await resolveRepo('/work/none', async () => null)).toBeNull();
     expect(await resolveRepo('/work/gitlab', async () => 'https://gitlab.com/a/b.git')).toBeNull();
   });
+  test('a failed lookup is retried, a found repo is cached', async () => {
+    let calls = 0;
+    const run = async () => {
+      calls += 1;
+      return calls === 1 ? null : 'git@github.com:acme/retry.git\n';
+    };
+    expect(await resolveRepo('/work/retry', run)).toBeNull();
+    expect(await resolveRepo('/work/retry', run)).toBe('acme/retry');
+    expect(await resolveRepo('/work/retry', run)).toBe('acme/retry');
+    expect(calls).toBe(2);
+  });
 });
