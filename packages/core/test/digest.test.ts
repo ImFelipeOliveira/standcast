@@ -73,8 +73,8 @@ describe('buildDigest', () => {
     const asking = entry('bob', 'U2', { support: [{ text: 'need a review on the API PR' }] });
     const msg = buildDigest({ ...base, entries: [asking, blocked] });
     const texts = msg.blocks.map(blockText);
-    const idxBlockers = texts.indexOf('Blockers');
-    const idxSupport = texts.indexOf('Support requests');
+    const idxBlockers = texts.indexOf('🚧 Blockers');
+    const idxSupport = texts.indexOf('🤝 Support requests');
     const idxAsk = texts.findIndex((t) => t.includes('need a review on the API PR'));
     const idxAlice = texts.findIndex((t) => t.includes('alice did y'));
     expect(idxBlockers).toBeGreaterThan(0);
@@ -104,7 +104,7 @@ describe('buildDigest', () => {
   test('support heading is localized', () => {
     const asking = entry('bob', 'U2', { support: [{ text: 'ajuda com o deploy' }] });
     const pt = buildDigest({ ...base, team: team('pt-BR', ['bob']), entries: [asking] });
-    expect(pt.blocks.map(blockText)).toContain('Pedidos de apoio');
+    expect(pt.blocks.map(blockText)).toContain('🤝 Pedidos de apoio');
   });
 
   test('one section per person in config member order', () => {
@@ -160,9 +160,41 @@ describe('buildDigest', () => {
 
   test('localized', () => {
     const en = buildDigest({ ...base, entries: [other] });
-    expect(en.blocks[0]).toEqual({ type: 'heading', text: 'Daily — backend — 2026-10-27' });
+    expect(en.blocks[0]).toEqual({ type: 'heading', text: '📅 Daily — backend — 2026-10-27' });
     const pt = buildDigest({ ...base, team: team('pt-BR', ['bob']), entries: [other] });
-    expect(pt.blocks[0]).toEqual({ type: 'heading', text: 'Daily — backend — 27/10/2026' });
+    expect(pt.blocks[0]).toEqual({ type: 'heading', text: '📅 Daily — backend — 27/10/2026' });
+  });
+
+  test('section labels carry emoji in both languages', () => {
+    const asking = entry('alice', 'U1', {
+      blockers: [{ text: 'stuck' }],
+      support: [{ text: 'need a hand' }],
+    });
+    const cases = [
+      {
+        lang: 'en' as const,
+        labels: ['🚧 Blockers', '🤝 Support requests', '🗓️ Yesterday:', '🎯 Today:'],
+        missing: '⏳ Did not send the daily: @carol',
+      },
+      {
+        lang: 'pt-BR' as const,
+        labels: ['🚧 Impedimentos', '🤝 Pedidos de apoio', '🗓️ Ontem:', '🎯 Hoje:'],
+        missing: '⏳ Não enviaram a daily: @carol',
+      },
+    ];
+    for (const { lang, labels, missing } of cases) {
+      const msg = buildDigest({
+        team: team(lang, ['alice']),
+        date,
+        entries: [asking],
+        missing: [{ login: 'carol' }],
+      });
+      const texts = msg.blocks.map(blockText);
+      expect(texts[0]?.startsWith('📅 Daily — backend — ')).toBe(true);
+      for (const label of labels) expect(texts).toContain(label);
+      expect(texts[texts.length - 1]).toBe(missing);
+      expect(msg.fallbackText).toContain('🚧');
+    }
   });
 
   test('refs become links', () => {
@@ -209,7 +241,7 @@ describe('buildLateDaily', () => {
     );
     const texts = msg.blocks.map(blockText);
     const idxBlocker = texts.findIndex((t) => t.includes('stuck'));
-    const idxSupport = texts.indexOf('Support requests');
+    const idxSupport = texts.indexOf('🤝 Support requests');
     expect(idxSupport).toBeGreaterThan(idxBlocker);
     expect(texts[idxSupport + 1]).toBe('<U1>: need a reviewer');
   });

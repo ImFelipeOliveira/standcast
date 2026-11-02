@@ -412,7 +412,7 @@ describe('mcp server', () => {
       '- Shipped rate limits [pull_request: Add rate limiting] (https://github.com/acme/api/pull/42)',
     );
     expect(asked[0]).toContain('- Review PRs');
-    expect(asked[0]).toContain('Blockers:\n- (none)');
+    expect(asked[0]).toContain('🚧 Blockers:\n- (none)');
     expect(asked[0]).not.toContain('Support requests');
     expect(api.seen.map((s) => `${s.method} ${s.path}`)).toEqual([
       'GET /v1/today?org=acme',
@@ -444,7 +444,7 @@ describe('mcp server', () => {
     });
     expect(result.isError).toBeFalsy();
     expect(asked[0]).toContain(
-      'Blockers:\n- (none)\n\nSupport requests:\n- Need a review on the migration [pull_request] (https://github.com/acme/api/pull/43)',
+      '🚧 Blockers:\n- (none)\n\n🤝 Support requests:\n- Need a review on the migration [pull_request] (https://github.com/acme/api/pull/43)',
     );
     const posted = api.seen.find((s) => s.method === 'POST');
     expect(JSON.parse(posted?.body ?? '{}')).toEqual({ org: 'acme', ...DAILY, support });
@@ -535,11 +535,11 @@ describe('mcp server', () => {
       arguments: { ...DAILY, blockers: [], support: [{ text: 'Preciso de ajuda com o deploy' }] },
     });
     expect(result.isError).toBeFalsy();
-    expect(asked[0]).toContain('Pedidos de apoio:\n- Preciso de ajuda com o deploy');
+    expect(asked[0]).toContain('🤝 Pedidos de apoio:\n- Preciso de ajuda com o deploy');
     expect(asked[0]).toContain('Enviar esta daily para acme? Data: 2026-10-29.');
-    expect(asked[0]).toContain('Ontem:\n');
-    expect(asked[0]).toContain('Hoje:\n- Review PRs');
-    expect(asked[0]).toContain('Impedimentos:\n- (nenhum)');
+    expect(asked[0]).toContain('🗓️ Ontem:\n');
+    expect(asked[0]).toContain('🎯 Hoje:\n- Review PRs');
+    expect(asked[0]).toContain('🚧 Impedimentos:\n- (nenhum)');
     expect(schemas[0]).toMatchObject({
       properties: {
         confirm: {
