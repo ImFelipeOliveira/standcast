@@ -19,7 +19,7 @@ Alice roda `/daily` no Claude Code. A skill pede um rascunho ao Standcast. O Sta
 
 A janela começa no envio da última daily, se ela foi no dia útil anterior ou depois. Senão, começa à meia-noite do dia útil anterior. Na segunda, o dia útil anterior é sexta, então o fim de semana entra. Os cards usam a mesma janela. O rascunho tem até 50 itens no total, do mais recente para o mais antigo. Se o Linear falhar, o rascunho ainda vem com a atividade do GitHub.
 
-Alice ajusta o ontem, escreve o hoje e um impedimento e confirma. O Standcast guarda a daily na data de hoje. Ela pode reenviar até o consolidado sair: vale a última versão.
+Alice ajusta o ontem, escreve o hoje e um impedimento, pede um review da migração dela como pedido de apoio e confirma. O Standcast guarda a daily na data de hoje. Ela pode reenviar até o consolidado sair: vale a última versão.
 
 ## 09:30 · Lembrete
 
@@ -36,8 +36,9 @@ No `digest_at`, no fuso do time e só em dias úteis, o Standcast publica uma me
 
 1. o título, com o time e a data;
 2. **Impedimentos**, com quem reportou cada um;
-3. o ontem e o hoje de cada pessoa, na ordem de `members` no `standcast.yml`;
-4. quem não enviou a daily.
+3. **Pedidos de apoio**, com quem pediu cada um, quando alguém pediu;
+4. o ontem e o hoje de cada pessoa, na ordem de `members` no `standcast.yml`;
+5. quem não enviou a daily.
 
 As pessoas são mencionadas no Slack quando o Standcast conhece o usuário delas lá. Senão, aparecem como `@` seguido do login do GitHub, em texto. Veja [Slack](/pt-BR/admin/slack#como-as-pessoas-sao-mencionadas).
 
@@ -73,6 +74,16 @@ Regras:
 - Se não há nenhum destinatário, por exemplo quando o autor é o único gestor do time, a entrega com falha `no_route_target` aparece na página de setup. Um gestor sem identidade no Slack aparece como `no_chat_identity`.
 
 Os impedimentos também aparecem no topo do consolidado, no webhook `blocker.opened` e nas tools de gestor.
+
+## Pedidos de apoio
+
+Um pedido de apoio é algo que você precisa de outra pessoa sem estar travado: um review, uma decisão, um pareamento. É uma seção opcional da daily, perguntada logo depois dos impedimentos, e vai exatamente como você escreveu.
+
+- Ele aparece no consolidado logo depois dos impedimentos, com quem pediu, e numa daily atrasada depois dos impedimentos dela.
+- Ele não é encaminhado por mensagem direta, e o Standcast não acompanha se alguém respondeu.
+- Ele está no campo `support` das dailies na API da organização, no webhook `daily.submitted` e nas tools de gestor. Não existe um evento separado.
+- Um impedimento sugerido nunca vira pedido de apoio.
+- Assim como os impedimentos, os pedidos de apoio são conteúdo que você escolheu compartilhar. O Standcast nunca os conta nem os transforma em métrica sobre ninguém.
 
 ## Impedimentos sugeridos
 

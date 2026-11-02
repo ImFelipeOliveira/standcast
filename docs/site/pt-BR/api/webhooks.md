@@ -26,7 +26,7 @@ O segredo de assinatura (`whsec_...`) aparece uma vez, quando o endpoint é cria
 
 | Evento | Enviado quando |
 | --- | --- |
-| `daily.submitted` | Uma pessoa envia a daily. Um reenvio no mesmo dia é enviado de novo com `replaced: true`. |
+| `daily.submitted` | Uma pessoa envia a daily. Um reenvio no mesmo dia é enviado de novo com `replaced: true`. `support` lista o que a pessoa precisa de outra pessoa sem estar travada; fica vazio quando ela não pediu nada. Pedidos de apoio não têm evento próprio. |
 | `blocker.opened` | Uma daily traz um impedimento novo naquele dia. Um impedimento cujo texto (ignorando maiúsculas e espaços extras) já estava na versão anterior da mesma daily não é enviado de novo. |
 | `digest.sent` | O consolidado do time é publicado no chat. |
 | `ping` | Um admin clica em **Enviar evento de teste**. Os endpoints não assinam esse evento; ele vai só para o endpoint testado. |
@@ -67,6 +67,7 @@ Todo corpo é um envelope com os mesmos campos:
         "ref": { "kind": "issue", "url": "https://github.com/acme/infra/issues/7" }
       }
     ],
+    "support": [{ "text": "Need a review on the migration before Friday" }],
     "replaced": false
   }
 }

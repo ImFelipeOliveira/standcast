@@ -18,7 +18,7 @@ The Standcast API lets your systems read your organization's data and receive ev
   | Operation | Scope | Returns |
   | --- | --- | --- |
   | `GET /v1/org/teams` | `teams:read` | The teams in `standcast.yml`: name, time zone, workdays, times and members |
-  | `GET /v1/org/dailies` | `dailies:read` | Confirmed dailies, filtered by `date` and `team` |
+  | `GET /v1/org/dailies` | `dailies:read` | Confirmed dailies with yesterday, today, blockers and support requests, filtered by `date` and `team` |
   | `GET /v1/org/dailies/{id}` | `dailies:read` | One daily |
   | `GET /v1/org/digests` | `digests:read` | Digest deliveries, with who did not send the daily, filtered by `team`, `from` and `to` |
   | `GET /v1/org/blockers` | `blockers:read` | Confirmed blockers, filtered by `date` and `team` |

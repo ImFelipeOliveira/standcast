@@ -22,8 +22,9 @@ Digite `/daily`, ou peça do seu jeito: "minha daily", "standup", "o que eu fiz 
 2. Mostra o ontem e deixa você corrigir, remover ou adicionar itens. Ela pode adicionar coisas que de fato aconteceram nesta sessão do Claude Code.
 3. Se o rascunho tem impedimentos sugeridos, como um pull request seu esperando revisão, com checks falhando ou um card em andamento há dias, pergunta sobre cada um. Se for um impedimento de verdade, ele entra nos seus impedimentos com o link; se não, a skill o ignora e ele só volta se o sinal mudar. Ela nunca adiciona uma sugestão sem a sua resposta, e as sugestões só são visíveis para você.
 4. Pergunta o que você vai fazer hoje e o que está travando você, no seu idioma.
-5. Mostra a daily final e pede a sua confirmação explícita.
-6. Envia e avisa se ela foi para a thread do consolidado porque ele já tinha sido publicado.
+5. Pergunta se você precisa de apoio de alguém, sem estar travado: um review, uma decisão, um pareamento. "Não" deixa a seção vazia.
+6. Mostra a daily final e pede a sua confirmação explícita.
+7. Envia e avisa se ela foi para a thread do consolidado porque ele já tinha sido publicado.
 
 Ela usa as tools do MCP quando estão disponíveis e, senão, a CLI `standcast`.
 
@@ -48,6 +49,8 @@ Claude:  Este é o seu ontem a partir da atividade no GitHub da acme:
 Você:    Tira o 3, ele faz parte do 2.
 Claude:  O que você vai fazer hoje? Algum impedimento?
 Você:    Hoje vou escrever os guias para integradores. Travado: esperando o banco de staging.
+Claude:  Precisa de apoio de alguém, sem estar travado?
+Você:    Um review no PR da migração antes de sexta.
 Claude:  Daily final da acme, 2026-10-28:
          Ontem
          - Mergeou "Add rate limiting" (acme/api#42)
@@ -56,6 +59,8 @@ Claude:  Daily final da acme, 2026-10-28:
          - vou escrever os guias para integradores
          Impedimentos
          - esperando o banco de staging
+         Pedidos de apoio
+         - Um review no PR da migração antes de sexta
          Posso enviar?
 Você:    Pode.
 Claude:  Enviada para 2026-10-28. Ela entra no consolidado do backend.

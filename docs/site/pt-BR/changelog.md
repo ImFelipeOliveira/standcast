@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- Pedidos de apoio: uma seção opcional da daily para o que você precisa de outra pessoa sem estar travado, como um review, uma decisão ou um pareamento. A skill `/daily`, o servidor MCP e a CLI perguntam por ela depois dos impedimentos, e o consolidado a mostra logo depois dos impedimentos, com quem pediu. Ela não é encaminhada por mensagem direta.
+
 ### 0.3.1 — 01/11/2026
 
 - O site de documentação publica `robots.txt` e um `sitemap.xml`, e a landing page serve as próprias fontes.
