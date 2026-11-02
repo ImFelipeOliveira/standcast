@@ -84,7 +84,7 @@ export async function createWebhookEndpoint(
   isMember: MembershipCheck,
   member: MemberRow,
   input: CreateWebhookEndpointInput,
-): Promise<{ id: string; secret: string }> {
+): Promise<{ id: string; secret: string; endpoint: WebhookEndpointSummary }> {
   await requireAdmin(deps, isMember, member, input.installationId);
   const url = validateEndpointUrl(input.url);
   const events = validateEvents(input.events);
@@ -93,12 +93,12 @@ export async function createWebhookEndpoint(
     throw invalid(`at most ${MAX_ACTIVE_ENDPOINTS} active endpoints per organization`);
   }
   const secret = `${SECRET_PREFIX}${randomBytes(32).toString('base64url')}`;
-  const { id } = await insertWebhookEndpoint(
+  const endpoint = await insertWebhookEndpoint(
     deps.db,
     { installationId: input.installationId, url, events, secret },
     deps.encryptionKey,
   );
-  return { id, secret };
+  return { id: endpoint.id, secret, endpoint };
 }
 
 export async function disableWebhookEndpoint(

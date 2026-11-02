@@ -148,6 +148,7 @@ function harness(
       supportEmail: 'help@sw.test',
       docsUrl: 'https://docs.sw.test',
       landingUrl: 'https://landing.sw.test',
+      appUrl: 'https://app.test',
       githubClientId: 'cid',
       githubClientSecret: 'secret',
       sessionSecret: 'sess',

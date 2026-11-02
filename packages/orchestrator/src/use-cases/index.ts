@@ -7,6 +7,7 @@ export * from './deliver-webhook';
 export * from './emit-event';
 export * from './errors';
 export * from './get-draft';
+export * from './get-org-context';
 export * from './get-setup-status';
 export * from './get-today';
 export * from './handle-github-event';

@@ -2,7 +2,12 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypt
 
 const STATE_TTL_MS = 10 * 60 * 1000;
 
-export type LoginState = { kind: 'login'; next: string; nonceHash: string };
+export type LoginState = {
+  kind: 'login';
+  next: string;
+  nonceHash: string;
+  target?: 'api' | 'app';
+};
 export type SlackState = { kind: 'slack'; installationId: number; sessionHash: string };
 export type LinearState = { kind: 'linear'; installationId: number; sessionHash: string };
 export type StatePayload = LoginState | SlackState | LinearState;
