@@ -13,6 +13,11 @@ const TOKEN_PATTERNS = [
 const URL_CREDENTIALS =
   /\b([A-Za-z][A-Za-z0-9+.-]{0,31}:\/\/)[^\s/@?#"'<>:]{0,256}:[^\s/?#"'<>]{0,512}@/g;
 
+const CREDENTIAL_LABEL =
+  /\b(token|secret|password|passwd|pwd|api_key|api-key|apikey|access_key|client_secret|authorization|auth|bearer|key)\b([ \t]*[:=]?[ \t]*)([^\s]{8,})/gi;
+const TRAILING_PUNCTUATION = /[.,;:!?)\]}'"]+$/;
+const MIN_LABELED_VALUE = 16;
+
 const LONG_RUN = /[A-Za-z0-9+/=_.~-]{32,}/g;
 const URL_PATTERN = /https?:\/\/[^\s"'<>()[\]{}]+/g;
 const PATH_START = /^(\/|\.\/|~\/)/;
@@ -118,8 +123,19 @@ function redactTokens(text: string): string {
   return out;
 }
 
+function redactLabeled(text: string): string {
+  return text.replace(CREDENTIAL_LABEL, (match, label: string, gap: string, raw: string) => {
+    const value = raw.replace(TRAILING_PUNCTUATION, '');
+    const credential = value.length >= 8 && (/\d/.test(value) || value.length >= MIN_LABELED_VALUE);
+    if (!credential) return match;
+    return `${label}${gap}${MARK}${raw.slice(value.length)}`;
+  });
+}
+
 export function redact(text: string): string {
-  return redactTokens(text).replace(URL_PATTERN, redactUrl).replace(LONG_RUN, redactRun);
+  return redactLabeled(redactTokens(text))
+    .replace(URL_PATTERN, redactUrl)
+    .replace(LONG_RUN, redactRun);
 }
 
 export function redactPath(path: string): string {

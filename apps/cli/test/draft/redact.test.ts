@@ -160,4 +160,21 @@ describe('redact', () => {
       'key [redacted] end',
     );
   });
+
+  test('redacts the value that follows a credential label', () => {
+    expect(redact('token abcdef01-abcd-4567-aaaa-abcdef123456')).toBe('token [redacted]');
+    expect(redact('API_KEY=sk_live_short123')).toBe('API_KEY=[redacted]');
+    expect(redact('password: hunter2hunter2')).toBe('password: [redacted]');
+    expect(redact('Authorization: Bearer abc.def.ghi1234')).toBe(
+      'Authorization: Bearer [redacted]',
+    );
+  });
+
+  test('keeps plain words and unlabeled ids after label-like words', () => {
+    expect(redact('the key point is simple')).toBe('the key point is simple');
+    expect(redact('fix the token refresh flow')).toBe('fix the token refresh flow');
+    expect(redact('see run abcdef01-abcd-4567-aaaa-abcdef123456')).toBe(
+      'see run abcdef01-abcd-4567-aaaa-abcdef123456',
+    );
+  });
 });
