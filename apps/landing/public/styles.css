@@ -540,7 +540,8 @@ body::before {
 }
 
 .term-body pre .ln {
-  display: block;
+  display: inline-block;
+  min-width: 100%;
 }
 
 .t-dim {
