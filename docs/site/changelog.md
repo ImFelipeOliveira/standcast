@@ -10,6 +10,10 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+### 0.4.1 — 2026-11-02
+
+- Documentation only: the 0.4.0 changelog entries. No product changes.
+
 ### 0.4.0 — 2026-11-02
 
 - The daily draft can use your local AI sessions: `standcast draft --sessions`, the MCP `standcast_get_draft` tool (`includeSessions`, on by default) and the `/daily` skill read your Claude Code sessions on your machine and group them with your pull requests, cards and commits into `work`, so yesterday becomes one line per piece of work. Standcast never sends session data to its API; your AI client receives it and may send it to its model provider. Turn it off with `STANDCAST_SESSIONS=off`. See [Privacy](/privacy#your-ai-sessions-on-your-machine).
