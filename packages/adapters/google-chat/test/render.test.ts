@@ -84,6 +84,15 @@ describe('renderGoogleChat', () => {
     expect(lines.at(-2)).toMatch(/^• item \d+ x{20}$/);
   });
 
+  test('a hard cut does not leave open markup', () => {
+    const link = { link: { text: 'pr', url: 'https://github.com/o/r/pull/1' } };
+    const out = renderGoogleChat({
+      fallbackText: 'fb',
+      blocks: [{ type: 'paragraph', content: ['z'.repeat(4070), link, ' tail'] }],
+    });
+    expect(out.text).toBe(`${'z'.repeat(4070)}\n… see Standcast`);
+  });
+
   test('a single long line is cut with the tail', () => {
     const out = renderGoogleChat({
       fallbackText: 'fb',

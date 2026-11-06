@@ -199,6 +199,54 @@ describe('createGoogleChatChannel', () => {
     );
   });
 
+  test('a 401 drops the cached token', async () => {
+    let invalidated = 0;
+    const token = Object.assign(async () => 'ya29.token', {
+      invalidate: () => {
+        invalidated += 1;
+      },
+    });
+    const statuses = [401, 200];
+    let calls = 0;
+    const channel = createGoogleChatChannel(token, {
+      apiUrl: API,
+      fetch: (async () => {
+        const status = statuses[calls++] ?? 200;
+        return status === 200 ? Response.json({ name: 'spaces/AAA' }) : googleError(status);
+      }) as unknown as typeof fetch,
+    });
+    expect((await failure(() => channel.postToChannel('spaces/AAA', msg))).code).toBe(
+      'invalid_auth',
+    );
+    expect(invalidated).toBe(1);
+    expect(await channel.checkChannel('spaces/AAA')).toBe('ok');
+    expect(invalidated).toBe(1);
+  });
+
+  test('a timeout while reading the body is timeout', async () => {
+    const { channel } = fake(
+      () =>
+        new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.error(new DOMException('timed out', 'TimeoutError'));
+            },
+          }),
+          { status: 200 },
+        ),
+    );
+    expect((await failure(() => channel.postToChannel('spaces/AAA', msg))).code).toBe('timeout');
+  });
+
+  test('reply refuses a thread from another space', async () => {
+    const { calls, channel } = fake(() => Response.json({}));
+    const err = await failure(() =>
+      channel.replyInThread({ channel: 'spaces/AAA', id: 'spaces/BBB/threads/t1' }, msg),
+    );
+    expect(err.code).toBe('invalid_response');
+    expect(calls).toHaveLength(0);
+  });
+
   test('a token failure propagates its code', async () => {
     const channel = createGoogleChatChannel(
       async () => {

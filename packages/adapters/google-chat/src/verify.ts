@@ -1,12 +1,16 @@
-import { discard, send, statusError } from './errors';
+import { discard, readJson, send, statusError } from './errors';
 
 export const GOOGLE_JWKS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
 export const JWKS_CACHE_MS = 60 * 60 * 1000;
+export const JWKS_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+export const CLOCK_SKEW_MS = 60_000;
 export const CHAT_ISSUER_EMAIL = 'chat@system.gserviceaccount.com';
 export const GOOGLE_ISSUERS = ['https://accounts.google.com', 'accounts.google.com'];
 
+export type JwksSource = (opts?: { refresh?: boolean }) => Promise<JsonWebKey[]>;
+
 export type VerifyChatEventOptions = {
-  jwks: () => Promise<JsonWebKey[]>;
+  jwks: JwksSource;
   now?: () => number;
 };
 
@@ -34,8 +38,17 @@ function audienceMatches(aud: unknown, audience: string): boolean {
   return Array.isArray(aud) && aud.includes(audience);
 }
 
+function notInFuture(seconds: unknown, nowMs: number): boolean {
+  return (
+    seconds === undefined ||
+    (typeof seconds === 'number' && seconds * 1000 <= nowMs + CLOCK_SKEW_MS)
+  );
+}
+
 function claimsValid(claims: Record<string, unknown>, audience: string, nowMs: number): boolean {
   return (
+    notInFuture(claims.nbf, nowMs) &&
+    notInFuture(claims.iat, nowMs) &&
     typeof claims.iss === 'string' &&
     GOOGLE_ISSUERS.includes(claims.iss) &&
     audienceMatches(claims.aud, audience) &&
@@ -61,7 +74,8 @@ export async function verifyChatEvent(
     if (header.alg !== 'RS256' || typeof header.kid !== 'string') return false;
     const claims = decodeJson(rawPayload);
     if (!claimsValid(claims, audience, (opts.now ?? Date.now)())) return false;
-    const jwk = (await opts.jwks()).find((k: KeyWithId) => k.kid === header.kid);
+    const byKid = (keys: JsonWebKey[]) => keys.find((k: KeyWithId) => k.kid === header.kid);
+    const jwk = byKid(await opts.jwks()) ?? byKid(await opts.jwks({ refresh: true }));
     if (jwk?.kty !== 'RSA') return false;
     const { kty, n, e } = jwk;
     const key = await crypto.subtle.importKey(
@@ -84,10 +98,10 @@ export async function verifyChatEvent(
 
 export function createGoogleJwks(
   opts: { fetch?: typeof fetch; now?: () => number; url?: string } = {},
-): () => Promise<JsonWebKey[]> {
+): JwksSource {
   const fetchImpl = opts.fetch ?? fetch;
   const now = opts.now ?? Date.now;
-  let cached: { keys: JsonWebKey[]; expiresAt: number } | undefined;
+  let cached: { keys: JsonWebKey[]; fetchedAt: number } | undefined;
   let pending: Promise<JsonWebKey[]> | undefined;
 
   async function load(): Promise<JsonWebKey[]> {
@@ -96,15 +110,18 @@ export function createGoogleJwks(
       await discard(response);
       throw statusError(response.status);
     }
-    const body = (await response.json()) as { keys?: unknown };
-    if (!Array.isArray(body.keys)) throw new Error('google jwks response missing keys');
-    const keys = body.keys as JsonWebKey[];
-    cached = { keys, expiresAt: now() + JWKS_CACHE_MS };
+    const body = (await readJson(response)) as { keys?: unknown } | null;
+    if (!Array.isArray(body?.keys)) throw new Error('google jwks response missing keys');
+    const keys = (body.keys as KeyWithId[]).filter(
+      (k) => typeof k === 'object' && k !== null && k.kty === 'RSA' && typeof k.kid === 'string',
+    );
+    cached = { keys, fetchedAt: now() };
     return keys;
   }
 
-  return async () => {
-    if (cached && now() < cached.expiresAt) return cached.keys;
+  return async ({ refresh = false } = {}) => {
+    const age = cached ? now() - cached.fetchedAt : Number.POSITIVE_INFINITY;
+    if (cached && age < (refresh ? JWKS_REFRESH_INTERVAL_MS : JWKS_CACHE_MS)) return cached.keys;
     pending ??= load().finally(() => {
       pending = undefined;
     });

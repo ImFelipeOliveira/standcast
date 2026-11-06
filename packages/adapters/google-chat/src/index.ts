@@ -4,9 +4,11 @@ export {
   GOOGLE_TOKEN_URL,
   parseServiceAccount,
   type ServiceAccount,
+  type TokenSource,
   type TokenSourceOptions,
 } from './auth';
 export {
+  type ChatTokenProvider,
   createGoogleChatChannel,
   GOOGLE_CHAT_API_URL,
   type GoogleChatChannelOptions,
@@ -18,6 +20,7 @@ export {
   CHAT_ISSUER_EMAIL,
   createGoogleJwks,
   GOOGLE_JWKS_URL,
+  type JwksSource,
   type VerifyChatEventOptions,
   verifyChatEvent,
 } from './verify';

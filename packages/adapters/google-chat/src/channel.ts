@@ -13,6 +13,8 @@ export const REPLY_OPTION = 'REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD';
 
 const SPACE_NAME = /^spaces\/[A-Za-z0-9_-]+$/;
 
+export type ChatTokenProvider = (() => Promise<string>) & { invalidate?: () => void };
+
 export type GoogleChatChannelOptions = { apiUrl?: string; fetch?: typeof fetch };
 
 export function isGoogleChatSpace(name: string): boolean {
@@ -20,7 +22,7 @@ export function isGoogleChatSpace(name: string): boolean {
 }
 
 export function createGoogleChatChannel(
-  token: () => Promise<string>,
+  token: ChatTokenProvider,
   opts: GoogleChatChannelOptions = {},
 ): ChatChannel {
   const fetchImpl = opts.fetch ?? fetch;
@@ -29,11 +31,13 @@ export function createGoogleChatChannel(
   async function call(method: 'GET' | 'POST', path: string, body?: object): Promise<Response> {
     const headers: Record<string, string> = { Authorization: `Bearer ${await token()}` };
     if (body) headers['Content-Type'] = 'application/json';
-    return send(fetchImpl, `${api}/${path}`, {
+    const response = await send(fetchImpl, `${api}/${path}`, {
       method,
       headers,
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
+    if (response.status === 401) token.invalidate?.();
+    return response;
   }
 
   async function post(
@@ -105,6 +109,9 @@ export function createGoogleChatChannel(
     },
     replyInThread: async (ref, msg) => {
       requireSpace(ref.channel);
+      if (!ref.id.startsWith(`${ref.channel}/threads/`)) {
+        throw new ChatDeliveryError('invalid_response', 'thread does not belong to the space');
+      }
       return post(ref.channel, msg, channelErrors, ref.id);
     },
     sendDirect: async (userId, msg) => {

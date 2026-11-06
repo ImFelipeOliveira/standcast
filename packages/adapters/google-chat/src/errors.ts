@@ -4,6 +4,11 @@ export { ChatDeliveryError };
 
 export const GOOGLE_CHAT_REQUEST_TIMEOUT_MS = 15_000;
 
+function isAbort(error: unknown): boolean {
+  const name = (error as { name?: string } | null)?.name;
+  return name === 'TimeoutError' || name === 'AbortError';
+}
+
 export async function send(
   fetchImpl: typeof fetch,
   url: string,
@@ -16,8 +21,7 @@ export async function send(
     });
   } catch (error) {
     if (error instanceof ChatDeliveryError) throw error;
-    const name = (error as { name?: string } | null)?.name;
-    if (name === 'TimeoutError' || name === 'AbortError') {
+    if (isAbort(error)) {
       throw new ChatDeliveryError('timeout', 'google request timed out');
     }
     throw new ChatDeliveryError('request_failed', 'google request failed');
@@ -37,7 +41,8 @@ export function statusError(
 export async function readJson(response: Response): Promise<unknown> {
   try {
     return await response.json();
-  } catch {
+  } catch (error) {
+    if (isAbort(error)) throw new ChatDeliveryError('timeout', 'google request timed out');
     throw new ChatDeliveryError('invalid_response', 'google returned invalid json');
   }
 }

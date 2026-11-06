@@ -55,7 +55,10 @@ function truncate(text: string): string {
   const budget = GOOGLE_CHAT_TEXT_LIMIT - TRUNCATION_TAIL.length - 1;
   const head = text.slice(0, budget);
   const lineEnd = head.lastIndexOf('\n');
-  const kept = lineEnd > 0 ? head.slice(0, lineEnd) : head.replace(/[\uD800-\uDBFF]$/, '');
+  const open = head.lastIndexOf('<');
+  const cutsMarkup = open > head.lastIndexOf('>') && head[open + 1] !== MARKUP_BREAKER;
+  const hard = cutsMarkup ? head.slice(0, open) : head.replace(/[\uD800-\uDBFF]$/, '');
+  const kept = lineEnd > 0 ? head.slice(0, lineEnd) : hard;
   return `${kept}\n${TRUNCATION_TAIL}`;
 }
 

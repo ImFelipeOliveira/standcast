@@ -7,6 +7,8 @@ export const TOKEN_REFRESH_MARGIN_MS = 60_000;
 
 export type ServiceAccount = { clientEmail: string; privateKey: string };
 
+export type TokenSource = (() => Promise<string>) & { invalidate: () => void };
+
 export type TokenSourceOptions = { fetch?: typeof fetch; now?: () => number };
 
 const INVALID_ACCOUNT =
@@ -87,7 +89,7 @@ async function signAssertion(key: CryptoKey, clientEmail: string, nowMs: number)
 export function createTokenSource(
   account: ServiceAccount,
   opts: TokenSourceOptions = {},
-): () => Promise<string> {
+): TokenSource {
   const fetchImpl = opts.fetch ?? fetch;
   const now = opts.now ?? Date.now;
   let signingKey: Promise<CryptoKey> | undefined;
@@ -128,11 +130,16 @@ export function createTokenSource(
     return body.access_token;
   }
 
-  return async () => {
+  const get = async () => {
     if (cached && now() < cached.refreshAt) return cached.token;
     pending ??= exchange().finally(() => {
       pending = undefined;
     });
     return pending;
   };
+  return Object.assign(get, {
+    invalidate: () => {
+      cached = undefined;
+    },
+  });
 }

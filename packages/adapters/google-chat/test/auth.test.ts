@@ -101,6 +101,23 @@ describe('createTokenSource', () => {
     expect(calls).toHaveLength(2);
   });
 
+  test('invalidate drops the cached token', async () => {
+    const keys = await generateKeys();
+    const { calls, fetchImpl } = tokenFetch([
+      () => Response.json({ access_token: 'ya29.one', expires_in: 3600 }),
+      () => Response.json({ access_token: 'ya29.two', expires_in: 3600 }),
+    ]);
+    const token = createTokenSource(
+      { clientEmail: 'bot@p.iam', privateKey: keys.pem },
+      { fetch: fetchImpl },
+    );
+    expect(await token()).toBe('ya29.one');
+    expect(await token()).toBe('ya29.one');
+    token.invalidate();
+    expect(await token()).toBe('ya29.two');
+    expect(calls).toHaveLength(2);
+  });
+
   test('a timed out exchange is timeout', async () => {
     const keys = await generateKeys();
     const fetchImpl = (async () => {
