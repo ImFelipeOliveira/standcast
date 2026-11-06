@@ -4,8 +4,21 @@
 
 ## Landing
 
-- [Landing page in Markdown](https://standcast.usefachada.dev/index.md): what Standcast does, privacy, configuration, the three ways to write and the FAQ
-- [Landing page in Brazilian Portuguese](https://standcast.usefachada.dev/pt-BR/index.md): the same page in pt-BR
+- [Home](https://standcast.usefachada.dev/index.md): what Standcast does, a day with it, privacy in short, the install command and the beta
+- [How it works](https://standcast.usefachada.dev/how-it-works/index.md): the daily timeline, what it does, standcast.yml and the three ways to write
+- [Privacy](https://standcast.usefachada.dev/privacy/index.md): who sees what, what Standcast reads and where the full privacy details live
+- [Pricing](https://standcast.usefachada.dev/pricing/index.md): free during the public beta, pricing announced before the beta ends
+- [FAQ](https://standcast.usefachada.dev/faq/index.md): answers before you install
+- [Join the beta](https://standcast.usefachada.dev/beta/index.md): request access to the public beta
+
+## Landing in Brazilian Portuguese
+
+- [Início](https://standcast.usefachada.dev/pt-BR/index.md): the home page in pt-BR
+- [Como funciona](https://standcast.usefachada.dev/pt-BR/como-funciona/index.md): how it works in pt-BR
+- [Privacidade](https://standcast.usefachada.dev/pt-BR/privacidade/index.md): privacy in pt-BR
+- [Preços](https://standcast.usefachada.dev/pt-BR/precos/index.md): pricing in pt-BR
+- [Perguntas frequentes](https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/index.md): the FAQ in pt-BR
+- [Entrar no beta](https://standcast.usefachada.dev/pt-BR/beta/index.md): join the beta in pt-BR
 
 ## Documentation
 
