@@ -570,6 +570,19 @@ describe('landing', () => {
     }
   });
 
+  test('not found pages exist in both languages', () => {
+    for (const [file, lang, home] of [
+      ['404.html', 'en', '/'],
+      ['pt-BR/404.html', 'pt-BR', '/pt-BR/'],
+    ] as const) {
+      const html = read(file);
+      expect(html).toMatch(new RegExp(`<html lang="${lang}"`));
+      expect(metaContent(html, 'robots')).toBe('noindex');
+      expect(tags(html, 'a').some((link) => attr(link, 'href') === home)).toBe(true);
+    }
+    expect(decode(read('pt-BR/404.html'))).not.toMatch(/Page not found|How it works|Join the beta/);
+  });
+
   test('internal links resolve to files and anchors', () => {
     const resolve = (ref: string) => join(PUBLIC, ref.endsWith('/') ? `${ref}index.html` : ref);
     for (const file of htmlFiles()) {
