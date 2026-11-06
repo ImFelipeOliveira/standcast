@@ -1,11 +1,10 @@
 import { discard, readJson, send, statusError } from './errors';
 
-export const GOOGLE_JWKS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
+export const CHAT_ISSUER_EMAIL = 'chat@system.gserviceaccount.com';
+export const GOOGLE_JWKS_URL = `https://www.googleapis.com/service_accounts/v1/jwk/${CHAT_ISSUER_EMAIL}`;
 export const JWKS_CACHE_MS = 60 * 60 * 1000;
 export const JWKS_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 export const CLOCK_SKEW_MS = 60_000;
-export const CHAT_ISSUER_EMAIL = 'chat@system.gserviceaccount.com';
-export const GOOGLE_ISSUERS = ['https://accounts.google.com', 'accounts.google.com'];
 
 export type JwksSource = (opts?: { refresh?: boolean }) => Promise<JsonWebKey[]>;
 
@@ -45,23 +44,24 @@ function notInFuture(seconds: unknown, nowMs: number): boolean {
   );
 }
 
-function claimsValid(claims: Record<string, unknown>, audience: string, nowMs: number): boolean {
+function claimsValid(
+  claims: Record<string, unknown>,
+  projectNumber: string,
+  nowMs: number,
+): boolean {
   return (
     notInFuture(claims.nbf, nowMs) &&
     notInFuture(claims.iat, nowMs) &&
-    typeof claims.iss === 'string' &&
-    GOOGLE_ISSUERS.includes(claims.iss) &&
-    audienceMatches(claims.aud, audience) &&
+    claims.iss === CHAT_ISSUER_EMAIL &&
+    audienceMatches(claims.aud, projectNumber) &&
     typeof claims.exp === 'number' &&
-    claims.exp * 1000 > nowMs &&
-    claims.email === CHAT_ISSUER_EMAIL &&
-    (claims.email_verified === true || claims.email_verified === 'true')
+    claims.exp * 1000 > nowMs
   );
 }
 
 export async function verifyChatEvent(
   authorization: string | undefined,
-  audience: string,
+  projectNumber: string,
   opts: VerifyChatEventOptions,
 ): Promise<boolean> {
   try {
@@ -73,7 +73,8 @@ export async function verifyChatEvent(
     const header = decodeJson(rawHeader);
     if (header.alg !== 'RS256' || typeof header.kid !== 'string') return false;
     const claims = decodeJson(rawPayload);
-    if (!claimsValid(claims, audience, (opts.now ?? Date.now)())) return false;
+    if (!/^\d+$/.test(projectNumber)) return false;
+    if (!claimsValid(claims, projectNumber, (opts.now ?? Date.now)())) return false;
     const byKid = (keys: JsonWebKey[]) => keys.find((k: KeyWithId) => k.kid === header.kid);
     const jwk = byKid(await opts.jwks()) ?? byKid(await opts.jwks({ refresh: true }));
     if (jwk?.kty !== 'RSA') return false;

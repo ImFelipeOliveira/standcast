@@ -84,7 +84,7 @@ Standcast does not connect to Jira yet, so it reads nothing from it.
 | Organization membership | Which installations each person belongs to | |
 | Slack identity | The Slack user id of each person, per installation | |
 | Slack connection | Workspace id and name, and the bot token | Bot token encrypted with AES-256-GCM |
-| Google Chat spaces | For each space that has the app: its name and display name, when the app was added, and, once linked, the organization and when it was linked. While a link code is pending, a SHA-256 hash of the code and when it expires. A space that was never linked is deleted after its code expires | Only the hash of the link code |
+| Google Chat spaces | For each space that has the app: its name and display name, when the app was added, and, once linked, the organization and when it was linked. While a link code is pending, a SHA-256 hash of the code and when it expires. An expired code is cleared, and a space that was never linked is deleted, by a cleanup that runs once a day, at the latest the day after the code expires | Only the hash of the link code |
 | Google Chat identity | The Google Chat user id of each person, per installation. The email is never stored | |
 | Google Chat connection | Marks Google Chat as connected for the installation, with the name of the first linked space | |
 | Linear connection | Workspace id, name and URL key, and the access and refresh tokens | Tokens encrypted with AES-256-GCM |
@@ -142,6 +142,7 @@ Standcast does not delete dailies on a schedule today. Dailies and digest delive
 - expired sessions: removed;
 - resolved suggestions, those whose signal went away: after 90 days;
 - delivery records about one person (reminders, routed blockers, suggestion DMs and scan markers): after 90 days;
+- Google Chat spaces that were never linked: the day after their link code expires;
 - ignored and confirmed suggestions are kept, so they do not come back;
 - rate limit counters: after about 10 minutes.
 

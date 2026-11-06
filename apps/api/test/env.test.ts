@@ -104,7 +104,8 @@ describe('parseEnv', () => {
       JSON.stringify({ client_email: 'bot@p.iam.gserviceaccount.com', private_key: 'pem' }),
     ).toString('base64');
     expect(
-      parseEnv({ ...base, GOOGLE_CHAT_SERVICE_ACCOUNT: key }).GOOGLE_CHAT_SERVICE_ACCOUNT,
+      parseEnv({ ...base, GOOGLE_CHAT_SERVICE_ACCOUNT: key, GOOGLE_CHAT_PROJECT_NUMBER: '1' })
+        .GOOGLE_CHAT_SERVICE_ACCOUNT,
     ).toEqual({ clientEmail: 'bot@p.iam.gserviceaccount.com', privateKey: 'pem' });
     for (const GOOGLE_CHAT_SERVICE_ACCOUNT of [
       'not base64 json',
@@ -116,31 +117,34 @@ describe('parseEnv', () => {
     }
   });
 
-  test('an empty GOOGLE_CHAT_AUDIENCE uses the default', () => {
-    expect(parseEnv({ ...base, GOOGLE_CHAT_AUDIENCE: '' }).GOOGLE_CHAT_AUDIENCE).toBe(
-      parseEnv(base).GOOGLE_CHAT_AUDIENCE,
-    );
-  });
-
-  test('GOOGLE_CHAT_AUDIENCE defaults to the webhook url', () => {
-    expect(parseEnv(base).GOOGLE_CHAT_AUDIENCE).toBe(
-      'https://api.standcast.app/webhooks/google-chat',
-    );
+  test('GOOGLE_CHAT_PROJECT_NUMBER is required with GOOGLE_CHAT_SERVICE_ACCOUNT', () => {
+    const key = Buffer.from(
+      JSON.stringify({ client_email: 'bot@p.iam.gserviceaccount.com', private_key: 'pem' }),
+    ).toString('base64');
+    for (const GOOGLE_CHAT_PROJECT_NUMBER of [undefined, '']) {
+      expect(() =>
+        parseEnv({ ...base, GOOGLE_CHAT_SERVICE_ACCOUNT: key, GOOGLE_CHAT_PROJECT_NUMBER }),
+      ).toThrow(
+        /GOOGLE_CHAT_PROJECT_NUMBER[\s\S]*is required when GOOGLE_CHAT_SERVICE_ACCOUNT is set/,
+      );
+    }
     expect(
-      parseEnv({ ...base, GOOGLE_CHAT_AUDIENCE: 'https://chat.example.com/hook' })
-        .GOOGLE_CHAT_AUDIENCE,
-    ).toBe('https://chat.example.com/hook');
-    expect(() => parseEnv({ ...base, GOOGLE_CHAT_AUDIENCE: 'not a url' })).toThrow(
-      /GOOGLE_CHAT_AUDIENCE/,
-    );
+      parseEnv({
+        ...base,
+        GOOGLE_CHAT_SERVICE_ACCOUNT: key,
+        GOOGLE_CHAT_PROJECT_NUMBER: '123456789012',
+      }).GOOGLE_CHAT_PROJECT_NUMBER,
+    ).toBe('123456789012');
   });
 
-  test('GOOGLE_CHAT_AUDIENCE must be https when set', () => {
-    expect(() =>
-      parseEnv({ ...base, GOOGLE_CHAT_AUDIENCE: 'http://x.test/webhooks/google-chat' }),
-    ).toThrow(/GOOGLE_CHAT_AUDIENCE/);
-    expect(parseEnv({ ...base, PUBLIC_URL: 'http://localhost:3000' }).GOOGLE_CHAT_AUDIENCE).toBe(
-      'http://localhost:3000/webhooks/google-chat',
-    );
+  test('GOOGLE_CHAT_PROJECT_NUMBER must be digits', () => {
+    for (const GOOGLE_CHAT_PROJECT_NUMBER of [
+      'my-project',
+      'https://x.test/webhooks/google-chat',
+    ]) {
+      expect(() => parseEnv({ ...base, GOOGLE_CHAT_PROJECT_NUMBER })).toThrow(
+        /GOOGLE_CHAT_PROJECT_NUMBER[\s\S]*must be the numeric Google Cloud project number/,
+      );
+    }
   });
 });

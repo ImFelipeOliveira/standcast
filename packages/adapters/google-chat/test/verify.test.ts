@@ -8,15 +8,13 @@ import {
 } from '../src';
 import { generateKeys, signJwt, type TestKeys } from './keys';
 
-const AUDIENCE = 'https://api.test/webhooks/google-chat';
+const PROJECT_NUMBER = '123456789012';
 const NOW = 1_800_000_000_000;
 
 function claims(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    iss: 'https://accounts.google.com',
-    aud: AUDIENCE,
-    email: 'chat@system.gserviceaccount.com',
-    email_verified: true,
+    iss: 'chat@system.gserviceaccount.com',
+    aud: PROJECT_NUMBER,
     iat: NOW / 1000 - 10,
     exp: NOW / 1000 + 3600,
     ...overrides,
@@ -32,35 +30,49 @@ async function bearer(
 }
 
 describe('verifyChatEvent', () => {
-  test('verify accepts a valid google token', async () => {
+  test('verify accepts a chat token for the project number', async () => {
     const keys = await generateKeys('k1');
     const other = await generateKeys('k2');
     const opts = { jwks: async () => [other.jwk, keys.jwk], now: () => NOW };
     expect(CHAT_ISSUER_EMAIL).toBe('chat@system.gserviceaccount.com');
-    expect(await verifyChatEvent(await bearer(keys), AUDIENCE, opts)).toBe(true);
+    expect(await verifyChatEvent(await bearer(keys), PROJECT_NUMBER, opts)).toBe(true);
     expect(
-      await verifyChatEvent(await bearer(keys, { iss: 'accounts.google.com' }), AUDIENCE, opts),
+      await verifyChatEvent(await bearer(keys, { aud: [PROJECT_NUMBER] }), PROJECT_NUMBER, opts),
     ).toBe(true);
-    expect(await verifyChatEvent(await bearer(keys, { aud: [AUDIENCE] }), AUDIENCE, opts)).toBe(
-      true,
-    );
   });
 
-  test('verify rejects wrong audience, issuer, email, expiry and unknown kid', async () => {
+  test('verify rejects another project, wrong issuer, expiry and unknown kid', async () => {
     const keys = await generateKeys('k1');
     const forger = await generateKeys('k1');
     const opts = { jwks: async () => [keys.jwk], now: () => NOW };
     const rejected = [
-      await bearer(keys, { aud: 'https://evil.test/webhooks/google-chat' }),
-      await bearer(keys, { iss: 'https://evil.test' }),
-      await bearer(keys, { email: 'someone@gmail.com' }),
-      await bearer(keys, { email_verified: false }),
+      await bearer(keys, { aud: '999999999999' }),
+      await bearer(keys, { aud: 'https://api.test/webhooks/google-chat' }),
+      await bearer(keys, { aud: undefined }),
+      await bearer(keys, { iss: 'https://accounts.google.com' }),
+      await bearer(keys, { iss: 'accounts.google.com' }),
+      await bearer(keys, {
+        iss: 'https://accounts.google.com',
+        email: 'chat@system.gserviceaccount.com',
+        email_verified: true,
+      }),
+      await bearer(keys, { iss: undefined }),
       await bearer(keys, { exp: NOW / 1000 - 1 }),
+      await bearer(keys, { exp: undefined }),
       await bearer(keys, {}, 'k9'),
       await bearer(forger),
     ];
     for (const header of rejected) {
-      expect(await verifyChatEvent(header, AUDIENCE, opts)).toBe(false);
+      expect(await verifyChatEvent(header, PROJECT_NUMBER, opts)).toBe(false);
+    }
+  });
+
+  test('verify rejects every token when the project number is not numeric', async () => {
+    const keys = await generateKeys('k1');
+    const opts = { jwks: async () => [keys.jwk], now: () => NOW };
+    for (const projectNumber of ['', 'my-project', 'https://api.test/webhooks/google-chat']) {
+      const token = await bearer(keys, { aud: projectNumber });
+      expect(await verifyChatEvent(token, projectNumber, opts)).toBe(false);
     }
   });
 
@@ -68,11 +80,17 @@ describe('verifyChatEvent', () => {
     const keys = await generateKeys('k1');
     const opts = { jwks: async () => [keys.jwk], now: () => NOW };
     const at = (seconds: number) => NOW / 1000 + seconds;
-    expect(await verifyChatEvent(await bearer(keys, { nbf: at(61) }), AUDIENCE, opts)).toBe(false);
-    expect(await verifyChatEvent(await bearer(keys, { iat: at(61) }), AUDIENCE, opts)).toBe(false);
-    expect(await verifyChatEvent(await bearer(keys, { nbf: 'x' }), AUDIENCE, opts)).toBe(false);
+    expect(await verifyChatEvent(await bearer(keys, { nbf: at(61) }), PROJECT_NUMBER, opts)).toBe(
+      false,
+    );
+    expect(await verifyChatEvent(await bearer(keys, { iat: at(61) }), PROJECT_NUMBER, opts)).toBe(
+      false,
+    );
+    expect(await verifyChatEvent(await bearer(keys, { nbf: 'x' }), PROJECT_NUMBER, opts)).toBe(
+      false,
+    );
     expect(
-      await verifyChatEvent(await bearer(keys, { nbf: at(30), iat: at(30) }), AUDIENCE, opts),
+      await verifyChatEvent(await bearer(keys, { nbf: at(30), iat: at(30) }), PROJECT_NUMBER, opts),
     ).toBe(true);
   });
 
@@ -84,9 +102,9 @@ describe('verifyChatEvent', () => {
       requests.push(o?.refresh ?? false);
       return o?.refresh ? [oldKey.jwk, newKey.jwk] : [oldKey.jwk];
     };
-    expect(await verifyChatEvent(await bearer(newKey), AUDIENCE, { jwks, now: () => NOW })).toBe(
-      true,
-    );
+    expect(
+      await verifyChatEvent(await bearer(newKey), PROJECT_NUMBER, { jwks, now: () => NOW }),
+    ).toBe(true);
     expect(requests).toEqual([false, true]);
   });
 
@@ -106,7 +124,7 @@ describe('verifyChatEvent', () => {
       `Bearer ${none}`,
       valid,
     ]) {
-      expect(await verifyChatEvent(value, AUDIENCE, opts)).toBe(false);
+      expect(await verifyChatEvent(value, PROJECT_NUMBER, opts)).toBe(false);
     }
   });
 
@@ -118,7 +136,7 @@ describe('verifyChatEvent', () => {
       },
       now: () => NOW,
     };
-    expect(await verifyChatEvent(await bearer(keys), AUDIENCE, opts)).toBe(false);
+    expect(await verifyChatEvent(await bearer(keys), PROJECT_NUMBER, opts)).toBe(false);
   });
 });
 
@@ -136,7 +154,9 @@ describe('createGoogleJwks', () => {
     clock += 59 * 60 * 1000;
     await jwks();
     expect(urls).toEqual([GOOGLE_JWKS_URL]);
-    expect(GOOGLE_JWKS_URL).toBe('https://www.googleapis.com/oauth2/v3/certs');
+    expect(GOOGLE_JWKS_URL).toBe(
+      'https://www.googleapis.com/service_accounts/v1/jwk/chat@system.gserviceaccount.com',
+    );
     clock += 2 * 60 * 1000;
     await jwks();
     expect(urls).toHaveLength(2);
@@ -154,21 +174,21 @@ describe('createGoogleJwks', () => {
     }) as unknown as typeof fetch;
     const jwks = createGoogleJwks({ fetch: fetchImpl, now: () => clock });
     const opts = { jwks, now: () => clock };
-    expect(await verifyChatEvent(await bearer(first), AUDIENCE, opts)).toBe(true);
+    expect(await verifyChatEvent(await bearer(first), PROJECT_NUMBER, opts)).toBe(true);
     expect(fetches).toBe(1);
 
     served = [first.jwk, second.jwk];
     clock += 4 * 60 * 1000;
-    expect(await verifyChatEvent(await bearer(second, { iat: clock / 1000 }), AUDIENCE, opts)).toBe(
-      false,
-    );
+    expect(
+      await verifyChatEvent(await bearer(second, { iat: clock / 1000 }), PROJECT_NUMBER, opts),
+    ).toBe(false);
     expect(fetches).toBe(1);
 
     clock += 2 * 60 * 1000;
     expect(
       await verifyChatEvent(
         await bearer(second, { iat: clock / 1000, exp: clock / 1000 + 600 }),
-        AUDIENCE,
+        PROJECT_NUMBER,
         opts,
       ),
     ).toBe(true);
@@ -176,7 +196,7 @@ describe('createGoogleJwks', () => {
     expect(
       await verifyChatEvent(
         await bearer(second, { kid: 'zz', iat: clock / 1000, exp: clock / 1000 + 600 }, 'zz'),
-        AUDIENCE,
+        PROJECT_NUMBER,
         opts,
       ),
     ).toBe(false);

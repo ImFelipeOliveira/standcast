@@ -11,7 +11,7 @@ import {
 } from '../middleware/rate-limit';
 import { WEBHOOK_BODY_LIMIT_BYTES } from './webhooks';
 
-export type GoogleChatWebhook = { audience: string; jwks: JwksSource };
+export type GoogleChatWebhook = { projectNumber: string; jwks: JwksSource };
 
 const eventSchema = z.object({
   type: z.string(),
@@ -47,10 +47,14 @@ export function googleChatRoutes(
         c.json({ error: { code: 'payload_too_large', message: 'payload too large' } }, 413),
     }),
     async (c) => {
-      const verified = await verifyChatEvent(c.req.header('authorization'), googleChat.audience, {
-        jwks: googleChat.jwks,
-        now: () => deps.now().getTime(),
-      });
+      const verified = await verifyChatEvent(
+        c.req.header('authorization'),
+        googleChat.projectNumber,
+        {
+          jwks: googleChat.jwks,
+          now: () => deps.now().getTime(),
+        },
+      );
       if (!verified) {
         await enforceRateLimit(deps, c, `authfail:ip:${options.getClientIp(c)}`, FAILED_AUTH_LIMIT);
         return c.body(null, 401);

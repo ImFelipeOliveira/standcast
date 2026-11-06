@@ -92,9 +92,10 @@ await queue.start();
 
 const api = createApp(deps, {
   getClientIp: clientIpResolver({ trustProxy: env.TRUST_PROXY, hops: env.TRUSTED_PROXY_HOPS }),
-  googleChat: googleChatAccount
-    ? { audience: env.GOOGLE_CHAT_AUDIENCE, jwks: createGoogleJwks() }
-    : null,
+  googleChat:
+    googleChatAccount && env.GOOGLE_CHAT_PROJECT_NUMBER
+      ? { projectNumber: env.GOOGLE_CHAT_PROJECT_NUMBER, jwks: createGoogleJwks() }
+      : null,
 });
 
 const server = Bun.serve({

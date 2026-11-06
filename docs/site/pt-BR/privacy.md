@@ -84,7 +84,7 @@ O Standcast ainda não se conecta ao Jira, então não lê nada dele.
 | Participação em organizações | A quais instalações cada pessoa pertence | |
 | Identidade no Slack | O id de usuário do Slack de cada pessoa, por instalação | |
 | Conexão com o Slack | Id e nome do workspace e o token do bot | Token do bot criptografado com AES-256-GCM |
-| Espaços do Google Chat | Para cada espaço que tem o app: o nome e o nome de exibição, quando o app foi adicionado e, depois do vínculo, a organização e quando foi vinculado. Enquanto há um código de vínculo pendente, um hash SHA-256 do código e quando ele expira. Um espaço que nunca foi vinculado é apagado depois que o código expira | Só o hash do código de vínculo |
+| Espaços do Google Chat | Para cada espaço que tem o app: o nome e o nome de exibição, quando o app foi adicionado e, depois do vínculo, a organização e quando foi vinculado. Enquanto há um código de vínculo pendente, um hash SHA-256 do código e quando ele expira. Um código expirado é apagado, e um espaço que nunca foi vinculado também, por uma limpeza que roda uma vez por dia, no máximo no dia seguinte ao vencimento do código | Só o hash do código de vínculo |
 | Identidade no Google Chat | O id de usuário do Google Chat de cada pessoa, por instalação. O e-mail nunca é guardado | |
 | Conexão com o Google Chat | Marca o Google Chat como conectado na instalação, com o nome do primeiro espaço vinculado | |
 | Conexão com o Linear | Id, nome e chave da URL do workspace e os tokens de acesso e de renovação | Tokens criptografados com AES-256-GCM |
@@ -142,6 +142,7 @@ Hoje o Standcast não apaga dailies de forma programada. Dailies e entregas de c
 - sessões expiradas: removidas;
 - sugestões resolvidas, aquelas cujo sinal deixou de existir: depois de 90 dias;
 - registros de entrega sobre uma pessoa (lembretes, impedimentos encaminhados, DMs de sugestão e marcadores de varredura): depois de 90 dias;
+- espaços do Google Chat que nunca foram vinculados: no dia seguinte ao vencimento do código de vínculo;
 - sugestões ignoradas e confirmadas são mantidas, para não voltarem;
 - contadores de limite de taxa: depois de uns 10 minutos.
 

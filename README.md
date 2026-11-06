@@ -218,7 +218,7 @@ docker build --build-arg APP=worker -t standcast-worker .
 - Every variable is listed in [`.env.example`](.env.example).
 - Railway setup: [docs/deploy.md](docs/deploy.md).
 - Register the apps with [docs/github-app.md](docs/github-app.md) (or [the manifest](docs/github-app-manifest.json)), [docs/slack-app-manifest.yml](docs/slack-app-manifest.yml) and [docs/linear-app.md](docs/linear-app.md). `LINEAR_CLIENT_ID` and `LINEAR_CLIENT_SECRET` are required on the api and the worker.
-- Google Chat is optional: create the Chat app with [docs/google-chat-app.md](docs/google-chat-app.md), then set `GOOGLE_CHAT_SERVICE_ACCOUNT` (the base64 of the service account JSON key) on the api and the worker. `GOOGLE_CHAT_AUDIENCE` (api only) defaults to `${PUBLIC_URL}/webhooks/google-chat`. Without the key, Google Chat is off.
+- Google Chat is optional: create the Chat app with [docs/google-chat-app.md](docs/google-chat-app.md), then set `GOOGLE_CHAT_SERVICE_ACCOUNT` (the base64 of the service account JSON key) on the api and the worker, and `GOOGLE_CHAT_PROJECT_NUMBER` (the Google Cloud project number, api only, required with the key). The Chat app authentication audience must be **Project number**. Without the key, Google Chat is off.
 
 ## Development
 

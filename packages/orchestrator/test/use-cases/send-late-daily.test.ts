@@ -8,6 +8,7 @@ import {
   upsertDaily,
 } from '@standcast/db';
 import { ChatDeliveryError } from '@standcast/slack';
+import { googleChatSpaces } from '../../../db/src/schema';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { sendLateDaily } from '../../src';
 import {
@@ -160,7 +161,7 @@ describe('sendLateDaily', () => {
   });
 
   test('late daily to an unlinked space fails without replying', async () => {
-    const { deps, replies, job } = await setup();
+    const { deps, replies, job } = await setup(true, GOOGLE_DIGEST_REF);
     const base = config();
     const team = base.teams[0];
     if (!team) throw new Error('no team');
@@ -183,6 +184,48 @@ describe('sendLateDaily', () => {
     });
     expect(row?.status).toBe('failed');
     expect(row?.error).toBe('space_not_linked: the space is not linked to this organization');
+  });
+
+  test('a failed space lookup after the claim records the failure and rethrows', async () => {
+    const { deps, replies, job } = await setup(true, GOOGLE_DIGEST_REF);
+    const base = config();
+    const team = base.teams[0];
+    if (!team) throw new Error('no team');
+    await setInstallationConfig(db, INST, {
+      status: 'configured',
+      config: {
+        ...base,
+        teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
+      },
+    });
+    await linkSpace(GOOGLE_DIGEST_REF.channel);
+    const google = fakeChat();
+    deps.chatFor = async () => google.chat;
+    deps.db = new Proxy(db, {
+      get(target, prop, receiver) {
+        if (prop !== 'select') return Reflect.get(target, prop, receiver);
+        return (...args: Parameters<typeof db.select>) => {
+          const query = target.select(...args);
+          return new Proxy(query, {
+            get(q, p, r) {
+              if (p !== 'from') return Reflect.get(q, p, r);
+              return (table: Parameters<typeof query.from>[0]) => {
+                if (table === googleChatSpaces) throw new Error('db down');
+                return q.from(table);
+              };
+            },
+          });
+        };
+      },
+    });
+    await expect(sendLateDaily(deps, job)).rejects.toThrow('db down');
+    expect(replies).toHaveLength(0);
+    expect(google.replies).toHaveLength(0);
+    const key = { ...digestKey, kind: 'late_daily' as const, subject: job.memberId };
+    const row = await getDelivery(db, key);
+    expect(row?.status).toBe('failed');
+    expect(row?.error).toBe('internal_error: unexpected error');
+    expect((await claimDelivery(db, key)).status).toBe('claimed');
   });
 
   test('late daily mentions the config slack id first', async () => {

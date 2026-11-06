@@ -398,6 +398,7 @@ function ConfigStep(props: NumberedStepProps & { lang: Language }) {
           </p>
           <p class="small">{t('web.setup.instruction')}</p>
           <h3>{t('web.setup.template')}</h3>
+          <p class="small">{t('web.setup.templateHint')}</p>
           <pre>{template}</pre>
         </>
       ) : null}

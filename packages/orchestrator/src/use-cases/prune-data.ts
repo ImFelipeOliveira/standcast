@@ -4,6 +4,7 @@ import {
   deletePersonDeliveriesBefore,
   deleteResolvedSuggestionsBefore,
   deleteWebhookDeliveriesBefore,
+  pruneExpiredGoogleChatLinkCodes,
 } from '@standcast/db';
 import type { WorkerDeps } from '../deps';
 
@@ -21,6 +22,7 @@ export type PruneResult = {
   suggestions: number;
   personDeliveries: number;
   betaRequests: number;
+  googleChatSpaces: number;
 };
 
 export async function pruneData(deps: Pick<WorkerDeps, 'db' | 'now'>): Promise<PruneResult> {
@@ -41,5 +43,6 @@ export async function pruneData(deps: Pick<WorkerDeps, 'db' | 'now'>): Promise<P
       deps.db,
       daysAgo(BETA_REQUEST_RETENTION_DAYS),
     ),
+    googleChatSpaces: await pruneExpiredGoogleChatLinkCodes(deps.db, now),
   };
 }

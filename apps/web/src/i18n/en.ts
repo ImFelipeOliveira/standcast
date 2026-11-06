@@ -179,6 +179,8 @@ export const en: Record<MessageKey, string> = {
   'setup.config.reason.no_access': 'Standcast has no access to the .github repository.',
   'setup.config.instruction':
     "Create standcast.yml at the root of the organization's .github repository, on the default branch.",
+  'setup.config.templateHint':
+    'The template has one Slack team and one Google Chat team. Keep the one you use, set its channel, and delete the other before committing.',
   'setup.config.createFile': 'Create standcast.yml from the template',
   'setup.config.createRepo': 'Create the .github repository',
   'setup.config.template': 'standcast.yml template',
