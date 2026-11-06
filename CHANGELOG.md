@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.5.0...standcast-v0.6.0) (2026-11-06)
+
+
+### Features
+
+* refreshed banner and automatic release changelog headings ([#78](https://github.com/ImFelipeOliveira/standcast/issues/78)) ([1b34ea6](https://github.com/ImFelipeOliveira/standcast/commit/1b34ea62ab64ba8cda5ec2b82d281d79aab62cf4))
+* refreshed banner with google chat, agents and beta ([5510397](https://github.com/ImFelipeOliveira/standcast/commit/5510397856b07361ef2336a0cbc00ef664fc4623))
+* refreshed banner with google chat, agents and beta ([#77](https://github.com/ImFelipeOliveira/standcast/issues/77)) ([5906c12](https://github.com/ImFelipeOliveira/standcast/commit/5906c122e5ba1ee2e4fc5a6c97d46cf7714cfd8c))
+
 ## [0.5.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.4.1...standcast-v0.5.0) (2026-11-06)
 
 
