@@ -43,20 +43,20 @@ describe('POST /beta', () => {
     const { app } = createTestApp();
     const res = await post(app, { ...valid, email: 'nope', locale: 'pt-BR' });
     expect(res.status).toBe(303);
-    expect(res.headers.get('location')).toBe('https://landing.sw.test/pt-BR/#beta-invalid');
+    expect(res.headers.get('location')).toBe('https://landing.sw.test/pt-BR/beta/#beta-invalid');
   });
 
   test('oversized body redirects to the landing anchor without storing', async () => {
     const { app } = createTestApp();
     const res = await post(app, { ...valid, locale: 'en', name: 'A'.repeat(9000) });
     expect(res.status).toBe(303);
-    expect(res.headers.get('location')).toBe('https://landing.sw.test/#beta-invalid');
+    expect(res.headers.get('location')).toBe('https://landing.sw.test/beta/#beta-invalid');
   });
 
   test('invalid en redirects to the en landing anchor', async () => {
     const { app } = createTestApp();
     const res = await post(app, { locale: 'en' });
-    expect(res.headers.get('location')).toBe('https://landing.sw.test/#beta-invalid');
+    expect(res.headers.get('location')).toBe('https://landing.sw.test/beta/#beta-invalid');
   });
 
   test('json body is rejected as invalid', async () => {
@@ -67,7 +67,7 @@ describe('POST /beta', () => {
       body: JSON.stringify({ ...valid, locale: 'pt-BR' }),
     });
     expect(res.status).toBe(303);
-    expect(res.headers.get('location')).toBe('https://landing.sw.test/#beta-invalid');
+    expect(res.headers.get('location')).toBe('https://landing.sw.test/beta/#beta-invalid');
   });
 
   test('sixth request in a minute is 429', async () => {
@@ -94,6 +94,6 @@ describe('POST /beta', () => {
     const ok = await post(app, { ...valid, locale: 'en' }, headers);
     expect(ok.headers.get('location')).toBe('https://docs.sw.test/admin/install');
     const bad = await post(app, { locale: 'en' }, headers);
-    expect(bad.headers.get('location')).toBe('https://landing.sw.test/#beta-invalid');
+    expect(bad.headers.get('location')).toBe('https://landing.sw.test/beta/#beta-invalid');
   });
 });
