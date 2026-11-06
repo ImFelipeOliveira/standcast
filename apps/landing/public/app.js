@@ -134,14 +134,21 @@
     theme();
     size();
     draw();
-    new ResizeObserver(() => {
+    const resized = () => {
       size();
       draw();
-    }).observe(field);
-    new IntersectionObserver((entries) => {
-      visible = entries.some((entry) => entry.isIntersecting);
+    };
+    if ('ResizeObserver' in window) new ResizeObserver(resized).observe(field);
+    else window.addEventListener('resize', resized);
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver((entries) => {
+        visible = entries.some((entry) => entry.isIntersecting);
+        resume();
+      }).observe(field);
+    } else {
+      visible = true;
       resume();
-    }).observe(field);
+    }
     document.addEventListener('visibilitychange', resume);
     window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener('change', () => {
       theme();

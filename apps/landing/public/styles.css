@@ -1385,6 +1385,10 @@ select {
     position: static;
   }
 
+  .hero-home .hero-copy::before {
+    inset: -48px -20px;
+  }
+
   .privacy-grid {
     grid-template-columns: minmax(0, 1fr);
   }
