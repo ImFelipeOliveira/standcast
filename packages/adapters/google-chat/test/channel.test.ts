@@ -281,3 +281,21 @@ describe('createGoogleChatChannel', () => {
     );
   });
 });
+
+describe('api url', () => {
+  test('trailing slashes on the api url are dropped', async () => {
+    const urls: string[] = [];
+    const channel = createGoogleChatChannel(async () => 'ya29.token', {
+      apiUrl: `${API}///`,
+      fetch: (async (url: RequestInfo | URL) => {
+        urls.push(String(url));
+        return Response.json({
+          name: 'spaces/AAAA/messages/m1',
+          thread: { name: 'spaces/AAAA/threads/t1' },
+        });
+      }) as typeof fetch,
+    });
+    await channel.postToChannel('spaces/AAAA', msg);
+    expect(urls[0]).toBe(`${API}/v1/spaces/AAAA/messages`);
+  });
+});

@@ -17,6 +17,12 @@ export type ChatTokenProvider = (() => Promise<string>) & { invalidate?: () => v
 
 export type GoogleChatChannelOptions = { apiUrl?: string; fetch?: typeof fetch };
 
+function trimTrailingSlashes(url: string): string {
+  let end = url.length;
+  while (end > 0 && url[end - 1] === '/') end -= 1;
+  return url.slice(0, end);
+}
+
 export function isGoogleChatSpace(name: string): boolean {
   return SPACE_NAME.test(name);
 }
@@ -26,7 +32,7 @@ export function createGoogleChatChannel(
   opts: GoogleChatChannelOptions = {},
 ): ChatChannel {
   const fetchImpl = opts.fetch ?? fetch;
-  const api = `${(opts.apiUrl ?? GOOGLE_CHAT_API_URL).replace(/\/+$/, '')}/v1`;
+  const api = `${trimTrailingSlashes(opts.apiUrl ?? GOOGLE_CHAT_API_URL)}/v1`;
 
   async function call(method: 'GET' | 'POST', path: string, body?: object): Promise<Response> {
     const headers: Record<string, string> = { Authorization: `Bearer ${await token()}` };

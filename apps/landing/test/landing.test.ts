@@ -103,10 +103,15 @@ const ENTITIES: Record<string, string> = {
 };
 
 function elementIds(html: string): string[] {
-  const markup = html
-    .replace(/<script\b[\s\S]*?<\/script>/g, '')
-    .replace(/<style\b[\s\S]*?<\/style>/g, '');
-  return [...markup.matchAll(/<[a-zA-Z][^>]*\sid="([^"]+)"/g)].map((match) => match[1] ?? '');
+  const ids: string[] = [];
+  new HTMLRewriter()
+    .on('[id]', {
+      element(element) {
+        ids.push(element.getAttribute('id') ?? '');
+      },
+    })
+    .transform(html);
+  return ids;
 }
 
 function decode(text: string): string {
