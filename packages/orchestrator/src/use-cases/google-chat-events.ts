@@ -8,6 +8,7 @@ import {
 } from '@standcast/core';
 import {
   deleteGoogleChatConnectionIfUnused,
+  deleteIdentitiesByExternalId,
   findMembersByEmail,
   getConnectionExternalId,
   getInstallation,
@@ -145,6 +146,7 @@ async function linkIdentities(
   const members = await membersWithEmail(deps, email);
   if (members.length === 0) return bilingual('googleChat.notFound');
   if (new Set(members.map((member) => member.id)).size > 1) {
+    await deleteIdentitiesByExternalId(deps.db, 'google-chat', user.name);
     return bilingual('googleChat.ambiguous');
   }
   const linked: string[] = [];

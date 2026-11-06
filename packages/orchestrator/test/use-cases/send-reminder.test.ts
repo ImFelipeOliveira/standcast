@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, jest, test } from 'bun:test';
 import { parseConfig, type StandcastConfig } from '@standcast/core';
 import {
   claimDelivery,
@@ -261,6 +261,46 @@ describe('sendReminder', () => {
     const row = await getDelivery(db, reminderKey('alice'));
     expect(row?.status).toBe('failed');
     expect(row?.error).toBe('no_chat_identity: alice');
+  });
+
+  test('a membership request timeout fails the reminder as timeout and retries', async () => {
+    const { deps, google } = await googleOverrideSetup({});
+    google.chat.isSpaceMember = async (space) => {
+      if (space === 'spaces/AAAA') throw new ChatDeliveryError('timeout', 'slow');
+      return false;
+    };
+    await expect(sendReminder(deps, job('alice'))).rejects.toThrow('timed out');
+    expect(google.directs).toHaveLength(0);
+    const row = await getDelivery(db, reminderKey('alice'));
+    expect(row?.status).toBe('failed');
+    expect(row?.error).toBe('timeout: Google Chat did not answer in time');
+  });
+
+  test('the membership budget running out fails the reminder as timeout', async () => {
+    const { deps, google } = await googleOverrideSetup({});
+    google.chat.isSpaceMember = () => {
+      queueMicrotask(() => jest.advanceTimersByTime(20_000));
+      return new Promise<boolean>(() => {});
+    };
+    jest.useFakeTimers();
+    try {
+      await expect(sendReminder(deps, job('alice'))).rejects.toThrow('timed out');
+    } finally {
+      jest.useRealTimers();
+    }
+    const row = await getDelivery(db, reminderKey('alice'));
+    expect(row?.status).toBe('failed');
+    expect(row?.error).toBe('timeout: Google Chat did not answer in time');
+  });
+
+  test('a definite non-membership answer is not a timeout', async () => {
+    const { deps, google } = await googleOverrideSetup({});
+    google.chat.isSpaceMember = async (space) => {
+      if (space === 'spaces/AAAA') throw new ChatDeliveryError('http_error', 'down');
+      return false;
+    };
+    await sendReminder(deps, job('alice'));
+    expect((await getDelivery(db, reminderKey('alice')))?.error).toBe('no_chat_identity: alice');
   });
 
   test('membership is checked in at most 10 linked spaces', async () => {

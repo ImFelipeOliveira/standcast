@@ -226,6 +226,18 @@ export async function deleteIdentityByLogin(
     );
 }
 
+export async function deleteIdentitiesByExternalId(
+  db: Db,
+  provider: Provider,
+  externalId: string,
+): Promise<void> {
+  await db
+    .delete(memberIdentities)
+    .where(
+      and(eq(memberIdentities.provider, provider), eq(memberIdentities.externalId, externalId)),
+    );
+}
+
 export async function listInstallationMembers(
   db: Db,
   installationId: number,

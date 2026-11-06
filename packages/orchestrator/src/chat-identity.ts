@@ -48,19 +48,34 @@ export async function chatUserIdFor(
 const MAX_MEMBERSHIP_SPACES = 10;
 const MEMBERSHIP_BUDGET_MS = 20_000;
 
-function anyConfirmed(checks: Promise<boolean>[]): Promise<boolean> {
+type Membership = 'member' | 'not_member' | 'timeout';
+
+export type DirectMessageTargets = { ids: Map<string, string>; timedOut: Set<string> };
+
+function isTimeout(error: unknown): boolean {
+  return error instanceof ChatDeliveryError && error.code === 'timeout';
+}
+
+export function membershipTimeout(): ChatDeliveryError {
+  return new ChatDeliveryError('timeout', 'google chat membership check timed out');
+}
+
+function anyConfirmed(checks: Promise<boolean>[]): Promise<Membership> {
   return new Promise((resolve) => {
     let pending = checks.length;
-    const timer = setTimeout(() => resolve(false), MEMBERSHIP_BUDGET_MS);
+    let timedOut = false;
+    const timer = setTimeout(() => resolve('timeout'), MEMBERSHIP_BUDGET_MS);
     const settle = (member: boolean) => {
       pending -= 1;
       if (!member && pending > 0) return;
       clearTimeout(timer);
-      resolve(member);
+      if (member) resolve('member');
+      else resolve(timedOut ? 'timeout' : 'not_member');
     };
     for (const check of checks) {
       check.then(settle, (error: unknown) => {
         logError('google chat membership check failed', error);
+        if (isTimeout(error)) timedOut = true;
         settle(false);
       });
     }
@@ -71,10 +86,10 @@ async function inLinkedSpace(
   chat: ChatChannel | null,
   spaces: () => Promise<string[]>,
   userId: string,
-): Promise<boolean> {
-  if (!chat?.isSpaceMember) return false;
+): Promise<Membership> {
+  if (!chat?.isSpaceMember) return 'not_member';
   const names = (await spaces()).slice(0, MAX_MEMBERSHIP_SPACES);
-  if (names.length === 0) return false;
+  if (names.length === 0) return 'not_member';
   return anyConfirmed(
     names.map(async (space) => (await chat.isSpaceMember?.(space, userId)) === true),
   );
@@ -87,9 +102,10 @@ export async function directMessageIdsFor(
   config: StandcastConfig,
   provider: ChatProvider,
   logins: string[],
-): Promise<Map<string, string>> {
+): Promise<DirectMessageTargets> {
+  const timedOut = new Set<string>();
   if (provider !== 'google-chat') {
-    return chatUserIdsFor(deps, installationId, config, provider, logins);
+    return { ids: await chatUserIdsFor(deps, installationId, config, provider, logins), timedOut };
   }
   const identities = await getIdentities(deps.db, installationId, provider);
   let linkedSpaces: Promise<string[]> | null = null;
@@ -99,8 +115,8 @@ export async function directMessageIdsFor(
     );
     return linkedSpaces;
   };
-  const verified = new Map<string, Promise<boolean>>();
-  const confirmed = (userId: string) => {
+  const verified = new Map<string, Promise<Membership>>();
+  const membership = (userId: string) => {
     let check = verified.get(userId);
     if (!check) {
       check = inLinkedSpace(chat, spaces, userId);
@@ -117,9 +133,11 @@ export async function directMessageIdsFor(
       if (identity) ids.set(lower, identity);
       continue;
     }
-    if (await confirmed(override)) ids.set(lower, override);
+    const result = await membership(override);
+    if (result === 'member') ids.set(lower, override);
+    if (result === 'timeout') timedOut.add(lower);
   }
-  return ids;
+  return { ids, timedOut };
 }
 
 export async function directMessageIdFor(
@@ -130,8 +148,17 @@ export async function directMessageIdFor(
   provider: ChatProvider,
   login: string,
 ): Promise<string | null> {
-  const ids = await directMessageIdsFor(deps, chat, installationId, config, provider, [login]);
-  return ids.get(login.toLowerCase()) ?? null;
+  const { ids, timedOut } = await directMessageIdsFor(
+    deps,
+    chat,
+    installationId,
+    config,
+    provider,
+    [login],
+  );
+  const lower = login.toLowerCase();
+  if (timedOut.has(lower)) throw membershipTimeout();
+  return ids.get(lower) ?? null;
 }
 
 const STALE_CHAT_USER = new Set(['user_not_found', 'user_disabled']);

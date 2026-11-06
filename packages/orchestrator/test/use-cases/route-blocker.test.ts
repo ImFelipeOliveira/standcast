@@ -514,7 +514,7 @@ describe('routeBlocker', () => {
     const fake = fakeDeps();
     const google = fakeChat();
     google.chat.isSpaceMember = async (_space, userId) => {
-      if (userId === 'users/999') throw new ChatDeliveryError('timeout', 'slow');
+      if (userId === 'users/999') throw new ChatDeliveryError('http_error', 'down');
       return true;
     };
     fake.deps.chatFor = async () => google.chat;
@@ -531,6 +531,44 @@ describe('routeBlocker', () => {
     });
     expect(failed?.status).toBe('failed');
     expect(failed?.error).toBe('no_chat_identity: mgr');
+  });
+
+  test('a google chat membership timeout fails that recipient as timeout and retries', async () => {
+    const parsed = routeConfig(
+      'members:\n  mgr: { google_chat: users/999 }\n  carla: { google_chat: users/888 }',
+      '[mgr, carla]',
+    );
+    const cfg = {
+      ...parsed,
+      teams: parsed.teams.map((t) => ({
+        ...t,
+        chat: { provider: 'google-chat' as const, channel: 'spaces/AAAA' },
+      })),
+    };
+    await seedOrg(cfg);
+    await linkSpace('spaces/AAAA');
+    const fake = fakeDeps();
+    const google = fakeChat();
+    google.chat.isSpaceMember = async (_space, userId) => {
+      if (userId === 'users/999') throw new ChatDeliveryError('timeout', 'slow');
+      return true;
+    };
+    fake.deps.chatFor = async () => google.chat;
+    const blocker: Item = { text: 'Need prod access' };
+    const dailyId = await seedDaily([blocker]);
+    await expect(
+      routeBlocker(fake.deps, { installationId: INST, dailyId, blockerIndex: 0 }),
+    ).rejects.toThrow('timed out');
+    expect(google.directs.map((d) => d.userId)).toEqual(['users/888']);
+    const failed = await getDelivery(db, {
+      installationId: INST,
+      teamName: '',
+      date: DATE,
+      kind: 'blocker_route',
+      subject: `${dailyId}:${blockerRouteId(blocker)}:mgr`,
+    });
+    expect(failed?.status).toBe('failed');
+    expect(failed?.error).toBe('timeout: Google Chat did not answer in time');
   });
 
   test('a resubmit that shifts indexes still routes each blocker exactly once', async () => {

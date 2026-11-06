@@ -21,7 +21,7 @@ import {
   operationalConfig,
   reserveBlockerRoute,
 } from '@standcast/db';
-import { directMessageIdsFor, forgetStaleChatIdentity } from '../chat-identity';
+import { directMessageIdsFor, forgetStaleChatIdentity, membershipTimeout } from '../chat-identity';
 import type { WorkerDeps } from '../deps';
 import { blockerRouteId } from '../events';
 import { logError } from '../log-error';
@@ -221,12 +221,16 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
   let target = await resolveRouteTarget(deps, ctx);
   const fallback = managerTarget(ctx);
   const chat = await deps.chatFor(job.installationId, provider);
-  const ids = await directMessageIdsFor(deps, chat, job.installationId, config, provider, [
-    ...target.logins,
-    ...fallback.logins,
-    author,
-  ]);
-  if (target.reason !== 'manager' && !target.logins.some((l) => ids.has(l))) target = fallback;
+  const { ids, timedOut } = await directMessageIdsFor(
+    deps,
+    chat,
+    job.installationId,
+    config,
+    provider,
+    [...target.logins, ...fallback.logins, author],
+  );
+  const reachable = (login: string) => ids.has(login) || timedOut.has(login);
+  if (target.reason !== 'manager' && !target.logins.some(reachable)) target = fallback;
   const previous = reservation.recipients;
   if (previous) {
     target = { ...target, logins: target.logins.filter((l) => previous.has(l)) };
@@ -258,6 +262,7 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
         await failDelivery(deps.db, key, claim.token, 'no_chat_connection');
         continue;
       }
+      if (timedOut.has(login)) throw membershipTimeout();
       const chatUserId = ids.get(login);
       if (!chatUserId) {
         await failDelivery(deps.db, key, claim.token, `no_chat_identity: ${login}`);
