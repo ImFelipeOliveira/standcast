@@ -7,7 +7,7 @@ export const TEAMS_CACHE_TTL_MS = 5 * 60 * 1000;
 export type TeamNotice = {
   team: string;
   reference: string;
-  kind: 'missing' | 'truncated' | 'channel_not_found' | 'channel_not_member';
+  kind: 'missing' | 'truncated' | 'channel_not_found' | 'channel_not_member' | 'space_not_linked';
 };
 
 type CachedTeam = { logins: string[]; missingTeams: string[]; truncatedTeams: string[] };

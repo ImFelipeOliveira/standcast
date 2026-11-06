@@ -215,6 +215,8 @@ const ptBR = {
     'Time {team}: o canal {reference} do Slack não foi encontrado. Crie o canal ou, se ele for privado, convide o bot do Standcast com /invite @Standcast.',
   'setup.teams.channelNotMember':
     'Time {team}: o bot do Standcast não está no canal {reference} do Slack. Convide-o com /invite @Standcast no canal.',
+  'setup.teams.spaceNotLinked':
+    'Time {team}: este espaço do Google Chat ({reference}) ainda não está ligado a esta organização. Adicione o app do Standcast ao espaço e cole o código que ele publicar em Configuração → Google Chat.',
   'setup.tracker.jiraComingSoon': 'A integração com o Jira ainda não está disponível.',
   'setup.tracker.notConnected':
     'Este time usa o Linear, mas o Linear ainda não está conectado a esta instalação.',
@@ -447,6 +449,8 @@ const en = {
     'Team {team}: the Slack channel {reference} was not found. Create it, or if it is private, invite the Standcast bot with /invite @Standcast.',
   'setup.teams.channelNotMember':
     'Team {team}: the Standcast bot is not in the Slack channel {reference}. Invite it with /invite @Standcast in the channel.',
+  'setup.teams.spaceNotLinked':
+    'Team {team}: this Google Chat space ({reference}) is not linked to this organization yet. Add the Standcast app to the space and paste the code it posts in Configuration → Google Chat.',
   'setup.tracker.jiraComingSoon': 'The Jira integration is not available yet.',
   'setup.tracker.notConnected':
     'This team uses Linear, but Linear is not connected to this installation yet.',

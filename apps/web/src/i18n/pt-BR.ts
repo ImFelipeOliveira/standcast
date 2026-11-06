@@ -174,6 +174,8 @@ export const ptBR = {
     'Time {team}: o canal {reference} do Slack não foi encontrado. Crie o canal ou, se ele for privado, convide o bot do Standcast com /invite @Standcast.',
   'setup.teams.channelNotMember':
     'Time {team}: o bot do Standcast não está no canal {reference} do Slack. Convide-o com /invite @Standcast no canal.',
+  'setup.teams.spaceNotLinked':
+    'Time {team}: este espaço do Google Chat ({reference}) ainda não está ligado a esta organização. Adicione o app do Standcast ao espaço e cole o código que ele publicar em Configuração → Google Chat.',
   'setup.failed.title': 'Últimas entregas com falha',
   'setup.failed.none': 'Nenhuma entrega com falha.',
   'setup.failed.teamMessages': 'Mensagens do time',

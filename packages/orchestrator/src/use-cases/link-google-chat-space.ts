@@ -2,10 +2,8 @@ import { createHash } from 'node:crypto';
 import {
   deleteGoogleChatConnectionIfUnused,
   deleteGoogleChatSpaceBinding,
-  getConnectionExternalId,
   type MemberRow,
   redeemGoogleChatLinkCode,
-  saveConnection,
 } from '@standcast/db';
 import type { Deps } from '../deps';
 import { DomainError } from './errors';
@@ -15,6 +13,7 @@ import { requireAdmin } from './require-admin';
 export const LINK_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 export const LINK_CODE_LENGTH = 8;
 export const LINK_CODE_TTL_MS = 24 * 60 * 60 * 1000;
+export const GOOGLE_CHAT_CONNECTION_SECRET = 'google-chat-app';
 
 export function generateLinkCode(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(LINK_CODE_LENGTH));
@@ -45,6 +44,7 @@ export async function linkGoogleChatSpace(
     codeHash: hashLinkCode(code),
     installationId: installation.id,
     now: deps.now(),
+    connection: { secret: GOOGLE_CHAT_CONNECTION_SECRET, key: deps.encryptionKey },
   });
   if (result.status === 'invalid') {
     throw new DomainError('invalid_code', 'the link code is invalid or expired');
@@ -53,17 +53,6 @@ export async function linkGoogleChatSpace(
     throw new DomainError(
       'space_already_linked',
       'this space is linked to another organization; an admin there must unlink it first',
-    );
-  }
-  const connected = await getConnectionExternalId(deps.db, installation.id, 'google-chat');
-  if (!connected) {
-    await saveConnection(
-      deps.db,
-      installation.id,
-      'google-chat',
-      result.space.name,
-      '',
-      deps.encryptionKey,
     );
   }
   return { space: result.space.name, displayName: result.space.displayName };

@@ -104,6 +104,7 @@ const TEAM_NOTICES: Record<TeamNotice['kind'], MessageKey> = {
   truncated: 'setup.teams.truncated',
   channel_not_found: 'setup.teams.channelNotFound',
   channel_not_member: 'setup.teams.channelNotMember',
+  space_not_linked: 'setup.teams.spaceNotLinked',
 };
 
 export function noticeText(t: Translate, notice: TeamNotice): string {

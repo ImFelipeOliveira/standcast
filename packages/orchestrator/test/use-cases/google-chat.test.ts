@@ -5,6 +5,8 @@ import {
   getConnection,
   getDelivery,
   getIdentities,
+  isGoogleChatSpaceLinked,
+  issueGoogleChatLinkCode,
   listGoogleChatSpaces,
   redeemGoogleChatLinkCode,
   saveConnection,
@@ -18,6 +20,7 @@ import {
   chatUserIdFor,
   createMembershipCheck,
   type DomainError,
+  GOOGLE_CHAT_CONNECTION_SECRET,
   type GoogleChatEvent,
   getSetupStatus,
   handleGoogleChatEvent,
@@ -25,7 +28,7 @@ import {
   sendDigest,
   unlinkGoogleChatSpace,
 } from '../../src';
-import { daily, fakeChat, fakeDeps, INST, seedMember, seedOrg } from './fakes';
+import { daily, fakeChat, fakeDeps, INST, linkSpace, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -91,8 +94,8 @@ async function bindElsewhere(spaceName: string, installationId = OTHER) {
     codeHash,
     installationId,
     now: new Date('2026-10-28T15:00:00Z'),
+    connection: { secret: GOOGLE_CHAT_CONNECTION_SECRET, key: KEY },
   });
-  await saveConnection(db, installationId, 'google-chat', spaceName, '', KEY);
 }
 
 describe('handleGoogleChatEvent in a room', () => {
@@ -190,10 +193,73 @@ describe('linkGoogleChatSpace', () => {
     ]);
     const connection = await getConnection(db, INST, 'google-chat', KEY);
     expect(connection?.externalId).toBe('spaces/AAAA');
-    expect(connection?.secret).toBe('');
+    expect(connection?.secret).toBe(GOOGLE_CHAT_CONNECTION_SECRET);
     expect(
       await codeOf(linkGoogleChatSpace(deps, isMember, member, { installationId: INST, code })),
     ).toBe('invalid_code');
+  });
+
+  test('code is single use under concurrent redeem', async () => {
+    const { deps, isMember, member } = await setup();
+    const code = await issueCode(deps);
+    const results = await Promise.allSettled([
+      linkGoogleChatSpace(deps, isMember, member, { installationId: INST, code }),
+      linkGoogleChatSpace(deps, isMember, member, { installationId: INST, code }),
+    ]);
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const rejected = results.filter((r) => r.status === 'rejected');
+    expect(rejected.map((r) => (r.reason as DomainError).code)).toEqual(['invalid_code']);
+    expect(await listGoogleChatSpaces(db, INST)).toHaveLength(1);
+  });
+
+  test('a failed connection write leaves the code unused and the space unbound', async () => {
+    const { deps, isMember, member } = await setup();
+    const code = await issueCode(deps);
+    const broken = { ...deps, encryptionKey: new Uint8Array(3) };
+    await expect(
+      linkGoogleChatSpace(broken, isMember, member, { installationId: INST, code }),
+    ).rejects.toThrow();
+    expect(await listGoogleChatSpaces(db, INST)).toEqual([]);
+    expect(await getConnection(db, INST, 'google-chat', KEY)).toBeNull();
+    const linked = await linkGoogleChatSpace(deps, isMember, member, {
+      installationId: INST,
+      code,
+    });
+    expect(linked.space).toBe('spaces/AAAA');
+  });
+
+  test('a second space keeps the first connection row', async () => {
+    const { deps, isMember, member } = await setup();
+    await linkGoogleChatSpace(deps, isMember, member, {
+      installationId: INST,
+      code: await issueCode(deps, 'spaces/AAAA'),
+    });
+    await setIdentity(db, INST, member.id, 'google-chat', 'users/123');
+    await linkGoogleChatSpace(deps, isMember, member, {
+      installationId: INST,
+      code: await issueCode(deps, 'spaces/BBBB'),
+    });
+    expect((await getConnection(db, INST, 'google-chat', KEY))?.externalId).toBe('spaces/AAAA');
+    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
+  });
+
+  test('expired codes are cleared on redeem and when a new code is issued', async () => {
+    const { deps, isMember, member, setNow } = await setup();
+    const stale = await issueCode(deps, 'spaces/AAAA');
+    await issueCode(deps, 'spaces/BBBB');
+    setNow(new Date(deps.now().getTime() + 24 * 60 * 60 * 1000));
+    expect(
+      await codeOf(
+        linkGoogleChatSpace(deps, isMember, member, { installationId: INST, code: stale }),
+      ),
+    ).toBe('invalid_code');
+    const rows = async () =>
+      new Map((await db.select().from(googleChatSpaces)).map((r) => [r.spaceName, r]));
+    expect((await rows()).get('spaces/AAAA')?.linkCodeHash).toBeNull();
+    expect((await rows()).get('spaces/BBBB')?.linkCodeHash).not.toBeNull();
+    await issueCode(deps, 'spaces/CCCC');
+    expect((await rows()).get('spaces/BBBB')?.linkCodeHash).toBeNull();
+    expect((await rows()).get('spaces/CCCC')?.linkCodeHash).not.toBeNull();
   });
 
   test('expired code', async () => {
@@ -335,6 +401,30 @@ describe('handleGoogleChatEvent in a direct message', () => {
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
   });
 
+  test('a failed member lookup never carries the email', async () => {
+    const { deps } = await setup();
+    const email = 'secret.person@acme.com';
+    const failing = {
+      now: deps.now,
+      db: new Proxy(db, {
+        get(target, prop, receiver) {
+          if (prop === 'select') {
+            return () => {
+              throw new Error(`Failed query: select ... params: ${email}`);
+            };
+          }
+          return Reflect.get(target, prop, receiver);
+        },
+      }),
+    };
+    const error = await handleGoogleChatEvent(failing, dm(email)).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(Error);
+    expect(String((error as Error).message)).not.toContain(email);
+    expect(JSON.stringify(error)).not.toContain(email);
+    expect((error as Error).stack ?? '').not.toContain(email);
+    expect((error as Error).cause).toBeUndefined();
+  });
+
   test('override wins over the dm link', async () => {
     const cfg = googleConfig({ members: 'members:\n  Alice: { google_chat: users/999 }' });
     const { deps } = await setup(cfg);
@@ -349,7 +439,14 @@ describe('google chat deliveries', () => {
     const { deps, member } = await setup();
     await seedOrg(googleConfig(), { id: OTHER, accountLogin: 'beta' });
     await bindElsewhere('spaces/AAAA', OTHER);
-    await saveConnection(db, INST, 'google-chat', 'spaces/CCCC', '', KEY);
+    await saveConnection(
+      db,
+      INST,
+      'google-chat',
+      'spaces/CCCC',
+      GOOGLE_CHAT_CONNECTION_SECRET,
+      KEY,
+    );
     await upsertDaily(db, {
       installationId: INST,
       memberId: member.id,
@@ -369,6 +466,63 @@ describe('google chat deliveries', () => {
     });
     expect(row?.status).toBe('failed');
     expect(row?.error).toBe('space_not_linked: the space is not linked to this organization');
+  });
+
+  test('a space with a pending code is not linked', async () => {
+    await setup();
+    await issueGoogleChatLinkCode(db, {
+      spaceName: 'spaces/AAAA',
+      displayName: 'Alpha room',
+      codeHash: 'pending',
+      expiresAt: new Date('2026-10-29T15:00:00Z'),
+      now: new Date('2026-10-28T15:00:00Z'),
+    });
+    expect(await isGoogleChatSpaceLinked(db, INST, 'spaces/AAAA')).toBe(false);
+    await linkSpace('spaces/BBBB');
+    expect(await isGoogleChatSpaceLinked(db, INST, 'spaces/BBBB')).toBe(true);
+  });
+
+  test('setup never checks a space bound elsewhere and notices it', async () => {
+    const { deps, isMember, member } = await setup();
+    await seedOrg(googleConfig(), { id: OTHER, accountLogin: 'beta' });
+    await bindElsewhere('spaces/AAAA', OTHER);
+    const checked: string[] = [];
+    deps.chatFor = async () => ({
+      ...fakeChat().chat,
+      checkChannel: async (channel: string) => {
+        checked.push(channel);
+        return 'not_member';
+      },
+    });
+    const status = await getSetupStatus(deps, isMember, member, INST);
+    expect(checked).toEqual([]);
+    expect(status.teamNotices).toContainEqual({
+      team: 'Alpha',
+      reference: 'spaces/AAAA',
+      kind: 'space_not_linked',
+    });
+    expect(status.teamNotices.some((n) => n.kind === 'channel_not_member')).toBe(false);
+  });
+
+  test('setup checks a linked space remotely', async () => {
+    const { deps, isMember, member } = await setup();
+    await linkSpace('spaces/AAAA');
+    const checked: string[] = [];
+    deps.chatFor = async () => ({
+      ...fakeChat().chat,
+      checkChannel: async (channel: string) => {
+        checked.push(channel);
+        return 'not_member';
+      },
+    });
+    const status = await getSetupStatus(deps, isMember, member, INST);
+    expect(checked).toEqual(['spaces/AAAA']);
+    expect(status.teamNotices).toContainEqual({
+      team: 'Alpha',
+      reference: 'spaces/AAAA',
+      kind: 'channel_not_member',
+    });
+    expect(status.teamNotices.some((n) => n.kind === 'space_not_linked')).toBe(false);
   });
 
   test('setup status lists bound spaces', async () => {

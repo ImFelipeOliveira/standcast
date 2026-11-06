@@ -71,6 +71,7 @@ async function issueLinkCode(
     displayName,
     codeHash: hashLinkCode(code),
     expiresAt: new Date(deps.now().getTime() + LINK_CODE_TTL_MS),
+    now: deps.now(),
   });
   return bilingual('googleChat.linkCode', { code });
 }
@@ -130,6 +131,14 @@ async function linkMember(
   return outcome;
 }
 
+async function membersWithEmail(deps: EventDeps, email: string): Promise<MemberRow[]> {
+  try {
+    return await findMembersByEmail(deps.db, email);
+  } catch {
+    throw new Error('google chat member lookup failed');
+  }
+}
+
 async function linkIdentities(
   deps: EventDeps,
   user: GoogleChatEvent['user'],
@@ -138,7 +147,7 @@ async function linkIdentities(
   if (!user || !email || !GOOGLE_CHAT_USER_ID.test(user.name)) {
     return bilingual('googleChat.notFound');
   }
-  const members = await findMembersByEmail(deps.db, email);
+  const members = await membersWithEmail(deps, email);
   if (members.length === 0) return bilingual('googleChat.notFound');
   const linked: string[] = [];
   const languages = new Set<Language>();

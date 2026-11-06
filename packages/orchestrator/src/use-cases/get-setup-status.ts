@@ -19,6 +19,7 @@ import {
   type PersonFailureGroup,
   type TeamFailure,
 } from '@standcast/db';
+import { isChannelLinked } from '../chat';
 import type { Deps } from '../deps';
 import { guarded } from '../guarded';
 import { statusOf } from '../membership';
@@ -137,15 +138,39 @@ const CHANNEL_NOTICES: Record<Exclude<ChannelCheck, 'ok'>, TeamNotice['kind']> =
   not_member: 'channel_not_member',
 };
 
+async function linkedTeams(
+  deps: Deps,
+  installationId: number,
+  provider: ChatProvider,
+  teams: TeamConfig[],
+): Promise<{ linked: TeamConfig[]; unlinked: TeamConfig[] }> {
+  const channels = [...new Set(teams.map((team) => team.chat.channel))];
+  const flags = await Promise.all(
+    channels.map((channel) => isChannelLinked(deps, installationId, provider, channel)),
+  );
+  const linkedChannels = new Set(channels.filter((_, i) => flags[i]));
+  return {
+    linked: teams.filter((team) => linkedChannels.has(team.chat.channel)),
+    unlinked: teams.filter((team) => !linkedChannels.has(team.chat.channel)),
+  };
+}
+
 async function providerChannelNotices(
   deps: Deps,
   installationId: number,
   provider: ChatProvider,
   teams: TeamConfig[],
 ): Promise<TeamNotice[]> {
+  const { linked, unlinked } = await linkedTeams(deps, installationId, provider, teams);
+  const unlinkedNotices: TeamNotice[] = unlinked.map((team) => ({
+    team: team.name,
+    reference: team.chat.channel,
+    kind: 'space_not_linked',
+  }));
+  if (linked.length === 0) return unlinkedNotices;
   const chat = await deps.chatFor(installationId, provider);
-  if (!chat) return [];
-  const channels = [...new Set(teams.map((team) => team.chat.channel))];
+  if (!chat) return unlinkedNotices;
+  const channels = [...new Set(linked.map((team) => team.chat.channel))];
   const checks = await Promise.all(
     channels.map((channel) =>
       guarded<ChannelCheck | null>(
@@ -161,11 +186,12 @@ async function providerChannelNotices(
   channels.forEach((channel, i) => {
     results.set(channel, checks[i] ?? null);
   });
-  return teams.flatMap((team) => {
+  const checked = linked.flatMap((team): TeamNotice[] => {
     const result = results.get(team.chat.channel);
     if (!result || result === 'ok') return [];
     return [{ team: team.name, reference: team.chat.channel, kind: CHANNEL_NOTICES[result] }];
   });
+  return [...unlinkedNotices, ...checked];
 }
 
 async function channelNotices(

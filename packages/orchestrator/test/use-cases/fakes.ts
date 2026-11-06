@@ -430,6 +430,12 @@ export async function linkSpace(spaceName: string, installationId = INST): Promi
     displayName: spaceName,
     codeHash,
     expiresAt: new Date(now.getTime() + 60_000),
+    now,
   });
-  await redeemGoogleChatLinkCode(db, { codeHash, installationId, now });
+  await redeemGoogleChatLinkCode(db, {
+    codeHash,
+    installationId,
+    now,
+    connection: { secret: 'google-chat-app', key: new Uint8Array(32).fill(7) },
+  });
 }

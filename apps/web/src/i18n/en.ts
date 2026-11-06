@@ -174,6 +174,8 @@ export const en: Record<MessageKey, string> = {
     'Team {team}: the Slack channel {reference} was not found. Create it, or if it is private, invite the Standcast bot with /invite @Standcast.',
   'setup.teams.channelNotMember':
     'Team {team}: the Standcast bot is not in the Slack channel {reference}. Invite it with /invite @Standcast in the channel.',
+  'setup.teams.spaceNotLinked':
+    'Team {team}: this Google Chat space ({reference}) is not linked to this organization yet. Add the Standcast app to the space and paste the code it posts in Configuration → Google Chat.',
   'setup.failed.title': 'Latest failed deliveries',
   'setup.failed.none': 'No failed deliveries.',
   'setup.failed.teamMessages': 'Team messages',
