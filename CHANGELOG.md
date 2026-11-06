@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.7.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.6.0...standcast-v0.7.0) (2026-11-06)
+
+
+### Features
+
+* **landing:** animated halftone ([#83](https://github.com/ImFelipeOliveira/standcast/issues/83)) ([753890c](https://github.com/ImFelipeOliveira/standcast/commit/753890cfb35ffe880445f335c2478da00a7c9afd))
+* **landing:** animated halftone field behind the home hero ([9768d8b](https://github.com/ImFelipeOliveira/standcast/commit/9768d8bfcaaf5303a1e5ac367dfe8295d39c9cbe))
+* **landing:** animated halftone field, vertical day timeline and clear header ([#82](https://github.com/ImFelipeOliveira/standcast/issues/82)) ([84a18d4](https://github.com/ImFelipeOliveira/standcast/commit/84a18d4dddbf6772f697900349a5301c268d6aef))
+* **landing:** field always on screen, softer and readable ([2d5b169](https://github.com/ImFelipeOliveira/standcast/commit/2d5b169d5ac081844af8291fdf1f5ba17ea9b387))
+* **landing:** field spreads across the whole hero ([4bbeb3e](https://github.com/ImFelipeOliveira/standcast/commit/4bbeb3e4fc145ef268cf395a8f4f8d803652beb9))
+* **landing:** soft scrim keeps the hero copy readable over the field ([ec14e16](https://github.com/ImFelipeOliveira/standcast/commit/ec14e16e9f5fce839fbd1b4cd56f76060caac829))
+* **landing:** webgl halftone field, vertical day timeline, clear header and scroll reveals ([9e7cf47](https://github.com/ImFelipeOliveira/standcast/commit/9e7cf47e50d4d453cdda5474526d45a68db680d9))
+
+
+### Bug Fixes
+
+* **landing:** guard observers, timeline script on how it works, mobile scrim ([b08b311](https://github.com/ImFelipeOliveira/standcast/commit/b08b31131c0514c85ec829cdb8839e864947f8d1))
+
 ## [0.6.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.5.0...standcast-v0.6.0) (2026-11-06)
 
 
