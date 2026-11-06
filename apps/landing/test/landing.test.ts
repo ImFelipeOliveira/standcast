@@ -159,6 +159,10 @@ describe('landing', () => {
       expect(metaContent(html, 'og:image')).toBe(`${SITE}/og.png`);
       expect(metaContent(html, 'twitter:image')).toBe(`${SITE}/og.png`);
       expect(metaContent(html, 'twitter:card')).toBe('summary_large_image');
+      expect(metaContent(html, 'og:image:width')).toBe('1280');
+      expect(metaContent(html, 'og:image:height')).toBe('640');
+      expect(metaContent(html, 'og:image:alt')?.length, page.file).toBeGreaterThan(0);
+      expect(metaContent(html, 'robots'), page.file).toBe('max-image-preview:large');
       expect(metaContent(html, 'theme-color')).toBeDefined();
       expect(links.some((link) => attr(link, 'rel') === 'icon')).toBe(true);
       expect(links.some((link) => attr(link, 'rel') === 'stylesheet')).toBe(true);
