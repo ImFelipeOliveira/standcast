@@ -84,4 +84,18 @@
     <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/beta/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/beta/"/>
   </url>
+  <url>
+    <loc>https://standcast.usefachada.dev/terms/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/terms/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/termos/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/terms/"/>
+  </url>
+  <url>
+    <loc>https://standcast.usefachada.dev/pt-BR/termos/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/terms/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/termos/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/terms/"/>
+  </url>
 </urlset>

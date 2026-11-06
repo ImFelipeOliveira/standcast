@@ -127,7 +127,7 @@ a {
   color: inherit;
 }
 
-:where(.lede, .feat, .way p, .faq details, .fine) a {
+:where(.lede, .feat, .way p, .faq details, .fine, .terms) a {
   color: var(--accent);
 }
 
@@ -1090,6 +1090,34 @@ select {
   width: 1px;
   height: 1px;
   overflow: hidden;
+}
+
+.terms {
+  max-width: 72ch;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: var(--muted);
+}
+
+.terms h2 {
+  color: var(--ink);
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 28px;
+}
+
+.terms h2:first-child {
+  margin-top: 0;
+}
+
+.terms ul {
+  margin: 0;
+  padding-left: 22px;
+}
+
+.terms code {
+  font-size: 0.9em;
 }
 
 .site-footer {

@@ -33,6 +33,7 @@ Only what a daily needs. What Standcast reads, what it stores, how long it keeps
 - [Pricing](https://standcast.usefachada.dev/pricing/index.md)
 - [FAQ](https://standcast.usefachada.dev/faq/index.md)
 - [Join the beta](https://standcast.usefachada.dev/beta/index.md)
+- [Terms of use](https://standcast.usefachada.dev/terms/index.md)
 - [Versão em português](https://standcast.usefachada.dev/pt-BR/privacidade/index.md)
 
 Support: support.standcast@usefachada.dev

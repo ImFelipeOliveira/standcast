@@ -13,6 +13,7 @@ We keep your request for 12 months to contact your team. See [beta requests](htt
 - [Privacy](https://standcast.usefachada.dev/privacy/index.md)
 - [Pricing](https://standcast.usefachada.dev/pricing/index.md)
 - [FAQ](https://standcast.usefachada.dev/faq/index.md)
+- [Terms of use](https://standcast.usefachada.dev/terms/index.md)
 - [Versão em português](https://standcast.usefachada.dev/pt-BR/beta/index.md)
 
 Support: support.standcast@usefachada.dev

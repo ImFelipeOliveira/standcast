@@ -45,6 +45,7 @@ Write to support.standcast@usefachada.dev or read the [documentation](https://do
 - [Privacy](https://standcast.usefachada.dev/privacy/index.md)
 - [Pricing](https://standcast.usefachada.dev/pricing/index.md)
 - [Join the beta](https://standcast.usefachada.dev/beta/index.md)
+- [Terms of use](https://standcast.usefachada.dev/terms/index.md)
 - [Versão em português](https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/index.md)
 
 Support: support.standcast@usefachada.dev
