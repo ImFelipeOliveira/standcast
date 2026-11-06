@@ -1,6 +1,6 @@
 # Como funciona
 
-> Do seu trabalho a um consolidado por time. O Standcast rascunha a sua daily a partir do GitHub e do Linear, você confirma no seu agente de IA ou no terminal, e cada time recebe um consolidado no Slack no horário que escolheu.
+> Do seu trabalho a um consolidado por time. O Standcast rascunha a sua daily a partir do GitHub e do Linear, você confirma no seu agente de IA ou no terminal, e cada time recebe um consolidado no Slack ou no Google Chat no horário que escolheu.
 
 ## Um dia com o Standcast
 
@@ -24,7 +24,7 @@ Coleta, consolida e entrega. Você só escreve.
 
 ## Configuração como código
 
-Um arquivo no seu repositório .github. Times, horários, canais do Slack e gestores ficam no `standcast.yml`. Toda mudança passa por review, como código.
+Um arquivo no seu repositório .github. Times, horários, canais de chat e gestores ficam no `standcast.yml`. Toda mudança passa por review, como código.
 
 - **Validado a cada push.** Um check run `Standcast config` aponta a linha com erro.
 - **Nunca quebra o time.** Um push inválido mantém a última configuração válida em vigor.
