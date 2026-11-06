@@ -12,7 +12,7 @@ The docs changelogs (`docs/site/changelog.md`, `docs/site/pt-BR/changelog.md` an
 
 After every push to `main` (a `dev` merge or a release) or `dev`, the sync-dev workflow opens a `main` to `dev` pull request and merges it with a merge commit once `check` passes, so `dev` never falls behind `main`. Never squash that pull request: squashing leaves `main`'s commits out of `dev`.
 
-Release PRs are opened with the default `GITHUB_TOKEN`, so CI does not run on them automatically. To run the checks, close and reopen the PR, or push an empty commit to it.
+Release PRs are opened with the default `GITHUB_TOKEN`, which does not trigger CI by itself. The commit the `release-changelogs` job pushes with `RELEASE_PLEASE_TOKEN` does trigger `pull_request` CI, so the checks run on their own. Only when that job pushes nothing (the headings were already there) or `RELEASE_PLEASE_TOKEN` is not set, close and reopen the PR or push an empty commit to it to run the checks.
 
 The repository setting "Allow GitHub Actions to create and approve pull requests" must be enabled for release-please to open its PR.
 

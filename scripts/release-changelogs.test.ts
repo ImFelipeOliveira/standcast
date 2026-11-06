@@ -46,6 +46,21 @@ describe('release changelogs', () => {
     expect(await readFile(join(root, 'docs/api/CHANGELOG.md'), 'utf8')).toBe(before);
   });
 
+  test('a retry after a partial run releases only what is left', async () => {
+    const root = await repo();
+    const api = 'docs/api/CHANGELOG.md';
+    await writeFile(
+      join(root, api),
+      '# API changelog\n\n## Unreleased\n\n## 0.5.0 — 2026-11-06\n\n- No API changes.\n',
+    );
+    const before = await readFile(join(root, api), 'utf8');
+    expect(await releaseChangelogs(root, '0.5.0', '2026-11-07')).toEqual([
+      'docs/site/changelog.md',
+      'docs/site/pt-BR/changelog.md',
+    ]);
+    expect(await readFile(join(root, api), 'utf8')).toBe(before);
+  });
+
   test('a changelog without the unreleased heading fails loudly', async () => {
     const root = await repo();
     await writeFile(join(root, 'docs/api/CHANGELOG.md'), '# API changelog\n');
