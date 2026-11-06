@@ -309,7 +309,11 @@ header.nav {
 }
 
 header.nav.nav-clear {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--bg) 72%, transparent), transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg) 88%, transparent),
+    color-mix(in srgb, var(--bg) 30%, transparent)
+  );
   border-bottom-color: transparent;
   backdrop-filter: none;
 }
@@ -437,14 +441,30 @@ body::before {
   --field-a: #3b4bc8;
   --field-b: #7c3aed;
   --field-c: #db2777;
-  --field-strength: 0.8;
+  --field-strength: 0.62;
+  --field-focus: 0.74;
+  --field-spread: 0.2;
   -webkit-mask-image:
     linear-gradient(90deg, rgba(0, 0, 0, 0.14) 0%, rgba(0, 0, 0, 0.2) 38%, #000 62%, #000 100%),
-    linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+    linear-gradient(
+      180deg,
+      #000 0%,
+      #000 36%,
+      rgba(0, 0, 0, 0.22) 52%,
+      rgba(0, 0, 0, 0.14) 85%,
+      transparent 100%
+    );
   -webkit-mask-composite: source-in;
   mask-image:
     linear-gradient(90deg, rgba(0, 0, 0, 0.14) 0%, rgba(0, 0, 0, 0.2) 38%, #000 62%, #000 100%),
-    linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+    linear-gradient(
+      180deg,
+      #000 0%,
+      #000 36%,
+      rgba(0, 0, 0, 0.22) 52%,
+      rgba(0, 0, 0, 0.14) 85%,
+      transparent 100%
+    );
   mask-composite: intersect;
 }
 
@@ -456,6 +476,8 @@ body::before {
 }
 
 .hero-field.field-cta {
+  --field-focus: 0.5;
+  --field-spread: 0.42;
   inset: 0;
   height: 100%;
   -webkit-mask-image: radial-gradient(
@@ -477,7 +499,7 @@ body::before {
     --field-a: #5b6cff;
     --field-b: #a64dff;
     --field-c: #ff4fd8;
-    --field-strength: 1;
+    --field-strength: 0.68;
   }
 }
 
@@ -485,7 +507,7 @@ body::before {
   --field-a: #5b6cff;
   --field-b: #a64dff;
   --field-c: #ff4fd8;
-  --field-strength: 1;
+  --field-strength: 0.68;
 }
 
 .hero-grid {

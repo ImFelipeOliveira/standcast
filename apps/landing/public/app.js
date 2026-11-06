@@ -32,21 +32,30 @@
 
   const FRAGMENT = [
     'precision mediump float;',
-    'uniform vec2 res;uniform float time;uniform float cell;uniform float strength;',
+    'uniform vec2 res;uniform float time;uniform float cell;uniform float strength;uniform float ratio;',
+    'uniform float focus;uniform float spread;',
     'uniform vec3 ca;uniform vec3 cb;uniform vec3 cc;',
     'float h(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}',
     'float n(vec2 q){vec2 i=floor(q);vec2 f=fract(q);vec2 u=f*f*(3.-2.*f);',
     'return mix(mix(h(i),h(i+vec2(1.,0.)),u.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),u.x),u.y);}',
     'float fbm(vec2 q){float v=0.;float a=.5;for(int k=0;k<4;k++){v+=a*n(q);q=q*2.02+vec2(1.7,9.2);a*=.5;}return v;}',
+    'float blob(vec2 p,vec2 c,float r){vec2 d=(p-c)/r;return exp(-dot(d,d));}',
     'void main(){',
     'vec2 c=floor(gl_FragCoord.xy/cell);vec2 l=fract(gl_FragCoord.xy/cell)-.5;',
     'float t=time*.16;',
-    'vec2 q=c/115.+vec2(t*.55,t*.18);',
+    'vec2 q=c/115.+vec2(t*.45,t*.15);',
     'vec2 w=vec2(fbm(q+vec2(t*.9,-t*.6)),fbm(q+vec2(5.2-t*.7,1.3+t*.8)));',
     'vec2 w2=vec2(fbm(q+3.*w+vec2(1.7,9.2)+t*.5),fbm(q+3.*w+vec2(8.3,2.8)-t*.4));',
-    'float v=fbm(q+3.4*w2);',
-    'float g=smoothstep(.32,.72,v);',
-    'vec3 col=mix(ca,cb,smoothstep(.3,.7,w2.x));col=mix(col,cc,smoothstep(.5,.78,v));',
+    'float W=res.x/ratio;',
+    'vec2 P=vec2(c.x*cell,res.y-c.y*cell)/ratio+(w2-.5)*220.;',
+    'P.y=mod(P.y,820.);',
+    'float b=blob(P,vec2(W*(focus+spread*.55*sin(t*1.1)),250.+120.*cos(t*.8)),300.);',
+    'b+=blob(P,vec2(W*(focus+spread*.9*cos(t*.7+1.3)),560.+110.*sin(t*.9)),260.);',
+    'b+=.8*blob(P,vec2(W*(focus-spread*.8*sin(t*.6+2.1)),120.+90.*sin(t*1.3)),230.);',
+    'b+=.7*blob(P,vec2(W*(focus+spread*sin(t*.5+4.)),720.+80.*cos(t*.6)),240.);',
+    'float v=fbm(q+3.4*w2)*.66+min(b,1.2)*.4;',
+    'float g=smoothstep(.34,.94,v);',
+    'vec3 col=mix(ca,cb,smoothstep(.3,.7,w2.x));col=mix(col,cc,smoothstep(.66,1.02,v)*.9);',
     'col*=.75+.7*g;',
     'float m=step(max(abs(l.x),abs(l.y)),.37);',
     'float a=m*(.03+.97*pow(g,1.35))*(.8+.4*h(c))*strength;',
@@ -88,6 +97,8 @@
       gl.uniform3fv(u('cb'), rgb(css.getPropertyValue('--field-b')));
       gl.uniform3fv(u('cc'), rgb(css.getPropertyValue('--field-c')));
       gl.uniform1f(u('strength'), Number.parseFloat(css.getPropertyValue('--field-strength')) || 1);
+      gl.uniform1f(u('focus'), Number.parseFloat(css.getPropertyValue('--field-focus')) || 0.5);
+      gl.uniform1f(u('spread'), Number.parseFloat(css.getPropertyValue('--field-spread')) || 0.3);
     };
     const size = () => {
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
@@ -96,6 +107,7 @@
       gl.viewport(0, 0, field.width, field.height);
       gl.uniform2f(u('res'), field.width, field.height);
       gl.uniform1f(u('cell'), 5 * ratio);
+      gl.uniform1f(u('ratio'), ratio);
     };
     const start = performance.now() - 30000;
     const now = () => (reduce ? 30 : (performance.now() - start) / 1000);
