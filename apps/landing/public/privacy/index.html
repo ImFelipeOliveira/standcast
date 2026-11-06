@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacy · Standcast</title>
+<meta name="description" content="Standcast is built for teams, not for watching people. Suggested blockers stay in your draft. No productivity metrics, no rankings, no commit counts.">
+<link rel="canonical" href="https://standcast.usefachada.dev/privacy/">
+<link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/privacy/">
+<link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/privacidade/">
+<link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/privacy/">
+<link rel="alternate" type="text/markdown" href="/privacy/index.md">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#F6F7FB" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1022" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Standcast">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="pt_BR">
+<meta property="og:url" content="https://standcast.usefachada.dev/privacy/">
+<meta property="og:title" content="Privacy · Standcast">
+<meta property="og:description" content="Built for teams, not for watching people. Suggested blockers stay in your draft. No productivity metrics, no rankings, no commit counts.">
+<meta property="og:image" content="https://standcast.usefachada.dev/og.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="Standcast: your daily standup, written in your AI agent">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Privacy · Standcast">
+<meta name="twitter:description" content="Built for teams, not for watching people. Suggested blockers stay in your draft. No productivity metrics, no rankings.">
+<meta name="twitter:image" content="https://standcast.usefachada.dev/og.png">
+<link rel="preload" href="/fonts/inter-latin.c9407645.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Standcast","item":"https://standcast.usefachada.dev/"},{"@type":"ListItem","position":2,"name":"Privacy","item":"https://standcast.usefachada.dev/privacy/"}]}
+</script>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
+    <nav aria-label="Main"><ul>
+      <li><a href="/how-it-works/">How it works</a></li>
+      <li><a href="/privacy/" aria-current="page">Privacy</a></li>
+      <li><a href="/pricing/">Pricing</a></li>
+      <li><a href="/faq/">FAQ</a></li>
+      <li><a href="https://docs-standcast.usefachada.dev/">Docs</a></li>
+      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
+    </ul></nav>
+    <div class="nav-end">
+      <a class="lang" href="/pt-BR/privacidade/" hreflang="pt-BR" lang="pt-BR">Português</a>
+      <a class="btn btn-primary" href="/beta/">Join the beta</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero intro">
+  <div class="wrap">
+    <div class="hero-copy">
+      <nav class="crumbs" aria-label="Breadcrumb"><ol>
+        <li><a href="/">Home</a></li>
+        <li aria-current="page">Privacy</li>
+      </ol></nav>
+      <span class="eyebrow">Privacy</span>
+      <h1>Built for teams, not for watching people.</h1>
+      <p class="lede">Standcast suggests blockers from your own signals. Those suggestions belong to you. A test in CI checks that they never leave your draft.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="who-sees-what">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Who sees what</span>
+      <h2>Your team sees what you confirmed.</h2>
+    </div>
+    <div class="privacy-grid">
+      <div class="col"><h3>Your team sees</h3><ul>
+        <li>Dailies you confirmed, in the team digest</li>
+        <li>Blockers you confirmed, routed to who can help</li>
+        <li>Who hasn't sent today's daily</li>
+      </ul></div>
+      <div class="col only"><h3>Only you see</h3><ul>
+        <li>A pull request waiting days for review</li>
+        <li>CI failing on your branch for a day</li>
+        <li>A Linear card stuck in progress</li>
+      </ul></div>
+    </div>
+    <p class="never">No productivity metrics. No rankings. No commit counts. Nothing sent on anyone's behalf.</p>
+  </div>
+</section>
+
+<section id="reads">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">What Standcast reads</span>
+      <h2>Only what a daily needs.</h2>
+      <p class="lede">What Standcast reads, what it stores, how long it keeps it and who sees what are all in the <a href="https://docs-standcast.usefachada.dev/privacy">privacy page of the documentation</a>.</p>
+    </div>
+    <div class="features">
+      <article class="feat"><h3>No AI on our servers</h3><p>No LLM processes your data on the Standcast servers. The draft comes from your GitHub and Linear activity, and the digest from what people confirmed.</p></article>
+      <article class="feat"><h3>Your code stays yours</h3><p>The GitHub App reads pull requests, reviews, checks, commit metadata, standcast.yml and CODEOWNERS. It never reads source files and never writes to your repositories.</p></article>
+      <article class="feat"><h3>Suggestions stay in your draft</h3><p>Suggested blockers are visible only to you. They never reach the digest, the API, webhooks or managers. Managers read confirmed content only.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="flush">
+  <div class="wrap">
+    <div class="beta">
+      <div class="head tight">
+        <span class="eyebrow">Public beta</span>
+        <h2>Try it with your team.</h2>
+        <p class="lede">We're looking for teams of 3 to 15 people on GitHub and Slack. We'll help you set it up.</p>
+      </div>
+      <div class="beta-cta">
+        <div class="cta-row">
+          <a class="btn btn-primary" href="/beta/">Join the beta</a>
+          <a class="btn btn-ghost" href="https://docs-standcast.usefachada.dev/admin/install">Install for your org</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
+    <ul aria-label="Footer">
+      <li><a href="/how-it-works/">How it works</a></li>
+      <li><a href="/privacy/" aria-current="page">Privacy</a></li>
+      <li><a href="/pricing/">Pricing</a></li>
+      <li><a href="/faq/">FAQ</a></li>
+      <li><a href="/beta/">Join the beta</a></li>
+      <li><a href="https://docs-standcast.usefachada.dev/">Documentation</a></li>
+      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
+      <li><a href="/llms.txt">llms.txt</a></li>
+      <li><a href="/pt-BR/privacidade/" hreflang="pt-BR" lang="pt-BR">Português</a></li>
+    </ul>
+    <p>MIT · support.standcast@usefachada.dev</p>
+  </div>
+</footer>
+</body>
+</html>
