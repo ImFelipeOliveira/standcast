@@ -234,7 +234,7 @@ const ptBR = {
   'setup.teams.channelNotMember':
     'Time {team}: o bot do Standcast não está no canal {reference} do Slack. Convide-o com /invite @Standcast no canal.',
   'setup.teams.spaceNotLinked':
-    'Time {team}: este espaço do Google Chat ({reference}) ainda não está ligado a esta organização. Adicione o app do Standcast ao espaço e cole o código que ele publicar em Configuração → Google Chat.',
+    'Time {team}: este espaço do Google Chat ({reference}) ainda não está vinculado a esta organização. Adicione o app do Standcast ao espaço e cole o código que ele publicar em Configuração → Google Chat.',
   'setup.teams.spaceNotFound':
     'Time {team}: o espaço {reference} do Google Chat não foi encontrado. Confira o nome do espaço e adicione o app do Standcast a ele.',
   'setup.teams.spaceNotMember':

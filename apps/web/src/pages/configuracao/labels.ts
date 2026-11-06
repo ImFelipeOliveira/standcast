@@ -59,10 +59,10 @@ const FAILURE_REASONS: Record<string, MessageKey> = {
   not_in_channel: 'setup.failure.not_in_channel',
   channel_not_found: 'setup.failure.channel_not_found',
   is_archived: 'setup.failure.is_archived',
-  invalid_auth: 'setup.failure.slack_invalid',
-  not_authed: 'setup.failure.slack_invalid',
-  token_revoked: 'setup.failure.slack_invalid',
-  account_inactive: 'setup.failure.slack_invalid',
+  invalid_auth: 'setup.failure.chat_invalid',
+  not_authed: 'setup.failure.chat_invalid',
+  token_revoked: 'setup.failure.chat_invalid',
+  account_inactive: 'setup.failure.chat_invalid',
   user_not_found: 'setup.failure.user_not_found',
   user_disabled: 'setup.failure.user_disabled',
   ratelimited: 'setup.failure.ratelimited',
@@ -142,6 +142,7 @@ const LINK_ERRORS: Record<string, MessageKey> = {
   invalid_code: 'setup.googleChat.invalidCode',
   space_already_linked: 'setup.googleChat.alreadyLinked',
   rate_limited: 'setup.googleChat.rateLimited',
+  forbidden: 'setup.googleChat.forbidden',
 };
 
 export function linkErrorMessage(t: Translate, error: unknown): string {

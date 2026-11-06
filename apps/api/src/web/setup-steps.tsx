@@ -187,7 +187,9 @@ function GoogleChatStep(props: NumberedStepProps & { csrf: string }) {
         <form method="post" action="/setup/google-chat">
           <input type="hidden" name="csrf" value={props.csrf} />
           <input type="hidden" name="installation_id" value={status.installationId} />
-          <p class="small">{t('web.googleChat.instructions')}</p>
+          <p class="small" id="google-chat-hint">
+            {t('web.googleChat.instructions')}
+          </p>
           <p>
             <label class="field">
               {t('web.googleChat.code')}{' '}
@@ -199,6 +201,7 @@ function GoogleChatStep(props: NumberedStepProps & { csrf: string }) {
                 autocomplete="off"
                 autocapitalize="characters"
                 spellcheck={false}
+                aria-describedby="google-chat-hint"
               />
             </label>
           </p>

@@ -8,13 +8,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { useT } from '../../i18n';
-import {
-  errorMessage,
-  linkErrorMessage,
-  reasonText,
-  TRACKER_NOTICES,
-  type Translate,
-} from './labels';
+import { linkErrorMessage, reasonText, TRACKER_NOTICES, type Translate } from './labels';
 
 type LinearState = 'done' | 'todo' | 'error';
 
@@ -153,6 +147,7 @@ function SpaceRow({
   onUnlink: (space: GoogleChatSpace) => void;
 }) {
   const [copy, setCopy] = useState<CopyState>('idle');
+  const [confirming, setConfirming] = useState(false);
   const copyName = async () => {
     try {
       await navigator.clipboard.writeText(space.name);
@@ -172,19 +167,45 @@ function SpaceRow({
           {copy === 'copied' ? t('setup.secret.copied') : t('setup.secret.copy')}
           <span className="sr-only"> {space.name}</span>
         </Button>
-        {admin ? (
+        {admin && !confirming ? (
           <Button
             type="button"
             variant="destructive"
             size="sm"
             disabled={unlinking}
-            onClick={() => onUnlink(space)}
+            onClick={() => setConfirming(true)}
           >
             {t('setup.googleChat.unlink')}
             <span className="sr-only"> {space.displayName}</span>
           </Button>
         ) : null}
       </div>
+      {admin && confirming ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="m-0 basis-full text-[12px] text-text2">
+            {t('setup.googleChat.unlinkWarning')}
+          </p>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            disabled={unlinking}
+            onClick={() => {
+              setConfirming(false);
+              onUnlink(space);
+            }}
+          >
+            {t('setup.googleChat.confirmUnlink')}
+            <span className="sr-only"> {space.displayName}</span>
+          </Button>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+            {t('setup.cancel')}
+          </Button>
+        </div>
+      ) : null}
+      <span role="status" className="sr-only">
+        {copy === 'copied' ? t('setup.secret.copied') : ''}
+      </span>
       {copy === 'failed' ? (
         <p role="alert" className="m-0 text-[12px] text-bad-ink">
           {t('setup.secret.copyFailed')}
@@ -259,13 +280,18 @@ function GoogleChatCard({ t, status }: { t: Translate; status: SetupStatus }) {
   const { googleChat } = status;
   const unlink = useUnlinkGoogleChatSpace(status.installationId);
   const [linked, setLinked] = useState<string | null>(null);
+  const [unlinked, setUnlinked] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const connected = googleChat.spaces.length > 0;
 
   const unlinkSpace = (space: GoogleChatSpace) => {
     setProblem(null);
     setLinked(null);
-    unlink.mutate(space.name, { onError: (error) => setProblem(errorMessage(t, error)) });
+    setUnlinked(null);
+    unlink.mutate(space.name, {
+      onSuccess: () => setUnlinked(space.displayName),
+      onError: (error) => setProblem(linkErrorMessage(t, error)),
+    });
   };
 
   const badge = !googleChat.available ? (
@@ -320,6 +346,11 @@ function GoogleChatCard({ t, status }: { t: Translate; status: SetupStatus }) {
           {t('setup.googleChat.linked', { space: linked })}
         </p>
       ) : null}
+      {unlinked ? (
+        <p role="status" className="m-0 text-[13px] text-ok-ink">
+          {t('setup.googleChat.unlinked', { space: unlinked })}
+        </p>
+      ) : null}
       {problem ? (
         <p role="alert" className="m-0 text-[13px] text-bad-ink">
           {problem}
@@ -331,6 +362,7 @@ function GoogleChatCard({ t, status }: { t: Translate; status: SetupStatus }) {
           installationId={status.installationId}
           onLinked={(displayName) => {
             setProblem(null);
+            setUnlinked(null);
             setLinked(displayName);
           }}
         />

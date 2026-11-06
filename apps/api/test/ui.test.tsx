@@ -699,6 +699,8 @@ describe('setup checklist', () => {
     expect(admin).toContain('name="csrf" value="token"');
     expect(admin).toContain('name="installation_id" value="11"');
     expect(admin).toContain('name="code"');
+    expect(admin).toContain('id="google-chat-hint"');
+    expect(admin).toContain('aria-describedby="google-chat-hint"');
     expect(admin).toContain('Add the Standcast app to a Google Chat space; it posts a code.');
     expect(admin).toContain('Link space');
 

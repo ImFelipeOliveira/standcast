@@ -349,17 +349,17 @@ describe('configuração', () => {
     expect(html).toContain('Últimas entregas com falha');
     expect(html).toContain('Consolidado');
     expect(html).toContain('channel_not_found');
-    expect(html).toContain('O canal do Slack não foi encontrado.');
+    expect(html).toContain('O canal ou espaço do chat não foi encontrado.');
     expect(html).not.toContain('the channel was not found');
     expect(html).toContain('Lembrete');
-    expect(html).toContain('A pessoa não foi encontrada no Slack.');
+    expect(html).toContain('A pessoa não foi encontrada no chat.');
     expect(html).toContain('>3<');
 
     applyLang('en');
     const english = renderPage(status);
     expect(english).toContain('Latest failed deliveries');
     expect(english).toContain('Digest');
-    expect(english).toContain('The Slack channel was not found.');
+    expect(english).toContain('The chat channel or space was not found.');
   });
 
   test('no failures shows the empty state', () => {
@@ -484,6 +484,9 @@ describe('configuração', () => {
       'Too many attempts. Wait a minute and try again.',
     );
     expect(linkErrorMessage(t, new ApiError(403, 'forbidden', 'x'))).toBe(
+      'Only an admin can link or unlink a Google Chat space.',
+    );
+    expect(linkErrorMessage(t, new ApiError(500, 'internal_error', 'x'))).toBe(
       'Could not finish right now. Try again in a moment.',
     );
   });
@@ -550,10 +553,18 @@ describe('configuração', () => {
             count: 1,
             lastAt: new Date('2026-11-06T12:00:00Z'),
           },
+          {
+            kind: 'blocker_route',
+            error: 'timeout: Google Chat did not answer in time',
+            count: 1,
+            lastAt: new Date('2026-11-06T11:00:00Z'),
+          },
         ],
       }),
     );
     expect(html).toContain('O espaço do Google Chat não está vinculado a esta organização.');
+    expect(html).toContain('O chat não respondeu a tempo.');
+    expect(html).not.toContain('Slack não respondeu');
     expect(html).toContain(
       'A pessoa ainda não mandou mensagem para o app do Standcast no Google Chat.',
     );
