@@ -21,13 +21,13 @@ import {
   operationalConfig,
   reserveBlockerRoute,
 } from '@standcast/db';
-import { chatUserIdsFor, forgetStaleChatIdentity } from '../chat-identity';
+import { directMessageIdsFor, forgetStaleChatIdentity, membershipTimeout } from '../chat-identity';
 import type { WorkerDeps } from '../deps';
 import { blockerRouteId } from '../events';
 import { logError } from '../log-error';
 import type { CardOwners } from '../project-tracker';
 import { resolveTeams } from '../teams';
-import { describeDeliveryError } from './delivery-error';
+import { describeDeliveryError, isTerminalDeliveryError } from './delivery-error';
 
 export const ROUTE_BLOCKER_JOB = 'route-blocker';
 const MAX_ROUTE_TARGETS = 5;
@@ -217,14 +217,20 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
     firstTeam,
     blocker,
   };
+  const provider = firstTeam.chat.provider;
   let target = await resolveRouteTarget(deps, ctx);
   const fallback = managerTarget(ctx);
-  const ids = await chatUserIdsFor(deps, job.installationId, config, [
-    ...target.logins,
-    ...fallback.logins,
-    author,
-  ]);
-  if (target.reason !== 'manager' && !target.logins.some((l) => ids.has(l))) target = fallback;
+  const chat = await deps.chatFor(job.installationId, provider);
+  const { ids, timedOut } = await directMessageIdsFor(
+    deps,
+    chat,
+    job.installationId,
+    config,
+    provider,
+    [...target.logins, ...fallback.logins, author],
+  );
+  const reachable = (login: string) => ids.has(login) || timedOut.has(login);
+  if (target.reason !== 'manager' && !target.logins.some(reachable)) target = fallback;
   const previous = reservation.recipients;
   if (previous) {
     target = { ...target, logins: target.logins.filter((l) => previous.has(l)) };
@@ -243,7 +249,6 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
     return;
   }
 
-  const chat = await deps.chatFor(job.installationId, 'slack');
   const authorChatId = ids.get(author);
   let busy = false;
   let failure: unknown = null;
@@ -257,6 +262,7 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
         await failDelivery(deps.db, key, claim.token, 'no_chat_connection');
         continue;
       }
+      if (timedOut.has(login)) throw membershipTimeout();
       const chatUserId = ids.get(login);
       if (!chatUserId) {
         await failDelivery(deps.db, key, claim.token, `no_chat_identity: ${login}`);
@@ -274,12 +280,20 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
       );
       await completeDelivery(deps.db, key, claim.token, ref);
     } catch (error) {
-      await failDelivery(deps.db, key, claim.token, describeDeliveryError(error));
+      await failDelivery(deps.db, key, claim.token, describeDeliveryError(error, provider));
       const chatUserId = ids.get(login);
       if (chatUserId) {
-        await forgetStaleChatIdentity(deps, job.installationId, config, login, chatUserId, error);
+        await forgetStaleChatIdentity(
+          deps,
+          job.installationId,
+          config,
+          provider,
+          login,
+          chatUserId,
+          error,
+        );
       }
-      failure ??= error;
+      if (!isTerminalDeliveryError(error)) failure ??= error;
     }
   }
   if (failure) throw failure;

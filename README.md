@@ -5,7 +5,7 @@
 <h1 align="center">Standcast</h1>
 
 <p align="center">
-  <strong>Your team's daily standup, written with your AI agent and delivered to Slack.</strong>
+  <strong>Your team's daily standup, written with your AI agent and delivered to Slack or Google Chat.</strong>
 </p>
 
 <p align="center">
@@ -36,7 +36,7 @@
 > [!WARNING]
 > **Public beta.** Standcast is being tested with its first teams. Expect rough edges and changes to behaviour, configuration and the API before 1.0. Report problems in [GitHub issues](https://github.com/ImFelipeOliveira/standcast/issues) or at support.standcast@usefachada.dev.
 
-Each person runs `/daily` in their AI agent (Claude Code, Cursor, Codex, Claude Desktop, VS Code). Standcast drafts the daily from what they did on GitHub; the person edits it, adds today's plan and blockers, and **confirms before anything is sent**. At the time set in `standcast.yml`, Standcast posts one digest per team to Slack.
+Each person runs `/daily` in their AI agent (Claude Code, Cursor, Codex, Claude Desktop, VS Code). Standcast drafts the daily from what they did on GitHub; the person edits it, adds today's plan and blockers, and **confirms before anything is sent**. At the time set in `standcast.yml`, Standcast posts one digest per team to Slack or Google Chat.
 
 It is built for teams, not for watching people: **no productivity metrics, no rankings, nothing sent on anyone's behalf.**
 
@@ -70,17 +70,18 @@ Standcast keeps the writing where people already work, inside their agent, and t
 
 - **Draft from GitHub activity.** Pull requests opened, merged and reviewed, plus commits grouped by repository, since your last daily. Monday covers the weekend.
 - **Works in any MCP client.** A Claude Code plugin with the `/daily` skill, an MCP server for Cursor, Codex, Claude Desktop and VS Code, and a plain CLI for the terminal.
-- **One digest per team.** Posted to Slack at `digest_at`, in the team's time zone and only on workdays, with blockers first and the people who did not send listed at the end.
+- **One digest per team.** Posted to Slack or Google Chat at `digest_at`, in the team's time zone and only on workdays, with blockers first and the people who did not send listed at the end.
 - **Late dailies.** Sent after the digest, they are posted as a reply in the digest thread.
 - **Reminders.** At `remind_at`, people who have not sent their daily get one direct message, at most once a day, and never after the digest.
 - **Blocker routing.** A new blocker goes by direct message to whoever can help: the pull request's reviewers, then its CODEOWNERS, then the team managers.
+- **Slack or Google Chat.** Each team picks its chat in `standcast.yml`. On Google Chat, add the Standcast app to a space and link it with the code it posts; people link themselves by sending the app a direct message.
 - **Linear cards.** Connect one Linear workspace (read-only) and your own cards that started or finished appear in your draft. A blocker that links a card goes to the people who own the blocking card.
 - **Suggested blockers, only for you.** A pull request waiting too long for review, CI failing for a day or a card in progress for days shows up in your own draft. You confirm or ignore it; nobody else ever sees it.
 - **Several teams, one daily.** People in two teams write once and appear in both digests.
 - **Configuration as code.** A single `standcast.yml` in your `.github` repository. Every push and pull request that changes `standcast.yml` is validated by a `Standcast config` check run with the error on the right line, and an invalid push never breaks anything: the last valid version stays in effect.
 - **Manager tools.** Managers read their team's dailies, digests and blockers from their own AI agent.
 - **Read-only API and webhooks.** API keys (`sck_…`), an OpenAPI reference, and signed outgoing webhooks such as `daily.submitted` and `blocker.opened`.
-- **Bilingual.** English and Brazilian Portuguese across the CLI, Slack messages, web pages and documentation.
+- **Bilingual.** English and Brazilian Portuguese across the CLI, chat messages, web pages and documentation.
 
 ## How it works
 
@@ -95,7 +96,7 @@ flowchart LR
         DB[("Postgres")]
     end
     GH["GitHub<br/>activity · standcast.yml"]
-    SL["Slack<br/>#daily-team"]
+    SL["Slack or Google Chat<br/>team channel or space"]
 
     A -- "1. draft" --> API
     API -- "reads activity" --> GH
@@ -125,7 +126,7 @@ New here? The [landing page](https://standcast.usefachada.dev) has the overview 
 You need to own the GitHub organization (or personal account).
 
 1. [Install the Standcast GitHub App](https://github.com/apps/standcast/installations/new) on your organization.
-2. Open the setup page that GitHub sends you to, sign in, and click **Connect Slack**.
+2. Open the setup page that GitHub sends you to, sign in, and click **Connect Slack**. For Google Chat, add the Standcast app to a space and paste the code it posts in the Google Chat step ([guide](https://docs-standcast.usefachada.dev/admin/google-chat)).
 3. Create `standcast.yml` at the root of your `.github` repository, from the template on the setup page.
 
 Step by step: [Install](https://docs-standcast.usefachada.dev/admin/install).
@@ -184,7 +185,7 @@ A Bun + TypeScript monorepo. Business rules live in use cases; HTTP routes, jobs
 
 ```text
 apps/
-├── api/            Hono HTTP API, GitHub and Slack webhooks, setup pages, /reference
+├── api/            Hono HTTP API, GitHub, Slack and Google Chat webhooks, setup pages, /reference
 ├── worker/         pg-boss jobs: tick, digests, late dailies, webhook delivery
 └── cli/            standcast CLI and MCP server (compiled to a single binary)
 packages/
@@ -195,7 +196,8 @@ packages/
 ├── plugin/         Claude Code plugin with the /daily skill
 └── adapters/
     ├── github/     GitHub App: activity, config, teams, OAuth
-    └── slack/      Slack: OAuth, digests, threads, direct messages
+    ├── slack/      Slack: OAuth, digests, threads, direct messages
+    └── google-chat/ Google Chat: app events, digests, threads, direct messages
 docs/
 ├── site/           VitePress documentation (en and pt-BR), hosted on Cloudflare Pages
 └── api/            OpenAPI guides and changelog
@@ -216,6 +218,7 @@ docker build --build-arg APP=worker -t standcast-worker .
 - Every variable is listed in [`.env.example`](.env.example).
 - Railway setup: [docs/deploy.md](docs/deploy.md).
 - Register the apps with [docs/github-app.md](docs/github-app.md) (or [the manifest](docs/github-app-manifest.json)), [docs/slack-app-manifest.yml](docs/slack-app-manifest.yml) and [docs/linear-app.md](docs/linear-app.md). `LINEAR_CLIENT_ID` and `LINEAR_CLIENT_SECRET` are required on the api and the worker.
+- Google Chat is optional: create the Chat app with [docs/google-chat-app.md](docs/google-chat-app.md), then set `GOOGLE_CHAT_SERVICE_ACCOUNT` (the base64 of the service account JSON key) on the api and the worker. `GOOGLE_CHAT_AUDIENCE` (api only) defaults to `${PUBLIC_URL}/webhooks/google-chat`. Without the key, Google Chat is off.
 
 ## Development
 
@@ -256,7 +259,8 @@ Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for commit co
 - [x] Suggested blockers (pull request without review, failing CI), visible only to you
 - [x] `standcast.yml` validation as a GitHub check run
 - [x] Linear integration: cards in the draft, card blocker routing and stale card suggestions
-- [ ] Jira and Google Chat
+- [x] Google Chat: digests, threads and direct messages through the Standcast app
+- [ ] Jira
 
 ## Support
 

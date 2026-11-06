@@ -119,6 +119,7 @@ export const ptBR = {
   'setup.badge.configured': 'Configurado',
   'setup.badge.optional': 'Opcional',
   'setup.badge.needsAttention': 'Requer atenção',
+  'setup.badge.unavailable': 'Indisponível',
   'setup.badge.todo': 'Pendente',
   'setup.github.title': 'GitHub App',
   'setup.github.installed': 'Instalado em {owner}',
@@ -129,6 +130,32 @@ export const ptBR = {
   'setup.slack.connect': 'Conectar Slack',
   'setup.slack.reconnect': 'Reconectar Slack',
   'setup.slack.adminOnly': 'Só um admin pode conectar ou reconectar o Slack.',
+  'setup.googleChat.title': 'Google Chat',
+  'setup.googleChat.description':
+    'Lembretes e consolidados são publicados em espaços do Google Chat.',
+  'setup.googleChat.unavailable': 'O Google Chat não está disponível neste servidor.',
+  'setup.googleChat.instructions':
+    'Adicione o app do Standcast a um espaço do Google Chat; ele publica um código. Cole o código aqui.',
+  'setup.googleChat.spaces': 'Espaços vinculados',
+  'setup.googleChat.none': 'Nenhum espaço vinculado ainda.',
+  'setup.googleChat.code': 'Código de vínculo',
+  'setup.googleChat.link': 'Vincular espaço',
+  'setup.googleChat.unlink': 'Desvincular',
+  'setup.googleChat.adminOnly':
+    'Só um admin pode vincular ou desvincular um espaço do Google Chat.',
+  'setup.googleChat.linked': 'Espaço {space} vinculado.',
+  'setup.googleChat.invalidCode':
+    'Este código não é válido. Ele pode ter expirado ou já ter sido usado. Adicione o app ao espaço de novo para receber outro.',
+  'setup.googleChat.alreadyLinked': 'Este espaço já está vinculado a outra organização.',
+  'setup.googleChat.tooManySpaces':
+    'Esta organização já tem 20 espaços vinculados, o máximo. Desvincule um antes.',
+  'setup.googleChat.rateLimited': 'Muitas tentativas. Espere um minuto e tente de novo.',
+  'setup.googleChat.unlinked': 'Espaço {space} desvinculado.',
+  'setup.googleChat.confirmUnlink': 'Desvincular agora',
+  'setup.googleChat.unlinkWarning':
+    'O Standcast para de publicar neste espaço. Para vincular de novo, adicione o app ao espaço outra vez.',
+  'setup.googleChat.forbidden':
+    'Só um admin pode vincular ou desvincular um espaço do Google Chat.',
   'setup.linear.title': 'Linear',
   'setup.linear.description': 'Vincula issues do Linear às dailies e aos impedimentos.',
   'setup.linear.connected': 'Conectado ao workspace {workspace}.',
@@ -174,6 +201,12 @@ export const ptBR = {
     'Time {team}: o canal {reference} do Slack não foi encontrado. Crie o canal ou, se ele for privado, convide o bot do Standcast com /invite @Standcast.',
   'setup.teams.channelNotMember':
     'Time {team}: o bot do Standcast não está no canal {reference} do Slack. Convide-o com /invite @Standcast no canal.',
+  'setup.teams.spaceNotLinked':
+    'Time {team}: este espaço do Google Chat ({reference}) ainda não está vinculado a esta organização. Adicione o app do Standcast ao espaço e cole o código que ele publicar em Configuração → Google Chat.',
+  'setup.teams.spaceNotFound':
+    'Time {team}: o espaço {reference} do Google Chat não foi encontrado. Confira o nome do espaço e adicione o app do Standcast a ele.',
+  'setup.teams.spaceNotMember':
+    'Time {team}: o app do Standcast não está no espaço {reference} do Google Chat. Adicione o app do Standcast ao espaço.',
   'setup.failed.title': 'Últimas entregas com falha',
   'setup.failed.none': 'Nenhuma entrega com falha.',
   'setup.failed.teamMessages': 'Mensagens do time',
@@ -188,25 +221,30 @@ export const ptBR = {
   'setup.failed.kind.late_daily': 'Daily atrasada',
   'setup.failed.kind.reminder': 'Lembrete',
   'setup.failed.kind.blocker_route': 'Encaminhamento de impedimento',
-  'setup.failure.not_in_channel': 'O bot não está no canal. Convide-o com /invite @Standcast.',
-  'setup.failure.channel_not_found': 'O canal do Slack não foi encontrado.',
+  'setup.failure.not_in_channel':
+    'O bot do Standcast não está no canal ou espaço. Adicione o app ao espaço ou, no Slack, convide-o com /invite @Standcast.',
+  'setup.failure.channel_not_found': 'O canal ou espaço do chat não foi encontrado.',
   'setup.failure.is_archived': 'O canal do Slack está arquivado.',
-  'setup.failure.slack_invalid': 'A conexão com o Slack não vale mais. Reconecte o Slack.',
-  'setup.failure.user_not_found': 'A pessoa não foi encontrada no Slack.',
+  'setup.failure.chat_invalid': 'A conexão com o chat não vale mais. Reconecte em Configuração.',
+  'setup.failure.user_not_found': 'A pessoa não foi encontrada no chat.',
   'setup.failure.user_disabled': 'A conta da pessoa no Slack está desativada.',
-  'setup.failure.ratelimited': 'O Slack limitou as mensagens por um tempo.',
-  'setup.failure.timeout': 'O Slack não respondeu a tempo.',
+  'setup.failure.ratelimited': 'O chat limitou as mensagens por um tempo.',
+  'setup.failure.timeout': 'O chat não respondeu a tempo.',
   'setup.failure.deadline_exceeded': 'A tentativa passou do prazo.',
-  'setup.failure.request_failed': 'Não foi possível falar com o Slack.',
-  'setup.failure.http_error': 'O Slack respondeu com um erro HTTP.',
-  'setup.failure.invalid_response': 'O Slack respondeu de um jeito inesperado.',
-  'setup.failure.unknown_error': 'O Slack recusou a mensagem.',
-  'setup.failure.no_chat_connection': 'O Slack não está conectado a esta instalação.',
-  'setup.failure.no_chat_identity': 'A pessoa não tem conta no Slack vinculada ao GitHub.',
+  'setup.failure.request_failed': 'Não foi possível falar com o chat.',
+  'setup.failure.http_error': 'O chat respondeu com um erro HTTP.',
+  'setup.failure.invalid_response': 'O chat respondeu de um jeito inesperado.',
+  'setup.failure.unknown_error': 'O chat recusou a mensagem.',
+  'setup.failure.no_chat_connection': 'Nenhum chat está conectado a esta instalação.',
+  'setup.failure.no_chat_identity': 'A pessoa não tem conta no chat vinculada ao GitHub.',
   'setup.failure.no_route_target': 'Não há para onde encaminhar o impedimento.',
-  'setup.failure.unsupported_provider': 'A ferramenta de chat do time ainda não é suportada.',
+  'setup.failure.unsupported_provider': 'A ferramenta de chat do time não é suportada.',
   'setup.failure.internal_error': 'Erro inesperado no Standcast.',
   'setup.failure.worker_died': 'O envio parou no meio e não terminou.',
+  'setup.failure.space_not_linked':
+    'O espaço do Google Chat não está vinculado a esta organização.',
+  'setup.failure.no_dm_space':
+    'A pessoa ainda não mandou mensagem para o app do Standcast no Google Chat.',
   'setup.apiKeys.title': 'API keys',
   'setup.apiKeys.description':
     'Chaves para integrar outros sistemas ao Standcast com acesso somente leitura aos dados da organização. Só administradores veem esta seção.',

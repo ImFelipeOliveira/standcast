@@ -103,7 +103,7 @@ export function SetupPage(props: {
       <div class="layout">
         <div class="layout-main stack">
           <SecretAlerts t={t} newKey={props.newKey} newWebhook={props.newWebhook} />
-          <SetupSteps t={t} lang={lang} status={status} />
+          <SetupSteps t={t} lang={lang} status={status} csrf={props.csrf} />
         </div>
         <aside class="layout-aside stack">
           <FailedDeliveries t={t} lang={lang} status={status} />

@@ -24,6 +24,7 @@
         "@standcast/core": "workspace:*",
         "@standcast/db": "workspace:*",
         "@standcast/github": "workspace:*",
+        "@standcast/google-chat": "workspace:*",
         "@standcast/linear": "workspace:*",
         "@standcast/orchestrator": "workspace:*",
         "@standcast/queue": "workspace:*",
@@ -82,10 +83,12 @@
       "dependencies": {
         "@standcast/db": "workspace:*",
         "@standcast/github": "workspace:*",
+        "@standcast/google-chat": "workspace:*",
         "@standcast/linear": "workspace:*",
         "@standcast/orchestrator": "workspace:*",
         "@standcast/queue": "workspace:*",
         "@standcast/resend": "workspace:*",
+        "@standcast/slack": "workspace:*",
         "zod": "^4.6.7",
       },
     },
@@ -95,6 +98,13 @@
       "dependencies": {
         "@octokit/app": "^16.0.0",
         "@octokit/core": "^7.0.0",
+        "@standcast/core": "workspace:*",
+      },
+    },
+    "packages/adapters/google-chat": {
+      "name": "@standcast/google-chat",
+      "version": "0.0.0",
+      "dependencies": {
         "@standcast/core": "workspace:*",
       },
     },
@@ -627,6 +637,8 @@
     "@standcast/db": ["@standcast/db@workspace:packages/db"],
 
     "@standcast/github": ["@standcast/github@workspace:packages/adapters/github"],
+
+    "@standcast/google-chat": ["@standcast/google-chat@workspace:packages/adapters/google-chat"],
 
     "@standcast/landing": ["@standcast/landing@workspace:apps/landing"],
 

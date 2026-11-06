@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Standcast: your daily standup, written in your AI agent</title>
-<meta name="description" content="Standcast drafts your daily standup from GitHub and Linear in your AI agent, sends it after you confirm and posts one team digest to Slack. Free beta.">
+<meta name="description" content="Standcast drafts your daily from GitHub and Linear in your AI agent, sends it after you confirm and posts a digest to Slack or Google Chat. Free beta.">
 <meta name="robots" content="max-image-preview:large">
 <link rel="canonical" href="https://standcast.usefachada.dev/">
 <link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/">
@@ -21,26 +21,26 @@
 <meta property="og:locale:alternate" content="pt_BR">
 <meta property="og:url" content="https://standcast.usefachada.dev/">
 <meta property="og:title" content="Standcast: your daily standup, written in your AI agent">
-<meta property="og:description" content="Drafts your daily from GitHub and Linear in Claude Code, Cursor or the terminal, sends it after you confirm and posts one digest per team to Slack.">
+<meta property="og:description" content="Drafts your daily from GitHub and Linear in Claude Code, Cursor or the terminal, sends it after you confirm and posts one digest per team to Slack or Google Chat.">
 <meta property="og:image" content="https://standcast.usefachada.dev/og.png">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="640">
 <meta property="og:image:alt" content="Standcast: your daily standup, written in your AI agent">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Standcast: your daily standup, written in your AI agent">
-<meta name="twitter:description" content="Drafts your daily from GitHub and Linear in your AI agent, sends it after you confirm and posts one digest per team to Slack.">
+<meta name="twitter:description" content="Drafts your daily from GitHub and Linear in your AI agent, sends it after you confirm and posts one digest per team to Slack or Google Chat.">
 <meta name="twitter:image" content="https://standcast.usefachada.dev/og.png">
 <link rel="preload" href="/fonts/inter-latin.c9407645.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/styles.css">
 <script src="/app.js" defer></script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Organization","@id":"https://standcast.usefachada.dev/#organization","name":"Standcast","url":"https://standcast.usefachada.dev/","logo":"https://standcast.usefachada.dev/favicon.svg","description":"Standcast is an open source daily standup tool for software teams that drafts each person's standup from GitHub and Linear in their AI agent and posts one digest per team to Slack.","sameAs":["https://github.com/ImFelipeOliveira/standcast","https://docs-standcast.usefachada.dev/"]}
+{"@context":"https://schema.org","@type":"Organization","@id":"https://standcast.usefachada.dev/#organization","name":"Standcast","url":"https://standcast.usefachada.dev/","logo":"https://standcast.usefachada.dev/favicon.svg","description":"Standcast is an open source daily standup tool for software teams that drafts each person's standup from GitHub and Linear in their AI agent and posts one digest per team to Slack or Google Chat.","sameAs":["https://github.com/ImFelipeOliveira/standcast","https://docs-standcast.usefachada.dev/"]}
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebSite","@id":"https://standcast.usefachada.dev/#website","name":"Standcast","url":"https://standcast.usefachada.dev/","inLanguage":"en","publisher":{"@id":"https://standcast.usefachada.dev/#organization"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Standcast","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","description":"Daily standup orchestrator: drafts each person's standup from GitHub and Linear activity inside their AI agent (Claude Code, Cursor, Codex, MCP), sends it only after confirmation, and posts one digest per team to Slack.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Free during the public beta"},"license":"https://opensource.org/licenses/MIT","publisher":{"@id":"https://standcast.usefachada.dev/#organization"},"codeRepository":"https://github.com/ImFelipeOliveira/standcast","url":"https://standcast.usefachada.dev/","inLanguage":"en","image":"https://standcast.usefachada.dev/og.png"}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Standcast","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","description":"Daily standup orchestrator: drafts each person's standup from GitHub and Linear activity inside their AI agent (Claude Code, Cursor, Codex, MCP), sends it only after confirmation, and posts one digest per team to Slack or Google Chat.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Free during the public beta"},"license":"https://opensource.org/licenses/MIT","publisher":{"@id":"https://standcast.usefachada.dev/#organization"},"codeRepository":"https://github.com/ImFelipeOliveira/standcast","url":"https://standcast.usefachada.dev/","inLanguage":"en","image":"https://standcast.usefachada.dev/og.png"}
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Standcast","item":"https://standcast.usefachada.dev/"}]}
@@ -71,7 +71,7 @@
     <div class="hero-copy">
       <span class="pill"><b>Beta</b> Open source · MIT · free while in beta</span>
       <h1>Your daily standup, written in <em>your AI agent</em>.</h1>
-      <p class="lede">Standcast is an open source daily standup tool for software teams. Run <code>/daily</code> in Claude Code, Cursor or the terminal. Standcast drafts yesterday from your GitHub and Linear activity, you confirm, and your team gets one digest in Slack.</p>
+      <p class="lede">Standcast is an open source daily standup tool for software teams. Run <code>/daily</code> in Claude Code, Cursor or the terminal. Standcast drafts yesterday from your GitHub and Linear activity, you confirm, and your team gets one digest in Slack or Google Chat.</p>
       <div class="install">
         <code id="cmd" data-copy="curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh"><span>$</span> curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh</code>
         <button class="copy" id="copy" type="button" aria-describedby="cmd" data-done="Copied">Copy</button>
@@ -80,7 +80,7 @@
         <a class="btn btn-primary" href="/beta/">Join the beta</a>
         <a class="btn btn-ghost" href="https://docs-standcast.usefachada.dev/admin/install">Install for your org</a>
       </div>
-      <p class="fine">Works with GitHub and Slack today. Google Chat and Jira are next.</p>
+      <p class="fine">Works with GitHub, Slack and Google Chat today. Jira is next.</p>
     </div>
 
     <figure class="stage" aria-label="Example: a daily drafted in the terminal and the digest posted to Slack">
@@ -181,7 +181,7 @@
       <div class="head tight">
         <span class="eyebrow">Public beta</span>
         <h2>Try it with your team.</h2>
-        <p class="lede">We're looking for teams of 3 to 15 people on GitHub and Slack. We'll help you set it up.</p>
+        <p class="lede">We're looking for teams of 3 to 15 people on GitHub and Slack or Google Chat. We'll help you set it up.</p>
       </div>
       <div class="beta-cta">
         <p class="invalid" id="beta-invalid" role="alert">We couldn't send your request. Open the form again, check your name and work email, pick an option in each list and try again.</p>

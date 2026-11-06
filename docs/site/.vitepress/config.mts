@@ -44,6 +44,7 @@ function sidebar(prefix: string, labels: Record<string, string>): DefaultTheme.S
         { text: labels.configuration, link: `${prefix}/admin/configuration` },
         { text: labels.webApp, link: `${prefix}/admin/web-app` },
         { text: 'Slack', link: `${prefix}/admin/slack` },
+        { text: 'Google Chat', link: `${prefix}/admin/google-chat` },
         { text: labels.apiKeys, link: `${prefix}/admin/api-keys` },
         { text: 'Webhooks', link: `${prefix}/admin/webhooks` },
       ],
@@ -137,7 +138,7 @@ export default defineConfigWithTheme<ThemeConfig>({
         injectLLMHint: false,
         ignoreFiles: ['pt-BR/index.md'],
         ignoreFilesPerOutput: { llmsTxt: ['pt-BR/**'], llmsFullTxt: ['pt-BR/**'] },
-        customLLMsTxtTemplate: `# {title}\n\n> Standcast orchestrates your team's daily standup: each person writes it with their AI agent (Claude Code, Cursor, MCP or CLI) from GitHub and Linear activity, confirms it, and Standcast posts one digest per team to Slack.\n\n## Table of Contents\n\n{toc}\n\n## Optional\n\n- [Português (Brasil)](${DOCS_DOMAIN}/pt-BR/llms.txt): the documentation in Portuguese\n`,
+        customLLMsTxtTemplate: `# {title}\n\n> Standcast orchestrates your team's daily standup: each person writes it with their AI agent (Claude Code, Cursor, MCP or CLI) from GitHub and Linear activity, confirms it, and Standcast posts one digest per team to Slack or Google Chat.\n\n## Table of Contents\n\n{toc}\n\n## Optional\n\n- [Português (Brasil)](${DOCS_DOMAIN}/pt-BR/llms.txt): the documentation in Portuguese\n`,
       }),
     ],
   },
@@ -177,7 +178,7 @@ export default defineConfigWithTheme<ThemeConfig>({
     root: {
       label: 'English',
       lang: 'en',
-      description: 'Standcast orchestrates your team daily standup from GitHub to Slack.',
+      description: 'Standcast orchestrates your team daily standup from GitHub to Slack or Google Chat.',
       themeConfig: {
         nav: [
           { text: 'Docs', link: '/' },
@@ -192,7 +193,7 @@ export default defineConfigWithTheme<ThemeConfig>({
       label: 'Português (Brasil)',
       lang: 'pt-BR',
       link: '/pt-BR/',
-      description: 'O Standcast orquestra a daily do seu time, do GitHub ao Slack.',
+      description: 'O Standcast orquestra a daily do seu time, do GitHub ao Slack ou ao Google Chat.',
       themeConfig: {
         nav: [
           { text: 'Docs', link: '/pt-BR/' },

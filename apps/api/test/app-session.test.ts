@@ -70,7 +70,7 @@ describe('/v1/app session', () => {
     expect(res.headers.get('access-control-allow-origin')).toBe(APP);
     expect(res.headers.get('access-control-allow-credentials')).toBe('true');
     expect(res.headers.get('access-control-allow-headers')).toBe('Content-Type, X-Standcast-CSRF');
-    expect(res.headers.get('access-control-allow-methods')).toBe('GET, POST, OPTIONS');
+    expect(res.headers.get('access-control-allow-methods')).toBe('GET, POST, DELETE, OPTIONS');
     expect(res.headers.get('vary')).toContain('Origin');
   });
 

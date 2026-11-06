@@ -16,7 +16,7 @@ import { LooseNotices, Teams } from './Teams';
 
 export function standcastYmlTemplate(login: string, teamName: string, lang: Lang): string {
   return `teams:
-  - name: ${teamName}
+  - name: ${teamName} Slack
     language: ${lang}
     timezone: America/Sao_Paulo
     remind_at: "09:00"
@@ -26,6 +26,16 @@ export function standcastYmlTemplate(login: string, teamName: string, lang: Lang
     chat:
       provider: slack
       channel: "#daily"
+  - name: ${teamName} Google Chat
+    language: ${lang}
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [${login}]
+    members: [${login}]
+    chat:
+      provider: google-chat
+      channel: spaces/AAAAAAAAAAA
 `;
 }
 

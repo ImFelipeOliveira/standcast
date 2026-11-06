@@ -4,7 +4,7 @@ The terms used across Standcast and these docs.
 
 ## Installation
 
-One installation of the Standcast GitHub App on a GitHub organization or personal account. Everything in Standcast belongs to one installation: configuration, dailies, the Slack connection, API keys and webhooks. Data never crosses installations.
+One installation of the Standcast GitHub App on a GitHub organization or personal account. Everything in Standcast belongs to one installation: configuration, dailies, the Slack and Google Chat connections, API keys and webhooks. Data never crosses installations.
 
 ## Organization
 
@@ -12,7 +12,7 @@ The GitHub organization (or personal account) where the app is installed. The CL
 
 ## Team
 
-A group of people declared under `teams` in `standcast.yml`. Each team has its own time zone, workdays, digest time, language and Slack channel. See the [standcast.yml reference](/admin/configuration).
+A group of people declared under `teams` in `standcast.yml`. Each team has its own time zone, workdays, digest time, language and chat channel: a Slack channel or a Google Chat space. See the [standcast.yml reference](/admin/configuration).
 
 ## Member
 
@@ -24,7 +24,7 @@ A GitHub login listed under `managers` of a team. Managers read their team's dig
 
 ## Admin
 
-The owner of a personal account, or a member with the `admin` role in the GitHub organization. Admins connect Slack and create [API keys](/admin/api-keys) and [webhooks](/admin/webhooks), and can read every team through the manager tools.
+The owner of a personal account, or a member with the `admin` role in the GitHub organization. Admins connect Slack, link Google Chat spaces and create [API keys](/admin/api-keys) and [webhooks](/admin/webhooks), and can read every team through the manager tools.
 
 ## Daily
 
@@ -47,7 +47,7 @@ The starting point for "yesterday", built by Standcast from the person's GitHub 
 
 ## Digest
 
-One Slack message per team per workday, posted at the team's `digest_at`. Blockers come first, then support requests, then each person's daily, then the list of people who did not send it.
+One message per team per workday, in Slack or Google Chat, posted at the team's `digest_at`. Blockers come first, then support requests, then each person's daily, then the list of people who did not send it.
 
 ## Late daily
 
@@ -71,11 +71,11 @@ Sending each new blocker once to whoever can help: the reviewers of the linked p
 
 ## Linear connection
 
-One connection per installation, made by an admin on the setup page. It lets Standcast read cards of one Linear workspace, read-only. See [Install](/admin/install#5-connect-linear-optional).
+One connection per installation, made by an admin on the setup page. It lets Standcast read cards of one Linear workspace, read-only. See [Install](/admin/install#_5-connect-linear-optional).
 
 ## Delivery
 
-One attempt to send a message to Slack: a digest, a late daily, a reminder or a blocker routed by direct message. Each one is recorded once per team, date and kind, so a retry never posts twice. Failed deliveries show up on the setup page with the error.
+One attempt to send a message to Slack or Google Chat: a digest, a late daily, a reminder or a blocker routed by direct message. Each one is recorded once per team, date and kind, so a retry never posts twice. Failed deliveries show up on the setup page with the error.
 
 ## API key
 

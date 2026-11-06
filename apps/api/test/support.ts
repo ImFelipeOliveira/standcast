@@ -2,7 +2,7 @@ import { type Deps, nullTracker } from '@standcast/orchestrator';
 import { createMemoryQueue } from '@standcast/queue';
 import type { Context } from 'hono';
 import { db } from '../../../packages/db/test/setup';
-import { createApp } from '../src/app';
+import { type AppOptions, createApp } from '../src/app';
 
 export const TEST_IP = '192.0.2.1';
 
@@ -16,6 +16,8 @@ export function createTestApp(
     request?: FakeRequest;
     db?: Deps['db'];
     healthTimeoutMs?: number;
+    googleChat?: AppOptions['googleChat'];
+    googleChatAvailable?: boolean;
   } = {},
 ) {
   let now = new Date('2026-10-28T15:00:05Z');
@@ -69,6 +71,7 @@ export function createTestApp(
       },
     },
     chatFor: async () => null,
+    ...(options.googleChatAvailable ? { googleChatAvailable: true } : {}),
     trackerFor: async () => nullTracker,
     env: {
       publicUrl: 'https://sw.test',
@@ -91,6 +94,7 @@ export function createTestApp(
     app: createApp(deps, {
       getClientIp: options.getClientIp ?? headerIp,
       ...(options.healthTimeoutMs ? { healthTimeoutMs: options.healthTimeoutMs } : {}),
+      ...(options.googleChat ? { googleChat: options.googleChat } : {}),
     }),
     deps,
     queue,

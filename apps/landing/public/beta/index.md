@@ -1,6 +1,6 @@
 # Join the beta
 
-> Try Standcast with your team. We're looking for teams of 3 to 15 people on GitHub and Slack. We'll help you set it up.
+> Try Standcast with your team. We're looking for teams of 3 to 15 people on GitHub and Slack or Google Chat. We'll help you set it up.
 
 Tell us about your team. After you send the form, we take you to the install guide. The form asks for your name, work email, team size, the chat and the tracker your team uses. [Request beta access](https://standcast.usefachada.dev/beta/)
 

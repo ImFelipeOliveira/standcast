@@ -10,7 +10,7 @@ This page covers the setup page. For the payloads, the headers and how to verify
 | --- | --- |
 | `daily.submitted` | A person sends their daily. A resend on the same day is sent again with `replaced: true`. |
 | `blocker.opened` | A daily reports a blocker that is new for that day. |
-| `digest.sent` | The team digest is posted to Slack. |
+| `digest.sent` | The team digest is posted to Slack or Google Chat. |
 
 ## Add an endpoint
 

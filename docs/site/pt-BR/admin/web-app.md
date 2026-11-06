@@ -10,8 +10,9 @@ A Configuração mostra tudo o que o Standcast sabe sobre a organização:
 
 - a instalação do GitHub App;
 - as conexões com Slack e Linear, com o botão para conectar ou reconectar (só admins);
+- o card do Google Chat: os espaços vinculados, cada um com o nome de exibição, o nome `spaces/...` e um botão **Copiar**. Admins colam um código de vínculo e clicam em **Vincular espaço**, e podem **Desvincular** um espaço depois de confirmar. Veja [Google Chat](/pt-BR/admin/google-chat);
 - o estado do `standcast.yml`: válido, inválido com os erros, ou ausente, com um link para criá-lo a partir de um modelo;
-- cada time, com os horários do lembrete e do consolidado, o canal e qualquer time do GitHub ou canal do Slack que o Standcast não encontra;
+- cada time, com os horários do lembrete e do consolidado, o canal e qualquer time do GitHub, canal do Slack ou espaço do Google Chat que o Standcast não encontra ou que não está vinculado;
 - as últimas entregas que falharam, para você ver quando um consolidado, um lembrete ou um impedimento encaminhado não chegou.
 
 A página de setup renderizada pelo servidor continua funcionando.

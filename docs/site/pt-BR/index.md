@@ -4,13 +4,13 @@
 O Standcast está em beta público. Espere arestas e mudanças de comportamento, de configuração e na API antes da versão 1.0. Relate problemas nas [issues do GitHub](https://github.com/ImFelipeOliveira/standcast/issues) ou por e-mail (veja [Privacidade](/pt-BR/privacy)).
 :::
 
-O Standcast organiza a daily do seu time. Cada pessoa escreve a própria daily com o agente de IA dela, a partir de um rascunho do que fez no GitHub. O Standcast junta as dailies e publica um consolidado por time no Slack, no horário que você escolher.
+O Standcast organiza a daily do seu time. Cada pessoa escreve a própria daily com o agente de IA dela, a partir de um rascunho do que fez no GitHub. O Standcast junta as dailies e publica um consolidado por time no Slack ou no Google Chat, no horário que você escolher.
 
 ## O que é
 
 O Standcast tem duas partes que trabalham juntas:
 
-- **Um GitHub App** que o admin da organização instala. Ele lê a configuração dos times no arquivo `standcast.yml`, recebe as dailies e publica o consolidado do time no Slack.
+- **Um GitHub App** que o admin da organização instala. Ele lê a configuração dos times no arquivo `standcast.yml`, recebe as dailies e publica o consolidado do time no Slack ou no Google Chat.
 - **Uma skill, uma CLI e um servidor MCP** que cada pessoa usa com o agente de IA dela (Claude Code, Cursor, Codex, Claude Desktop, VS Code). O agente busca um rascunho do trabalho de ontem, a pessoa corrige, escreve o plano de hoje e os impedimentos e confirma antes de qualquer envio.
 
 Ele resolve três problemas que aparecem quando o time escreve a daily com IA:
@@ -22,14 +22,14 @@ Ele resolve três problemas que aparecem quando o time escreve a daily com IA:
 ## Para quem é
 
 - **Membros** escrevem a própria daily pelo agente de IA. Comece por [Primeiros passos](/pt-BR/members/getting-started).
-- **Gestores** recebem o consolidado do time no Slack e leem as dailies, os consolidados e os impedimentos do time pela própria IA. Comece pelo [Servidor MCP](/pt-BR/members/mcp).
-- **Admins** instalam o GitHub App, conectam o Slack e escrevem o `standcast.yml`. Comece pela [Instalação](/pt-BR/admin/install).
+- **Gestores** recebem o consolidado do time no Slack ou no Google Chat e leem as dailies, os consolidados e os impedimentos do time pela própria IA. Comece pelo [Servidor MCP](/pt-BR/members/mcp).
+- **Admins** instalam o GitHub App, conectam o Slack ou o Google Chat e escrevem o `standcast.yml`. Comece pela [Instalação](/pt-BR/admin/install).
 - **Integradores** leem os dados da organização com uma API key e recebem webhooks. Comece pela [visão geral da API](/pt-BR/api/overview).
 
 ## Como funciona
 
 ```text
-  Agente de IA da pessoa                Standcast                        Slack
+  Agente de IA da pessoa                Standcast                      Slack / Google Chat
  ┌──────────────────────┐ rascunho  ┌────────────────────────┐      ┌───────────────────┐
  │ skill /daily         │ ◀──────── │ API                    │      │ #daily-backend    │
  │ CLI standcast        │           │  · lê o GitHub         │      │                   │
@@ -56,7 +56,7 @@ Em volta disso, o Standcast orquestra o dia:
 - impedimentos sugeridos, como um pull request esperando revisão ou com CI falhando, aparecem só para você, no seu rascunho;
 - toda mudança no `standcast.yml` é validada por um check run no GitHub.
 
-Os cards do Linear aparecem no rascunho e no encaminhamento de impedimentos. Em breve: Google Chat e Jira.
+Os cards do Linear aparecem no rascunho e no encaminhamento de impedimentos. Em breve: Jira.
 
 Veja [Como funciona](/pt-BR/how-it-works) para o ciclo completo de um dia.
 
@@ -65,7 +65,7 @@ Veja [Como funciona](/pt-BR/how-it-works) para o ciclo completo de um dia.
 - **Não é ferramenta de vigilância.** A pessoa tem sempre a palavra final sobre a própria daily. Nada é enviado em nome de ninguém sem a confirmação explícita da pessoa.
 - **Não mede produtividade.** Não há ranking, nota, contagem de commits por pessoa nem agregados por pessoa, nem no consolidado, nem na API, nem nas tools do MCP.
 - **Não escreve a daily por você.** O rascunho é um ponto de partida. O plano de hoje e os impedimentos são escritos pela pessoa.
-- **Não lê o seu código nem as suas mensagens no Slack.** Veja [Privacidade](/pt-BR/privacy).
+- **Não lê o seu código nem as suas mensagens no Slack ou no Google Chat.** Veja [Privacidade](/pt-BR/privacy).
 - **Não manda os seus dados para um modelo de IA.** Nenhum LLM processa os seus dados nos servidores do Standcast. O seu agente roda na sua máquina, com a sua conta.
 
 ## Comece aqui

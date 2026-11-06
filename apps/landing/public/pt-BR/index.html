@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Standcast: a sua daily, escrita no seu agente de IA</title>
-<meta name="description" content="O Standcast rascunha a sua daily do GitHub e do Linear no seu agente de IA, envia depois que você confirma e publica um consolidado por time no Slack.">
+<meta name="description" content="O Standcast rascunha a sua daily do GitHub e do Linear no seu agente de IA, envia quando você confirma e publica o consolidado no Slack ou Google Chat.">
 <meta name="robots" content="max-image-preview:large">
 <link rel="canonical" href="https://standcast.usefachada.dev/pt-BR/">
 <link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/">
@@ -21,26 +21,26 @@
 <meta property="og:locale:alternate" content="en_US">
 <meta property="og:url" content="https://standcast.usefachada.dev/pt-BR/">
 <meta property="og:title" content="Standcast: a sua daily, escrita no seu agente de IA">
-<meta property="og:description" content="Rascunha a sua daily a partir do GitHub e do Linear no Claude Code, no Cursor ou no terminal, envia depois que você confirma e publica um consolidado por time no Slack.">
+<meta property="og:description" content="Rascunha a sua daily a partir do GitHub e do Linear no Claude Code, no Cursor ou no terminal, envia depois que você confirma e publica um consolidado por time no Slack ou no Google Chat.">
 <meta property="og:image" content="https://standcast.usefachada.dev/og.png">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="640">
 <meta property="og:image:alt" content="Standcast: your daily standup, written in your AI agent">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Standcast: a sua daily, escrita no seu agente de IA">
-<meta name="twitter:description" content="Rascunha a sua daily a partir do GitHub e do Linear no seu agente de IA, envia depois que você confirma e publica um consolidado por time no Slack.">
+<meta name="twitter:description" content="Rascunha a sua daily a partir do GitHub e do Linear no seu agente de IA, envia depois que você confirma e publica um consolidado por time no Slack ou no Google Chat.">
 <meta name="twitter:image" content="https://standcast.usefachada.dev/og.png">
 <link rel="preload" href="/fonts/inter-latin.c9407645.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/styles.css">
 <script src="/app.js" defer></script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Organization","@id":"https://standcast.usefachada.dev/#organization","name":"Standcast","url":"https://standcast.usefachada.dev/","logo":"https://standcast.usefachada.dev/favicon.svg","description":"O Standcast é uma ferramenta de código aberto para a daily de times de software, que rascunha a daily de cada pessoa a partir do GitHub e do Linear no agente de IA dela e publica um consolidado por time no Slack.","sameAs":["https://github.com/ImFelipeOliveira/standcast","https://docs-standcast.usefachada.dev/"]}
+{"@context":"https://schema.org","@type":"Organization","@id":"https://standcast.usefachada.dev/#organization","name":"Standcast","url":"https://standcast.usefachada.dev/","logo":"https://standcast.usefachada.dev/favicon.svg","description":"O Standcast é uma ferramenta de código aberto para a daily de times de software, que rascunha a daily de cada pessoa a partir do GitHub e do Linear no agente de IA dela e publica um consolidado por time no Slack ou no Google Chat.","sameAs":["https://github.com/ImFelipeOliveira/standcast","https://docs-standcast.usefachada.dev/"]}
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebSite","@id":"https://standcast.usefachada.dev/#website","name":"Standcast","url":"https://standcast.usefachada.dev/","inLanguage":"pt-BR","publisher":{"@id":"https://standcast.usefachada.dev/#organization"}}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Standcast","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","description":"Orquestrador de daily: rascunha a daily de cada pessoa a partir da atividade no GitHub e no Linear dentro do agente de IA dela (Claude Code, Cursor, Codex, MCP), envia só depois da confirmação e publica um consolidado por time no Slack.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Grátis durante o beta público"},"license":"https://opensource.org/licenses/MIT","publisher":{"@id":"https://standcast.usefachada.dev/#organization"},"codeRepository":"https://github.com/ImFelipeOliveira/standcast","url":"https://standcast.usefachada.dev/pt-BR/","inLanguage":"pt-BR","image":"https://standcast.usefachada.dev/og.png"}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Standcast","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","description":"Orquestrador de daily: rascunha a daily de cada pessoa a partir da atividade no GitHub e no Linear dentro do agente de IA dela (Claude Code, Cursor, Codex, MCP), envia só depois da confirmação e publica um consolidado por time no Slack ou no Google Chat.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Grátis durante o beta público"},"license":"https://opensource.org/licenses/MIT","publisher":{"@id":"https://standcast.usefachada.dev/#organization"},"codeRepository":"https://github.com/ImFelipeOliveira/standcast","url":"https://standcast.usefachada.dev/pt-BR/","inLanguage":"pt-BR","image":"https://standcast.usefachada.dev/og.png"}
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Standcast","item":"https://standcast.usefachada.dev/pt-BR/"}]}
@@ -71,7 +71,7 @@
     <div class="hero-copy">
       <span class="pill"><b>Beta</b> Código aberto · MIT · grátis durante o beta</span>
       <h1>A sua daily, escrita no <em>seu agente de IA</em>.</h1>
-      <p class="lede">O Standcast é uma ferramenta de código aberto para a daily de times de software. Rode <code>/daily</code> no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack.</p>
+      <p class="lede">O Standcast é uma ferramenta de código aberto para a daily de times de software. Rode <code>/daily</code> no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack ou no Google Chat.</p>
       <div class="install">
         <code id="cmd" data-copy="curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh"><span>$</span> curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh</code>
         <button class="copy" id="copy" type="button" aria-describedby="cmd" data-done="Copiado">Copiar</button>
@@ -80,7 +80,7 @@
         <a class="btn btn-primary" href="/pt-BR/beta/">Entrar no beta</a>
         <a class="btn btn-ghost" href="https://docs-standcast.usefachada.dev/pt-BR/admin/install">Instalar na sua organização</a>
       </div>
-      <p class="fine">Funciona hoje com GitHub e Slack. Google Chat e Jira vêm a seguir.</p>
+      <p class="fine">Funciona hoje com GitHub, Slack e Google Chat. O Jira vem a seguir.</p>
     </div>
 
     <figure class="stage" aria-label="Exemplo: uma daily rascunhada no terminal e o consolidado publicado no Slack">
@@ -181,7 +181,7 @@
       <div class="head tight">
         <span class="eyebrow">Beta público</span>
         <h2>Teste com o seu time.</h2>
-        <p class="lede">Procuramos times de 3 a 15 pessoas que usam GitHub e Slack. Ajudamos você a configurar.</p>
+        <p class="lede">Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat. Ajudamos você a configurar.</p>
       </div>
       <div class="beta-cta">
         <p class="invalid" id="beta-invalid" role="alert">Não conseguimos enviar o seu pedido. Abra o formulário de novo, confira o nome e o e-mail de trabalho, escolha uma opção em cada lista e tente de novo.</p>

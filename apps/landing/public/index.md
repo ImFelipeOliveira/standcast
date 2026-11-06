@@ -1,8 +1,8 @@
 # Standcast: your daily standup, written in your AI agent
 
-> Open source (MIT), free during the public beta. Works with GitHub and Slack today. Google Chat and Jira are next.
+> Open source (MIT), free during the public beta. Works with GitHub, Slack and Google Chat today. Jira is next.
 
-Standcast is an open source daily standup tool for software teams. Run `/daily` in Claude Code, Cursor or the terminal. Standcast drafts yesterday from your GitHub and Linear activity, you confirm, and your team gets one digest in Slack.
+Standcast is an open source daily standup tool for software teams. Run `/daily` in Claude Code, Cursor or the terminal. Standcast drafts yesterday from your GitHub and Linear activity, you confirm, and your team gets one digest in Slack or Google Chat.
 
 ```sh
 curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh
@@ -55,6 +55,6 @@ What the GitHub App reads, what you need, who sees suggested blockers and whethe
 
 ## Public beta
 
-Try it with your team. We're looking for teams of 3 to 15 people on GitHub and Slack. We'll help you set it up. [Request beta access](https://standcast.usefachada.dev/beta/)
+Try it with your team. We're looking for teams of 3 to 15 people on GitHub and Slack or Google Chat. We'll help you set it up. [Request beta access](https://standcast.usefachada.dev/beta/)
 
 Support: support.standcast@usefachada.dev

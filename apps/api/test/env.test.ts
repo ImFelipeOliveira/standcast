@@ -91,4 +91,56 @@ describe('parseEnv', () => {
       expect(() => parseEnv({ ...base, LANDING_URL }), LANDING_URL).toThrow();
     }
   });
+
+  test('google chat is off without GOOGLE_CHAT_SERVICE_ACCOUNT', () => {
+    expect(parseEnv(base).GOOGLE_CHAT_SERVICE_ACCOUNT).toBeUndefined();
+    expect(parseEnv({ ...base, GOOGLE_CHAT_SERVICE_ACCOUNT: '' }).GOOGLE_CHAT_SERVICE_ACCOUNT).toBe(
+      undefined,
+    );
+  });
+
+  test('GOOGLE_CHAT_SERVICE_ACCOUNT is parsed at startup and fails fast when malformed', () => {
+    const key = Buffer.from(
+      JSON.stringify({ client_email: 'bot@p.iam.gserviceaccount.com', private_key: 'pem' }),
+    ).toString('base64');
+    expect(
+      parseEnv({ ...base, GOOGLE_CHAT_SERVICE_ACCOUNT: key }).GOOGLE_CHAT_SERVICE_ACCOUNT,
+    ).toEqual({ clientEmail: 'bot@p.iam.gserviceaccount.com', privateKey: 'pem' });
+    for (const GOOGLE_CHAT_SERVICE_ACCOUNT of [
+      'not base64 json',
+      Buffer.from('{}').toString('base64'),
+    ]) {
+      expect(() => parseEnv({ ...base, GOOGLE_CHAT_SERVICE_ACCOUNT })).toThrow(
+        /must be a base64 encoded service account JSON key[\s\S]*GOOGLE_CHAT_SERVICE_ACCOUNT/,
+      );
+    }
+  });
+
+  test('an empty GOOGLE_CHAT_AUDIENCE uses the default', () => {
+    expect(parseEnv({ ...base, GOOGLE_CHAT_AUDIENCE: '' }).GOOGLE_CHAT_AUDIENCE).toBe(
+      parseEnv(base).GOOGLE_CHAT_AUDIENCE,
+    );
+  });
+
+  test('GOOGLE_CHAT_AUDIENCE defaults to the webhook url', () => {
+    expect(parseEnv(base).GOOGLE_CHAT_AUDIENCE).toBe(
+      'https://api.standcast.app/webhooks/google-chat',
+    );
+    expect(
+      parseEnv({ ...base, GOOGLE_CHAT_AUDIENCE: 'https://chat.example.com/hook' })
+        .GOOGLE_CHAT_AUDIENCE,
+    ).toBe('https://chat.example.com/hook');
+    expect(() => parseEnv({ ...base, GOOGLE_CHAT_AUDIENCE: 'not a url' })).toThrow(
+      /GOOGLE_CHAT_AUDIENCE/,
+    );
+  });
+
+  test('GOOGLE_CHAT_AUDIENCE must be https when set', () => {
+    expect(() =>
+      parseEnv({ ...base, GOOGLE_CHAT_AUDIENCE: 'http://x.test/webhooks/google-chat' }),
+    ).toThrow(/GOOGLE_CHAT_AUDIENCE/);
+    expect(parseEnv({ ...base, PUBLIC_URL: 'http://localhost:3000' }).GOOGLE_CHAT_AUDIENCE).toBe(
+      'http://localhost:3000/webhooks/google-chat',
+    );
+  });
 });

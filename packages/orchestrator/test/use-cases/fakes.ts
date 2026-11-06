@@ -7,7 +7,13 @@ import {
   parseConfig,
   type StandcastConfig,
 } from '@standcast/core';
-import { setInstallationConfig, upsertInstallation, upsertMember } from '@standcast/db';
+import {
+  issueGoogleChatLinkCode,
+  redeemGoogleChatLinkCode,
+  setInstallationConfig,
+  upsertInstallation,
+  upsertMember,
+} from '@standcast/db';
 import type { CheckRunInput, PullRequestDetail } from '@standcast/github';
 import type { LinearOrganization, LinearTokens } from '@standcast/linear';
 import { createMemoryQueue } from '@standcast/queue';
@@ -414,4 +420,23 @@ export function flakyDb() {
       armed = true;
     },
   };
+}
+
+export async function linkSpace(spaceName: string, installationId = INST): Promise<void> {
+  const codeHash = `test-${spaceName}`;
+  const now = new Date('2026-10-28T15:00:00Z');
+  await issueGoogleChatLinkCode(db, {
+    spaceName,
+    displayName: spaceName,
+    codeHash,
+    expiresAt: new Date(now.getTime() + 60_000),
+    now,
+  });
+  await redeemGoogleChatLinkCode(db, {
+    codeHash,
+    installationId,
+    now,
+    maxSpaces: 100,
+    connection: { secret: 'google-chat-app', key: new Uint8Array(32).fill(7) },
+  });
 }

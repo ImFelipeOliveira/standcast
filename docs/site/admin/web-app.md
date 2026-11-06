@@ -10,8 +10,9 @@ Settings shows everything Standcast knows about the organization:
 
 - the GitHub App installation;
 - the Slack and Linear connections, with a button to connect or reconnect them (admins only);
+- the Google Chat card: the linked spaces, each with its display name, its `spaces/...` name and a **Copy** button. Admins paste a link code and click **Link space**, and can **Unlink** a space after confirming. See [Google Chat](/admin/google-chat);
 - the state of `standcast.yml`: valid, invalid with its errors, or missing, with a link to create it from a template;
-- each team, with its reminder and digest times, its channel and any GitHub team or Slack channel Standcast cannot find;
+- each team, with its reminder and digest times, its channel and any GitHub team, Slack channel or Google Chat space Standcast cannot find or is not linked;
 - the latest failed deliveries, so you can see when a digest, a reminder or a routed blocker did not arrive.
 
 The server-rendered setup page still works.

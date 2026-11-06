@@ -1,6 +1,6 @@
 # Standcast
 
-> Standcast orchestrates a team daily standup from GitHub to Slack. Each person writes their daily with their AI agent, starting from a draft of their GitHub activity, and Standcast posts one digest per team to Slack. The public API is read-only; dailies are sent through the MCP server or the CLI.
+> Standcast orchestrates a team daily standup from GitHub to Slack or Google Chat. Each person writes their daily with their AI agent, starting from a draft of their GitHub activity, and Standcast posts one digest per team to Slack or Google Chat. The public API is read-only; dailies are sent through the MCP server or the CLI.
 
 ## Documentation
 

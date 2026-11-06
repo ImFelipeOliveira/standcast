@@ -32,6 +32,22 @@ O token do bot do app do Slack permite que o Standcast:
 
 Ele não lê mensagens de nenhum canal ou conversa.
 
+### Google Chat
+
+O app do Standcast para o Google Chat chama a API do Google Chat como ele mesmo, com o escopo `chat.bot`. Ele permite que o Standcast:
+
+- publique o consolidado e as respostas na thread dele, nos espaços que têm o app e estão vinculados à sua organização;
+- confira se o espaço de um time existe e tem o app;
+- confira se um usuário definido em `members.<login>.google_chat` participa de um dos seus espaços vinculados, antes de mandar uma mensagem direta para ele;
+- encontre o espaço de mensagem direta com uma pessoa e envie mensagens diretas: lembretes, impedimentos encaminhados e, se o time ativar `signals.direct_message`, impedimentos sugeridos.
+
+O Google só manda um evento para o Standcast quando o app é adicionado a um espaço, removido de um espaço ou recebe uma mensagem direta. Desses eventos, o Standcast usa:
+
+- o nome do espaço (`spaces/...`) e o nome de exibição dele, para vincular o espaço à sua organização;
+- de uma mensagem direta, o id de usuário no Google Chat e o e-mail de quem mandou, só para vincular a pessoa à conta dela no Standcast.
+
+O Standcast não guarda nada do texto das mensagens que as pessoas mandam para o app. Ele não lê mensagens nos espaços e não busca pessoas pelo e-mail no Google Chat.
+
 ### Linear
 
 Se um admin conectar o Linear, o Standcast usa um app OAuth que age como ele mesmo (`actor=app`), com o escopo só de leitura `read`, para um workspace do Linear por instalação. Ele lê:
@@ -68,13 +84,16 @@ O Standcast ainda não se conecta ao Jira, então não lê nada dele.
 | Participação em organizações | A quais instalações cada pessoa pertence | |
 | Identidade no Slack | O id de usuário do Slack de cada pessoa, por instalação | |
 | Conexão com o Slack | Id e nome do workspace e o token do bot | Token do bot criptografado com AES-256-GCM |
+| Espaços do Google Chat | Para cada espaço que tem o app: o nome e o nome de exibição, quando o app foi adicionado e, depois do vínculo, a organização e quando foi vinculado. Enquanto há um código de vínculo pendente, um hash SHA-256 do código e quando ele expira. Um espaço que nunca foi vinculado é apagado depois que o código expira | Só o hash do código de vínculo |
+| Identidade no Google Chat | O id de usuário do Google Chat de cada pessoa, por instalação. O e-mail nunca é guardado | |
+| Conexão com o Google Chat | Marca o Google Chat como conectado na instalação, com o nome do primeiro espaço vinculado | |
 | Conexão com o Linear | Id, nome e chave da URL do workspace e os tokens de acesso e de renovação | Tokens criptografados com AES-256-GCM |
 | Identidade no Linear | O id de usuário do Linear de cada pessoa, por instalação. O e-mail nunca é guardado | |
 | Sessões | Um hash SHA-256 de cada token de sessão da CLI e da web, o tipo e quando foi criada e usada pela última vez | Só o hash; o token em si nunca é guardado |
 | Dailies | Data, horário do primeiro e do último envio, os itens de ontem, hoje, impedimentos e pedidos de apoio com os links, e se quem confirmou foi a pessoa (`human`) ou o agente (`agent`) | |
 | Estados de impedimentos | Para cada impedimento que alguém listou: o texto e o link, o primeiro e o último dia em que apareceu, e quando foi resolvido e quem resolveu. Ficam guardados até o app ser desinstalado | |
 | Sugestões | Para cada impedimento sugerido: o link e o título do pull request (ou do card), o tipo, quando foi percebido e a sua decisão | Visível só para você |
-| Entregas | Para cada consolidado, daily atrasada, lembrete e impedimento encaminhado: time, data, estado, tentativas, o canal e o id da mensagem no Slack e o erro, se falhou | |
+| Entregas | Para cada consolidado, daily atrasada, lembrete e impedimento encaminhado: time, data, estado, tentativas, o canal e o id da mensagem no Slack ou o espaço e a thread no Google Chat, e o erro, se falhou | |
 | API keys | Nome, os 8 primeiros caracteres depois de `sck_`, escopos, quem criou, datas de criação, último uso e revogação | Só um hash SHA-256 do segredo |
 | Endpoints de webhook | URL, eventos, estado e número de falhas | Segredo de assinatura criptografado com AES-256-GCM |
 | Entregas de webhook | O payload do evento enviado (que pode conter o texto da daily), estado, tentativas, último código de resposta ou erro | |
@@ -97,7 +116,7 @@ Quando alguém pede acesso ao beta na página do Standcast, o formulário coleta
 - Mostrar a alguém um rascunho ou uma sugestão que a pessoa não confirmou.
 - Mostrar um impedimento sugerido a outra pessoa que não ela, no consolidado, nas tools de organização ou de gestor, nos webhooks ou na página de setup.
 - Calcular ranking, nota, métrica de produtividade ou agregado por pessoa.
-- Ler o seu código, as suas mensagens no Slack ou as suas mensagens diretas.
+- Ler o seu código, as suas mensagens no Slack ou no Google Chat, ou as suas mensagens diretas.
 - Escrever nos seus repositórios.
 - Mandar, por conta própria, os seus dados para um modelo de IA; quem recebe o rascunho é o agente que você escolhe para escrever a sua daily.
 - Receber as suas sessões de IA: elas são lidas na sua máquina e nunca vão para o Standcast.
@@ -108,10 +127,10 @@ Quando alguém pede acesso ao beta na página do Standcast, o formulário coleta
 | Quem | Vê |
 | --- | --- |
 | Você | O seu rascunho, os seus impedimentos sugeridos e as suas dailies, pelo seu agente |
-| Membros do canal do time no Slack | O consolidado e as dailies atrasadas na thread dele |
+| Membros do canal do time no Slack ou do espaço do time no Google Chat | O consolidado e as dailies atrasadas na thread dele |
 | Gestores do time | Os consolidados, as dailies e os impedimentos confirmados do time nos últimos 90 dias, pelas tools de gestor do MCP |
-| Admins da organização | Tudo o que os gestores veem, de todos os times; na página de setup, os controles para conectar e reconectar o Slack, as API keys e os webhooks |
-| Membros da organização que entram na página de setup | O estado da configuração, o nome do workspace do Slack, só para leitura, e as últimas entregas com falha: as mensagens do time uma a uma, e as mensagens diretas agrupadas por tipo e erro, com o login do destinatário só quando ele não tem identidade no Slack. Nunca o texto de impedimentos nem sugestões. Não podem conectar nem trocar o workspace do Slack |
+| Admins da organização | Tudo o que os gestores veem, de todos os times; na página de setup, os controles para conectar e reconectar o Slack, os controles para vincular e desvincular espaços do Google Chat, as API keys e os webhooks |
+| Membros da organização que entram na página de setup | O estado da configuração, o nome do workspace do Slack e os espaços vinculados do Google Chat, só para leitura, e as últimas entregas com falha: as mensagens do time uma a uma, e as mensagens diretas agrupadas por tipo e erro, com o login do destinatário só quando ele não tem identidade no chat. Nunca o texto de impedimentos nem sugestões. Não podem conectar nem trocar o workspace do Slack |
 | Sistemas com uma API key | Times, dailies confirmadas, consolidados e impedimentos, limitados pelos escopos da key |
 | Endpoints de webhook | Os eventos que assinaram |
 
@@ -130,7 +149,8 @@ As sessões da CLI param de funcionar depois de 90 dias sem uso, e as sessões d
 
 ## Remoção dos dados
 
-- **Desinstale o GitHub App.** O Standcast apaga a instalação e tudo o que pertence a ela: configuração, dailies, estados de impedimentos, entregas, conexão com o Slack e identidades, API keys, endpoints de webhook e as entregas deles.
+- **Desinstale o GitHub App.** O Standcast apaga a instalação e tudo o que pertence a ela: configuração, dailies, estados de impedimentos, entregas, conexão com o Slack e identidades, espaços vinculados do Google Chat, a conexão com o Google Chat e as identidades, API keys, endpoints de webhook e as entregas deles.
+- **Remova o app de um espaço do Google Chat, ou desvincule o espaço.** O Standcast apaga esse espaço. Quando a organização fica sem nenhum espaço vinculado, ele também apaga a conexão com o Google Chat; as identidades no Google Chat ficam até você desinstalar o GitHub App. Um espaço que tem o app mas nunca foi vinculado é apagado depois que o código de vínculo expira, ou quando o app é removido dele.
 - **Saia.** O `standcast logout` revoga a sua sessão da CLI no servidor e apaga o arquivo local de credenciais.
 - **O seu cadastro de pessoa.** O seu id de usuário no GitHub, o login e o e-mail não pertencem a uma instalação só, então desinstalar não os remove. Para apagá-los, mande um e-mail ao suporte.
 

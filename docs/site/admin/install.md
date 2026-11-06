@@ -18,34 +18,39 @@ The app asks for these permissions:
 | Checks | write | Create the `Standcast config` check run on `standcast.yml` |
 | Commit statuses | read | Read the check results of pull requests, for suggested blockers |
 | Members | read | Resolve GitHub teams (`@org/team`) and check membership and roles |
-| Email addresses (account) | read | Match people to their Slack user by email |
+| Email addresses (account) | read | Match people to their Slack or Google Chat user by email |
 
 ## 2. Open the setup page
 
 After the install, GitHub sends you to the Standcast setup page. Sign in with GitHub when asked. The page address is `/setup?installation_id=<id>` on the Standcast API.
 
-Any member of the organization who signs in can open the setup page. Only admins can connect or reconnect Slack and Linear, and only admins see the **API keys** and **Webhooks** sections. An admin is a GitHub organization admin, or the account owner for a personal account.
+Any member of the organization who signs in can open the setup page. Only admins can connect or reconnect Slack and Linear and link Google Chat spaces, and only admins see the **API keys** and **Webhooks** sections. An admin is a GitHub organization admin, or the account owner for a personal account.
 
 The page is a checklist. A badge at the top counts the steps, for example **2 of 3 steps done**, and turns green when every step is done. Each step has a status icon (a check when done, its number while to do, an x when it needs attention) and a badge:
 
 - **GitHub App**: installed on your organization, with a warning when Standcast lost access to `.github`;
 - **Slack**: **Connect Slack**, or **Reconnect Slack** once connected, for admins;
-- **Linear**: **Connect Linear**, or **Reconnect Linear** once connected, for admins. It counts as a step only when a team uses Linear, and then comes before the standcast.yml file. Otherwise it shows **Optional** and comes last;
+- **Linear**: **Connect Linear**, or **Reconnect Linear** once connected, for admins. It counts as a step only when a team uses Linear, and then comes before the standcast.yml file. Otherwise it shows **Optional** and comes after the standcast.yml file;
+- **Google Chat**: the linked spaces and, for admins, a **Link code** field with **Link space**. It shows **Optional** until a space is linked, and **Unavailable** when the server has no Google Chat app. It comes last. The badge at the top counts Slack and Google Chat as one chat step, done when Slack is connected or a space is linked;
 - **standcast.yml file**: the state of the file. When it does not exist, a button to create it from a template, and the template itself. When it exists, **Edit on GitHub**, even while the file is invalid. A valid file adds one card per team, with its channel and times, and an invalid one adds a table of its errors.
 
 The side column shows the latest failed deliveries and, for admins, API keys and webhooks, then the support address.
 
-## 3. Connect Slack
+## 3. Connect Slack or Google Chat
 
-An admin clicks **Connect Slack** and approves the app in the Slack workspace. The Slack step then shows a check, the **Connected** badge and "Connected to" the workspace name, and a **Reconnect Slack** button to connect again. Other members see the connection read-only. While Slack is not connected yet, they see "Only an admin can connect or reconnect Slack." See [Slack](/admin/slack) for the permissions and for private channels.
+Each team posts to Slack or Google Chat, set per team in `standcast.yml`. Connect the ones your teams use.
+
+**Slack.** An admin clicks **Connect Slack** and approves the app in the Slack workspace. The Slack step then shows a check, the **Connected** badge and "Connected to" the workspace name, and a **Reconnect Slack** button to connect again. Other members see the connection read-only. While Slack is not connected yet, they see "Only an admin can connect or reconnect Slack." See [Slack](/admin/slack) for the permissions and for private channels.
+
+**Google Chat.** Add the Standcast app to the Google Chat space; it posts a link code. An admin pastes the code in the **Google Chat** step, or in the Google Chat card of the [web app](/admin/web-app), and clicks **Link space**. Then each person sends the app a direct message once, to link their Google Chat user. See [Google Chat](/admin/google-chat).
 
 ## 4. Create `standcast.yml`
 
-In the **standcast.yml file** step, click **Create standcast.yml from the template**. GitHub opens its editor on the default branch of your `.github` repository, with the file already filled in. The template uses your login as manager and member:
+In the **standcast.yml file** step, click **Create standcast.yml from the template**. GitHub opens its editor on the default branch of your `.github` repository, with the file already filled in. The template has one team on Slack and one on Google Chat, and uses your login as manager and member:
 
 ```text
 teams:
-  - name: Team
+  - name: Team Slack
     language: en
     timezone: America/Sao_Paulo
     remind_at: "09:00"
@@ -55,9 +60,19 @@ teams:
     chat:
       provider: slack
       channel: "#daily"
+  - name: Team Google Chat
+    language: en
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [your-login]
+    members: [your-login]
+    chat:
+      provider: google-chat
+      channel: spaces/AAAAAAAAAAA
 ```
 
-Change the team name, time zone, times, people and channel, then commit. The file must be at the **root** of the `.github` repository, on the default branch. If the `.github` repository does not exist, the page shows **Create the .github repository** instead, which opens GitHub's new repository form with the name filled in.
+Delete the team for the chat you do not use. Change the team name, time zone, times, people and channel, then commit. For Google Chat, the channel is the space name from the Google Chat card. The file must be at the **root** of the `.github` repository, on the default branch. If the `.github` repository does not exist, the page shows **Create the .github repository** instead, which opens GitHub's new repository form with the name filled in.
 
 Full reference: [standcast.yml](/admin/configuration).
 
@@ -106,5 +121,6 @@ When a push to any branch of the `.github` repository touches `standcast.yml`, a
 ## Next steps
 
 - Ask each member to follow [Getting started](/members/getting-started). People are matched to their Slack user when they sign in, so they should sign in after Slack is connected.
+- On Google Chat, ask each member to sign in, then send the Standcast app a direct message once.
 - If you use Linear, ask each member to sign in after Linear is connected, so their Linear user is linked.
 - Create [API keys](/admin/api-keys) or [webhooks](/admin/webhooks) if other systems need the data.

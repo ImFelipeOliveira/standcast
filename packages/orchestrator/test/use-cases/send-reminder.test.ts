@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, jest, test } from 'bun:test';
 import { parseConfig, type StandcastConfig } from '@standcast/core';
 import {
   claimDelivery,
@@ -12,8 +12,14 @@ import {
 } from '@standcast/db';
 import { ChatDeliveryError } from '@standcast/slack';
 import { db, useCleanDb } from '../../../db/test/setup';
-import { runTick, sendReminder } from '../../src';
-import { config, daily, fakeChat, fakeDeps, INST, seedMember, seedOrg } from './fakes';
+import {
+  MAX_GOOGLE_CHAT_SPACES,
+  MEMBERSHIP_BUDGET_MS,
+  MEMBERSHIP_REQUEST_TIMEOUT_MS,
+  runTick,
+  sendReminder,
+} from '../../src';
+import { config, daily, fakeChat, fakeDeps, INST, linkSpace, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -150,6 +156,211 @@ describe('sendReminder', () => {
     await identify('alice', 'U1');
     await sendReminder(deps, job('alice'));
     expect(directs[0]?.userId).toBe('U0CONF');
+  });
+
+  test('reminder resolves the google-chat identity', async () => {
+    const base = config();
+    const team = base.teams[0];
+    if (!team) throw new Error('no team');
+    const { deps, directs } = await setup({
+      ...base,
+      teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
+    });
+    const alice = await seedMember('alice', 500);
+    await setIdentity(db, INST, alice.id, 'slack', 'U1');
+    await setIdentity(db, INST, alice.id, 'google-chat', 'users/111');
+    const google = fakeChat();
+    deps.chatFor = async (_installationId, provider) =>
+      provider === 'google-chat' ? google.chat : null;
+    await sendReminder(deps, job('alice'));
+    expect(directs).toHaveLength(0);
+    expect(google.directs).toHaveLength(1);
+    expect(google.directs[0]?.userId).toBe('users/111');
+    expect((await getDelivery(db, reminderKey('alice')))?.status).toBe('sent');
+  });
+
+  test('no dm space is recorded without retry and keeps the identity', async () => {
+    const base = config();
+    const team = base.teams[0];
+    if (!team) throw new Error('no team');
+    const { deps } = await setup({
+      ...base,
+      teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
+    });
+    const alice = await seedMember('alice', 500);
+    await setIdentity(db, INST, alice.id, 'google-chat', 'users/111');
+    const google = fakeChat();
+    google.failWith(new ChatDeliveryError('no_dm_space', 'raw'));
+    deps.chatFor = async () => google.chat;
+    await sendReminder(deps, job('alice'));
+    const row = await getDelivery(db, reminderKey('alice'));
+    expect(row?.status).toBe('failed');
+    expect(row?.error).toBe(
+      'no_dm_space: the person has not opened a chat with the Standcast app yet',
+    );
+    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/111');
+  });
+
+  async function googleOverrideSetup(members: Record<string, string[]>) {
+    const parsed = config(
+      '[alice, bob]',
+      'members:\n  Alice: { slack: U0CONF, google_chat: users/999 }',
+    );
+    const team = parsed.teams[0];
+    if (!team) throw new Error('no team');
+    const { deps } = await setup({
+      ...parsed,
+      teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
+    });
+    await linkSpace('spaces/AAAA');
+    await linkSpace('spaces/BBBB');
+    await seedOrg(undefined, { id: 12, accountLogin: 'other' });
+    await linkSpace('spaces/OTHER', 12);
+    const asked: string[] = [];
+    const google = fakeChat();
+    google.chat.isSpaceMember = async (space, userId) => {
+      asked.push(`${space} ${userId}`);
+      return members[space]?.includes(userId) ?? false;
+    };
+    deps.chatFor = async (_installationId, provider) =>
+      provider === 'google-chat' ? google.chat : null;
+    return { deps, google, asked };
+  }
+
+  test('google_chat override wins when the user is in a linked space', async () => {
+    const { deps, google, asked } = await googleOverrideSetup({ 'spaces/BBBB': ['users/999'] });
+    await sendReminder(deps, job('alice'));
+    expect(google.directs[0]?.userId).toBe('users/999');
+    expect(asked).toEqual(['spaces/AAAA users/999', 'spaces/BBBB users/999']);
+  });
+
+  test('google_chat override outside the linked spaces gets no dm', async () => {
+    const { deps, google, asked } = await googleOverrideSetup({ 'spaces/OTHER': ['users/999'] });
+    const alice = await seedMember('alice', 500);
+    await setIdentity(db, INST, alice.id, 'google-chat', 'users/111');
+    await sendReminder(deps, job('alice'));
+    expect(google.directs).toHaveLength(0);
+    expect(asked).toEqual(['spaces/AAAA users/999', 'spaces/BBBB users/999']);
+    const row = await getDelivery(db, reminderKey('alice'));
+    expect(row?.status).toBe('failed');
+    expect(row?.error).toBe('no_chat_identity: alice');
+  });
+
+  test('a membership error in one space does not hide membership in another', async () => {
+    const { deps, google } = await googleOverrideSetup({ 'spaces/BBBB': ['users/999'] });
+    const check = google.chat.isSpaceMember;
+    google.chat.isSpaceMember = async (space, userId) => {
+      if (space === 'spaces/AAAA') throw new ChatDeliveryError('timeout', 'slow');
+      return (await check?.(space, userId)) === true;
+    };
+    await sendReminder(deps, job('alice'));
+    expect(google.directs[0]?.userId).toBe('users/999');
+  });
+
+  test('a google_chat override that cannot be verified gets no dm', async () => {
+    const { deps, google } = await googleOverrideSetup({});
+    google.chat.isSpaceMember = async () => {
+      throw new ChatDeliveryError('http_error', 'down');
+    };
+    await sendReminder(deps, job('alice'));
+    expect(google.directs).toHaveLength(0);
+    const row = await getDelivery(db, reminderKey('alice'));
+    expect(row?.status).toBe('failed');
+    expect(row?.error).toBe('no_chat_identity: alice');
+  });
+
+  test('a membership request timeout fails the reminder as timeout and retries', async () => {
+    const { deps, google } = await googleOverrideSetup({});
+    google.chat.isSpaceMember = async (space) => {
+      if (space === 'spaces/AAAA') throw new ChatDeliveryError('timeout', 'slow');
+      return false;
+    };
+    await expect(sendReminder(deps, job('alice'))).rejects.toThrow('timed out');
+    expect(google.directs).toHaveLength(0);
+    const row = await getDelivery(db, reminderKey('alice'));
+    expect(row?.status).toBe('failed');
+    expect(row?.error).toBe('timeout: Google Chat did not answer in time');
+  });
+
+  test('the membership budget running out fails the reminder as timeout', async () => {
+    const { deps, google } = await googleOverrideSetup({});
+    google.chat.isSpaceMember = () => {
+      queueMicrotask(() => jest.advanceTimersByTime(20_000));
+      return new Promise<boolean>(() => {});
+    };
+    jest.useFakeTimers();
+    try {
+      await expect(sendReminder(deps, job('alice'))).rejects.toThrow('timed out');
+    } finally {
+      jest.useRealTimers();
+    }
+    const row = await getDelivery(db, reminderKey('alice'));
+    expect(row?.status).toBe('failed');
+    expect(row?.error).toBe('timeout: Google Chat did not answer in time');
+  });
+
+  test('slow answers still reach the last group of the largest allowed set of spaces', async () => {
+    const { deps, google, asked } = await googleOverrideSetup({});
+    for (let i = 1; i <= MAX_GOOGLE_CHAT_SPACES - 2; i++) {
+      await linkSpace(`spaces/Z${String(i).padStart(2, '0')}`);
+    }
+    const last = `spaces/Z${MAX_GOOGLE_CHAT_SPACES - 2}`;
+    const started: number[] = [];
+    google.chat.isSpaceMember = (space, userId) => {
+      asked.push(`${space} ${userId}`);
+      started.push(Date.now());
+      return new Promise((resolve) =>
+        setTimeout(() => resolve(space === last), MEMBERSHIP_REQUEST_TIMEOUT_MS - 100),
+      );
+    };
+    jest.useFakeTimers();
+    let settled = false;
+    const run = sendReminder(deps, job('alice')).finally(() => {
+      settled = true;
+    });
+    try {
+      while (!settled) {
+        await new Promise((resolve) => setImmediate(resolve));
+        jest.advanceTimersByTime(100);
+      }
+      await run;
+    } finally {
+      jest.useRealTimers();
+    }
+    expect(asked).toHaveLength(MAX_GOOGLE_CHAT_SPACES);
+    expect(asked.at(-1)).toBe(`${last} users/999`);
+    expect(Math.max(...started) - Math.min(...started)).toBeLessThan(MEMBERSHIP_BUDGET_MS);
+    expect(google.directs[0]?.userId).toBe('users/999');
+  });
+
+  test('a definite non-membership answer is not a timeout', async () => {
+    const { deps, google } = await googleOverrideSetup({});
+    google.chat.isSpaceMember = async (space) => {
+      if (space === 'spaces/AAAA') throw new ChatDeliveryError('http_error', 'down');
+      return false;
+    };
+    await sendReminder(deps, job('alice'));
+    expect((await getDelivery(db, reminderKey('alice')))?.error).toBe('no_chat_identity: alice');
+  });
+
+  test('membership is checked in every linked space, at most 5 at a time', async () => {
+    const { deps, google, asked } = await googleOverrideSetup({});
+    for (let i = 1; i <= 10; i++) await linkSpace(`spaces/Z${String(i).padStart(2, '0')}`);
+    let running = 0;
+    let peak = 0;
+    google.chat.isSpaceMember = async (space, userId) => {
+      asked.push(`${space} ${userId}`);
+      running += 1;
+      peak = Math.max(peak, running);
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      running -= 1;
+      return space === 'spaces/Z10' && userId === 'users/999';
+    };
+    await sendReminder(deps, job('alice'));
+    expect(asked).toHaveLength(12);
+    expect(asked.at(-1)).toBe('spaces/Z10 users/999');
+    expect(peak).toBe(5);
+    expect(google.directs[0]?.userId).toBe('users/999');
   });
 
   test('a person in two teams gets exactly one DM', async () => {

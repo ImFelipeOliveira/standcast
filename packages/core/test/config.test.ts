@@ -76,6 +76,23 @@ describe('parseConfig', () => {
     expect(r.ok).toBe(true);
   });
 
+  test('google_chat override must be users/<digits>', () => {
+    const ok = parseConfig(
+      JSON.stringify({ teams: [team()], members: { alice: { google_chat: 'users/123456789' } } }),
+    );
+    expect(ok.ok).toBe(true);
+    if (ok.ok) expect(ok.config.members.alice?.googleChat).toBe('users/123456789');
+    for (const google_chat of ['123456789', 'users/abc', 'users/', 'spaces/123', 'users/1 ']) {
+      const r = parseConfig(
+        JSON.stringify({ teams: [team()], members: { alice: { google_chat } } }),
+      );
+      expect(r.ok).toBe(false);
+      if (r.ok) return;
+      expect(r.errors[0]?.path).toBe('members.alice.google_chat');
+      expect(r.errors[0]?.message).toBe('must be a Google Chat user like users/123456789');
+    }
+  });
+
   test('accepts U and W slack user ids', () => {
     for (const slack of ['U0123', 'W0ABC9']) {
       const r = parseConfig(JSON.stringify({ teams: [team()], members: { alice: { slack } } }));

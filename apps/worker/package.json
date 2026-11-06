@@ -7,10 +7,12 @@
   "dependencies": {
     "@standcast/db": "workspace:*",
     "@standcast/github": "workspace:*",
+    "@standcast/google-chat": "workspace:*",
     "@standcast/linear": "workspace:*",
     "@standcast/orchestrator": "workspace:*",
     "@standcast/queue": "workspace:*",
     "@standcast/resend": "workspace:*",
+    "@standcast/slack": "workspace:*",
     "zod": "^4.6.7"
   }
 }

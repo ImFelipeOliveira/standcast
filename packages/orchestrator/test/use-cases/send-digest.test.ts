@@ -10,7 +10,17 @@ import {
 import { ChatDeliveryError } from '@standcast/slack';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { DIGEST_POST_DEADLINE_MS, sendDigest, sendLateDaily } from '../../src';
-import { config, daily, fakeChat, fakeDeps, flakyDb, INST, seedMember, seedOrg } from './fakes';
+import {
+  config,
+  daily,
+  fakeChat,
+  fakeDeps,
+  flakyDb,
+  INST,
+  linkSpace,
+  seedMember,
+  seedOrg,
+} from './fakes';
 
 useCleanDb();
 
@@ -101,13 +111,71 @@ describe('sendDigest', () => {
     expect(row?.error).toBe('no_chat_connection');
   });
 
-  test('unsupported provider fails without retry', async () => {
+  test('google-chat team uses the google-chat channel', async () => {
+    const base = config();
+    const team = base.teams[0];
+    if (!team) throw new Error('no team');
+    const { deps, posted, alice } = await setup({
+      ...base,
+      teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
+    });
+    await setIdentity(db, INST, alice.id, 'google-chat', 'users/111');
+    await linkSpace('spaces/AAAA');
+    const google = fakeChat();
+    const asked: string[] = [];
+    deps.chatFor = async (_installationId, provider) => {
+      asked.push(provider);
+      return provider === 'google-chat' ? google.chat : null;
+    };
+    await sendDigest(deps, job);
+    expect(asked).toEqual(['google-chat']);
+    expect(posted).toHaveLength(0);
+    expect(google.posted).toHaveLength(1);
+    expect(google.posted[0]?.channel).toBe('spaces/AAAA');
+    const text = google.posted[0]?.msg.fallbackText ?? '';
+    expect(text).toContain('@users/111');
+    expect(text).not.toContain('@UALICE');
+    const row = await getDelivery(db, key);
+    expect(row?.status).toBe('sent');
+  });
+
+  test('mixed providers post each digest through its own provider', async () => {
+    const base = config();
+    const team = base.teams[0];
+    if (!team) throw new Error('no team');
+    const { deps, posted, alice } = await setup({
+      ...base,
+      teams: [
+        team,
+        { ...team, name: 'Beta', chat: { provider: 'google-chat', channel: 'spaces/BBBB' } },
+      ],
+    });
+    await setIdentity(db, INST, alice.id, 'google-chat', 'users/111');
+    await linkSpace('spaces/BBBB');
+    const slack = fakeChat();
+    const google = fakeChat();
+    deps.chatFor = async (_installationId, provider) =>
+      provider === 'google-chat' ? google.chat : slack.chat;
+    await sendDigest(deps, job);
+    await sendDigest(deps, { ...job, teamName: 'Beta' });
+    expect(posted).toHaveLength(0);
+    expect(slack.posted.map((p) => p.channel)).toEqual(['#alpha']);
+    expect(google.posted.map((p) => p.channel)).toEqual(['spaces/BBBB']);
+    expect(slack.posted[0]?.msg.fallbackText).toContain('@UALICE');
+    expect(slack.posted[0]?.msg.fallbackText).not.toContain('users/111');
+    expect(google.posted[0]?.msg.fallbackText).toContain('@users/111');
+    expect(google.posted[0]?.msg.fallbackText).not.toContain('UALICE');
+    expect((await getDelivery(db, key))?.status).toBe('sent');
+    expect((await getDelivery(db, { ...key, teamName: 'Beta' }))?.status).toBe('sent');
+  });
+
+  test('unknown provider fails without retry', async () => {
     const base = config();
     const team = base.teams[0];
     if (!team) throw new Error('no team');
     const { deps, posted } = await setup({
       ...base,
-      teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/x' } }],
+      teams: [{ ...team, chat: { provider: 'teams' as never, channel: 'x' } }],
     });
     await sendDigest(deps, job);
     expect(posted).toHaveLength(0);
