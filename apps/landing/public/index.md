@@ -57,4 +57,6 @@ What the GitHub App reads, what you need, who sees suggested blockers and whethe
 
 Try it with your team. We're looking for teams of 3 to 15 people on GitHub and Slack or Google Chat. We'll help you set it up. [Request beta access](https://standcast.usefachada.dev/beta/)
 
+[Terms of use](https://standcast.usefachada.dev/terms/index.md)
+
 Support: support.standcast@usefachada.dev

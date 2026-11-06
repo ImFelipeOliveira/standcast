@@ -57,4 +57,6 @@ O que o GitHub App lê, do que você precisa, quem vê os impedimentos sugeridos
 
 Teste com o seu time. Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat. Ajudamos você a configurar. [Pedir acesso ao beta](https://standcast.usefachada.dev/pt-BR/beta/)
 
+[Termos de uso](https://standcast.usefachada.dev/pt-BR/termos/index.md)
+
 Suporte: support.standcast@usefachada.dev

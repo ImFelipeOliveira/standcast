@@ -13,6 +13,7 @@ Guardamos o seu pedido por 12 meses para falar com o seu time. Veja [pedidos de 
 - [Privacidade](https://standcast.usefachada.dev/pt-BR/privacidade/index.md)
 - [Preços](https://standcast.usefachada.dev/pt-BR/precos/index.md)
 - [Perguntas frequentes](https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/index.md)
+- [Termos de uso](https://standcast.usefachada.dev/pt-BR/termos/index.md)
 - [English version](https://standcast.usefachada.dev/beta/index.md)
 
 Suporte: support.standcast@usefachada.dev

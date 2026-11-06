@@ -10,6 +10,7 @@
 - [Pricing](https://standcast.usefachada.dev/pricing/index.md): free during the public beta, pricing announced before the beta ends
 - [FAQ](https://standcast.usefachada.dev/faq/index.md): answers before you install
 - [Join the beta](https://standcast.usefachada.dev/beta/index.md): request access to the public beta
+- [Terms of use](https://standcast.usefachada.dev/terms/index.md): plain terms for the hosted service during the public beta
 
 ## Landing in Brazilian Portuguese
 
@@ -19,6 +20,7 @@
 - [Preços](https://standcast.usefachada.dev/pt-BR/precos/index.md): pricing in pt-BR
 - [Perguntas frequentes](https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/index.md): the FAQ in pt-BR
 - [Entrar no beta](https://standcast.usefachada.dev/pt-BR/beta/index.md): join the beta in pt-BR
+- [Termos de uso](https://standcast.usefachada.dev/pt-BR/termos/index.md): the terms of use in pt-BR
 
 ## Documentation
 

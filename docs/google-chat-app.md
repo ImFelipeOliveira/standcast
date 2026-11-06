@@ -60,6 +60,10 @@ For local development, put `GOOGLE_CHAT_SERVICE_ACCOUNT` in `.env` (see `.env.ex
 3. Paste the code in the Google Chat card, set a test team with `provider: google-chat` and the space name, and send the app a direct message to link yourself.
 4. Let a digest post, and check that links, mentions and text with `<` show as expected in Google Chat.
 
+## Publish on the Google Workspace Marketplace
+
+Until the app is published, only your own domain can use it. The listing fields, assets, consent screen and reviewer notes are in [marketplace/listing.md](marketplace/listing.md).
+
 ## Rotate the key
 
 Create a new JSON key for the same service account, set the new base64 value on the api and the worker, deploy both, then delete the old key in **Keys**. Linked spaces and people stay linked: they belong to the app, not to the key.

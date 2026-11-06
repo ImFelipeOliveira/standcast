@@ -97,6 +97,7 @@ standcast submit
 - [Preços](https://standcast.usefachada.dev/pt-BR/precos/index.md)
 - [Perguntas frequentes](https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/index.md)
 - [Entrar no beta](https://standcast.usefachada.dev/pt-BR/beta/index.md)
+- [Termos de uso](https://standcast.usefachada.dev/pt-BR/termos/index.md)
 - [English version](https://standcast.usefachada.dev/how-it-works/index.md)
 
 Suporte: support.standcast@usefachada.dev

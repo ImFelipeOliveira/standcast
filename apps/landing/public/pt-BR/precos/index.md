@@ -15,6 +15,7 @@
 - [Privacidade](https://standcast.usefachada.dev/pt-BR/privacidade/index.md)
 - [Perguntas frequentes](https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/index.md)
 - [Entrar no beta](https://standcast.usefachada.dev/pt-BR/beta/index.md)
+- [Termos de uso](https://standcast.usefachada.dev/pt-BR/termos/index.md)
 - [English version](https://standcast.usefachada.dev/pricing/index.md)
 
 Suporte: support.standcast@usefachada.dev

@@ -15,6 +15,18 @@ const PAIRS = [
   { key: 'pricing', en: '/pricing/', 'pt-BR': '/pt-BR/precos/' },
   { key: 'faq', en: '/faq/', 'pt-BR': '/pt-BR/perguntas-frequentes/' },
   { key: 'beta', en: '/beta/', 'pt-BR': '/pt-BR/beta/' },
+  { key: 'terms', en: '/terms/', 'pt-BR': '/pt-BR/termos/' },
+] as const;
+
+const FOOTER_ONLY: readonly Pair['key'][] = ['terms'];
+
+const BRAND_IMAGES = [
+  { file: 'brand/logo-32.png', width: 32, height: 32 },
+  { file: 'brand/logo-48.png', width: 48, height: 48 },
+  { file: 'brand/logo-96.png', width: 96, height: 96 },
+  { file: 'brand/logo-128.png', width: 128, height: 128 },
+  { file: 'brand/logo-256.png', width: 256, height: 256 },
+  { file: 'brand/banner-220x140.png', width: 220, height: 140 },
 ] as const;
 
 type Locale = 'en' | 'pt-BR';
@@ -252,8 +264,10 @@ describe('landing', () => {
       const local = PAGES.filter((candidate) => candidate.locale === page.locale);
       for (const area of [header, footer]) {
         const links = hrefs(area);
-        for (const target of local)
+        for (const target of local) {
+          if (area === header && FOOTER_ONLY.includes(target.key)) continue;
           expect(links, `${page.file} ${target.path}`).toContain(target.path);
+        }
         expect(links).toContain(docs);
         expect(links).toContain('https://github.com/ImFelipeOliveira/standcast');
         expect(links).toContain(page.pair[other(page.locale)]);
@@ -267,6 +281,44 @@ describe('landing', () => {
         expect(current === undefined || attr(current, 'href') === page.path).toBe(true);
       }
     }
+  });
+
+  test('every footer, not found pages included, links the terms of use', () => {
+    for (const file of htmlFiles()) {
+      const footer = block(read(file), /<footer class="site-footer">/, '</footer>');
+      const terms = file.startsWith('pt-BR/') ? '/pt-BR/termos/' : '/terms/';
+      expect(hrefs(footer), file).toContain(terms);
+    }
+  });
+
+  test('terms of use name the operator, the date, privacy and support', () => {
+    for (const page of pagesOf('terms')) {
+      const html = read(page.file);
+      const main = block(html, /<main\b/, '</main>');
+      const markdown = read(`${page.path.slice(1)}index.md`);
+      const privacy = pagesOf('privacy').find((candidate) => candidate.locale === page.locale);
+      expect(main).toContain('<time datetime="2026-11-06">');
+      expect(hrefs(main)).toContain(privacy?.path ?? '');
+      expect(hrefs(main)).toContain('mailto:support.standcast@usefachada.dev');
+      expect(markdown).toContain(`${privacy?.url}index.md`);
+      for (const text of [decode(main), markdown]) {
+        expect(text).toContain('Felipe Oliveira');
+        expect(text).toContain('MIT');
+        expect(text).toContain('Google Chat');
+        expect(text).toContain('support.standcast@usefachada.dev');
+      }
+    }
+  });
+
+  test('brand images are same-origin pngs of the expected size', () => {
+    for (const image of BRAND_IMAGES) {
+      const bytes = readFileSync(join(PUBLIC, image.file));
+      expect(bytes.subarray(1, 4).toString('ascii'), image.file).toBe('PNG');
+      expect(bytes.readUInt32BE(16), image.file).toBe(image.width);
+      expect(bytes.readUInt32BE(20), image.file).toBe(image.height);
+      expect(bytes.length, image.file).toBeLessThan(40_000);
+    }
+    expect(read('_headers')).toContain("img-src 'self' data:;");
   });
 
   test('home keeps the hero, the install command and the old anchors', () => {
