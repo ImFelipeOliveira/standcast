@@ -2,7 +2,7 @@
 
 > Open source (MIT), free during the public beta. Works with GitHub and Slack today. Google Chat and Jira are next.
 
-Run `/daily` in Claude Code, Cursor or the terminal. Standcast drafts yesterday from your GitHub and Linear activity, you confirm, and your team gets one digest in Slack.
+Standcast is an open source daily standup tool for software teams. Run `/daily` in Claude Code, Cursor or the terminal. Standcast drafts yesterday from your GitHub and Linear activity, you confirm, and your team gets one digest in Slack.
 
 ```sh
 curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Standcast: a sua daily, escrita no seu agente de IA</title>
-<meta name="description" content="O Standcast rascunha a sua daily a partir do GitHub e do Linear no seu agente de IA, envia só depois que você confirma e publica um consolidado por time no Slack.">
+<meta name="description" content="O Standcast rascunha a sua daily do GitHub e do Linear no seu agente de IA, envia depois que você confirma e publica um consolidado por time no Slack.">
 <link rel="canonical" href="https://standcast.usefachada.dev/pt-BR/">
 <link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/">
 <link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/">
@@ -33,7 +33,10 @@
 <link rel="stylesheet" href="/styles.css">
 <script src="/app.js" defer></script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Standcast","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","description":"Orquestrador de daily: rascunha a daily de cada pessoa a partir da atividade no GitHub e no Linear dentro do agente de IA dela (Claude Code, Cursor, Codex, MCP), envia só depois da confirmação e publica um consolidado por time no Slack.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Grátis durante o beta público"},"license":"https://opensource.org/licenses/MIT","codeRepository":"https://github.com/ImFelipeOliveira/standcast","url":"https://standcast.usefachada.dev/pt-BR/","inLanguage":"pt-BR","image":"https://standcast.usefachada.dev/og.png"}
+{"@context":"https://schema.org","@type":"Organization","@id":"https://standcast.usefachada.dev/#organization","name":"Standcast","url":"https://standcast.usefachada.dev/","logo":"https://standcast.usefachada.dev/favicon.svg","description":"O Standcast é uma ferramenta de código aberto para a daily de times de software, que rascunha a daily de cada pessoa a partir do GitHub e do Linear no agente de IA dela e publica um consolidado por time no Slack.","sameAs":["https://github.com/ImFelipeOliveira/standcast","https://docs-standcast.usefachada.dev/"]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Standcast","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","description":"Orquestrador de daily: rascunha a daily de cada pessoa a partir da atividade no GitHub e no Linear dentro do agente de IA dela (Claude Code, Cursor, Codex, MCP), envia só depois da confirmação e publica um consolidado por time no Slack.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Grátis durante o beta público"},"license":"https://opensource.org/licenses/MIT","publisher":{"@id":"https://standcast.usefachada.dev/#organization"},"codeRepository":"https://github.com/ImFelipeOliveira/standcast","url":"https://standcast.usefachada.dev/pt-BR/","inLanguage":"pt-BR","image":"https://standcast.usefachada.dev/og.png"}
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","inLanguage":"pt-BR","mainEntity":[
@@ -68,7 +71,7 @@
     <div class="hero-copy">
       <span class="pill"><b>Beta</b> Código aberto · MIT · grátis durante o beta</span>
       <h1>A sua daily, escrita no <em>seu agente de IA</em>.</h1>
-      <p class="lede">Rode <code>/daily</code> no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack.</p>
+      <p class="lede">O Standcast é uma ferramenta de código aberto para a daily de times de software. Rode <code>/daily</code> no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack.</p>
       <div class="install">
         <code id="cmd" data-copy="curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh"><span>$</span> curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh</code>
         <button class="copy" id="copy" type="button" aria-describedby="cmd" data-done="Copiado">Copiar</button>

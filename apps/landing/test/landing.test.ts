@@ -88,7 +88,7 @@ describe('landing', () => {
       expect(html).toMatch(/<title>[^<]+<\/title>/);
       const description = metaContent(html, 'description') ?? '';
       expect(description.length).toBeGreaterThan(50);
-      if (page.locale === 'en') expect(description.length).toBeLessThanOrEqual(155);
+      expect(description.length).toBeLessThanOrEqual(155);
       const links = tags(html, 'link');
       const canonical = links.find((link) => attr(link, 'rel') === 'canonical');
       expect(canonical && attr(canonical, 'href')).toBe(page.url);
@@ -113,6 +113,7 @@ describe('landing', () => {
       const types = jsonLd(html).map((entry) => entry['@type']);
       expect(types).toContain('SoftwareApplication');
       expect(types).toContain('FAQPage');
+      expect(types).toContain('Organization');
     }
     const titles = PAGES.map((page) => read(page.file).match(/<title>([^<]+)<\/title>/)?.[1]);
     expect(new Set(titles).size).toBe(titles.length);
