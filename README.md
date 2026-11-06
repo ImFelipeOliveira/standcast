@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/site/public/logo.svg" alt="Standcast" width="72">
+  <a href="https://standcast.usefachada.dev"><img src="apps/landing/public/og.png" alt="Standcast: your daily standup, written in your AI agent" width="100%"></a>
 </p>
 
 <h1 align="center">Standcast</h1>

@@ -68,6 +68,22 @@ describe('site build', () => {
     }
   });
 
+  test('pages carry large image preview tags', async () => {
+    for (const page of await htmlFiles(outDir)) {
+      if (page === '404.html' || page === 'pt-BR/404.html') continue;
+      const html = await readFile(join(outDir, page), 'utf8');
+      expect(html, page).toContain(
+        'property="og:image" content="https://docs-standcast.usefachada.dev/og.png"',
+      );
+      expect(html, page).toMatch(/property="og:title" content="[^"]+"/);
+      expect(html, page).toMatch(
+        /property="og:url" content="https:\/\/docs-standcast\.usefachada\.dev\//,
+      );
+      expect(html, page).toContain('name="twitter:card" content="summary_large_image"');
+      expect(html, page).toContain('name="robots" content="max-image-preview:large"');
+    }
+  });
+
   test('pages load nothing from third-party hosts', async () => {
     for (const page of await htmlFiles(outDir)) {
       const html = await readFile(join(outDir, page), 'utf8');
