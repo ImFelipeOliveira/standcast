@@ -56,7 +56,7 @@ Set these on the api service. The worker needs `DATABASE_URL`, `STANDCAST_ENCRYP
 | `LINEAR_CLIENT_ID` | Required on api and worker. See [linear-app.md](linear-app.md) |
 | `LINEAR_CLIENT_SECRET` | Required on api and worker |
 | `GOOGLE_CHAT_SERVICE_ACCOUNT` | Optional, on api and worker. The base64 of the Google Chat service account JSON key. Empty or unset turns Google Chat off. See [google-chat-app.md](google-chat-app.md) |
-| `GOOGLE_CHAT_AUDIENCE` | Optional, api only. `https`. Defaults to `${PUBLIC_URL}/webhooks/google-chat`; it must match the HTTP endpoint URL of the Chat app. Leave it unset rather than empty |
+| `GOOGLE_CHAT_PROJECT_NUMBER` | Api only, required when `GOOGLE_CHAT_SERVICE_ACCOUNT` is set. Digits. The **Project number** of the Google Cloud project that owns the Chat app; the Chat app authentication audience must be **Project number** |
 
 Set these on the worker service, which emails beta requests and deletes them after 365 days:
 
@@ -124,7 +124,7 @@ These settings live outside the repository, so a domain change does not update t
 | GitHub App | Enable Device Flow | on | `standcast login` fails with `device_flow_disabled` |
 | Slack app | Redirect URL | `<PUBLIC_URL>/oauth/slack/callback` | Connecting Slack fails with `redirect_uri did not match any configured URIs` |
 | Linear app | Callback URL | `<PUBLIC_URL>/oauth/linear/callback` | Connecting Linear fails with a redirect URI error on Linear |
-| Google Chat app | HTTP endpoint URL and authentication audience | `<PUBLIC_URL>/webhooks/google-chat`, equal to `GOOGLE_CHAT_AUDIENCE` when set | Adding the app to a space posts no link code, and Google Chat says the app is not responding |
+| Google Chat app | HTTP endpoint URL and authentication audience | `<PUBLIC_URL>/webhooks/google-chat`, with the authentication audience set to **Project number** and `GOOGLE_CHAT_PROJECT_NUMBER` set to that project number | Adding the app to a space posts no link code, and Google Chat says the app is not responding |
 
 ### When the final domain arrives
 
@@ -135,7 +135,7 @@ Change every place that names the interim address:
 3. Set `STANDCAST_PUBLIC_URL` on the Cloudflare Pages project to the final api domain and redeploy the site, so the docs show it.
 4. Change `STANDCAST_DEFAULT_API_URL` in `.github/workflows/release-please.yml` and publish a new release, so new installs use the final domain.
 5. Update the GitHub App callback, webhook and setup URLs, and its homepage URL, to the final domain.
-6. Update the Slack and Linear redirect URLs and the Google Chat app HTTP endpoint URL to the final domain. If `GOOGLE_CHAT_AUDIENCE` is set, change it in the same deploy.
+6. Update the Slack and Linear redirect URLs and the Google Chat app HTTP endpoint URL to the final domain.
 7. Update the install command and API URLs in `README.md` and `packages/plugin/skills/daily/SKILL.md`. Change `PUBLISHED_INSTALL_URL` in `scripts/check-docs.ts` to match, or `check-docs` fails.
 8. Add `docs.standcast.app` as a custom domain of the Cloudflare Pages project, set `DOCS_URL` on the api to `https://docs.standcast.app` and update the docs links in `README.md`. Keep `docs-standcast.usefachada.dev` on the Pages project so old links keep working.
 9. Move the web app in the same step: the app and the api must stay on the same site (the same registrable domain), because the session cookie is `SameSite=Lax` and browsers drop it on cross-site requests. Add `app.standcast.app` as the custom domain of the `standcast-web` Worker, set `APP_URL=https://app.standcast.app` on the api, change the GitHub App setup URL to it, and keep `app-standcast.usefachada.dev` only as a redirect. Never run the app on `usefachada.dev` with the api on `standcast.app`, or the reverse.

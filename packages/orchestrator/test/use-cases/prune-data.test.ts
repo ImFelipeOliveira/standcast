@@ -5,10 +5,12 @@ import {
   getDelivery,
   insertWebhookDeliveries,
   insertWebhookEndpoint,
+  issueGoogleChatLinkCode,
   listRecentWebhookDeliveries,
   markDeliverySent,
   upsertBetaRequest,
 } from '@standcast/db';
+import { googleChatSpaces } from '../../../db/src/schema';
 import {
   ageDeliveries,
   insertAgedSessions,
@@ -18,7 +20,7 @@ import {
 } from '../../../db/test/aged-rows';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { pruneData } from '../../src';
-import { fakeDeps, INST, seedMember, seedOrg } from './fakes';
+import { fakeDeps, INST, linkSpace, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -173,5 +175,38 @@ describe('pruneData', () => {
     expect((await pruneData(deps)).betaRequests).toBe(1);
     expect(await getBetaRequest(db, old?.id ?? '')).toBeNull();
     expect(await getBetaRequest(db, recent?.id ?? '')).not.toBeNull();
+  });
+
+  test('deletes never linked google chat spaces whose code expired and clears expired codes', async () => {
+    await seedOrg();
+    await linkSpace('spaces/LINKED');
+    const issue = (spaceName: string, expiresAt: Date) =>
+      issueGoogleChatLinkCode(db, {
+        spaceName,
+        displayName: spaceName,
+        codeHash: `hash-${spaceName}`,
+        expiresAt,
+        now: daysAgo(30),
+      });
+    await issue('spaces/EXPIRED', new Date(NOW.getTime() - 1));
+    await issue('spaces/PENDING', new Date(NOW.getTime() + 60_000));
+    await issue('spaces/LINKED', new Date(NOW.getTime() - 1));
+    const { deps } = fakeDeps();
+    deps.now = () => NOW;
+    const result = await pruneData(deps);
+    expect(result.googleChatSpaces).toBe(1);
+    const rows = await db.select().from(googleChatSpaces);
+    expect(
+      rows
+        .map((row) => ({
+          name: row.spaceName,
+          linked: row.installationId !== null,
+          code: row.linkCodeHash,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    ).toEqual([
+      { name: 'spaces/LINKED', linked: true, code: null },
+      { name: 'spaces/PENDING', linked: false, code: 'hash-spaces/PENDING' },
+    ]);
   });
 });

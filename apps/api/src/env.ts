@@ -61,15 +61,20 @@ const schema = z
     LINEAR_CLIENT_ID: z.string().min(1),
     LINEAR_CLIENT_SECRET: z.string().min(1),
     GOOGLE_CHAT_SERVICE_ACCOUNT: googleChatServiceAccount,
-    GOOGLE_CHAT_AUDIENCE: z.preprocess(
+    GOOGLE_CHAT_PROJECT_NUMBER: z.preprocess(
       (value) => (value === '' ? undefined : value),
-      z.url({ protocol: /^https$/ }).optional(),
+      z.string().regex(/^\d+$/, 'must be the numeric Google Cloud project number').optional(),
     ),
   })
-  .transform(({ GOOGLE_CHAT_AUDIENCE, ...env }) => ({
-    ...env,
-    GOOGLE_CHAT_AUDIENCE: GOOGLE_CHAT_AUDIENCE ?? `${env.PUBLIC_URL}/webhooks/google-chat`,
-  }));
+  .superRefine((env, ctx) => {
+    if (env.GOOGLE_CHAT_SERVICE_ACCOUNT && !env.GOOGLE_CHAT_PROJECT_NUMBER) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['GOOGLE_CHAT_PROJECT_NUMBER'],
+        message: 'is required when GOOGLE_CHAT_SERVICE_ACCOUNT is set',
+      });
+    }
+  });
 
 export type Env = z.output<typeof schema>;
 

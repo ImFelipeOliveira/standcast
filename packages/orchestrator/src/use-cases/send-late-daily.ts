@@ -78,16 +78,11 @@ export async function sendLateDaily(deps: WorkerDeps, job: SendLateDailyJob): Pr
       await failDelivery(deps.db, key, claim.token, 'no_chat_connection');
       continue;
     }
-    if (
-      !(await isChannelLinked(deps, job.installationId, team.chat.provider, digest.ref.channel))
-    ) {
-      const reason = describeDeliveryError(spaceNotLinked(), team.chat.provider);
-      await failDelivery(deps.db, key, claim.token, reason);
-      continue;
-    }
-    let ref: MessageRef;
+    let ref: MessageRef | undefined;
     try {
-      ref = await chat.replyInThread(digest.ref, buildLateDaily(entry, team.language));
+      if (await isChannelLinked(deps, job.installationId, team.chat.provider, digest.ref.channel)) {
+        ref = await chat.replyInThread(digest.ref, buildLateDaily(entry, team.language));
+      }
     } catch (error) {
       await failDelivery(
         deps.db,
@@ -96,6 +91,11 @@ export async function sendLateDaily(deps: WorkerDeps, job: SendLateDailyJob): Pr
         describeDeliveryError(error, team.chat.provider),
       );
       throw error;
+    }
+    if (!ref) {
+      const reason = describeDeliveryError(spaceNotLinked(), team.chat.provider);
+      await failDelivery(deps.db, key, claim.token, reason);
+      continue;
     }
     await completeDelivery(deps.db, key, claim.token, ref);
   }

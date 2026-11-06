@@ -136,6 +136,7 @@ export function ConfigFile({ status }: { status: SetupStatus }) {
           <h3 className="m-0 font-semibold text-[11px] text-muted uppercase tracking-[0.06em]">
             {t('setup.config.template')}
           </h3>
+          <p className="m-0 text-[13px]">{t('setup.config.templateHint')}</p>
           <pre className="m-0 overflow-x-auto rounded-xl border border-border bg-bg p-4 font-mono text-[12px] text-text">
             {template}
           </pre>

@@ -27,7 +27,7 @@ useCleanDb();
 
 const APP = 'https://app.test';
 const INST = 11;
-const AUDIENCE = 'https://sw.test/webhooks/google-chat';
+const PROJECT_NUMBER = '123456789012';
 const CODE = /\b([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8})\b/;
 
 type User = { cookie: string; csrf: string; member: MemberRow };
@@ -79,7 +79,7 @@ async function harness(options: { enabled?: boolean } = {}) {
   const { app, deps } = createTestApp({
     request,
     googleChatAvailable: enabled,
-    ...(enabled ? { googleChat: { audience: AUDIENCE, jwks } } : {}),
+    ...(enabled ? { googleChat: { projectNumber: PROJECT_NUMBER, jwks } } : {}),
   });
   await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
   await setInstallationConfig(db, INST, { status: 'configured', config: config() });
@@ -106,10 +106,8 @@ async function token(
     keys.privateKey,
     { alg: 'RS256', typ: 'JWT', kid: keys.jwk.kid, ...header },
     {
-      iss: 'https://accounts.google.com',
-      aud: AUDIENCE,
-      email: 'chat@system.gserviceaccount.com',
-      email_verified: true,
+      iss: 'chat@system.gserviceaccount.com',
+      aud: PROJECT_NUMBER,
       iat: now - 10,
       exp: now + 3600,
       ...overrides,
@@ -172,9 +170,10 @@ describe('POST /webhooks/google-chat', () => {
       undefined,
       'Bearer not.a.token',
       `Bearer ${await token(h, forger)}`,
-      `Bearer ${await token(h, h.keys, { aud: 'https://evil.test/webhooks/google-chat' })}`,
+      `Bearer ${await token(h, h.keys, { aud: '999999999999' })}`,
+      `Bearer ${await token(h, h.keys, { aud: 'https://sw.test/webhooks/google-chat' })}`,
       `Bearer ${await token(h, h.keys, { exp: now - 1 })}`,
-      `Bearer ${await token(h, h.keys, { email: 'someone@gmail.com' })}`,
+      `Bearer ${await token(h, h.keys, { iss: 'https://accounts.google.com' })}`,
       `Bearer ${await token(h, h.keys, { iss: 'https://evil.test' })}`,
       `Bearer ${await token(h, stranger)}`,
       `Bearer ${await token(h, h.keys, {}, { alg: 'HS256' })}`,
@@ -335,6 +334,34 @@ describe('google chat link routes', () => {
       expect(await errorCode(res)).toBe('not_found');
     }
     expect((await unlinkSpace(h, h.bob, 'foo')).status).toBe(403);
+  });
+
+  test('unlink rejects cross-site and missing csrf requests', async () => {
+    const h = await harness();
+    expect((await linkSpace(h, h.alice, await issueCode(h))).status).toBe(201);
+    const path = `/v1/app/orgs/${INST}/google-chat/spaces/${encodeURIComponent('spaces/AAAA')}`;
+    const remove = (headers: Record<string, string>) =>
+      h.app.request(path, { method: 'DELETE', headers: { cookie: h.alice.cookie, ...headers } });
+    const attempts: Record<string, string>[] = [
+      { origin: 'https://evil.test', 'x-standcast-csrf': h.alice.csrf },
+      { 'x-standcast-csrf': h.alice.csrf },
+      { origin: APP },
+      { origin: APP, 'x-standcast-csrf': 'nope' },
+    ];
+    for (const headers of attempts) {
+      const res = await remove(headers);
+      expect(res.status, JSON.stringify(headers)).toBe(403);
+      expect(await errorCode(res)).toBe('forbidden');
+    }
+    const preflight = await h.app.request(path, {
+      method: 'OPTIONS',
+      headers: { origin: 'https://evil.test', 'access-control-request-method': 'DELETE' },
+    });
+    expect(preflight.headers.get('access-control-allow-origin')).toBeNull();
+    expect(preflight.headers.get('access-control-allow-methods')).toBeNull();
+    expect(await listGoogleChatSpaces(db, INST)).toEqual([
+      { name: 'spaces/AAAA', displayName: 'Alpha room' },
+    ]);
   });
 
   test('link attempts are rate limited', async () => {

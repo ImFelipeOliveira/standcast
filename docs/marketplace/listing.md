@@ -48,7 +48,7 @@ rsvg-convert -w 220 -h 140 docs/marketplace/brand/banner.svg -o apps/landing/pub
 | Description | `Daily standup digests from your AI agent` (40 characters, the maximum) |
 | Functionality | **Join spaces and group conversations** on |
 | Connection settings | **HTTP endpoint URL**: `https://api-standcast.usefachada.dev/webhooks/google-chat` |
-| Authentication audience | **HTTP endpoint URL** |
+| Authentication audience | **Project number** |
 | Visibility | Keep your own domain while testing. Public availability comes from the Marketplace listing, not from this field |
 
 ## OAuth consent screen

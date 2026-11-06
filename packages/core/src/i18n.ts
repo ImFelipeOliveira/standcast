@@ -28,6 +28,8 @@ const ptBR = {
   'web.setup.accessWarning': 'O Standcast continua usando a configuração atual.',
   'web.setup.instruction':
     'Crie o arquivo standcast.yml na raiz do repositório .github da organização, na branch padrão.',
+  'web.setup.templateHint':
+    'O modelo tem um time no Slack e um time no Google Chat. Mantenha o que você usa, ajuste o canal dele e apague o outro antes do commit.',
   'web.setup.createFile': 'Criar standcast.yml com o modelo',
   'web.setup.createRepo': 'Criar o repositório .github',
   'web.setup.template': 'Modelo do standcast.yml',
@@ -290,6 +292,8 @@ const en = {
   'web.setup.accessWarning': 'Standcast keeps using the current configuration.',
   'web.setup.instruction':
     "Create standcast.yml at the root of the organization's .github repository, on the default branch.",
+  'web.setup.templateHint':
+    'The template has one Slack team and one Google Chat team. Keep the one you use, set its channel, and delete the other before committing.',
   'web.setup.createFile': 'Create standcast.yml from the template',
   'web.setup.createRepo': 'Create the .github repository',
   'web.setup.template': 'standcast.yml template',

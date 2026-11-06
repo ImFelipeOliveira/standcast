@@ -284,9 +284,25 @@ describe('sendReminder', () => {
 
   test('the membership budget running out fails the reminder as timeout', async () => {
     const { deps, google } = await googleOverrideSetup({});
-    google.chat.isSpaceMember = () => {
-      queueMicrotask(() => jest.advanceTimersByTime(20_000));
-      return new Promise<boolean>(() => {});
+    const extraSpaces = 30;
+    for (let i = 1; i <= extraSpaces; i++) {
+      await linkSpace(`spaces/Y${String(i).padStart(2, '0')}`);
+    }
+    const asked: string[] = [];
+    let advancing = false;
+    google.chat.isSpaceMember = (space) => {
+      asked.push(space);
+      const answer = new Promise<boolean>((resolve) => {
+        setTimeout(() => resolve(false), MEMBERSHIP_REQUEST_TIMEOUT_MS - 1);
+      });
+      if (!advancing) {
+        advancing = true;
+        queueMicrotask(() => {
+          advancing = false;
+          jest.advanceTimersByTime(MEMBERSHIP_REQUEST_TIMEOUT_MS - 1);
+        });
+      }
+      return answer;
     };
     jest.useFakeTimers();
     try {
@@ -294,6 +310,8 @@ describe('sendReminder', () => {
     } finally {
       jest.useRealTimers();
     }
+    expect(asked.length).toBeGreaterThan(0);
+    expect(asked.length).toBeLessThan(extraSpaces + 2);
     const row = await getDelivery(db, reminderKey('alice'));
     expect(row?.status).toBe('failed');
     expect(row?.error).toBe('timeout: Google Chat did not answer in time');

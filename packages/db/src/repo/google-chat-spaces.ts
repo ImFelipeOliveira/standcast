@@ -14,6 +14,31 @@ export type RedeemLinkCodeResult =
 const connectionLock = (installationId: number) =>
   sql`select pg_advisory_xact_lock(hashtext(${`google-chat-connection:${installationId}`}))`;
 
+export async function pruneExpiredGoogleChatLinkCodes(
+  db: Pick<Db, 'delete' | 'update'>,
+  now: Date,
+): Promise<number> {
+  const deleted = await db
+    .delete(googleChatSpaces)
+    .where(
+      and(
+        isNull(googleChatSpaces.installationId),
+        or(
+          isNull(googleChatSpaces.linkCodeExpiresAt),
+          lte(googleChatSpaces.linkCodeExpiresAt, now),
+        ),
+      ),
+    )
+    .returning({ spaceName: googleChatSpaces.spaceName });
+  await db
+    .update(googleChatSpaces)
+    .set({ linkCodeHash: null, linkCodeExpiresAt: null })
+    .where(
+      and(isNotNull(googleChatSpaces.linkCodeHash), lte(googleChatSpaces.linkCodeExpiresAt, now)),
+    );
+  return deleted.length;
+}
+
 export async function issueGoogleChatLinkCode(
   db: Db,
   input: {
@@ -30,26 +55,7 @@ export async function issueGoogleChatLinkCode(
     linkCodeExpiresAt: input.expiresAt,
   };
   await db.transaction(async (tx) => {
-    await tx
-      .delete(googleChatSpaces)
-      .where(
-        and(
-          isNull(googleChatSpaces.installationId),
-          or(
-            isNull(googleChatSpaces.linkCodeExpiresAt),
-            lte(googleChatSpaces.linkCodeExpiresAt, input.now),
-          ),
-        ),
-      );
-    await tx
-      .update(googleChatSpaces)
-      .set({ linkCodeHash: null, linkCodeExpiresAt: null })
-      .where(
-        and(
-          isNotNull(googleChatSpaces.linkCodeHash),
-          lte(googleChatSpaces.linkCodeExpiresAt, input.now),
-        ),
-      );
+    await pruneExpiredGoogleChatLinkCodes(tx, input.now);
     await tx
       .insert(googleChatSpaces)
       .values({ spaceName: input.spaceName, ...values })

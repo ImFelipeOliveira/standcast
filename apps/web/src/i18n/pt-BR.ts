@@ -182,6 +182,8 @@ export const ptBR = {
   'setup.config.reason.no_access': 'O Standcast não tem acesso ao repositório .github.',
   'setup.config.instruction':
     'Crie o arquivo standcast.yml na raiz do repositório .github da organização, na branch padrão.',
+  'setup.config.templateHint':
+    'O modelo tem um time no Slack e um time no Google Chat. Mantenha o que você usa, ajuste o canal dele e apague o outro antes do commit.',
   'setup.config.createFile': 'Criar standcast.yml com o modelo',
   'setup.config.createRepo': 'Criar o repositório .github',
   'setup.config.template': 'Modelo do standcast.yml',
