@@ -19,7 +19,7 @@ export function betaRoutes(deps: Deps, options: { getClientIp: GetClientIp }): H
     ipRateLimit(deps, options.getClientIp, 'beta', BETA_LIMIT),
     bodyLimit({
       maxSize: BETA_BODY_LIMIT_BYTES,
-      onError: (c) => c.redirect(`${deps.env.landingUrl}/beta/#beta-invalid`, 303),
+      onError: (c) => c.redirect(`${deps.env.landingUrl}/#beta-invalid`, 303),
     }),
     async (c) => {
       const form = await c.req.parseBody({ all: true }).catch(() => ({}) as Record<string, never>);
@@ -30,7 +30,7 @@ export function betaRoutes(deps: Deps, options: { getClientIp: GetClientIp }): H
       } catch (error) {
         if (error instanceof DomainError && error.code === 'invalid_beta_request') {
           const prefix = localeOf(error) === 'pt-BR' ? '/pt-BR' : '';
-          return c.redirect(`${deps.env.landingUrl}${prefix}/beta/#beta-invalid`, 303);
+          return c.redirect(`${deps.env.landingUrl}${prefix}/#beta-invalid`, 303);
         }
         throw error;
       }
