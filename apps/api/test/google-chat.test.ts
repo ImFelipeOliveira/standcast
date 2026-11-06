@@ -1,7 +1,9 @@
 import { describe, expect, test } from 'bun:test';
+import { createHash } from 'node:crypto';
 import { parseConfig } from '@standcast/core';
 import {
   createSession,
+  issueGoogleChatLinkCode,
   listGoogleChatSpaces,
   type MemberRow,
   setInstallationConfig,
@@ -279,6 +281,30 @@ describe('POST /webhooks/google-chat', () => {
 });
 
 describe('google chat link routes', () => {
+  test('link routes are not found while google chat is off', async () => {
+    const h = await harness({ enabled: false });
+    await issueGoogleChatLinkCode(db, {
+      spaceName: 'spaces/AAAA',
+      displayName: 'Alpha room',
+      codeHash: createHash('sha256').update('K7QF3MZP').digest('hex'),
+      expiresAt: new Date(h.deps.now().getTime() + 60_000),
+      now: h.deps.now(),
+    });
+    const res = await linkSpace(h, h.alice, 'K7QF3MZP');
+    expect(res.status).toBe(404);
+    const form = await h.app.request('/setup/google-chat', {
+      method: 'POST',
+      headers: { cookie: h.alice.cookie, 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        csrf: h.alice.csrf,
+        installation_id: String(INST),
+        code: 'K7QF3MZP',
+      }).toString(),
+    });
+    expect(form.status).toBe(404);
+    expect(await listGoogleChatSpaces(db, INST)).toEqual([]);
+  });
+
   test('link route is admin only', async () => {
     const h = await harness();
     const code = await issueCode(h);

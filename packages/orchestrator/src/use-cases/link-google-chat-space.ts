@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { type Message, t } from '@standcast/core';
 import {
   deleteGoogleChatConnectionIfUnused,
   deleteGoogleChatSpaceBinding,
@@ -6,6 +7,7 @@ import {
   redeemGoogleChatLinkCode,
 } from '@standcast/db';
 import type { Deps } from '../deps';
+import { logError } from '../log-error';
 import { DomainError } from './errors';
 import type { MembershipCheck } from './org-context';
 import { requireAdmin } from './require-admin';
@@ -35,6 +37,31 @@ function normalizeLinkCode(code: string): string | null {
   return LINK_CODE.test(normalized) ? normalized : null;
 }
 
+function spaceLinkedMessage(org: string): Message {
+  const texts = [
+    t('en', 'googleChat.spaceLinked', { org }),
+    t('pt-BR', 'googleChat.spaceLinked', { org }),
+  ];
+  return {
+    fallbackText: texts.join('\n\n'),
+    blocks: texts.map((text) => ({ type: 'paragraph', content: [text] })),
+  };
+}
+
+async function announceLink(
+  deps: Deps,
+  installationId: number,
+  org: string,
+  space: string,
+): Promise<void> {
+  try {
+    const chat = await deps.chatFor(installationId, 'google-chat');
+    await chat?.postToChannel(space, spaceLinkedMessage(org));
+  } catch (error) {
+    logError('google chat link notice failed', error, { installationId: String(installationId) });
+  }
+}
+
 export async function linkGoogleChatSpace(
   deps: Deps,
   isMember: MembershipCheck,
@@ -42,6 +69,9 @@ export async function linkGoogleChatSpace(
   input: { installationId: number; code: string },
   guard: LinkCodeGuard = {},
 ): Promise<{ space: string; displayName: string }> {
+  if (!deps.googleChatAvailable) {
+    throw new DomainError('not_found', 'google chat is not available on this server');
+  }
   const { installation } = await requireAdmin(deps, isMember, member, input.installationId);
   await guard.beforeRedeem?.(installation.id);
   const code = normalizeLinkCode(input.code);
@@ -61,6 +91,7 @@ export async function linkGoogleChatSpace(
       'this space is linked to another organization; an admin there must unlink it first',
     );
   }
+  await announceLink(deps, installation.id, installation.accountLogin, result.space.name);
   return { space: result.space.name, displayName: result.space.displayName };
 }
 

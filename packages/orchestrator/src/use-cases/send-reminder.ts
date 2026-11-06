@@ -9,7 +9,7 @@ import {
   listDailies,
   operationalConfig,
 } from '@standcast/db';
-import { chatUserIdFor, forgetStaleChatIdentity } from '../chat-identity';
+import { directMessageIdFor, forgetStaleChatIdentity } from '../chat-identity';
 import type { WorkerDeps } from '../deps';
 import { resolveTeams } from '../teams';
 import { describeDeliveryError, isTerminalDeliveryError } from './delivery-error';
@@ -74,7 +74,7 @@ export async function sendReminder(deps: WorkerDeps, job: SendReminderJob): Prom
       await failDelivery(deps.db, key, claim.token, 'no_chat_connection');
       return;
     }
-    chatUserId = await chatUserIdFor(deps, job.installationId, config, provider, login);
+    chatUserId = await directMessageIdFor(deps, chat, job.installationId, config, provider, login);
     if (!chatUserId) {
       await failDelivery(deps.db, key, claim.token, `no_chat_identity: ${login}`);
       return;

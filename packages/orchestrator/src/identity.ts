@@ -17,7 +17,7 @@ async function lookupChatUser(
   override: string | undefined,
   email: string | null,
 ): Promise<string | null> {
-  if (provider === 'google-chat') return override ?? null;
+  if (provider === 'google-chat') return null;
   const chat = await deps.chatFor(installationId, provider);
   if (!chat) return null;
   return override ?? (email ? await chat.findUserByEmail(email) : null);

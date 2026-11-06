@@ -9,7 +9,7 @@ The image contains both apps. The start command in each `railway.json` decides w
 | api | `sh -c 'bun run db:migrate && exec bun run apps/api/src/main.ts'` | `/health` |
 | worker | `bun run apps/worker/src/main.ts` | none |
 
-The api applies the database migrations on every start.
+The api applies the database migrations on every start. When a release adds a migration, deploy the api before the worker, so the worker never runs against tables that do not exist yet. Enabling Google Chat needs migration 0016: deploy the api first, then set `GOOGLE_CHAT_SERVICE_ACCOUNT` on the worker.
 
 ## Replicas
 

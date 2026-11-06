@@ -221,7 +221,7 @@ members:
 
 A `slack` mapping is used from the next digest on, even for people who have never signed in. People without a mapping are linked by email when they sign in with `standcast login` or on the setup page. If you connect a different Slack workspace, the email links are cleared and made again at the next sign-in.
 
-A `google_chat` mapping wins over the link made by a direct message to the app. When an organization unlinks its last Google Chat space, the links made by direct message are cleared.
+A `google_chat` mapping wins over the link made by a direct message to the app for digest mentions. Direct messages use the mapping only when that user is a member of a Google Chat space linked to your organization; otherwise they fail with `no_chat_identity`. See [Google Chat](/admin/google-chat#how-people-are-linked).
 
 The `linear` email has priority over the GitHub email. Linear links are made when the person signs in, right after Linear is connected, and whenever `standcast.yml` changes, including people who are in a team through a GitHub team (`@org/team`). Standcast stores the Linear user id, never the email. If you connect a different Linear workspace, the Linear links are cleared.
 

@@ -13,7 +13,7 @@ import {
 import { ChatDeliveryError } from '@standcast/slack';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { runTick, sendReminder } from '../../src';
-import { config, daily, fakeChat, fakeDeps, INST, seedMember, seedOrg } from './fakes';
+import { config, daily, fakeChat, fakeDeps, INST, linkSpace, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -195,7 +195,7 @@ describe('sendReminder', () => {
     expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/111');
   });
 
-  test('google_chat override wins for a google-chat team', async () => {
+  async function googleOverrideSetup(members: Record<string, string[]>) {
     const parsed = config(
       '[alice, bob]',
       'members:\n  Alice: { slack: U0CONF, google_chat: users/999 }',
@@ -206,11 +206,38 @@ describe('sendReminder', () => {
       ...parsed,
       teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
     });
+    await linkSpace('spaces/AAAA');
+    await linkSpace('spaces/BBBB');
+    await seedOrg(undefined, { id: 12, accountLogin: 'other' });
+    await linkSpace('spaces/OTHER', 12);
+    const asked: string[] = [];
     const google = fakeChat();
+    google.chat.isSpaceMember = async (space, userId) => {
+      asked.push(`${space} ${userId}`);
+      return members[space]?.includes(userId) ?? false;
+    };
     deps.chatFor = async (_installationId, provider) =>
       provider === 'google-chat' ? google.chat : null;
+    return { deps, google, asked };
+  }
+
+  test('google_chat override wins when the user is in a linked space', async () => {
+    const { deps, google, asked } = await googleOverrideSetup({ 'spaces/BBBB': ['users/999'] });
     await sendReminder(deps, job('alice'));
     expect(google.directs[0]?.userId).toBe('users/999');
+    expect(asked).toEqual(['spaces/AAAA users/999', 'spaces/BBBB users/999']);
+  });
+
+  test('google_chat override outside the linked spaces gets no dm', async () => {
+    const { deps, google, asked } = await googleOverrideSetup({ 'spaces/OTHER': ['users/999'] });
+    const alice = await seedMember('alice', 500);
+    await setIdentity(db, INST, alice.id, 'google-chat', 'users/111');
+    await sendReminder(deps, job('alice'));
+    expect(google.directs).toHaveLength(0);
+    expect(asked).toEqual(['spaces/AAAA users/999', 'spaces/BBBB users/999']);
+    const row = await getDelivery(db, reminderKey('alice'));
+    expect(row?.status).toBe('failed');
+    expect(row?.error).toBe('no_chat_identity: alice');
   });
 
   test('a person in two teams gets exactly one DM', async () => {

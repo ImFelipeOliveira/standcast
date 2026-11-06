@@ -43,6 +43,8 @@ Se o código não funcionar:
 | Este espaço já está vinculado a outra organização. | Um admin dessa organização desvincula o espaço antes. |
 | Muitas tentativas. Espere um minuto e tente de novo. | Espere um minuto. As tentativas de vínculo são limitadas a 10 por minuto. |
 
+Depois do vínculo, o app publica no espaço, em inglês e português, qual organização passa a receber os consolidados ali. Se não for a sua organização, remova o app do espaço para desfazer o vínculo.
+
 Um espaço só pode estar vinculado a uma organização. Colar o código é o que prova que a sua organização pode publicar ali: só o nome do espaço no `standcast.yml` não basta.
 
 ## 3. Coloque o espaço no `standcast.yml`
@@ -63,7 +65,7 @@ A página de setup e o app web avisam no card do time quando o espaço não est�
 
 No card do Google Chat, um admin clica em **Desvincular** e depois em **Desvincular agora**. O Standcast para de publicar naquele espaço. Remover o app do espaço no Google Chat tem o mesmo efeito.
 
-Quando a organização fica sem nenhum espaço vinculado, o Google Chat é desconectado e o vínculo de cada pessoa com o Google Chat naquela organização é removido. Para vincular o espaço de novo, remova o app do espaço e adicione de novo para receber um código novo.
+Quando a organização fica sem nenhum espaço vinculado, o Google Chat é desconectado. O vínculo de cada pessoa com o Google Chat é mantido, e volta a valer assim que um espaço for vinculado. Para vincular o espaço de novo, remova o app do espaço e adicione de novo para receber um código novo.
 
 ## Como as pessoas são vinculadas
 
@@ -89,7 +91,9 @@ members:
   bob: { google_chat: users/123456789 }
 ```
 
-O valor precisa ser `users/` seguido de dígitos. Os dígitos são o id de usuário do Google da pessoa, o mesmo id que o Admin SDK do Google Workspace e a People API usam. O mapeamento vale mais que o vínculo pela mensagem direta.
+O valor precisa ser `users/` seguido de dígitos. Os dígitos são o id de usuário do Google da pessoa, o mesmo id que o Admin SDK do Google Workspace e a People API usam.
+
+As menções no consolidado usam o mapeamento. As mensagens diretas só usam o mapeamento quando a pessoa participa de pelo menos um espaço vinculado à sua organização: antes de cada mensagem direta, o Standcast pergunta ao Google Chat se esse usuário está em um dos seus espaços vinculados. Se não estiver, nada é enviado e a entrega falha com `no_chat_identity`. Assim um mapeamento não alcança pessoas de fora da sua organização. Quando o mapeamento é o mesmo usuário que a pessoa vinculou pela mensagem direta, a conferência não é necessária.
 
 O consolidado menciona cada pessoa vinculada com o usuário dela no Google Chat, e mostra `@` seguido do login do GitHub, como texto, quando não há vínculo.
 
@@ -114,7 +118,7 @@ Quando uma publicação falha, a página de setup e o app web mostram a falha em
 | `ratelimited` | O Google Chat pediu para o Standcast ir mais devagar. | Nada a fazer; há nova tentativa. |
 | `timeout`, `request_failed`, `http_error`, `invalid_response` | O Google Chat não respondeu a tempo, não pôde ser acessado, ou respondeu com erro. | Nada a fazer; há nova tentativa. Fale com o suporte se repetir. |
 | `no_chat_connection` | Nenhum espaço está vinculado a esta organização, ou o servidor não tem app do Google Chat. | Vincule um espaço. |
-| `no_chat_identity` | A pessoa, ou o gestor para quem um impedimento foi, não tem vínculo com o Google Chat. | Peça para a pessoa mandar mensagem para o app, ou adicione `members.<login>.google_chat`. |
+| `no_chat_identity` | A pessoa, ou o gestor para quem um impedimento foi, não tem vínculo com o Google Chat, ou o usuário em `members.<login>.google_chat` não está em nenhum dos seus espaços vinculados. | Peça para a pessoa mandar mensagem para o app, ou adicione a pessoa a um espaço vinculado. |
 | `no_route_target` | Um impedimento não tinha destinatário nenhum, por exemplo porque quem escreveu é o único gestor do time. | Adicione outro gestor ao time. |
 | `worker_died` | O worker parou três vezes durante o envio. | Fale com o suporte se repetir. |
 | `internal_error` | Erro inesperado. | Fale com o suporte se repetir. |

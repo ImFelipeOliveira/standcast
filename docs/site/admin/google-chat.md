@@ -43,6 +43,8 @@ If the code does not work:
 | This space is already linked to another organization. | An admin of that organization unlinks it first. |
 | Too many attempts. Wait a minute and try again. | Wait a minute. Link attempts are limited to 10 per minute. |
 
+Once linked, the app posts in the space, in English and Portuguese, which organization now gets digests there. If that is not your organization, remove the app from the space to undo the link.
+
 A space can be linked to one organization only. Pasting the code is what proves your organization may post there: the space name in `standcast.yml` alone is not enough.
 
 ## 3. Set the space in `standcast.yml`
@@ -63,7 +65,7 @@ The setup page and the web app warn on the team's card when the space is not lin
 
 In the Google Chat card, an admin clicks **Unlink**, then **Unlink now**. Standcast stops posting in that space. Removing the app from the space in Google Chat does the same.
 
-When the organization has no linked space left, Google Chat is disconnected and every person's Google Chat link in the organization is removed. To link the space again, remove the app from the space and add it again to get a new code.
+When the organization has no linked space left, Google Chat is disconnected. People's Google Chat links are kept, so they work again as soon as a space is linked. To link the space again, remove the app from the space and add it again to get a new code.
 
 ## How people are linked
 
@@ -89,7 +91,9 @@ members:
   bob: { google_chat: users/123456789 }
 ```
 
-The value must be `users/` followed by digits. The digits are the person's Google user id, the same id the Google Workspace Admin SDK and the People API use. A mapping wins over the direct message link.
+The value must be `users/` followed by digits. The digits are the person's Google user id, the same id the Google Workspace Admin SDK and the People API use.
+
+The digest mentions use the mapping. Direct messages use it only when the person is a member of at least one space linked to your organization: before each direct message, Standcast asks Google Chat whether that user is in one of your linked spaces. If they are not, nothing is sent and the delivery fails with `no_chat_identity`. This keeps a mapping from reaching people outside your organization. When the mapping is the same user the person linked by direct message, no check is needed.
 
 The digest mentions each linked person with their Google Chat user, and shows `@` followed by their GitHub login as plain text otherwise.
 
@@ -114,7 +118,7 @@ When a post fails, the setup page and the web app list it under "Latest failed d
 | `ratelimited` | Google Chat asked Standcast to slow down. | Nothing to do; it is retried. |
 | `timeout`, `request_failed`, `http_error`, `invalid_response` | Google Chat did not answer in time, could not be reached, or answered with an error. | Nothing to do; it is retried. Contact support if it repeats. |
 | `no_chat_connection` | No space is linked to this organization, or the server has no Google Chat app. | Link a space. |
-| `no_chat_identity` | The person, or the manager a blocker fell back to, has no Google Chat link. | Ask the person to message the app, or add `members.<login>.google_chat`. |
+| `no_chat_identity` | The person, or the manager a blocker fell back to, has no Google Chat link, or their `members.<login>.google_chat` user is in none of your linked spaces. | Ask the person to message the app, or add them to a linked space. |
 | `no_route_target` | A blocker had no recipient at all, for example because the author is the team's only manager. | Add another manager to the team. |
 | `worker_died` | The worker stopped three times while sending. | Contact support if it repeats. |
 | `internal_error` | Unexpected error. | Contact support if it repeats. |

@@ -156,6 +156,28 @@ describe('createGoogleChatChannel', () => {
     expect((await failure(() => channel.checkChannel('spaces/AAA'))).code).toBe('http_error');
   });
 
+  test('space membership needs a joined member', async () => {
+    const replies = [
+      () => Response.json({ name: 'spaces/AAA/members/123', state: 'JOINED' }),
+      () => Response.json({ name: 'spaces/AAA/members/123', state: 'INVITED' }),
+      () => googleError(404),
+      () => googleError(403),
+    ];
+    const { calls, channel } = fake(() => replies[calls.length - 1]?.() ?? googleError(500));
+    const isMember = channel.isSpaceMember;
+    if (!isMember) throw new Error('missing isSpaceMember');
+    expect(await isMember('spaces/AAA', 'users/123')).toBe(true);
+    expect(calls[0]?.method).toBe('GET');
+    expect(calls[0]?.url).toBe(`${API}/v1/spaces/AAA/members/123`);
+    expect(await isMember('spaces/AAA', 'users/123')).toBe(false);
+    expect(await isMember('spaces/AAA', 'users/123')).toBe(false);
+    expect(await isMember('spaces/AAA', 'users/123')).toBe(false);
+    expect((await failure(() => isMember('spaces/AAA', 'users/123'))).code).toBe('http_error');
+    expect(await isMember('spaces/../x', 'users/123')).toBe(false);
+    expect(await isMember('spaces/AAA', 'users/abc')).toBe(false);
+    expect(calls).toHaveLength(5);
+  });
+
   test('post errors map to delivery codes', async () => {
     const cases: Array<[number, string]> = [
       [401, 'invalid_auth'],

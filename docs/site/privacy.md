@@ -38,6 +38,7 @@ The Standcast app for Google Chat calls the Google Chat API as itself, with the 
 
 - post the digest and the replies in its thread, in spaces that have the app and are linked to your organization;
 - check that a team's space exists and has the app;
+- check whether a user set in `members.<login>.google_chat` is a member of one of your linked spaces, before sending them a direct message;
 - find the direct message space with a person, and send direct messages: reminders, routed blockers and, if the team enables `signals.direct_message`, suggested blockers.
 
 Google sends Standcast an event only when the app is added to a space, removed from a space, or sent a direct message. From these events Standcast uses:
@@ -83,7 +84,7 @@ Standcast does not connect to Jira yet, so it reads nothing from it.
 | Organization membership | Which installations each person belongs to | |
 | Slack identity | The Slack user id of each person, per installation | |
 | Slack connection | Workspace id and name, and the bot token | Bot token encrypted with AES-256-GCM |
-| Google Chat spaces | For each space that has the app: its name and display name, when the app was added, and, once linked, the organization and when it was linked. While a link code is pending, a SHA-256 hash of the code and when it expires | Only the hash of the link code |
+| Google Chat spaces | For each space that has the app: its name and display name, when the app was added, and, once linked, the organization and when it was linked. While a link code is pending, a SHA-256 hash of the code and when it expires. A space that was never linked is deleted after its code expires | Only the hash of the link code |
 | Google Chat identity | The Google Chat user id of each person, per installation. The email is never stored | |
 | Google Chat connection | Marks Google Chat as connected for the installation, with the name of the first linked space | |
 | Linear connection | Workspace id, name and URL key, and the access and refresh tokens | Tokens encrypted with AES-256-GCM |
@@ -149,7 +150,7 @@ CLI sessions stop working after 90 days without use, and web sessions after 7 da
 ## Removing your data
 
 - **Uninstall the GitHub App.** Standcast deletes the installation and everything that belongs to it: configuration, dailies, blocker states, deliveries, Slack connection and identities, linked Google Chat spaces, the Google Chat connection and identities, API keys, webhook endpoints and their deliveries.
-- **Remove the app from a Google Chat space, or unlink it.** Standcast deletes that space. When the organization has no linked space left, it also deletes the Google Chat connection and every Google Chat identity of the organization. A space that has the app but was never linked keeps its name and display name until the app is removed from it.
+- **Remove the app from a Google Chat space, or unlink it.** Standcast deletes that space. When the organization has no linked space left, it also deletes the Google Chat connection; the Google Chat identities are kept until you uninstall the GitHub App. A space that has the app but was never linked is deleted after its link code expires, or when the app is removed from it.
 - **Sign out.** `standcast logout` revokes your CLI session on the server and deletes the local credentials file.
 - **Your person record.** Your GitHub user id, login and email are not tied to one installation, so uninstalling does not remove them. To delete them, email support.
 

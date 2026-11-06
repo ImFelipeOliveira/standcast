@@ -248,6 +248,8 @@ const ptBR = {
   'checkRun.summary': '{count} erro(s) encontrado(s):\n{errors}',
   'googleChat.linkCode':
     'O Standcast está neste espaço. Para receber os consolidados aqui, um admin da sua organização no GitHub cola este código no Standcast, em Configuração → Google Chat: {code}. O código vale por 24 horas.',
+  'googleChat.spaceLinked':
+    'Este espaço agora recebe os consolidados da organização {org} no Standcast. Se não era isso, remova o app do espaço para desfazer.',
   'googleChat.linked': 'Vínculo feito, {logins}.',
   'googleChat.notFound':
     'Nenhuma conta do Standcast usa este e-mail. Rode `standcast login` primeiro e depois me mande uma mensagem de novo.',
@@ -503,6 +505,8 @@ const en = {
   'checkRun.summary': '{count} error(s) found:\n{errors}',
   'googleChat.linkCode':
     'Standcast is in this space. To get digests here, an admin of your GitHub organization pastes this code in Standcast, Configuration → Google Chat: {code}. The code is valid for 24 hours.',
+  'googleChat.spaceLinked':
+    'This space now gets the digests of the {org} organization on Standcast. If that is not right, remove the app from the space to undo it.',
   'googleChat.linked': "You're linked, {logins}.",
   'googleChat.notFound':
     'No Standcast account uses this email; run `standcast login` first, then message me again.',

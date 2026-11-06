@@ -72,6 +72,7 @@ async function setup(cfg: StandcastConfig = googleConfig()) {
   const member = await seedMember();
   await setMemberInstallations(db, member.id, [INST]);
   const harness = fakeDeps();
+  harness.deps.googleChatAvailable = true;
   harness.roles.set('alice', { role: 'admin', state: 'active' });
   return { ...harness, member, isMember: createMembershipCheck(harness.deps) };
 }
@@ -161,7 +162,7 @@ describe('handleGoogleChatEvent in a room', () => {
     expect(await listGoogleChatSpaces(db, INST)).toEqual([]);
     expect(await db.select().from(googleChatSpaces)).toHaveLength(0);
     expect(await getConnection(db, INST, 'google-chat', KEY)).toBeNull();
-    expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
+    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
   });
 
   test('removing one of two spaces keeps the connection', async () => {
@@ -255,11 +256,93 @@ describe('linkGoogleChatSpace', () => {
     ).toBe('invalid_code');
     const rows = async () =>
       new Map((await db.select().from(googleChatSpaces)).map((r) => [r.spaceName, r]));
-    expect((await rows()).get('spaces/AAAA')?.linkCodeHash).toBeNull();
+    expect((await rows()).has('spaces/AAAA')).toBe(false);
     expect((await rows()).get('spaces/BBBB')?.linkCodeHash).not.toBeNull();
     await issueCode(deps, 'spaces/CCCC');
-    expect((await rows()).get('spaces/BBBB')?.linkCodeHash).toBeNull();
+    expect((await rows()).has('spaces/BBBB')).toBe(false);
     expect((await rows()).get('spaces/CCCC')?.linkCodeHash).not.toBeNull();
+  });
+
+  test('an expired code on a linked space clears the code and keeps the binding', async () => {
+    const { deps, isMember, member, setNow } = await setup();
+    await linkGoogleChatSpace(deps, isMember, member, {
+      installationId: INST,
+      code: await issueCode(deps, 'spaces/AAAA'),
+    });
+    await issueCode(deps, 'spaces/AAAA');
+    setNow(new Date(deps.now().getTime() + 24 * 60 * 60 * 1000));
+    await issueCode(deps, 'spaces/CCCC');
+    const row = (await db.select().from(googleChatSpaces)).find(
+      (r) => r.spaceName === 'spaces/AAAA',
+    );
+    expect(row?.linkCodeHash).toBeNull();
+    expect(row?.installationId).toBe(INST);
+    expect(await listGoogleChatSpaces(db, INST)).toHaveLength(1);
+  });
+
+  test('linking is not found while google chat is off', async () => {
+    const { deps, isMember, member } = await setup();
+    const code = await issueCode(deps);
+    deps.googleChatAvailable = false;
+    expect(
+      await codeOf(linkGoogleChatSpace(deps, isMember, member, { installationId: INST, code })),
+    ).toBe('not_found');
+    expect(await listGoogleChatSpaces(db, INST)).toEqual([]);
+    expect(await getConnection(db, INST, 'google-chat', KEY)).toBeNull();
+  });
+
+  test('linking announces the organization in the space, in both languages', async () => {
+    const { deps, isMember, member } = await setup();
+    const google = fakeChat();
+    deps.chatFor = async (_installationId, provider) =>
+      provider === 'google-chat' ? google.chat : null;
+    await linkGoogleChatSpace(deps, isMember, member, {
+      installationId: INST,
+      code: await issueCode(deps),
+    });
+    expect(google.posted).toHaveLength(1);
+    expect(google.posted[0]?.channel).toBe('spaces/AAAA');
+    expect(google.posted[0]?.msg.fallbackText).toContain('acme');
+    expect(google.posted[0]?.msg.fallbackText).toContain('remove the app');
+    expect(google.posted[0]?.msg.fallbackText).toContain('remova o app');
+  });
+
+  test('a failed announcement still links the space', async () => {
+    const { deps, isMember, member } = await setup();
+    const google = fakeChat();
+    google.failWith(new Error('boom'));
+    deps.chatFor = async () => google.chat;
+    const linked = await linkGoogleChatSpace(deps, isMember, member, {
+      installationId: INST,
+      code: await issueCode(deps),
+    });
+    expect(linked.space).toBe('spaces/AAAA');
+    expect(await listGoogleChatSpaces(db, INST)).toHaveLength(1);
+  });
+
+  test('linking a space while the last one is unlinked always leaves a connection', async () => {
+    const { deps, isMember, member } = await setup();
+    for (let round = 0; round < 8; round++) {
+      await linkGoogleChatSpace(deps, isMember, member, {
+        installationId: INST,
+        code: await issueCode(deps, 'spaces/AAAA'),
+      });
+      const code = await issueCode(deps, 'spaces/BBBB');
+      await Promise.all([
+        unlinkGoogleChatSpace(deps, isMember, member, {
+          installationId: INST,
+          space: 'spaces/AAAA',
+        }),
+        linkGoogleChatSpace(deps, isMember, member, { installationId: INST, code }),
+      ]);
+      expect((await listGoogleChatSpaces(db, INST)).map((s) => s.name)).toEqual(['spaces/BBBB']);
+      expect(await getConnection(db, INST, 'google-chat', KEY)).not.toBeNull();
+      await unlinkGoogleChatSpace(deps, isMember, member, {
+        installationId: INST,
+        space: 'spaces/BBBB',
+      });
+      expect(await getConnection(db, INST, 'google-chat', KEY)).toBeNull();
+    }
   });
 
   test('expired code', async () => {
@@ -475,11 +558,12 @@ describe('handleGoogleChatEvent in a direct message', () => {
     expect((error as Error).cause).toBeUndefined();
   });
 
-  test('override wins over the dm link', async () => {
+  test('the dm link stores the dm user and the override only names the mention', async () => {
     const cfg = googleConfig({ members: 'members:\n  Alice: { google_chat: users/999 }' });
     const { deps } = await setup(cfg);
     await bindElsewhere('spaces/AAAA', INST);
     await handleGoogleChatEvent(deps, dm('alice@acme.com'));
+    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
     expect(await chatUserIdFor(deps, INST, cfg, 'google-chat', 'alice')).toBe('users/999');
   });
 });
@@ -593,5 +677,18 @@ describe('google chat deliveries', () => {
     });
     deps.googleChatAvailable = false;
     expect((await getSetupStatus(deps, isMember, member, INST)).googleChat.available).toBe(false);
+  });
+
+  test('setup shows no google chat notices while google chat is off', async () => {
+    const { deps, isMember, member } = await setup();
+    await seedOrg(googleConfig(), { id: OTHER, accountLogin: 'beta' });
+    await bindElsewhere('spaces/AAAA', OTHER);
+    expect((await getSetupStatus(deps, isMember, member, INST)).teamNotices).toContainEqual({
+      team: 'Alpha',
+      reference: 'spaces/AAAA',
+      kind: 'space_not_linked',
+    });
+    deps.googleChatAvailable = false;
+    expect((await getSetupStatus(deps, isMember, member, INST)).teamNotices).toEqual([]);
   });
 });

@@ -38,6 +38,7 @@ O app do Standcast para o Google Chat chama a API do Google Chat como ele mesmo,
 
 - publique o consolidado e as respostas na thread dele, nos espaços que têm o app e estão vinculados à sua organização;
 - confira se o espaço de um time existe e tem o app;
+- confira se um usuário definido em `members.<login>.google_chat` participa de um dos seus espaços vinculados, antes de mandar uma mensagem direta para ele;
 - encontre o espaço de mensagem direta com uma pessoa e envie mensagens diretas: lembretes, impedimentos encaminhados e, se o time ativar `signals.direct_message`, impedimentos sugeridos.
 
 O Google só manda um evento para o Standcast quando o app é adicionado a um espaço, removido de um espaço ou recebe uma mensagem direta. Desses eventos, o Standcast usa:
@@ -83,7 +84,7 @@ O Standcast ainda não se conecta ao Jira, então não lê nada dele.
 | Participação em organizações | A quais instalações cada pessoa pertence | |
 | Identidade no Slack | O id de usuário do Slack de cada pessoa, por instalação | |
 | Conexão com o Slack | Id e nome do workspace e o token do bot | Token do bot criptografado com AES-256-GCM |
-| Espaços do Google Chat | Para cada espaço que tem o app: o nome e o nome de exibição, quando o app foi adicionado e, depois do vínculo, a organização e quando foi vinculado. Enquanto há um código de vínculo pendente, um hash SHA-256 do código e quando ele expira | Só o hash do código de vínculo |
+| Espaços do Google Chat | Para cada espaço que tem o app: o nome e o nome de exibição, quando o app foi adicionado e, depois do vínculo, a organização e quando foi vinculado. Enquanto há um código de vínculo pendente, um hash SHA-256 do código e quando ele expira. Um espaço que nunca foi vinculado é apagado depois que o código expira | Só o hash do código de vínculo |
 | Identidade no Google Chat | O id de usuário do Google Chat de cada pessoa, por instalação. O e-mail nunca é guardado | |
 | Conexão com o Google Chat | Marca o Google Chat como conectado na instalação, com o nome do primeiro espaço vinculado | |
 | Conexão com o Linear | Id, nome e chave da URL do workspace e os tokens de acesso e de renovação | Tokens criptografados com AES-256-GCM |
@@ -149,7 +150,7 @@ As sessões da CLI param de funcionar depois de 90 dias sem uso, e as sessões d
 ## Remoção dos dados
 
 - **Desinstale o GitHub App.** O Standcast apaga a instalação e tudo o que pertence a ela: configuração, dailies, estados de impedimentos, entregas, conexão com o Slack e identidades, espaços vinculados do Google Chat, a conexão com o Google Chat e as identidades, API keys, endpoints de webhook e as entregas deles.
-- **Remova o app de um espaço do Google Chat, ou desvincule o espaço.** O Standcast apaga esse espaço. Quando a organização fica sem nenhum espaço vinculado, ele também apaga a conexão com o Google Chat e todas as identidades no Google Chat da organização. Um espaço que tem o app mas nunca foi vinculado guarda o nome e o nome de exibição até o app ser removido dele.
+- **Remova o app de um espaço do Google Chat, ou desvincule o espaço.** O Standcast apaga esse espaço. Quando a organização fica sem nenhum espaço vinculado, ele também apaga a conexão com o Google Chat; as identidades no Google Chat ficam até você desinstalar o GitHub App. Um espaço que tem o app mas nunca foi vinculado é apagado depois que o código de vínculo expira, ou quando o app é removido dele.
 - **Saia.** O `standcast logout` revoga a sua sessão da CLI no servidor e apaga o arquivo local de credenciais.
 - **O seu cadastro de pessoa.** O seu id de usuário no GitHub, o login e o e-mail não pertencem a uma instalação só, então desinstalar não os remove. Para apagá-los, mande um e-mail ao suporte.
 

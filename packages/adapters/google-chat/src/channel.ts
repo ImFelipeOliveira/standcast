@@ -102,6 +102,21 @@ export function createGoogleChatChannel(
     throw statusError(response.status);
   }
 
+  async function isSpaceMember(space: string, userId: string): Promise<boolean> {
+    if (!SPACE_NAME.test(space) || !GOOGLE_CHAT_USER_ID.test(userId)) return false;
+    const response = await call('GET', `${space}/members/${userId.slice('users/'.length)}`);
+    if (response.status === 403 || response.status === 404) {
+      await discard(response);
+      return false;
+    }
+    if (!response.ok) {
+      await discard(response);
+      throw statusError(response.status);
+    }
+    const membership = (await readJson(response)) as { state?: unknown } | null;
+    return membership?.state === 'JOINED';
+  }
+
   return {
     postToChannel: async (space, msg) => {
       requireSpace(space);
@@ -120,5 +135,6 @@ export function createGoogleChatChannel(
     },
     findUserByEmail: async () => null,
     checkChannel,
+    isSpaceMember,
   };
 }

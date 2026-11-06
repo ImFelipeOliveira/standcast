@@ -10,4 +10,5 @@ export interface ChatChannel {
   sendDirect(userId: string, msg: Message): Promise<MessageRef>;
   findUserByEmail(email: string): Promise<string | null>;
   checkChannel(channel: string): Promise<ChannelCheck>;
+  isSpaceMember?(space: string, userId: string): Promise<boolean>;
 }

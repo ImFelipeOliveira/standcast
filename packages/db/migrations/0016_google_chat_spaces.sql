@@ -10,4 +10,5 @@ CREATE TABLE "google_chat_spaces" (
 --> statement-breakpoint
 ALTER TABLE "google_chat_spaces" ADD CONSTRAINT "google_chat_spaces_installation_id_installations_id_fk" FOREIGN KEY ("installation_id") REFERENCES "public"."installations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "google_chat_spaces_installation_idx" ON "google_chat_spaces" USING btree ("installation_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "google_chat_spaces_link_code_idx" ON "google_chat_spaces" USING btree ("link_code_hash");
+CREATE UNIQUE INDEX "google_chat_spaces_link_code_idx" ON "google_chat_spaces" USING btree ("link_code_hash");--> statement-breakpoint
+CREATE INDEX "members_email_lower_idx" ON "members" USING btree (lower("email"));

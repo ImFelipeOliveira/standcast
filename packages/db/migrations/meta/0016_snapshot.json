@@ -1,5 +1,5 @@
 {
-  "id": "189e8671-b200-48cf-ba2f-3008f2926dee",
+  "id": "62df40a3-0163-42e2-95c6-6c2374535115",
   "prevId": "74cb33b9-9a26-4f0f-a040-86ef30b57a36",
   "version": "7",
   "dialect": "postgresql",
@@ -923,6 +923,21 @@
             }
           ],
           "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "members_email_lower_idx": {
+          "name": "members_email_lower_idx",
+          "columns": [
+            {
+              "expression": "lower(\"email\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
           "concurrently": false,
           "method": "btree",
           "with": {}

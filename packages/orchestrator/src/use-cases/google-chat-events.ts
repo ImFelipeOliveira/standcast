@@ -3,7 +3,6 @@ import {
   GOOGLE_CHAT_USER_ID,
   type Language,
   type MessageKey,
-  memberOverrides,
   type StandcastConfig,
   t,
 } from '@standcast/core';
@@ -19,7 +18,6 @@ import {
   removeGoogleChatSpace,
   writeIdentityIfConnected,
 } from '@standcast/db';
-import { chatOverrideFor } from '../chat-identity';
 import type { Deps } from '../deps';
 import { logError } from '../log-error';
 import { generateLinkCode, hashLinkCode, LINK_CODE_TTL_MS } from './link-google-chat-space';
@@ -108,15 +106,12 @@ async function linkMember(
       );
       if (!connectionExternalId) continue;
       const config = operationalConfig(await getInstallation(deps.db, installationId));
-      const override = config
-        ? chatOverrideFor(memberOverrides(config, login), 'google-chat')
-        : undefined;
       const written = await writeIdentityIfConnected(deps.db, {
         installationId,
         memberId: member.id,
         provider: 'google-chat',
         connectionExternalId,
-        externalId: override ?? userName,
+        externalId: userName,
       });
       if (!written) continue;
       outcome.linked = true;

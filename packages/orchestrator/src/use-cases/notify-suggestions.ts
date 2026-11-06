@@ -13,7 +13,7 @@ import {
   markSuggestionNotified,
   type SuggestionRow,
 } from '@standcast/db';
-import { chatUserIdFor, forgetStaleChatIdentity } from '../chat-identity';
+import { directMessageIdFor, forgetStaleChatIdentity } from '../chat-identity';
 import type { WorkerDeps } from '../deps';
 import { logError } from '../log-error';
 import { describeDeliveryError } from './delivery-error';
@@ -62,7 +62,14 @@ export async function notifySuggestions(
         await failDelivery(deps.db, key, claim.token, 'no_chat_connection');
         continue;
       }
-      chatUserId = await chatUserIdFor(deps, input.installationId, input.config, provider, login);
+      chatUserId = await directMessageIdFor(
+        deps,
+        chat,
+        input.installationId,
+        input.config,
+        provider,
+        login,
+      );
       if (!chatUserId) {
         await failDelivery(deps.db, key, claim.token, 'no_chat_identity');
         continue;

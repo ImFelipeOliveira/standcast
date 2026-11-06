@@ -1,7 +1,7 @@
-import { and, asc, eq, isNotNull, lte, sql } from 'drizzle-orm';
+import { and, asc, eq, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
 import type { Db } from '../client';
 import { encryptSecret } from '../crypto';
-import { connections, googleChatSpaces, memberIdentities } from '../schema';
+import { connections, googleChatSpaces } from '../schema';
 
 export type GoogleChatSpace = { name: string; displayName: string };
 
@@ -9,6 +9,9 @@ export type RedeemLinkCodeResult =
   | { status: 'linked'; space: GoogleChatSpace }
   | { status: 'invalid' }
   | { status: 'linked_elsewhere' };
+
+const connectionLock = (installationId: number) =>
+  sql`select pg_advisory_xact_lock(hashtext(${`google-chat-connection:${installationId}`}))`;
 
 export async function issueGoogleChatLinkCode(
   db: Db,
@@ -26,6 +29,17 @@ export async function issueGoogleChatLinkCode(
     linkCodeExpiresAt: input.expiresAt,
   };
   await db.transaction(async (tx) => {
+    await tx
+      .delete(googleChatSpaces)
+      .where(
+        and(
+          isNull(googleChatSpaces.installationId),
+          or(
+            isNull(googleChatSpaces.linkCodeExpiresAt),
+            lte(googleChatSpaces.linkCodeExpiresAt, input.now),
+          ),
+        ),
+      );
     await tx
       .update(googleChatSpaces)
       .set({ linkCodeHash: null, linkCodeExpiresAt: null })
@@ -52,6 +66,7 @@ export async function redeemGoogleChatLinkCode(
   },
 ): Promise<RedeemLinkCodeResult> {
   return db.transaction(async (tx) => {
+    await tx.execute(connectionLock(input.installationId));
     const [row] = await tx
       .select()
       .from(googleChatSpaces)
@@ -59,10 +74,14 @@ export async function redeemGoogleChatLinkCode(
       .for('update');
     if (!row) return { status: 'invalid' };
     if (!row.linkCodeExpiresAt || row.linkCodeExpiresAt.getTime() <= input.now.getTime()) {
-      await tx
-        .update(googleChatSpaces)
-        .set({ linkCodeHash: null, linkCodeExpiresAt: null })
-        .where(eq(googleChatSpaces.spaceName, row.spaceName));
+      if (row.installationId === null) {
+        await tx.delete(googleChatSpaces).where(eq(googleChatSpaces.spaceName, row.spaceName));
+      } else {
+        await tx
+          .update(googleChatSpaces)
+          .set({ linkCodeHash: null, linkCodeExpiresAt: null })
+          .where(eq(googleChatSpaces.spaceName, row.spaceName));
+      }
       return { status: 'invalid' };
     }
     if (row.installationId !== null && row.installationId !== input.installationId) {
@@ -154,6 +173,7 @@ export async function deleteGoogleChatConnectionIfUnused(
   installationId: number,
 ): Promise<boolean> {
   return db.transaction(async (tx) => {
+    await tx.execute(connectionLock(installationId));
     const deleted = await tx
       .delete(connections)
       .where(
@@ -164,15 +184,6 @@ export async function deleteGoogleChatConnectionIfUnused(
         ),
       )
       .returning({ externalId: connections.externalId });
-    if (deleted.length === 0) return false;
-    await tx
-      .delete(memberIdentities)
-      .where(
-        and(
-          eq(memberIdentities.installationId, installationId),
-          eq(memberIdentities.provider, 'google-chat'),
-        ),
-      );
-    return true;
+    return deleted.length > 0;
   });
 }

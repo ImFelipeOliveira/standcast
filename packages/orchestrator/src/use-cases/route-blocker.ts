@@ -21,7 +21,7 @@ import {
   operationalConfig,
   reserveBlockerRoute,
 } from '@standcast/db';
-import { chatUserIdsFor, forgetStaleChatIdentity } from '../chat-identity';
+import { directMessageIdsFor, forgetStaleChatIdentity } from '../chat-identity';
 import type { WorkerDeps } from '../deps';
 import { blockerRouteId } from '../events';
 import { logError } from '../log-error';
@@ -220,7 +220,8 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
   const provider = firstTeam.chat.provider;
   let target = await resolveRouteTarget(deps, ctx);
   const fallback = managerTarget(ctx);
-  const ids = await chatUserIdsFor(deps, job.installationId, config, provider, [
+  const chat = await deps.chatFor(job.installationId, provider);
+  const ids = await directMessageIdsFor(deps, chat, job.installationId, config, provider, [
     ...target.logins,
     ...fallback.logins,
     author,
@@ -244,7 +245,6 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
     return;
   }
 
-  const chat = await deps.chatFor(job.installationId, provider);
   const authorChatId = ids.get(author);
   let busy = false;
   let failure: unknown = null;

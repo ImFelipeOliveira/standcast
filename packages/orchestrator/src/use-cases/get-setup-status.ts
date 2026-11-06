@@ -164,6 +164,7 @@ async function providerChannelNotices(
   provider: ChatProvider,
   teams: TeamConfig[],
 ): Promise<TeamNotice[]> {
+  if (provider === 'google-chat' && !deps.googleChatAvailable) return [];
   const { linked, unlinked } = await linkedTeams(deps, installationId, provider, teams);
   const unlinkedNotices: TeamNotice[] = unlinked.map((team) => ({
     team: team.name,

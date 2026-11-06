@@ -47,7 +47,7 @@ describe('linkChatIdentities', () => {
 });
 
 describe('linkChatIdentities for google-chat', () => {
-  test('applies only the google_chat override', async () => {
+  test('never stores the google_chat override as an identity', async () => {
     await seedOrg(config('[alice, bob]', 'members:\n  Alice: { google_chat: users/42 }'));
     await saveConnection(db, INST, 'google-chat', 'spaces/AAAA', '-', KEY);
     const member = await seedMember();
@@ -58,7 +58,7 @@ describe('linkChatIdentities for google-chat', () => {
       return null;
     };
     await linkChatIdentities(deps, member.id, 'alice@acme.com', [INST]);
-    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/42');
+    expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
     expect(asked).toEqual([]);
   });
 

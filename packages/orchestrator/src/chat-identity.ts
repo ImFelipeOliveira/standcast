@@ -1,11 +1,12 @@
 import {
+  type ChatChannel,
   ChatDeliveryError,
   type ChatProvider,
   type MemberOverrides,
   memberOverrides,
   type StandcastConfig,
 } from '@standcast/core';
-import { deleteIdentityByLogin, getIdentities } from '@standcast/db';
+import { deleteIdentityByLogin, getIdentities, listGoogleChatSpaces } from '@standcast/db';
 import type { Deps } from './deps';
 import { logError } from './log-error';
 
@@ -41,6 +42,63 @@ export async function chatUserIdFor(
   login: string,
 ): Promise<string | null> {
   const ids = await chatUserIdsFor(deps, installationId, config, provider, [login]);
+  return ids.get(login.toLowerCase()) ?? null;
+}
+
+async function inLinkedSpace(
+  chat: ChatChannel | null,
+  spaces: () => Promise<string[]>,
+  userId: string,
+): Promise<boolean> {
+  if (!chat?.isSpaceMember) return false;
+  for (const space of await spaces()) {
+    if (await chat.isSpaceMember(space, userId)) return true;
+  }
+  return false;
+}
+
+export async function directMessageIdsFor(
+  deps: Pick<Deps, 'db'>,
+  chat: ChatChannel | null,
+  installationId: number,
+  config: StandcastConfig,
+  provider: ChatProvider,
+  logins: string[],
+): Promise<Map<string, string>> {
+  if (provider !== 'google-chat') {
+    return chatUserIdsFor(deps, installationId, config, provider, logins);
+  }
+  const identities = await getIdentities(deps.db, installationId, provider);
+  let linkedSpaces: Promise<string[]> | null = null;
+  const spaces = () => {
+    linkedSpaces ??= listGoogleChatSpaces(deps.db, installationId).then((rows) =>
+      rows.map((row) => row.name),
+    );
+    return linkedSpaces;
+  };
+  const ids = new Map<string, string>();
+  for (const login of logins) {
+    const lower = login.toLowerCase();
+    const identity = identities.get(lower);
+    const override = chatOverrideFor(memberOverrides(config, lower), provider);
+    if (override === undefined || override === identity) {
+      if (identity) ids.set(lower, identity);
+      continue;
+    }
+    if (await inLinkedSpace(chat, spaces, override)) ids.set(lower, override);
+  }
+  return ids;
+}
+
+export async function directMessageIdFor(
+  deps: Pick<Deps, 'db'>,
+  chat: ChatChannel | null,
+  installationId: number,
+  config: StandcastConfig,
+  provider: ChatProvider,
+  login: string,
+): Promise<string | null> {
+  const ids = await directMessageIdsFor(deps, chat, installationId, config, provider, [login]);
   return ids.get(login.toLowerCase()) ?? null;
 }
 

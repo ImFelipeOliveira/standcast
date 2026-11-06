@@ -53,7 +53,10 @@ export const members = pgTable(
     login: text('login').notNull(),
     email: text('email'),
   },
-  (t) => [uniqueIndex('members_login_lower_idx').on(sql`lower(${t.login})`)],
+  (t) => [
+    uniqueIndex('members_login_lower_idx').on(sql`lower(${t.login})`),
+    index('members_email_lower_idx').on(sql`lower(${t.email})`),
+  ],
 );
 
 const installationRef = () =>
