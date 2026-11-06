@@ -527,8 +527,27 @@ body::before {
 }
 
 .hero-home .hero-copy {
+  position: relative;
   background: transparent;
   box-shadow: none;
+}
+
+.hero-home .hero-copy::before {
+  content: "";
+  position: absolute;
+  inset: -48px -72px;
+  z-index: -1;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--bg) 88%, transparent) 55%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+.hero-home .lede {
+  color: color-mix(in srgb, var(--ink) 82%, var(--muted));
+  text-shadow: 0 0 14px var(--bg);
 }
 
 .hero h1 {
