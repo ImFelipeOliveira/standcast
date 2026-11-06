@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+### 0.6.0 — 06/11/2026
+
 ### 0.5.0 — 06/11/2026
 
 - Google Chat: um time com `chat.provider: google-chat` recebe o consolidado num espaço do Google Chat, as dailies atrasadas na thread dele, e os lembretes, os impedimentos encaminhados e os impedimentos sugeridos por mensagem direta, pelo app do Standcast para o Google Chat. Adicione o app a um espaço, e um admin cola o código de vínculo que ele publica no app web (Configuração → Google Chat) ou na página de setup. Cada pessoa se vincula mandando uma mensagem direta para o app uma vez, ou com `members.<login>.google_chat: users/<dígitos>` no `standcast.yml`. Uma organização pode usar o Slack num time e o Google Chat em outro. O app funciona nos domínios do Google Workspace em que está disponível; uma listagem no Google Workspace Marketplace vem em breve. Veja [Google Chat](/pt-BR/admin/google-chat).
