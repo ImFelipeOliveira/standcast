@@ -34,6 +34,7 @@
 
 **Files:** `packages/core/src/chat-error.ts` (new, `ChatDeliveryError`), `packages/core/src/index.ts`, `packages/adapters/slack/src/errors.ts` and `index.ts` (re-export from core), `packages/core/src/config.ts` (`google_chat` override validated as `/^users\/\d+$/`, message `must be a Google Chat user like users/123456789`), `packages/orchestrator/src/deps.ts`, `chat.ts`, `chat-identity.ts`, `identity.ts`, `use-cases/delivery-error.ts`, `send-digest.ts`, `send-late-daily.ts`, `send-reminder.ts`, `route-blocker.ts`, `notify-suggestions.ts`, `get-setup-status.ts`, `complete-slack-connect.ts`, and their tests.
 **Interfaces:**
+
 - `type ChatProvider = 'slack' | 'google-chat'` exported from core.
 - `chatFor(installationId: number, provider: ChatProvider): Promise<ChatChannel | null>`; `createChatFor(db, key, factories: { slack: (secret: string) => ChatChannel; 'google-chat': (() => ChatChannel) | null })`. For `google-chat` it returns `null` when the factory is null or no `connections` row exists.
 - `chatUserIdsFor(deps, installationId, provider, logins)` reads `overrides.slack` or `overrides.googleChat` and the identities of that provider.
@@ -45,6 +46,7 @@
 
 **Files:** `packages/adapters/google-chat/` (`package.json` named `@standcast/google-chat`, depends on `@standcast/core` only; `src/index.ts`, `src/auth.ts`, `src/render.ts`, `src/channel.ts`, `src/verify.ts`), tests in `packages/adapters/google-chat/test/`, root workspace and `check-deps` config if they list packages.
 **Interfaces:**
+
 - `parseServiceAccount(base64Json: string): { clientEmail: string; privateKey: string }`.
 - `createTokenSource(account, { fetch?, now? }): () => Promise<string>`: RS256 JWT (`iss` = client email, `scope` = `https://www.googleapis.com/auth/chat.bot`, `aud` = `https://oauth2.googleapis.com/token`, 1 hour) exchanged at that URL; cached until 60 s before expiry.
 - `renderGoogleChat(msg: Message): { text: string }` per the spec's Rendering call (4,096 characters cap with the tail `… see Standcast`).
@@ -63,6 +65,7 @@
 
 **Files:** `packages/db/src/schema.ts` (table `google_chat_spaces`: `space_name text pk`, `installation_id` fk cascade null until linked, `display_name text`, `link_code_hash text null`, `link_code_expires_at timestamptz null`, `added_at`, `linked_at null`), generated migration, `packages/db/src/repo/google-chat-spaces.ts`, `packages/db/src/index.ts`; `packages/orchestrator/src/use-cases/google-chat-events.ts`, `link-google-chat-space.ts`, `send-digest.ts` and `send-late-daily.ts` (binding check), `get-setup-status.ts` (`googleChat` section and notices); tests alongside.
 **Interfaces:**
+
 - `handleGoogleChatEvent(deps, event: GoogleChatEvent): Promise<{ text: string } | null>` where `GoogleChatEvent = { type: string; space: { name: string; type?: string; spaceType?: string; displayName?: string; singleUserBotDm?: boolean }; user?: { name: string; email?: string } }`:
   - `ADDED_TO_SPACE` in a room: upsert the space, issue a fresh code (8 chars from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, stored as sha-256 hash, 24 h), reply with the code and the instruction in en and pt-BR (one message, both languages);
   - `REMOVED_FROM_SPACE`: delete the row;
@@ -77,6 +80,7 @@
 ### Task 4: API and worker wiring
 
 **Files:** `apps/api/src/env.ts` and `apps/worker/src/env.ts` (`GOOGLE_CHAT_SERVICE_ACCOUNT` optional, `GOOGLE_CHAT_AUDIENCE` optional defaulting to `${PUBLIC_URL}/webhooks/google-chat`), `apps/api/src/main.ts`, `apps/worker/src/main.ts`, `apps/api/src/routes/google-chat.ts` (new), `apps/api/src/routes/app.ts` (`POST /v1/app/orgs/:installationId/google-chat/spaces` body `{ code }` → 201 `{ space, displayName }`; `DELETE /v1/app/orgs/:installationId/google-chat/spaces/:space` → 204), server-rendered setup form `POST /setup/google-chat` (CSRF like the other setup forms) in `apps/api/src/routes/web.tsx`, error code maps (`invalid_code`, `space_not_linked`, `no_dm_space`), OpenAPI unchanged (these are app routes), tests.
+
 - `POST /webhooks/google-chat`: verify, parse JSON (400 on bad body), call the use case, answer `200` with `{ text }` or `{}`; rate limit like the other webhooks; no logging of bodies.
 - [ ] Tests: `rejects forged or misdirected events`; `added to space answers with a code`; `link route is admin only`; `setup form links a space`; `worker builds the google chat channel only with the env set`.
 - [ ] Implement, run all checks, commit `feat: google chat webhook and link routes`.
@@ -84,6 +88,7 @@
 ### Task 5: Web app and setup page
 
 **Files:** `apps/web/src/pages/configuracao/Connections.tsx` (`GoogleChatCard`: unavailable state, bound spaces with copy buttons and unlink, code input), `apps/web/src/api/queries.ts` (`useLinkGoogleChatSpace`, `useUnlinkGoogleChatSpace`), `labels.ts` (new failure codes), i18n en and pt-BR (provider-specific channel notices: Slack keeps `/invite @Standcast`, Google Chat says "add the Standcast app to the space"), `apps/api/src/web/setup-steps.tsx` (`GoogleChatStep`), `apps/api/src/web/config-template.ts` (comment-free example showing both providers), tests.
+
 - [ ] Tests: `google chat card shows bound spaces`; `unavailable server shows the notice`; `invalid code message`; `channel notice copy per provider`; setup page renders the step.
 - [ ] Implement, run all checks including `web:build`, commit `feat(web): google chat connection`.
 
