@@ -116,6 +116,12 @@ describe('parseEnv', () => {
     }
   });
 
+  test('an empty GOOGLE_CHAT_AUDIENCE uses the default', () => {
+    expect(parseEnv({ ...base, GOOGLE_CHAT_AUDIENCE: '' }).GOOGLE_CHAT_AUDIENCE).toBe(
+      parseEnv(base).GOOGLE_CHAT_AUDIENCE,
+    );
+  });
+
   test('GOOGLE_CHAT_AUDIENCE defaults to the webhook url', () => {
     expect(parseEnv(base).GOOGLE_CHAT_AUDIENCE).toBe(
       'https://api.standcast.app/webhooks/google-chat',

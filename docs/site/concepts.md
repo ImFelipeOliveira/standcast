@@ -71,7 +71,7 @@ Sending each new blocker once to whoever can help: the reviewers of the linked p
 
 ## Linear connection
 
-One connection per installation, made by an admin on the setup page. It lets Standcast read cards of one Linear workspace, read-only. See [Install](/admin/install#5-connect-linear-optional).
+One connection per installation, made by an admin on the setup page. It lets Standcast read cards of one Linear workspace, read-only. See [Install](/admin/install#_5-connect-linear-optional).
 
 ## Delivery
 

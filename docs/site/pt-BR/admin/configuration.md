@@ -134,7 +134,7 @@ tracker:
   team: BE
 ```
 
-- `provider: linear`: o Standcast lê os cards do workspace do Linear que um admin conectou na página de setup. `team` é a chave do time no Linear, como `BE`, e limita a atividade e os sinais a esse time do Linear. Veja [Instalar](/pt-BR/admin/install#5-conecte-o-linear-opcional).
+- `provider: linear`: o Standcast lê os cards do workspace do Linear que um admin conectou na página de setup. `team` é a chave do time no Linear, como `BE`, e limita a atividade e os sinais a esse time do Linear. Veja [Instalar](/pt-BR/admin/install#_5-conecte-o-linear-opcional).
 - `provider: jira` é aceito pelo parser, mas o Jira ainda vem em breve. A página de setup mostra um aviso e mais nada acontece.
 - Se um time usa o Linear e o Linear não está conectado, a página de setup avisa. Nada quebra: o rascunho só fica sem cards.
 

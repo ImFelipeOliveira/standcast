@@ -38,7 +38,7 @@ No. There are no rankings, scores, commit counts per person or per-person aggreg
 
 ## Does it work with Google Chat, Linear or Jira?
 
-Google Chat works today: each team posts to Slack or Google Chat. See [Google Chat](/admin/google-chat). Linear works too: your cards appear in your draft, card blockers are routed and stale cards become suggestions. See [Install](/admin/install#5-connect-linear-optional). Jira is coming soon.
+Google Chat works today: each team posts to Slack or Google Chat. See [Google Chat](/admin/google-chat). Linear works too: your cards appear in your draft, card blockers are routed and stale cards become suggestions. See [Install](/admin/install#_5-connect-linear-optional). Jira is coming soon.
 
 ## Are there reminders for people who did not send the daily?
 

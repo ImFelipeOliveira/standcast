@@ -71,7 +71,7 @@ Enviar cada impedimento novo uma vez para quem pode ajudar: os revisores do pull
 
 ## Conexão com o Linear
 
-Uma conexão por instalação, feita por um admin na página de setup. Ela deixa o Standcast ler os cards de um workspace do Linear, só leitura. Veja [Instalar](/pt-BR/admin/install#5-conecte-o-linear-opcional).
+Uma conexão por instalação, feita por um admin na página de setup. Ela deixa o Standcast ler os cards de um workspace do Linear, só leitura. Veja [Instalar](/pt-BR/admin/install#_5-conecte-o-linear-opcional).
 
 ## Entrega
 
