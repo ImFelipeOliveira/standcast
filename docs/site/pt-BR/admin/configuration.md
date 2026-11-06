@@ -68,7 +68,7 @@ Nenhuma outra chave é aceita. Uma chave desconhecida falha na validação com `
 | `managers` | lista de logins do GitHub, pelo menos um | sim | | `[felipeoliveira]` |
 | `members` | lista de logins ou times do GitHub, pelo menos um | sim | | `[alice, "@acme/backend"]` |
 | `chat.provider` | `slack` ou `google-chat` | sim | | `slack` |
-| `chat.channel` | texto, não vazio | sim | | `"#daily-backend"` |
+| `chat.channel` | texto, não vazio | sim | | `"#daily-backend"` ou `spaces/AAAAbbbbCCC` |
 | `tracker.provider` | `linear` ou `jira` | não | | `linear` |
 | `tracker.team` | texto, não vazio | com `tracker` | | `BE` |
 | `signals.pr_review_hours` | número maior que 0 | não | `48` | `24` |
@@ -89,7 +89,7 @@ Os dias em que o time tem daily, com os nomes em inglês. Os consolidados só sa
 
 ### `remind_at`
 
-O horário local do lembrete, enviado por mensagem direta no Slack, em dias úteis, para quem ainda não enviou a daily. No máximo um por pessoa por dia. Ele tem que ser antes do `digest_at`, senão o arquivo é inválido. Veja [Como funciona](/pt-BR/how-it-works).
+O horário local do lembrete, enviado por mensagem direta no Slack ou no Google Chat, em dias úteis, para quem ainda não enviou a daily. No máximo um por pessoa por dia. Ele tem que ser antes do `digest_at`, senão o arquivo é inválido. Veja [Como funciona](/pt-BR/how-it-works).
 
 ### `digest_at`
 
@@ -120,8 +120,9 @@ Uma pessoa pode estar em vários times. A daily dela aparece no consolidado de c
 
 Para onde vai o consolidado.
 
-- `provider`: `slack`. O parser aceita `google-chat`, mas ele ainda não é suportado: os consolidados desse time falham com `unsupported_provider`.
-- `channel`: o canal do Slack, como `"#nome"` (com aspas, porque `#` começa um comentário no YAML) ou como id do canal, por exemplo `C0123456789`. Num canal privado, convide o bot do Standcast antes. Veja [Slack](/pt-BR/admin/slack).
+- `provider`: `slack` ou `google-chat`. Cada time escolhe o seu, então uma organização pode usar os dois.
+- `channel` no Slack: o canal do Slack, como `"#nome"` (com aspas, porque `#` começa um comentário no YAML) ou como id do canal, por exemplo `C0123456789`. Num canal privado, convide o bot do Standcast antes. Veja [Slack](/pt-BR/admin/slack).
+- `channel` no Google Chat: o nome do espaço, como `spaces/AAAAbbbbCCC`. O espaço precisa ter o app do Standcast e estar vinculado à sua organização com um código, senão o consolidado falha com `space_not_linked`. Veja [Google Chat](/pt-BR/admin/google-chat).
 
 ### `tracker`
 
@@ -166,7 +167,7 @@ teams:
 
 ## Vários times
 
-Cada time tem canal, fuso e horários próprios. A Erin está nos dois times, então a data da daily dela segue o `backend`, o primeiro time que a lista.
+Cada time tem canal, fuso e horários próprios. Aqui o `mobile` usa o Google Chat. A Erin está nos dois times, então a data da daily dela segue o `backend`, o primeiro time que a lista.
 
 ```yaml
 teams:
@@ -188,13 +189,13 @@ teams:
     managers: [frank]
     members: [erin, grace]
     chat:
-      provider: slack
-      channel: "#daily-mobile"
+      provider: google-chat
+      channel: spaces/AAAAbbbbCCC
 ```
 
 ## Mapeamento de identidades
 
-O Standcast menciona as pessoas no Slack comparando o e-mail principal verificado da conta do GitHub com o e-mail do usuário no Slack. Quando os e-mails são diferentes, mapeie a pessoa à mão na chave `members` do nível de cima, pelo login do GitHub:
+O Standcast menciona as pessoas no Slack comparando o e-mail principal verificado da conta do GitHub com o e-mail do usuário no Slack. No Google Chat, cada pessoa se vincula mandando uma mensagem direta para o app do Standcast, comparada pelo mesmo e-mail. Quando os e-mails são diferentes, mapeie a pessoa à mão na chave `members` do nível de cima, pelo login do GitHub:
 
 ```yaml
 teams:
@@ -209,16 +210,19 @@ teams:
       channel: "#daily-backend"
 members:
   bob: { slack: U0456 }
+  erin: { google_chat: users/123456789 }
 ```
 
 | Chave | Usada hoje | Valor |
 | --- | --- | --- |
 | `slack` | sim | Id de membro no Slack, como `U0456`. No Slack, abra o perfil da pessoa, clique nos três pontos e em **Copiar ID de membro**. |
-| `google_chat` | em breve | Usuário do Google Chat |
+| `google_chat` | sim | Usuário do Google Chat, como `users/` seguido de dígitos, por exemplo `users/123456789`. Os dígitos são o id de usuário do Google da pessoa. Veja [Google Chat](/pt-BR/admin/google-chat#como-as-pessoas-sao-vinculadas) |
 | `linear` | sim | E-mail da pessoa no Linear. Opcional: sem ele, o Standcast usa o e-mail principal verificado do GitHub. Precisa ser um e-mail |
 | `jira` | em breve | Conta no Jira |
 
 Um mapeamento `slack` vale a partir do próximo consolidado, mesmo para quem nunca entrou. Quem não tem mapeamento é ligado pelo e-mail ao entrar com `standcast login` ou na página de setup. Se você conectar outro workspace do Slack, as ligações por e-mail são apagadas e refeitas no próximo login.
+
+Um mapeamento `google_chat` vale mais que o vínculo feito por mensagem direta para o app. Quando uma organização desvincula o último espaço do Google Chat, os vínculos feitos por mensagem direta são apagados.
 
 O e-mail `linear` tem prioridade sobre o e-mail do GitHub. As ligações com o Linear são feitas quando a pessoa entra, logo depois de o Linear ser conectado, e sempre que o `standcast.yml` muda, inclusive para quem está num time por um time do GitHub (`@org/time`). O Standcast guarda o id do usuário no Linear, nunca o e-mail. Se você conectar outro workspace do Linear, as ligações com o Linear são apagadas.
 
@@ -234,11 +238,12 @@ Estas são as mensagens que a página de setup mostra, no formato `caminho: mens
 | `teams.0.workdays.0: Invalid option: expected one of "mon"\|"tue"\|"wed"\|"thu"\|"fri"\|"sat"\|"sun"` | `monday`, `Mon`, `seg` | Use as três letras minúsculas em inglês |
 | `teams.0.workdays: Too small: expected array to have >=1 items` | `workdays: []` | Liste pelo menos um dia, ou remova a chave |
 | `teams.0.language: Invalid option: expected one of "pt-BR"\|"en"` | `pt`, `pt_BR`, `portugues` | Use `pt-BR` ou `en` |
-| `teams.0.chat.provider: Invalid option: expected one of "slack"\|"google-chat"` | `teams`, `Slack` | Use `slack` |
+| `teams.0.chat.provider: Invalid option: expected one of "slack"\|"google-chat"` | `teams`, `Slack`, `google_chat`, `gchat` | Use `slack` ou `google-chat` |
 | `teams.0.members: Too small: expected array to have >=1 items` | `members: []` (o mesmo vale para `managers`) | Liste pelo menos uma pessoa |
 | `teams.0.managers.0: managers must be GitHub logins, not teams or @-prefixed names` | `managers: ["@acme/leads"]` | Liste os logins, como `[alice, bob]` |
 | `teams.0: Unrecognized key: "reminder"` | Uma chave escrita errado ou desconhecida | Confira a chave nas tabelas acima |
 | `members.alice.slack: must be a Slack user id like U0123ABCD` | Um nome, um e-mail, um id de canal ou `<!channel>` | Use o id de membro, que começa com `U` ou `W` |
+| `members.alice.google_chat: must be a Google Chat user like users/123456789` | Um e-mail, um nome ou só um número | Use `users/` seguido dos dígitos do id de usuário |
 | `members.alice: Unrecognized key: "slak"` | Uma chave de identidade escrita errado | Use `slack`, `google_chat`, `linear` ou `jira` |
 | `teams.1.name: duplicate team name "backend"` | Dois times com o mesmo nome | Renomeie um deles |
 | `teams.0.signals.pr_review_hours: Too small: expected number to be >0` | `0` ou um número negativo | Use um número positivo |

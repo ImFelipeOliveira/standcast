@@ -1,8 +1,8 @@
 # Standcast: your daily standup, written in your AI agent
 
-> Open source (MIT), free during the public beta. Works with GitHub and Slack today. Google Chat and Jira are next.
+> Open source (MIT), free during the public beta. Works with GitHub, Slack and Google Chat today. Jira is next.
 
-Run `/daily` in Claude Code, Cursor or the terminal. Standcast drafts yesterday from your GitHub and Linear activity, you confirm, and your team gets one digest in Slack.
+Run `/daily` in Claude Code, Cursor or the terminal. Standcast drafts yesterday from your GitHub and Linear activity, you confirm, and your team gets one digest in Slack or Google Chat.
 
 ```sh
 curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh
@@ -56,7 +56,7 @@ No productivity metrics. No rankings. No commit counts. Nothing sent on anyone's
 
 ## Configuration as code
 
-One file in your .github repository. Teams, times, Slack channels and managers live in `standcast.yml`. Every change is reviewed like code.
+One file in your .github repository. Teams, times, chat channels and managers live in `standcast.yml`. Every change is reviewed like code.
 
 - **Checked on every push.** A `Standcast config` check run points to the line with the error.
 - **Never breaks the team.** An invalid push keeps the last valid config in effect.
@@ -132,7 +132,7 @@ No. The GitHub App reads pull requests, reviews, checks, commit metadata, standc
 
 ### What do I need?
 
-A GitHub organization or personal account and a Slack workspace. Linear is optional. Google Chat and Jira are in development.
+A GitHub organization or personal account, and a Slack workspace or Google Chat in Google Workspace. Linear is optional. Jira is in development.
 
 ### Can my manager see my suggested blockers?
 
@@ -144,6 +144,6 @@ Yes. Standcast is MIT licensed. The [self-hosting section of the README](https:/
 
 ## Public beta
 
-Try it with your team. We're looking for teams of 3 to 15 people on GitHub and Slack. We'll help you set it up. Request access with the form at [standcast.usefachada.dev/#beta](https://standcast.usefachada.dev/#beta).
+Try it with your team. We're looking for teams of 3 to 15 people on GitHub and Slack or Google Chat. We'll help you set it up. Request access with the form at [standcast.usefachada.dev/#beta](https://standcast.usefachada.dev/#beta).
 
 Support: support.standcast@usefachada.dev

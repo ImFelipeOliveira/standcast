@@ -1,8 +1,8 @@
 # Standcast: a sua daily, escrita no seu agente de IA
 
-> Código aberto (MIT), grátis durante o beta público. Funciona hoje com GitHub e Slack. Google Chat e Jira vêm a seguir.
+> Código aberto (MIT), grátis durante o beta público. Funciona hoje com GitHub, Slack e Google Chat. O Jira vem a seguir.
 
-Rode `/daily` no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack.
+Rode `/daily` no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack ou no Google Chat.
 
 ```sh
 curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh
@@ -56,7 +56,7 @@ Sem métricas de produtividade. Sem rankings. Sem contagem de commits. Nada envi
 
 ## Configuração como código
 
-Um arquivo no seu repositório .github. Times, horários, canais do Slack e gestores ficam no `standcast.yml`. Toda mudança passa por review, como código.
+Um arquivo no seu repositório .github. Times, horários, canais de chat e gestores ficam no `standcast.yml`. Toda mudança passa por review, como código.
 
 - **Validado a cada push.** Um check run `Standcast config` aponta a linha com erro.
 - **Nunca quebra o time.** Um push inválido mantém a última configuração válida em vigor.
@@ -132,7 +132,7 @@ Não. O GitHub App lê pull requests, reviews, checks, metadados de commits, o s
 
 ### Do que eu preciso?
 
-Uma organização ou conta pessoal no GitHub e um workspace no Slack. O Linear é opcional. Google Chat e Jira estão em desenvolvimento.
+Uma organização ou conta pessoal no GitHub, e um workspace no Slack ou o Google Chat do Google Workspace. O Linear é opcional. O Jira está em desenvolvimento.
 
 ### O meu gestor vê os impedimentos sugeridos para mim?
 
@@ -144,6 +144,6 @@ Sim. O Standcast tem licença MIT. A [seção de self-hosting do README](https:/
 
 ## Beta público
 
-Teste com o seu time. Procuramos times de 3 a 15 pessoas que usam GitHub e Slack. Ajudamos você a configurar. Peça acesso pelo formulário em [standcast.usefachada.dev/pt-BR/#beta](https://standcast.usefachada.dev/pt-BR/#beta).
+Teste com o seu time. Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat. Ajudamos você a configurar. Peça acesso pelo formulário em [standcast.usefachada.dev/pt-BR/#beta](https://standcast.usefachada.dev/pt-BR/#beta).
 
 Suporte: support.standcast@usefachada.dev

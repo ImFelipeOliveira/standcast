@@ -16,7 +16,7 @@ Entra com o GitHub pelo device flow. A CLI mostra uma URL e um código, abre o n
 standcast login
 ```
 
-Entrar também liga o seu usuário do Slack para as menções no consolidado. Rode de novo quando entrar numa organização nova, quando o app for instalado em outra organização, ou quando o admin conectar o Slack ou mudar o seu mapeamento de identidade.
+Entrar também liga o seu usuário do Slack para as menções no consolidado. Rode de novo quando entrar numa organização nova, quando o app for instalado em outra organização, ou quando o admin conectar o Slack ou mudar o seu mapeamento de identidade. No Google Chat, o vínculo é feito mandando uma mensagem direta para o app do Standcast, não ao entrar.
 
 ### `standcast logout`
 

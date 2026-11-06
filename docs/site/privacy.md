@@ -32,6 +32,21 @@ The bot token of the Slack app lets Standcast:
 
 It does not read messages in any channel or conversation.
 
+### Google Chat
+
+The Standcast app for Google Chat calls the Google Chat API as itself, with the `chat.bot` scope. It lets Standcast:
+
+- post the digest and the replies in its thread, in spaces that have the app and are linked to your organization;
+- check that a team's space exists and has the app;
+- find the direct message space with a person, and send direct messages: reminders, routed blockers and, if the team enables `signals.direct_message`, suggested blockers.
+
+Google sends Standcast an event only when the app is added to a space, removed from a space, or sent a direct message. From these events Standcast uses:
+
+- the space name (`spaces/...`) and its display name, to link the space to your organization;
+- from a direct message, the sender's Google Chat user id and email, only to link the person to their Standcast account.
+
+Standcast keeps nothing from the text of the messages people send the app. It does not read messages in spaces, and it does not look people up by email in Google Chat.
+
 ### Linear
 
 If an admin connects Linear, Standcast uses an OAuth app that acts as itself (`actor=app`) with the read-only scope `read`, for one Linear workspace per installation. It reads:
@@ -68,13 +83,16 @@ Standcast does not connect to Jira yet, so it reads nothing from it.
 | Organization membership | Which installations each person belongs to | |
 | Slack identity | The Slack user id of each person, per installation | |
 | Slack connection | Workspace id and name, and the bot token | Bot token encrypted with AES-256-GCM |
+| Google Chat spaces | For each space that has the app: its name and display name, when the app was added, and, once linked, the organization and when it was linked. While a link code is pending, a SHA-256 hash of the code and when it expires | Only the hash of the link code |
+| Google Chat identity | The Google Chat user id of each person, per installation. The email is never stored | |
+| Google Chat connection | Marks Google Chat as connected for the installation, with the name of the first linked space | |
 | Linear connection | Workspace id, name and URL key, and the access and refresh tokens | Tokens encrypted with AES-256-GCM |
 | Linear identity | The Linear user id of each person, per installation. The email is never stored | |
 | Sessions | A SHA-256 hash of each CLI and web session token, its kind and when it was created and last used | Only the hash; the token itself is never stored |
 | Dailies | Date, first and latest submission time, the yesterday, today, blocker and support request items with their links, and whether the person (`human`) or the agent (`agent`) confirmed it | |
 | Blocker states | For each blocker someone listed: its text and link, the first and last day it was seen, and when it was resolved and who resolved it. Kept until the app is uninstalled | |
 | Suggestions | For each suggested blocker: the pull request link and title (or the card link and title), the kind, when it was noticed and your decision | Visible only to you |
-| Deliveries | For each digest, late daily, reminder and routed blocker: team, date, status, attempts, the Slack channel and message id, and the error if it failed | |
+| Deliveries | For each digest, late daily, reminder and routed blocker: team, date, status, attempts, the Slack channel and message id or the Google Chat space and thread, and the error if it failed | |
 | API keys | Name, the first 8 characters after `sck_`, scopes, who created it, creation, last use and revocation times | Only a SHA-256 hash of the secret |
 | Webhook endpoints | URL, events, status and failure count | Signing secret encrypted with AES-256-GCM |
 | Webhook deliveries | The event payload sent (which can contain daily text), status, attempts, last response code or error | |
@@ -97,7 +115,7 @@ When someone asks for beta access on the Standcast landing page, the form collec
 - Shows anyone a draft or a suggestion that the person did not confirm.
 - Shows a suggested blocker to anyone but the person, in the digest, the organization or manager tools, webhooks or the setup page.
 - Computes rankings, scores, productivity metrics or per-person aggregates.
-- Reads your code, your Slack messages or your direct messages.
+- Reads your code, your Slack or Google Chat messages, or your direct messages.
 - Writes to your repositories.
 - Standcast itself never sends your data to an AI model; the agent you choose to write your daily with receives the draft.
 - Receives your AI sessions: they are read on your machine and never sent to Standcast.
@@ -108,10 +126,10 @@ When someone asks for beta access on the Standcast landing page, the form collec
 | Who | Sees |
 | --- | --- |
 | You | Your draft, your suggested blockers and your own dailies, through your agent |
-| Members of the team's Slack channel | The digest and the late dailies in its thread |
+| Members of the team's Slack channel or Google Chat space | The digest and the late dailies in its thread |
 | Team managers | The team's digests, dailies and confirmed blockers for the last 90 days, through the MCP manager tools |
-| Organization admins | Everything managers see, for every team; on the setup page, the Slack connect and reconnect controls, API keys and webhooks |
-| Organization members who sign in to the setup page | Configuration status, the Slack workspace name, read-only, and the last failed deliveries: team messages one by one, and direct messages grouped by kind and error, with the recipient's login only when they have no Slack identity. Never blocker text or suggestions. They cannot connect or replace the Slack workspace |
+| Organization admins | Everything managers see, for every team; on the setup page, the Slack connect and reconnect controls, the Google Chat link and unlink controls, API keys and webhooks |
+| Organization members who sign in to the setup page | Configuration status, the Slack workspace name and the linked Google Chat spaces, read-only, and the last failed deliveries: team messages one by one, and direct messages grouped by kind and error, with the recipient's login only when they have no chat identity. Never blocker text or suggestions. They cannot connect or replace the Slack workspace |
 | Systems with an API key | Teams, confirmed dailies, digests and blockers, limited by the key's scopes |
 | Webhook endpoints | The events they subscribed to |
 
@@ -130,7 +148,8 @@ CLI sessions stop working after 90 days without use, and web sessions after 7 da
 
 ## Removing your data
 
-- **Uninstall the GitHub App.** Standcast deletes the installation and everything that belongs to it: configuration, dailies, blocker states, deliveries, Slack connection and identities, API keys, webhook endpoints and their deliveries.
+- **Uninstall the GitHub App.** Standcast deletes the installation and everything that belongs to it: configuration, dailies, blocker states, deliveries, Slack connection and identities, linked Google Chat spaces, the Google Chat connection and identities, API keys, webhook endpoints and their deliveries.
+- **Remove the app from a Google Chat space, or unlink it.** Standcast deletes that space. When the organization has no linked space left, it also deletes the Google Chat connection and every Google Chat identity of the organization. A space that has the app but was never linked keeps its name and display name until the app is removed from it.
 - **Sign out.** `standcast logout` revokes your CLI session on the server and deletes the local credentials file.
 - **Your person record.** Your GitHub user id, login and email are not tied to one installation, so uninstalling does not remove them. To delete them, email support.
 

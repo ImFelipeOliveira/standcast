@@ -10,6 +10,8 @@ Os lembretes vão só para quem ainda não enviou a daily, no máximo uma vez po
 
 O Standcast não conhece o seu usuário no Slack, então não consegue mandar um lembrete nem um impedimento encaminhado. A entrega com falha aparece na página de setup. Rode `standcast login` de novo depois que o Slack foi conectado, ou peça ao admin para adicionar `members.<seu-login>.slack` no `standcast.yml`. Veja [Meu nome aparece como @login](#meu-nome-aparece-como-login).
 
+No Google Chat, o Standcast não conhece o seu usuário no Google Chat. Mande uma mensagem direta para o app do Standcast no Google Chat, ou peça ao admin para adicionar `members.<seu-login>.google_chat`. Veja [O Google Chat não me vincula](#o-google-chat-nao-me-vincula).
+
 ## `no_route_target`
 
 Um impedimento foi reportado, mas não havia ninguém para recebê-lo. Isso acontece, por exemplo, quando o autor é o único gestor do time: o autor nunca recebe o próprio impedimento, então a lista de destinatários fica vazia. Peça ao admin para adicionar outro gestor ao time e avise as pessoas certas manualmente. Um gestor que existe mas não tem identidade no Slack aparece como `no_chat_identity` com o login dele.
@@ -19,7 +21,7 @@ Um impedimento foi reportado, mas não havia ninguém para recebê-lo. Isso acon
 1. **Cada impedimento é encaminhado uma vez.** Um impedimento com link é identificado pelo link: reescrever o texto ou enviar a daily de novo não envia outra vez. Um impedimento sem link é identificado pelo texto. No máximo 10 impedimentos diferentes por daily são encaminhados.
 2. **O link decide.** Um pull request da sua própria organização vai para os revisores solicitados, depois para os CODEOWNERS. Um link de outra organização, um link malformado ou um pull request que não existe vai para os gestores. Sem link, vai para os gestores.
 3. **Você nunca é destinatário** do seu próprio impedimento.
-4. **As pessoas precisam de identidade no Slack.** Se nenhuma das pessoas encontradas tem, o impedimento vai para os gestores. Um gestor sem identidade aparece na página de setup como `no_chat_identity` com o login dele. Se não há nenhum gestor para receber, a página de setup mostra `no_route_target`.
+4. **As pessoas precisam de identidade no chat**, no Slack ou no Google Chat, conforme o time. Se nenhuma das pessoas encontradas tem, o impedimento vai para os gestores. Um gestor sem identidade aparece na página de setup como `no_chat_identity` com o login dele. Se não há nenhum gestor para receber, a página de setup mostra `no_route_target`.
 
 ## Meu nome aparece como @login
 
@@ -36,6 +38,22 @@ O aviso diz que um time do GitHub citado no `standcast.yml` não foi encontrado 
 ## Como saio da página de setup?
 
 Use **Sair** no topo da página de setup. Isso encerra a sessão web no servidor. A sessão da CLI é separada: rode `standcast logout`.
+
+## O Google Chat não me vincula
+
+Você se vincula mandando uma mensagem direta para o app do Standcast no Google Chat. Veja a resposta do app:
+
+1. **"Nenhuma conta do Standcast usa este e-mail"**: rode `standcast login` primeiro e mande uma mensagem para o app de novo. Se a sua conta do Google usa um e-mail diferente da sua conta do GitHub, peça ao admin para adicionar `members.<seu-login>.google_chat` com o seu id de usuário, como `users/123456789`.
+2. **"nenhuma organização sua conectou o Google Chat"**: um admin precisa vincular um espaço antes. Veja [Google Chat](/pt-BR/admin/google-chat#_2-vincule-o-espaco).
+3. **Nenhuma resposta**: o app pode ainda não estar disponível no seu Google Workspace. Veja [Disponibilidade](/pt-BR/admin/google-chat#disponibilidade).
+
+## `no_dm_space`
+
+Você está vinculado ao Google Chat, mas nunca abriu uma mensagem direta com o app do Standcast, então o Google Chat não deixa o app mandar mensagem para você. Mande uma mensagem direta para o app uma vez. Essas entregas não são tentadas de novo.
+
+## `space_not_linked`
+
+O `chat.channel` do time aponta para um espaço do Google Chat que não está vinculado à sua organização. Nada é publicado. Adicione o app do Standcast ao espaço e peça a um admin para colar o código que ele publica no card do Google Chat. Se o código disser que o espaço está vinculado a outra organização, um admin de lá precisa desvinculá-lo antes.
 
 ## O Slack parou de me encontrar
 
@@ -57,10 +75,10 @@ A página de setup diz que a conexão com o seu workspace do Linear "parou de fu
 Abra a página de setup e confira, nesta ordem:
 
 1. **O estado da configuração.** Se não estiver configurado, ou estiver inválido sem uma versão válida em uso, o Standcast não roda. Se estiver inválido depois de uma versão válida, o Standcast continua usando a última versão válida, então uma mudança que você acabou de enviar ainda não vale. Veja [Estados da configuração](/pt-BR/admin/install#estados-da-configuracao).
-2. **O Slack está conectado.** Senão, a entrega falha com `no_chat_connection`. Só um admin pode conectar o Slack.
-3. **"Últimas entregas com falha"** para o time e a data. O código do erro diz o que aconteceu; veja [Erros de entrega](/pt-BR/admin/slack#erros-de-entrega). Um canal privado precisa do bot convidado, senão o erro é `channel_not_found`.
+2. **O chat está conectado.** O Slack está conectado ou, no Google Chat, o espaço do time está vinculado. Senão, a entrega falha com `no_chat_connection` ou `space_not_linked`. Só um admin pode conectar o Slack ou vincular um espaço.
+3. **"Últimas entregas com falha"** para o time e a data. O código do erro diz o que aconteceu; veja os erros de entrega do [Slack](/pt-BR/admin/slack#erros-de-entrega) ou do [Google Chat](/pt-BR/admin/google-chat#erros-de-entrega). Um canal privado do Slack precisa do bot convidado, senão o erro é `channel_not_found`.
 4. **Hoje é dia útil** nos `workdays` do time, e o `digest_at` está no `timezone` do time. O consolidado não é enviado mais de 120 minutos depois do `digest_at`.
-5. **O time usa `chat.provider: slack`.** O Google Chat vem em breve.
+5. **O `chat.provider` combina com o canal.** `slack` com um canal do Slack, ou `google-chat` com um nome `spaces/...`.
 
 ## "Mais de uma organização" ou código de saída 3
 
