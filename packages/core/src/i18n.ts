@@ -262,6 +262,8 @@ const ptBR = {
     'Achei a sua conta, mas nenhuma organização sua conectou o Google Chat ao Standcast ainda. Peça a um admin para vincular um espaço e me mande uma mensagem de novo.',
   'googleChat.ambiguous':
     'Este e-mail pertence a mais de uma conta do GitHub no Standcast, então não vinculei nenhuma. Peça a um admin para definir `google_chat` para você em `members` no standcast.yml, ou deixe o e-mail certo só na sua conta do GitHub e rode `standcast login` de novo.',
+  'googleChat.mapHint':
+    'O seu id no Google Chat é {userId}. Se o e-mail principal da sua conta do GitHub não é este, um admin pode vincular você à mão: em `members` no standcast.yml, defina `google_chat: {userId}` para o seu login do GitHub.',
 } as const;
 
 const en = {
@@ -526,6 +528,8 @@ const en = {
     'I found your account, but none of your organizations has connected Google Chat to Standcast yet. Ask an admin to link a space, then message me again.',
   'googleChat.ambiguous':
     'This email belongs to more than one GitHub account on Standcast, so I linked none of them. Ask an admin to set `google_chat` for you under `members` in standcast.yml, or keep the email only on your own GitHub account and run `standcast login` again.',
+  'googleChat.mapHint':
+    'Your Google Chat id is {userId}. If the primary email of your GitHub account is a different one, an admin can link you by hand: under `members` in standcast.yml, set `google_chat: {userId}` for your GitHub login.',
 } as const satisfies Record<keyof typeof ptBR, string>;
 
 const messages: {

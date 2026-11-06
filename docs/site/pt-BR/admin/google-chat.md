@@ -84,9 +84,9 @@ O Standcast compara o e-mail da sua conta do Google com o e-mail principal verif
 | Achei a sua conta, mas nenhuma organização sua conectou o Google Chat ao Standcast ainda. Peça a um admin para vincular um espaço e me mande uma mensagem de novo. | Vincule um espaço primeiro e mande uma mensagem para o app de novo. |
 | Este e-mail pertence a mais de uma conta do GitHub no Standcast, então não vinculei nenhuma. Peça a um admin para definir `google_chat` para você em `members` no standcast.yml, ou deixe o e-mail certo só na sua conta do GitHub e rode `standcast login` de novo. | Duas ou mais contas do GitHub que entraram no Standcast têm este e-mail, então o Standcast não vincula nenhuma. Em cada organização dessas contas que usa o Google Chat, ele também apaga os vínculos do Google Chat dessas contas e qualquer vínculo com este usuário do Google Chat. Mapeie a pessoa à mão, como abaixo, ou tire o e-mail das outras contas. |
 
-A resposta vem no idioma do time quando o Standcast sabe qual é, e em inglês e português quando não sabe.
+A resposta vem no idioma do time quando o Standcast sabe qual é, e em inglês e português quando não sabe. Nas respostas de conta não encontrada e de e-mail em mais de uma conta, o app também diz o id da pessoa no Google Chat (`users/` seguido de dígitos), pronto para o mapeamento abaixo.
 
-Quando os e-mails são diferentes, um admin mapeia a pessoa à mão no `standcast.yml`, com o id de usuário dela no Google Chat:
+Quando os e-mails são diferentes, por exemplo quando o e-mail principal do GitHub é pessoal e o do Google é o da empresa, um admin mapeia a pessoa à mão no `standcast.yml`, com o id de usuário dela no Google Chat:
 
 ```text
 members:

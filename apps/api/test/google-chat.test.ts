@@ -275,7 +275,26 @@ describe('POST /webhooks/google-chat', () => {
       `Bearer ${await token(h, h.keys)}`,
     );
     expect(res.status).toBe(200);
-    expect(((await res.json()) as { text: string }).text).toContain('standcast login');
+    const text = ((await res.json()) as { text: string }).text;
+    expect(text).toContain('standcast login');
+    expect(text).toContain('google_chat: users/123');
+    expect(text).toContain('O seu id no Google Chat é users/123');
+  });
+
+  test('a direct message without a valid user answers the login hint without an id', async () => {
+    const h = await harness();
+    const res = await event(
+      h,
+      {
+        type: 'MESSAGE',
+        space: { name: 'spaces/DM1', type: 'DM', singleUserBotDm: true },
+        user: { name: 'not-a-user', email: 'nobody@example.com' },
+      },
+      `Bearer ${await token(h, h.keys)}`,
+    );
+    const text = ((await res.json()) as { text: string }).text;
+    expect(text).toContain('standcast login');
+    expect(text).not.toContain('google_chat:');
   });
 });
 

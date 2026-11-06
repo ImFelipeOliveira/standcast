@@ -51,6 +51,13 @@ function bilingual(key: MessageKey, vars: Record<string, string> = {}): GoogleCh
   return { text: `${t('en', key, vars)}\n\n${t('pt-BR', key, vars)}` };
 }
 
+function bilingualWithMapHint(key: MessageKey, userId: string): GoogleChatReply {
+  const texts = (['en', 'pt-BR'] as const).map(
+    (lang) => `${t(lang, key)}\n${t(lang, 'googleChat.mapHint', { userId })}`,
+  );
+  return { text: texts.join('\n\n') };
+}
+
 function reply(
   language: Language | null,
   key: MessageKey,
@@ -165,10 +172,10 @@ async function linkIdentities(
     return bilingual('googleChat.notFound');
   }
   const members = await membersWithEmail(deps, email);
-  if (members.length === 0) return bilingual('googleChat.notFound');
+  if (members.length === 0) return bilingualWithMapHint('googleChat.notFound', user.name);
   if (new Set(members.map((member) => member.id)).size > 1) {
     await quarantineLinks(deps, members, user.name);
-    return bilingual('googleChat.ambiguous');
+    return bilingualWithMapHint('googleChat.ambiguous', user.name);
   }
   const linked: string[] = [];
   const languages = new Set<Language>();
