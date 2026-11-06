@@ -99,6 +99,13 @@
         "@standcast/core": "workspace:*",
       },
     },
+    "packages/adapters/google-chat": {
+      "name": "@standcast/google-chat",
+      "version": "0.0.0",
+      "dependencies": {
+        "@standcast/core": "workspace:*",
+      },
+    },
     "packages/adapters/linear": {
       "name": "@standcast/linear",
       "version": "0.0.0",
@@ -628,6 +635,8 @@
     "@standcast/db": ["@standcast/db@workspace:packages/db"],
 
     "@standcast/github": ["@standcast/github@workspace:packages/adapters/github"],
+
+    "@standcast/google-chat": ["@standcast/google-chat@workspace:packages/adapters/google-chat"],
 
     "@standcast/landing": ["@standcast/landing@workspace:apps/landing"],
 
