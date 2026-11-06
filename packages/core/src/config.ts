@@ -131,8 +131,23 @@ const configSchema = z
           message: 'remind_at must be before digest_at',
         });
       }
+      if (t.chat.provider === 'google-chat' && !GOOGLE_CHAT_SPACE.test(t.chat.channel)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['teams', i, 'chat', 'channel'],
+          message: googleChatChannelMessage(t.chat.channel),
+        });
+      }
     });
   });
+
+const GOOGLE_CHAT_SPACE_IN_URL = /\/(?:room|space)\/([A-Za-z0-9_-]+)/;
+
+function googleChatChannelMessage(channel: string): string {
+  const base = 'must be a Google Chat space name like spaces/AAAAxxxxxxx';
+  const fromUrl = GOOGLE_CHAT_SPACE_IN_URL.exec(channel)?.[1];
+  return fromUrl ? `${base}; for this link use spaces/${fromUrl}` : base;
+}
 
 type RawConfig = z.output<typeof configSchema>;
 

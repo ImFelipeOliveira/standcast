@@ -93,6 +93,36 @@ describe('parseConfig', () => {
     }
   });
 
+  test('a google chat team needs a space name as the channel', () => {
+    const chat = (channel: string) => ({ chat: { provider: 'google-chat', channel } });
+    expect(parseConfig(toYaml([team(chat('spaces/AAAAxxxxxxx'))])).ok).toBe(true);
+    const invalid = ['#daily', 'daily-dev', 'spaces/', 'spaces/AAAA/messages', 'AAAAxxxxxxx'];
+    for (const channel of invalid) {
+      const r = parseConfig(toYaml([team(chat(channel))]));
+      expect(r.ok).toBe(false);
+      if (r.ok) return;
+      expect(r.errors[0]?.path).toBe('teams.0.chat.channel');
+      expect(r.errors[0]?.message).toBe('must be a Google Chat space name like spaces/AAAAxxxxxxx');
+    }
+  });
+
+  test('a google chat link as the channel suggests the space name', () => {
+    for (const channel of [
+      'https://chat.google.com/room/AAAAb1c2D3e?cls=7',
+      'https://mail.google.com/chat/u/0/#chat/space/AAAAb1c2D3e',
+    ]) {
+      const r = parseConfig(toYaml([team({ chat: { provider: 'google-chat', channel } })]));
+      expect(r.ok).toBe(false);
+      if (r.ok) return;
+      expect(r.errors[0]?.message).toContain('for this link use spaces/AAAAb1c2D3e');
+    }
+  });
+
+  test('a slack channel keeps any name', () => {
+    const slack = team({ chat: { provider: 'slack', channel: 'daily-dev' } });
+    expect(parseConfig(toYaml([slack])).ok).toBe(true);
+  });
+
   test('accepts U and W slack user ids', () => {
     for (const slack of ['U0123', 'W0ABC9']) {
       const r = parseConfig(JSON.stringify({ teams: [team()], members: { alice: { slack } } }));

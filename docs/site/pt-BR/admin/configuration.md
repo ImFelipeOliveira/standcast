@@ -122,7 +122,7 @@ Para onde vai o consolidado.
 
 - `provider`: `slack` ou `google-chat`. Cada time escolhe o seu, então uma organização pode usar os dois.
 - `channel` no Slack: o canal do Slack, como `"#nome"` (com aspas, porque `#` começa um comentário no YAML) ou como id do canal, por exemplo `C0123456789`. Num canal privado, convide o bot do Standcast antes. Veja [Slack](/pt-BR/admin/slack).
-- `channel` no Google Chat: o nome do espaço, como `spaces/AAAAbbbbCCC`. O espaço precisa ter o app do Standcast e estar vinculado à sua organização com um código, senão o consolidado falha com `space_not_linked`. Veja [Google Chat](/pt-BR/admin/google-chat).
+- `channel` no Google Chat: o nome do espaço, como `spaces/AAAAbbbbCCC`. Outro formato reprova o `standcast.yml`; se você colar o link do espaço (`https://chat.google.com/room/AAAAbbbbCCC`), o erro já diz o nome a usar. O espaço precisa ter o app do Standcast e estar vinculado à sua organização com um código, senão o consolidado falha com `space_not_linked`. Veja [Google Chat](/pt-BR/admin/google-chat).
 
 ### `tracker`
 
