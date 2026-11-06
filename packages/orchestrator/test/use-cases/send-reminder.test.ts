@@ -12,7 +12,13 @@ import {
 } from '@standcast/db';
 import { ChatDeliveryError } from '@standcast/slack';
 import { db, useCleanDb } from '../../../db/test/setup';
-import { runTick, sendReminder } from '../../src';
+import {
+  MAX_GOOGLE_CHAT_SPACES,
+  MEMBERSHIP_BUDGET_MS,
+  MEMBERSHIP_REQUEST_TIMEOUT_MS,
+  runTick,
+  sendReminder,
+} from '../../src';
 import { config, daily, fakeChat, fakeDeps, INST, linkSpace, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
@@ -291,6 +297,40 @@ describe('sendReminder', () => {
     const row = await getDelivery(db, reminderKey('alice'));
     expect(row?.status).toBe('failed');
     expect(row?.error).toBe('timeout: Google Chat did not answer in time');
+  });
+
+  test('slow answers still reach the last group of the largest allowed set of spaces', async () => {
+    const { deps, google, asked } = await googleOverrideSetup({});
+    for (let i = 1; i <= MAX_GOOGLE_CHAT_SPACES - 2; i++) {
+      await linkSpace(`spaces/Z${String(i).padStart(2, '0')}`);
+    }
+    const last = `spaces/Z${MAX_GOOGLE_CHAT_SPACES - 2}`;
+    const started: number[] = [];
+    google.chat.isSpaceMember = (space, userId) => {
+      asked.push(`${space} ${userId}`);
+      started.push(Date.now());
+      return new Promise((resolve) =>
+        setTimeout(() => resolve(space === last), MEMBERSHIP_REQUEST_TIMEOUT_MS - 100),
+      );
+    };
+    jest.useFakeTimers();
+    let settled = false;
+    const run = sendReminder(deps, job('alice')).finally(() => {
+      settled = true;
+    });
+    try {
+      while (!settled) {
+        await new Promise((resolve) => setImmediate(resolve));
+        jest.advanceTimersByTime(100);
+      }
+      await run;
+    } finally {
+      jest.useRealTimers();
+    }
+    expect(asked).toHaveLength(MAX_GOOGLE_CHAT_SPACES);
+    expect(asked.at(-1)).toBe(`${last} users/999`);
+    expect(Math.max(...started) - Math.min(...started)).toBeLessThan(MEMBERSHIP_BUDGET_MS);
+    expect(google.directs[0]?.userId).toBe('users/999');
   });
 
   test('a definite non-membership answer is not a timeout', async () => {

@@ -45,8 +45,12 @@ export async function chatUserIdFor(
   return ids.get(login.toLowerCase()) ?? null;
 }
 
+export const MAX_GOOGLE_CHAT_SPACES = 20;
 const MEMBERSHIP_CONCURRENCY = 5;
-const MEMBERSHIP_BUDGET_MS = 20_000;
+export const MEMBERSHIP_REQUEST_TIMEOUT_MS = 4_000;
+export const MEMBERSHIP_BUDGET_MS =
+  Math.ceil(MAX_GOOGLE_CHAT_SPACES / MEMBERSHIP_CONCURRENCY) * MEMBERSHIP_REQUEST_TIMEOUT_MS +
+  1_000;
 
 type Membership = 'member' | 'not_member' | 'timeout';
 
@@ -58,6 +62,22 @@ function isTimeout(error: unknown): boolean {
 
 export function membershipTimeout(): ChatDeliveryError {
   return new ChatDeliveryError('timeout', 'google chat membership check timed out');
+}
+
+function withRequestDeadline(check: Promise<boolean>): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(membershipTimeout()), MEMBERSHIP_REQUEST_TIMEOUT_MS);
+    check.then(
+      (member) => {
+        clearTimeout(timer);
+        resolve(member);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 }
 
 function firstMembership(
@@ -81,7 +101,7 @@ function firstMembership(
         const space = spaces[next] as string;
         next += 1;
         running += 1;
-        check(space).then(
+        withRequestDeadline(check(space)).then(
           (member) => settle(member),
           (error: unknown) => {
             logError('google chat membership check failed', error);

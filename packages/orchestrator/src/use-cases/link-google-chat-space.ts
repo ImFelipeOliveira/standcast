@@ -6,6 +6,7 @@ import {
   type MemberRow,
   redeemGoogleChatLinkCode,
 } from '@standcast/db';
+import { MAX_GOOGLE_CHAT_SPACES } from '../chat-identity';
 import type { Deps } from '../deps';
 import { logError } from '../log-error';
 import { DomainError } from './errors';
@@ -61,8 +62,6 @@ async function announceLink(
     logError('google chat link notice failed', error, { installationId: String(installationId) });
   }
 }
-
-export const MAX_GOOGLE_CHAT_SPACES = 20;
 
 export async function linkGoogleChatSpace(
   deps: Deps,
