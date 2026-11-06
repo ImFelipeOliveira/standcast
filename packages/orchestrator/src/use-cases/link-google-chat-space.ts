@@ -15,6 +15,8 @@ export const LINK_CODE_LENGTH = 8;
 export const LINK_CODE_TTL_MS = 24 * 60 * 60 * 1000;
 export const GOOGLE_CHAT_CONNECTION_SECRET = 'google-chat-app';
 
+export type LinkCodeGuard = { beforeRedeem?: (installationId: number) => Promise<void> };
+
 export function generateLinkCode(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(LINK_CODE_LENGTH));
   return Array.from(bytes, (byte) => LINK_CODE_ALPHABET[byte % LINK_CODE_ALPHABET.length]).join('');
@@ -36,8 +38,10 @@ export async function linkGoogleChatSpace(
   isMember: MembershipCheck,
   member: MemberRow,
   input: { installationId: number; code: string },
+  guard: LinkCodeGuard = {},
 ): Promise<{ space: string; displayName: string }> {
   const { installation } = await requireAdmin(deps, isMember, member, input.installationId);
+  await guard.beforeRedeem?.(installation.id);
   const code = normalizeLinkCode(input.code);
   if (!code) throw new DomainError('invalid_code', 'the link code is invalid or expired');
   const result = await redeemGoogleChatLinkCode(deps.db, {

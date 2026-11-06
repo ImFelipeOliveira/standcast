@@ -396,6 +396,8 @@ const ERROR_CODES = [
   'linear_oauth_failed',
   'not_found',
   'rate_limited',
+  'invalid_code',
+  'space_already_linked',
   'generic',
 ];
 
@@ -766,6 +768,8 @@ const ERROR_TONES: Record<string, 'danger' | 'warning' | 'neutral'> = {
   linear_oauth_failed: 'danger',
   not_found: 'neutral',
   rate_limited: 'warning',
+  invalid_code: 'warning',
+  space_already_linked: 'danger',
   generic: 'neutral',
   something_else: 'neutral',
 };

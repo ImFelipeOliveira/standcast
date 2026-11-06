@@ -29,7 +29,12 @@ export async function issueGoogleChatLinkCode(
     await tx
       .update(googleChatSpaces)
       .set({ linkCodeHash: null, linkCodeExpiresAt: null })
-      .where(lte(googleChatSpaces.linkCodeExpiresAt, input.now));
+      .where(
+        and(
+          isNotNull(googleChatSpaces.linkCodeHash),
+          lte(googleChatSpaces.linkCodeExpiresAt, input.now),
+        ),
+      );
     await tx
       .insert(googleChatSpaces)
       .values({ spaceName: input.spaceName, ...values })

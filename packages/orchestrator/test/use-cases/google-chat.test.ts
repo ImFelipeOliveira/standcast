@@ -19,7 +19,7 @@ import { db, useCleanDb } from '../../../db/test/setup';
 import {
   chatUserIdFor,
   createMembershipCheck,
-  type DomainError,
+  DomainError,
   GOOGLE_CHAT_CONNECTION_SECRET,
   type GoogleChatEvent,
   getSetupStatus,
@@ -290,6 +290,38 @@ describe('linkGoogleChatSpace', () => {
     ).toBe('forbidden');
     expect(await listGoogleChatSpaces(db, INST)).toEqual([]);
     roles.set('alice', { role: 'admin', state: 'active' });
+    const linked = await linkGoogleChatSpace(deps, isMember, member, {
+      installationId: INST,
+      code,
+    });
+    expect(linked.space).toBe('spaces/AAAA');
+  });
+
+  test('the redeem guard runs for admins only and before the code lookup', async () => {
+    const { deps, isMember, member, roles } = await setup();
+    const code = await issueCode(deps);
+    const guarded: number[] = [];
+    const guard = {
+      beforeRedeem: async (installationId: number) => {
+        guarded.push(installationId);
+        throw new DomainError('rate_limited', 'rate limit exceeded');
+      },
+    };
+    roles.set('alice', { role: 'member', state: 'active' });
+    expect(
+      await codeOf(
+        linkGoogleChatSpace(deps, isMember, member, { installationId: INST, code }, guard),
+      ),
+    ).toBe('forbidden');
+    expect(guarded).toEqual([]);
+    roles.set('alice', { role: 'admin', state: 'active' });
+    expect(
+      await codeOf(
+        linkGoogleChatSpace(deps, isMember, member, { installationId: INST, code }, guard),
+      ),
+    ).toBe('rate_limited');
+    expect(guarded).toEqual([INST]);
+    expect(await listGoogleChatSpaces(db, INST)).toEqual([]);
     const linked = await linkGoogleChatSpace(deps, isMember, member, {
       installationId: INST,
       code,

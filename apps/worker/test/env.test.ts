@@ -36,4 +36,17 @@ describe('worker env', () => {
       }),
     ).not.toThrow();
   });
+
+  test('GOOGLE_CHAT_SERVICE_ACCOUNT is optional, parsed and fails fast when malformed', () => {
+    expect(parseEnv(base).GOOGLE_CHAT_SERVICE_ACCOUNT).toBeUndefined();
+    const key = Buffer.from(
+      JSON.stringify({ client_email: 'bot@p.iam.gserviceaccount.com', private_key: 'pem' }),
+    ).toString('base64');
+    expect(
+      parseEnv({ ...base, GOOGLE_CHAT_SERVICE_ACCOUNT: key }).GOOGLE_CHAT_SERVICE_ACCOUNT,
+    ).toEqual({ clientEmail: 'bot@p.iam.gserviceaccount.com', privateKey: 'pem' });
+    expect(() => parseEnv({ ...base, GOOGLE_CHAT_SERVICE_ACCOUNT: 'nope' })).toThrow(
+      /must be a base64 encoded service account JSON key[\s\S]*GOOGLE_CHAT_SERVICE_ACCOUNT/,
+    );
+  });
 });

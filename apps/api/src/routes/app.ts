@@ -11,11 +11,13 @@ import {
   getSetupStatus,
   getTeamsSummary,
   getTeamToday,
+  linkGoogleChatSpace,
   logoutWebSession,
   remindNow,
   revokeInstallationApiKey,
   sendTestEvent,
   setBlockerResolved,
+  unlinkGoogleChatSpace,
 } from '@standcast/orchestrator';
 import { type Context, Hono, type MiddlewareHandler } from 'hono';
 import { deleteCookie } from 'hono/cookie';
@@ -24,6 +26,8 @@ import {
   type GetClientIp,
   IP_LIMIT,
   ipRateLimit,
+  linkCodeGuard,
+  linkCodeIpRateLimit,
   subjectRateLimit,
 } from '../middleware/rate-limit';
 import {
@@ -43,6 +47,8 @@ const createWebhookBody = z.object({
   url: z.string(),
   events: z.array(z.enum(WEBHOOK_EVENTS)),
 });
+
+const linkSpaceBody = z.object({ code: z.string() });
 
 const ORG = '/v1/app/orgs/:installationId';
 
@@ -71,7 +77,7 @@ function appCors(appUrl: string): MiddlewareHandler {
     if (c.req.method === 'OPTIONS') {
       if (allowed) {
         c.header('Access-Control-Allow-Headers', `Content-Type, ${CSRF_HEADER}`);
-        c.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        c.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
       }
       return c.body(null, 204);
     }
@@ -212,6 +218,30 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       c.req.param('endpointId'),
     );
     return c.body(null, 202);
+  });
+
+  app.post(
+    `${ORG}/google-chat/spaces`,
+    linkCodeIpRateLimit(deps, options.getClientIp),
+    async (c) => {
+      const { code } = await parseBody(c, linkSpaceBody);
+      const linked = await linkGoogleChatSpace(
+        deps,
+        isMember,
+        c.get('member'),
+        { installationId: installationIdOf(c), code },
+        linkCodeGuard(deps, c),
+      );
+      return c.json({ space: linked.space, displayName: linked.displayName }, 201);
+    },
+  );
+
+  app.delete(`${ORG}/google-chat/spaces/:space`, async (c) => {
+    await unlinkGoogleChatSpace(deps, isMember, c.get('member'), {
+      installationId: installationIdOf(c),
+      space: c.req.param('space'),
+    });
+    return c.body(null, 204);
   });
 
   return app;

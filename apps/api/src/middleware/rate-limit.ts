@@ -9,6 +9,7 @@ export const SESSION_LIMIT = 120;
 export const API_KEY_LIMIT = 600;
 export const SESSION_START_LIMIT = 10;
 export const BETA_LIMIT = 5;
+export const LINK_CODE_LIMIT = 10;
 
 export type GetClientIp = (c: Context) => string;
 
@@ -91,5 +92,19 @@ export function subjectRateLimit<E extends RateLimitEnv = RateLimitEnv>(
     const subject = c.get('rateLimitSubject');
     await enforceRateLimit(deps, c, subject.key, subject.limit);
     await next();
+  };
+}
+
+export function linkCodeIpRateLimit(deps: Deps, getClientIp: GetClientIp): MiddlewareHandler {
+  return ipRateLimit(deps, getClientIp, 'link-code', LINK_CODE_LIMIT);
+}
+
+export function linkCodeGuard(
+  deps: Deps,
+  c: Context,
+): { beforeRedeem: (installationId: number) => Promise<void> } {
+  return {
+    beforeRedeem: (installationId) =>
+      enforceRateLimit(deps, c, `link-code:installation:${installationId}`, LINK_CODE_LIMIT),
   };
 }

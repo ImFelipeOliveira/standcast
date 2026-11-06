@@ -142,6 +142,12 @@ const ptBR = {
   'web.error.not_found.body': 'O item solicitado não existe ou já foi removido.',
   'web.error.rate_limited.title': 'Muitas requisições',
   'web.error.rate_limited.body': 'Você fez muitas requisições. Espere um minuto e tente de novo.',
+  'web.error.invalid_code.title': 'Código inválido',
+  'web.error.invalid_code.body':
+    'O código não existe, já foi usado ou expirou. Remova o app Standcast do espaço e adicione de novo para receber um código novo.',
+  'web.error.space_already_linked.title': 'Espaço já vinculado',
+  'web.error.space_already_linked.body':
+    'Este espaço do Google Chat está vinculado a outra organização. Um admin de lá precisa desvincular antes.',
   'web.error.slack_oauth_failed.title': 'Falha ao conectar o Slack',
   'web.error.slack_oauth_failed.body':
     'Não foi possível concluir a conexão com o Slack. Tente conectar novamente.',
@@ -376,6 +382,12 @@ const en = {
   'web.error.not_found.body': 'The requested item does not exist or was already removed.',
   'web.error.rate_limited.title': 'Too many requests',
   'web.error.rate_limited.body': 'You made too many requests. Wait a minute and try again.',
+  'web.error.invalid_code.title': 'Invalid code',
+  'web.error.invalid_code.body':
+    'The code does not exist, was already used or has expired. Remove the Standcast app from the space and add it again to get a new code.',
+  'web.error.space_already_linked.title': 'Space already linked',
+  'web.error.space_already_linked.body':
+    'This Google Chat space is linked to another organization. An admin there must unlink it first.',
   'web.error.slack_oauth_failed.title': 'Slack connection failed',
   'web.error.slack_oauth_failed.body':
     'We could not complete the Slack connection. Please try connecting again.',

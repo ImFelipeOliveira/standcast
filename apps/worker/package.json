@@ -7,6 +7,7 @@
   "dependencies": {
     "@standcast/db": "workspace:*",
     "@standcast/github": "workspace:*",
+    "@standcast/google-chat": "workspace:*",
     "@standcast/linear": "workspace:*",
     "@standcast/orchestrator": "workspace:*",
     "@standcast/queue": "workspace:*",

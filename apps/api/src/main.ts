@@ -13,11 +13,13 @@ import {
   pullRequestMerged,
   resolveTeamMembers,
 } from '@standcast/github';
+import { createGoogleJwks } from '@standcast/google-chat';
 import { exchangeLinearCode, refreshLinearToken } from '@standcast/linear';
 import { createChatFor, createTrackerFor, type Deps } from '@standcast/orchestrator';
 import { createPgBossQueue } from '@standcast/queue';
-import { createSlackChannel, exchangeSlackCode } from '@standcast/slack';
+import { exchangeSlackCode } from '@standcast/slack';
 import { createApp } from './app';
+import { chatFactories } from './chat-factories';
 import { parseEnv } from './env';
 import { clientIpResolver } from './middleware/rate-limit';
 import { gracefulShutdown } from './shutdown';
@@ -35,6 +37,8 @@ const app = createGitHubApp({
   clientId: env.GITHUB_CLIENT_ID,
   clientSecret: env.GITHUB_CLIENT_SECRET,
 });
+
+const googleChatAccount = env.GOOGLE_CHAT_SERVICE_ACCOUNT;
 
 const deps: Deps = {
   db,
@@ -63,10 +67,8 @@ const deps: Deps = {
   },
   slack: { exchangeCode: exchangeSlackCode },
   linear: { exchangeCode: exchangeLinearCode, refreshToken: refreshLinearToken },
-  chatFor: createChatFor(db, env.STANDCAST_ENCRYPTION_KEY, {
-    slack: (secret) => createSlackChannel(secret),
-    'google-chat': null,
-  }),
+  chatFor: createChatFor(db, env.STANDCAST_ENCRYPTION_KEY, chatFactories(googleChatAccount)),
+  googleChatAvailable: Boolean(googleChatAccount),
   trackerFor: (...args) => createTrackerFor(deps)(...args),
   env: {
     publicUrl: env.PUBLIC_URL,
@@ -90,6 +92,9 @@ await queue.start();
 
 const api = createApp(deps, {
   getClientIp: clientIpResolver({ trustProxy: env.TRUST_PROXY, hops: env.TRUSTED_PROXY_HOPS }),
+  googleChat: googleChatAccount
+    ? { audience: env.GOOGLE_CHAT_AUDIENCE, jwks: createGoogleJwks() }
+    : null,
 });
 
 const server = Bun.serve({
