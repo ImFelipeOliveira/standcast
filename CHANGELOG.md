@@ -1,5 +1,57 @@
 # Changelog
 
+## [0.5.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.4.1...standcast-v0.5.0) (2026-11-06)
+
+
+### Features
+
+* google chat ([#66](https://github.com/ImFelipeOliveira/standcast/issues/66)) ([dbac777](https://github.com/ImFelipeOliveira/standcast/commit/dbac777bb8173d614b15282276650c8692c887b2))
+* google chat adapter ([b9c6c60](https://github.com/ImFelipeOliveira/standcast/commit/b9c6c60cf080939d31d74151818c21e43c72380b))
+* google chat spaces, link codes and identities ([0241f11](https://github.com/ImFelipeOliveira/standcast/commit/0241f11a32c06336e7405977ab73cc25e8874e1a))
+* google chat webhook and link routes ([7673cc6](https://github.com/ImFelipeOliveira/standcast/commit/7673cc67d44a6ddefff0750d7291954df1d98c6a))
+* google chat, landing pages and search previews ([#68](https://github.com/ImFelipeOliveira/standcast/issues/68)) ([94b3f63](https://github.com/ImFelipeOliveira/standcast/commit/94b3f63649024d3f8913625d8a09bf0ba9a8a2ae))
+* **google-chat:** tell people their Google Chat id when the email does not match ([57af136](https://github.com/ImFelipeOliveira/standcast/commit/57af136fc3979ec5cc9522bd5b213e690746bb1a))
+* **landing:** portuguese 404 page for /pt-BR/ paths ([b38269f](https://github.com/ImFelipeOliveira/standcast/commit/b38269fb3dbda0e22cbfe6a1d9d2f60a6f7716b8))
+* **landing:** separate pages for sitelinks ([8cc35a7](https://github.com/ImFelipeOliveira/standcast/commit/8cc35a7ce206707768c8acec20cbbf29eb5c90cf))
+* **landing:** separate pages for sitelinks ([#64](https://github.com/ImFelipeOliveira/standcast/issues/64)) ([6ce0755](https://github.com/ImFelipeOliveira/standcast/commit/6ce0755beea981e9a3d8fb2692045da788c88237))
+* large image previews for search and social ([f4ca658](https://github.com/ImFelipeOliveira/standcast/commit/f4ca6585356ca010470047c2abb74deecc63eed6))
+* large image previews for search and social ([#67](https://github.com/ImFelipeOliveira/standcast/issues/67)) ([03dbc9d](https://github.com/ImFelipeOliveira/standcast/commit/03dbc9d0e9f31c96a46fa9edf4314b93ac05648e))
+* marketplace listing assets and terms of use ([f47b922](https://github.com/ImFelipeOliveira/standcast/commit/f47b9220f8537d452d75432e5fc4630f10341f93))
+* marketplace listing assets and terms of use ([#69](https://github.com/ImFelipeOliveira/standcast/issues/69)) ([c866419](https://github.com/ImFelipeOliveira/standcast/commit/c866419b12a9ee0fc29d162be811ef63c598f7d3))
+* **web:** google chat connection ([d9edff8](https://github.com/ImFelipeOliveira/standcast/commit/d9edff8790556a79429d69e345f713418d33f641))
+
+
+### Bug Fixes
+
+* address coderabbit review of google chat ([259ac4c](https://github.com/ImFelipeOliveira/standcast/commit/259ac4cdca29e9314bdcda3b3cf49dd4a9a505ca))
+* address coderabbit review of the dev to main pr ([7702818](https://github.com/ImFelipeOliveira/standcast/commit/77028182ce6622e5ea0470dcce05415eea9c4ddb))
+* address coderabbit review of the dev to main pr ([#71](https://github.com/ImFelipeOliveira/standcast/issues/71)) ([db9eb86](https://github.com/ImFelipeOliveira/standcast/commit/db9eb862171bd8096a59b6679e97e2460d786979))
+* **api:** invalid beta requests return to the home notice, safe in any deploy order ([9311220](https://github.com/ImFelipeOliveira/standcast/commit/9311220f8814d90dd186ce16a3b7f2e41ad80e41))
+* **api:** send invalid beta requests back to the beta page ([f9ed04c](https://github.com/ImFelipeOliveira/standcast/commit/f9ed04c1a2dcc33842987a4b4358eaf3cd487e56))
+* check every linked space, precise override docs ([64b2a77](https://github.com/ImFelipeOliveira/standcast/commit/64b2a7757ccffc4573e970aaa225ed7263725f86))
+* codeql alerts on url trimming and html id parsing ([90864fa](https://github.com/ImFelipeOliveira/standcast/commit/90864fac27f8bbb86a286e3b758817a0cefb309b))
+* codeql alerts on url trimming and html id parsing ([#70](https://github.com/ImFelipeOliveira/standcast/issues/70)) ([49000ef](https://github.com/ImFelipeOliveira/standcast/commit/49000effbebbe422cee7b467db6e43e468f8a7ec))
+* **config:** require a Google Chat space name as a google-chat team channel ([b7fbca8](https://github.com/ImFelipeOliveira/standcast/commit/b7fbca8370700c71d538e3b3ee553d6964721588))
+* empty google chat audience means default, install anchors ([33fca67](https://github.com/ImFelipeOliveira/standcast/commit/33fca670937dfd5efd2b3252a0d8f33f06229611))
+* fourth coderabbit pass on google chat ([a7283b2](https://github.com/ImFelipeOliveira/standcast/commit/a7283b264e81f80c86c13c4e6e1b0ee50b659789))
+* google chat adapter review findings ([5643a15](https://github.com/ImFelipeOliveira/standcast/commit/5643a15d3161f4762b8ad57965f7fc383448dcd8))
+* google chat final review findings ([a03b44e](https://github.com/ImFelipeOliveira/standcast/commit/a03b44ecd14f5ae275e9a01ce0a83b9c3ac9600b))
+* google chat spaces review findings ([037a7c7](https://github.com/ImFelipeOliveira/standcast/commit/037a7c7fd6a7d91c054919f3f5e763c0ae0f95f6))
+* google chat webhook review findings ([ba952d8](https://github.com/ImFelipeOliveira/standcast/commit/ba952d85112416d9dd9fe9ee99aea2e5adebe631))
+* **google-chat:** space name in chat.channel and Google Chat id when the email does not match ([#72](https://github.com/ImFelipeOliveira/standcast/issues/72)) ([dac06fe](https://github.com/ImFelipeOliveira/standcast/commit/dac06fecf70c76afd9e8ff5dccef55ee382e044c))
+* **landing:** hero terminal lines no longer double spaced, retake screenshots ([561899a](https://github.com/ImFelipeOliveira/standcast/commit/561899a8250b78afaf2e1326e106714086756f7d))
+* **landing:** organization description reads naturally ([3ea51d1](https://github.com/ImFelipeOliveira/standcast/commit/3ea51d1e9cd6c9f1adc966b871f0e9d06bc47ee7))
+* **landing:** organization schema and plain definition for search and AI engines ([#57](https://github.com/ImFelipeOliveira/standcast/issues/57)) ([82d1c94](https://github.com/ImFelipeOliveira/standcast/commit/82d1c942197ff04cc5afd3bf6d84ce790f3f4e08))
+* **landing:** organization schema, plain definition and shorter pt-BR description ([0951fb4](https://github.com/ImFelipeOliveira/standcast/commit/0951fb4a21c4c592dc8d695aa30b5605bdce38de))
+* second coderabbit pass on google chat ([dd6ad07](https://github.com/ImFelipeOliveira/standcast/commit/dd6ad079560f09bb106b9cdfe5c7bccdb5eb105a))
+* third coderabbit pass on google chat ([4a04810](https://github.com/ImFelipeOliveira/standcast/commit/4a04810fcab227421529c65dd9bf7e2a02f3ac49))
+* **web:** google chat review findings ([c7b2c99](https://github.com/ImFelipeOliveira/standcast/commit/c7b2c99a03b9b65d4503d795ec6f094be5fe659f))
+
+
+### Refactoring
+
+* provider-neutral chat wiring ([0eec48c](https://github.com/ImFelipeOliveira/standcast/commit/0eec48c2b250d6b3de4c2799dd31d8b2a389ec90))
+
 ## [0.4.1](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.4.0...standcast-v0.4.1) (2026-11-02)
 
 
