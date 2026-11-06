@@ -219,6 +219,23 @@ describe('POST /webhooks/google-chat', () => {
     expect(shape.status).toBe(400);
   });
 
+  test('a space name longer than 200 characters is 400', async () => {
+    const h = await harness();
+    const long = await event(
+      h,
+      { type: 'ADDED_TO_SPACE', space: { name: `spaces/${'A'.repeat(194)}`, type: 'ROOM' } },
+      `Bearer ${await token(h, h.keys)}`,
+    );
+    expect(long.status).toBe(400);
+    expect(await db.select().from(googleChatSpaces)).toEqual([]);
+    const fits = await event(
+      h,
+      { type: 'MESSAGE', space: { name: `spaces/${'A'.repeat(193)}`, type: 'ROOM' } },
+      `Bearer ${await token(h, h.keys)}`,
+    );
+    expect(fits.status).toBe(200);
+  });
+
   test('the webhook is off without a service account', async () => {
     const h = await harness({ enabled: false });
     const res = await event(h, added, `Bearer ${await token(h, h.keys)}`);

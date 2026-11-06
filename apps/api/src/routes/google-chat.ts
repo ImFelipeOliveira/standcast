@@ -17,7 +17,7 @@ const eventSchema = z.object({
   type: z.string(),
   space: z
     .object({
-      name: z.string(),
+      name: z.string().max(200),
       type: z.string().optional(),
       spaceType: z.string().optional(),
       displayName: z.string().optional(),

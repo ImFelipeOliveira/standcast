@@ -120,6 +120,7 @@ export const en: Record<MessageKey, string> = {
   'setup.badge.configured': 'Configured',
   'setup.badge.optional': 'Optional',
   'setup.badge.needsAttention': 'Needs attention',
+  'setup.badge.unavailable': 'Unavailable',
   'setup.badge.todo': 'To do',
   'setup.github.title': 'GitHub App',
   'setup.github.installed': 'Installed on {owner}',
@@ -130,6 +131,22 @@ export const en: Record<MessageKey, string> = {
   'setup.slack.connect': 'Connect Slack',
   'setup.slack.reconnect': 'Reconnect Slack',
   'setup.slack.adminOnly': 'Only an admin can connect or reconnect Slack.',
+  'setup.googleChat.title': 'Google Chat',
+  'setup.googleChat.description': 'Reminders and digests are posted in Google Chat spaces.',
+  'setup.googleChat.unavailable': 'Google Chat is not available on this server.',
+  'setup.googleChat.instructions':
+    'Add the Standcast app to a Google Chat space; it posts a code. Paste it here.',
+  'setup.googleChat.spaces': 'Linked spaces',
+  'setup.googleChat.none': 'No space linked yet.',
+  'setup.googleChat.code': 'Link code',
+  'setup.googleChat.link': 'Link space',
+  'setup.googleChat.unlink': 'Unlink',
+  'setup.googleChat.adminOnly': 'Only an admin can link or unlink a Google Chat space.',
+  'setup.googleChat.linked': 'Space {space} linked.',
+  'setup.googleChat.invalidCode':
+    'This code is not valid. It may have expired or been used already. Add the app to the space again to get a new one.',
+  'setup.googleChat.alreadyLinked': 'This space is already linked to another organization.',
+  'setup.googleChat.rateLimited': 'Too many attempts. Wait a minute and try again.',
   'setup.linear.title': 'Linear',
   'setup.linear.description': 'Links Linear issues to dailies and blockers.',
   'setup.linear.connected': 'Connected to the {workspace} workspace.',
@@ -176,6 +193,10 @@ export const en: Record<MessageKey, string> = {
     'Team {team}: the Standcast bot is not in the Slack channel {reference}. Invite it with /invite @Standcast in the channel.',
   'setup.teams.spaceNotLinked':
     'Team {team}: this Google Chat space ({reference}) is not linked to this organization yet. Add the Standcast app to the space and paste the code it posts in Configuration → Google Chat.',
+  'setup.teams.spaceNotFound':
+    'Team {team}: the Google Chat space {reference} was not found. Check the space name, and add the Standcast app to the space.',
+  'setup.teams.spaceNotMember':
+    'Team {team}: the Standcast app is not in the Google Chat space {reference}. Add the Standcast app to the space.',
   'setup.failed.title': 'Latest failed deliveries',
   'setup.failed.none': 'No failed deliveries.',
   'setup.failed.teamMessages': 'Team messages',
@@ -210,6 +231,8 @@ export const en: Record<MessageKey, string> = {
   'setup.failure.unsupported_provider': "The team's chat tool is not supported yet.",
   'setup.failure.internal_error': 'Unexpected error in Standcast.',
   'setup.failure.worker_died': 'The delivery stopped halfway and did not finish.',
+  'setup.failure.space_not_linked': 'The Google Chat space is not linked to this organization.',
+  'setup.failure.no_dm_space': 'The person has not messaged the Standcast app in Google Chat yet.',
   'setup.apiKeys.title': 'API keys',
   'setup.apiKeys.description':
     'Keys to connect other systems to Standcast with read-only access to the organization data. Only admins see this section.',

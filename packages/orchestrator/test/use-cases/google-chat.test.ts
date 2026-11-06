@@ -570,9 +570,10 @@ describe('google chat deliveries', () => {
     expect(status.teamNotices).toContainEqual({
       team: 'Alpha',
       reference: 'spaces/AAAA',
-      kind: 'channel_not_member',
+      kind: 'space_not_member',
     });
     expect(status.teamNotices.some((n) => n.kind === 'space_not_linked')).toBe(false);
+    expect(status.teamNotices.some((n) => n.kind === 'channel_not_member')).toBe(false);
   });
 
   test('setup status lists bound spaces', async () => {

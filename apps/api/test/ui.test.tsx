@@ -644,6 +644,100 @@ describe('setup checklist', () => {
     expect(betaCard).not.toContain('#alpha');
   });
 
+  test('channel notice copy per provider', async () => {
+    const html = await page(
+      status({
+        teams: [
+          { name: 'Alpha', channel: '#alpha', remindAt: '09:00', digestAt: '10:00', tracker: null },
+          {
+            name: 'Beta',
+            channel: 'spaces/BBBB',
+            remindAt: '08:30',
+            digestAt: '11:00',
+            tracker: null,
+          },
+        ],
+        teamNotices: [
+          { team: 'Alpha', reference: '#alpha', kind: 'channel_not_member' },
+          { team: 'Beta', reference: 'spaces/BBBB', kind: 'space_not_member' },
+        ],
+      }),
+    );
+    const alpha = teamCard(html, 'Alpha');
+    expect(alpha).toContain('/invite @Standcast');
+    const beta = teamCard(html, 'Beta');
+    expect(beta).toContain(
+      'the Standcast app is not in the Google Chat space spaces/BBBB. Add the Standcast app to the space.',
+    );
+    expect(beta).not.toContain('/invite');
+    const found = await page(
+      status({
+        teamNotices: [{ team: 'Alpha', reference: 'spaces/CCCC', kind: 'space_not_found' }],
+      }),
+      'pt-BR',
+    );
+    expect(teamCard(found, 'Alpha')).toContain(
+      'o espaço spaces/CCCC do Google Chat não foi encontrado',
+    );
+  });
+
+  test('setup page renders the google chat step', async () => {
+    const unavailable = section(await page(status()), 'step-google-chat');
+    expect(unavailable).toContain('Unavailable');
+    expect(unavailable).toContain('Google Chat is not available on this server.');
+    expect(unavailable).not.toContain('<form');
+
+    const googleChat = {
+      available: true,
+      spaces: [{ name: 'spaces/AAAA', displayName: 'Engineering' }],
+    };
+    const admin = section(await page(status({ googleChat })), 'step-google-chat');
+    expect(admin).toContain('step step-done');
+    expect(admin).toContain('Engineering');
+    expect(admin).toContain('<code>spaces/AAAA</code>');
+    expect(admin).toContain('action="/setup/google-chat"');
+    expect(admin).toContain('name="csrf" value="token"');
+    expect(admin).toContain('name="installation_id" value="11"');
+    expect(admin).toContain('name="code"');
+    expect(admin).toContain('Add the Standcast app to a Google Chat space; it posts a code.');
+    expect(admin).toContain('Link space');
+
+    const member = section(
+      await page(
+        status({
+          googleChat,
+          admin: false,
+          apiKeys: { manage: false },
+          webhooks: { manage: false },
+        }),
+        'pt-BR',
+      ),
+      'step-google-chat',
+    );
+    expect(member).toContain('Engineering');
+    expect(member).not.toContain('<form');
+    expect(member).toContain('Só um admin pode vincular um espaço do Google Chat.');
+
+    const empty = section(
+      await page(
+        status({ slack: { connected: false }, googleChat: { available: true, spaces: [] } }),
+      ),
+      'step-google-chat',
+    );
+    expect(empty).toContain('No space linked yet.');
+    expect(empty).toContain('Optional');
+  });
+
+  test('a linked google chat space completes the chat step', async () => {
+    const html = await page(
+      status({
+        slack: { connected: false },
+        googleChat: { available: true, spaces: [{ name: 'spaces/AAAA', displayName: 'Eng' }] },
+      }),
+    );
+    expect(html).toContain('3 of 3 steps done');
+  });
+
   test('an invalid file lists every error path in a scroll table', async () => {
     const card = section(
       await page(

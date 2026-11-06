@@ -60,6 +60,8 @@ export const TEAM_NOTICES: Record<SetupStatus['teamNotices'][number]['kind'], Me
   channel_not_found: 'setup.teams.channelNotFound',
   channel_not_member: 'setup.teams.channelNotMember',
   space_not_linked: 'setup.teams.spaceNotLinked',
+  space_not_found: 'setup.teams.spaceNotFound',
+  space_not_member: 'setup.teams.spaceNotMember',
 };
 
 export const formatDate = (lang: Language, date: Date) =>

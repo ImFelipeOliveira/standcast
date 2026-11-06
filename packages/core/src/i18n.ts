@@ -53,6 +53,7 @@ const ptBR = {
   'web.badge.connected': 'Conectado',
   'web.badge.configured': 'Configurado',
   'web.badge.optional': 'Opcional',
+  'web.badge.unavailable': 'Indisponível',
   'web.badge.needsAttention': 'Requer atenção',
   'web.github.title': 'GitHub App',
   'web.github.installed': 'Instalado em {owner}',
@@ -71,6 +72,17 @@ const ptBR = {
   'web.slack.connect': 'Conectar Slack',
   'web.slack.reconnect': 'Reconectar Slack',
   'web.slack.adminOnly': 'Só um admin pode conectar ou reconectar o Slack.',
+  'web.googleChat.title': 'Google Chat',
+  'web.googleChat.description':
+    'Lembretes e consolidados são publicados em espaços do Google Chat.',
+  'web.googleChat.unavailable': 'O Google Chat não está disponível neste servidor.',
+  'web.googleChat.instructions':
+    'Adicione o app do Standcast a um espaço do Google Chat; ele publica um código. Cole o código aqui.',
+  'web.googleChat.spaces': 'Espaços vinculados',
+  'web.googleChat.none': 'Nenhum espaço vinculado ainda.',
+  'web.googleChat.code': 'Código de vínculo',
+  'web.googleChat.link': 'Vincular espaço',
+  'web.googleChat.adminOnly': 'Só um admin pode vincular um espaço do Google Chat.',
   'web.template.teamName': 'Time',
   'web.apiKeys.title': 'API keys',
   'web.apiKeys.description':
@@ -223,6 +235,10 @@ const ptBR = {
     'Time {team}: o bot do Standcast não está no canal {reference} do Slack. Convide-o com /invite @Standcast no canal.',
   'setup.teams.spaceNotLinked':
     'Time {team}: este espaço do Google Chat ({reference}) ainda não está ligado a esta organização. Adicione o app do Standcast ao espaço e cole o código que ele publicar em Configuração → Google Chat.',
+  'setup.teams.spaceNotFound':
+    'Time {team}: o espaço {reference} do Google Chat não foi encontrado. Confira o nome do espaço e adicione o app do Standcast a ele.',
+  'setup.teams.spaceNotMember':
+    'Time {team}: o app do Standcast não está no espaço {reference} do Google Chat. Adicione o app do Standcast ao espaço.',
   'setup.tracker.jiraComingSoon': 'A integração com o Jira ainda não está disponível.',
   'setup.tracker.notConnected':
     'Este time usa o Linear, mas o Linear ainda não está conectado a esta instalação.',
@@ -292,6 +308,7 @@ const en = {
   'web.badge.connected': 'Connected',
   'web.badge.configured': 'Configured',
   'web.badge.optional': 'Optional',
+  'web.badge.unavailable': 'Unavailable',
   'web.badge.needsAttention': 'Needs attention',
   'web.github.title': 'GitHub App',
   'web.github.installed': 'Installed on {owner}',
@@ -311,6 +328,16 @@ const en = {
   'web.slack.connect': 'Connect Slack',
   'web.slack.reconnect': 'Reconnect Slack',
   'web.slack.adminOnly': 'Only an admin can connect or reconnect Slack.',
+  'web.googleChat.title': 'Google Chat',
+  'web.googleChat.description': 'Reminders and digests are posted in Google Chat spaces.',
+  'web.googleChat.unavailable': 'Google Chat is not available on this server.',
+  'web.googleChat.instructions':
+    'Add the Standcast app to a Google Chat space; it posts a code. Paste it here.',
+  'web.googleChat.spaces': 'Linked spaces',
+  'web.googleChat.none': 'No space linked yet.',
+  'web.googleChat.code': 'Link code',
+  'web.googleChat.link': 'Link space',
+  'web.googleChat.adminOnly': 'Only an admin can link a Google Chat space.',
   'web.template.teamName': 'Team',
   'web.apiKeys.title': 'API keys',
   'web.apiKeys.description':
@@ -463,6 +490,10 @@ const en = {
     'Team {team}: the Standcast bot is not in the Slack channel {reference}. Invite it with /invite @Standcast in the channel.',
   'setup.teams.spaceNotLinked':
     'Team {team}: this Google Chat space ({reference}) is not linked to this organization yet. Add the Standcast app to the space and paste the code it posts in Configuration → Google Chat.',
+  'setup.teams.spaceNotFound':
+    'Team {team}: the Google Chat space {reference} was not found. Check the space name, and add the Standcast app to the space.',
+  'setup.teams.spaceNotMember':
+    'Team {team}: the Standcast app is not in the Google Chat space {reference}. Add the Standcast app to the space.',
   'setup.tracker.jiraComingSoon': 'The Jira integration is not available yet.',
   'setup.tracker.notConnected':
     'This team uses Linear, but Linear is not connected to this installation yet.',

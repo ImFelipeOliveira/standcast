@@ -3,7 +3,17 @@ import type { SetupStatus } from '@standcast/orchestrator';
 import type { Child } from 'hono/jsx';
 import { newConfigFileUrl, newConfigRepoUrl, standcastYmlTemplate } from './config-template';
 import { reasonText, TEAM_NOTICES, TRACKER_NOTICES, type Translate } from './setup-labels';
-import { Alert, Badge, ButtonLink, Card, Code, Icon, ScrollTable, StepStatus } from './ui';
+import {
+  Alert,
+  Badge,
+  ButtonLink,
+  Card,
+  Code,
+  Icon,
+  ScrollTable,
+  StepStatus,
+  SubmitButton,
+} from './ui';
 
 type StepState = 'done' | 'todo' | 'error';
 
@@ -24,7 +34,7 @@ export function setupProgress(status: SetupStatus): { done: number; total: numbe
   const linear = usesLinear(status);
   const steps = [
     true,
-    status.slack.connected,
+    status.slack.connected || status.googleChat.spaces.length > 0,
     status.config.status === 'configured',
     ...(linear ? [linearState(status) === 'done'] : []),
   ];
@@ -129,6 +139,75 @@ function SlackStep(props: StepProps) {
       {status.admin || status.slack.connected ? null : (
         <p class="small muted">{t('web.slack.adminOnly')}</p>
       )}
+    </StepCard>
+  );
+}
+
+function GoogleChatStep(props: NumberedStepProps & { csrf: string }) {
+  const { t, status } = props;
+  const { googleChat } = status;
+  const connected = googleChat.spaces.length > 0;
+  const badge = !googleChat.available ? (
+    <Badge tone="neutral">{t('web.badge.unavailable')}</Badge>
+  ) : connected ? (
+    <Badge tone="success">{t('web.badge.connected')}</Badge>
+  ) : (
+    <Badge tone="neutral">{t('web.badge.optional')}</Badge>
+  );
+  return (
+    <StepCard
+      t={t}
+      id="step-google-chat"
+      index={props.index}
+      state={connected ? 'done' : 'todo'}
+      title={t('web.googleChat.title')}
+      badge={badge}
+      description={
+        googleChat.available ? t('web.googleChat.description') : t('web.googleChat.unavailable')
+      }
+    >
+      {connected ? (
+        <>
+          <p class="small muted">{t('web.googleChat.spaces')}</p>
+          <ul class="item-list">
+            {googleChat.spaces.map((space) => (
+              <li class="item">
+                <div class="item-head">
+                  <strong>{space.displayName}</strong>
+                  <code>{space.name}</code>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : googleChat.available ? (
+        <p class="small muted">{t('web.googleChat.none')}</p>
+      ) : null}
+      {googleChat.available && status.admin ? (
+        <form method="post" action="/setup/google-chat">
+          <input type="hidden" name="csrf" value={props.csrf} />
+          <input type="hidden" name="installation_id" value={status.installationId} />
+          <p class="small">{t('web.googleChat.instructions')}</p>
+          <p>
+            <label class="field">
+              {t('web.googleChat.code')}{' '}
+              <input
+                type="text"
+                name="code"
+                required
+                maxlength={32}
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck={false}
+              />
+            </label>
+          </p>
+          <SubmitButton>{t('web.googleChat.link')}</SubmitButton>
+        </form>
+      ) : null}
+      {googleChat.available && !status.admin ? (
+        <p class="small muted">{t('web.googleChat.adminOnly')}</p>
+      ) : null}
     </StepCard>
   );
 }
@@ -323,8 +402,13 @@ function ConfigStep(props: NumberedStepProps & { lang: Language }) {
   );
 }
 
-export function SetupSteps(props: { t: Translate; lang: Language; status: SetupStatus }) {
-  const { t, status, lang } = props;
+export function SetupSteps(props: {
+  t: Translate;
+  lang: Language;
+  status: SetupStatus;
+  csrf: string;
+}) {
+  const { t, status, lang, csrf } = props;
   if (usesLinear(status)) {
     return (
       <>
@@ -332,6 +416,7 @@ export function SetupSteps(props: { t: Translate; lang: Language; status: SetupS
         <SlackStep t={t} status={status} />
         <LinearStep t={t} status={status} index={3} />
         <ConfigStep t={t} status={status} lang={lang} index={4} />
+        <GoogleChatStep t={t} status={status} csrf={csrf} index={5} />
       </>
     );
   }
@@ -341,6 +426,7 @@ export function SetupSteps(props: { t: Translate; lang: Language; status: SetupS
       <SlackStep t={t} status={status} />
       <ConfigStep t={t} status={status} lang={lang} index={3} />
       <LinearStep t={t} status={status} index={4} />
+      <GoogleChatStep t={t} status={status} csrf={csrf} index={5} />
     </>
   );
 }

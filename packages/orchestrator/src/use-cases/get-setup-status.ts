@@ -133,9 +133,12 @@ async function safeTeamNotices(
   );
 }
 
-const CHANNEL_NOTICES: Record<Exclude<ChannelCheck, 'ok'>, TeamNotice['kind']> = {
-  not_found: 'channel_not_found',
-  not_member: 'channel_not_member',
+const CHANNEL_NOTICES: Record<
+  ChatProvider,
+  Record<Exclude<ChannelCheck, 'ok'>, TeamNotice['kind']>
+> = {
+  slack: { not_found: 'channel_not_found', not_member: 'channel_not_member' },
+  'google-chat': { not_found: 'space_not_found', not_member: 'space_not_member' },
 };
 
 async function linkedTeams(
@@ -189,7 +192,9 @@ async function providerChannelNotices(
   const checked = linked.flatMap((team): TeamNotice[] => {
     const result = results.get(team.chat.channel);
     if (!result || result === 'ok') return [];
-    return [{ team: team.name, reference: team.chat.channel, kind: CHANNEL_NOTICES[result] }];
+    return [
+      { team: team.name, reference: team.chat.channel, kind: CHANNEL_NOTICES[provider][result] },
+    ];
   });
   return [...unlinkedNotices, ...checked];
 }
