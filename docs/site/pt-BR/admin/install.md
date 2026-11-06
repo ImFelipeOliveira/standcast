@@ -18,34 +18,39 @@ O app pede estas permissões:
 | Checks | write | Criar o check run `Standcast config` no `standcast.yml` |
 | Commit statuses | read | Ler os resultados dos checks dos pull requests, para os impedimentos sugeridos |
 | Members | read | Resolver times do GitHub (`@org/time`) e conferir participação e papel |
-| Email addresses (conta) | read | Ligar cada pessoa ao usuário dela no Slack pelo e-mail |
+| Email addresses (conta) | read | Ligar cada pessoa ao usuário dela no Slack ou no Google Chat pelo e-mail |
 
 ## 2. Abra a página de setup
 
 Depois da instalação, o GitHub leva você para a página de setup do Standcast. Entre com o GitHub quando pedir. O endereço da página é `/setup?installation_id=<id>` na API do Standcast.
 
-Qualquer membro da organização que entrar pode abrir a página de setup. Só admins podem conectar ou reconectar o Slack e o Linear, e só admins veem as seções **API keys** e **Webhooks**. Admin é quem é admin da organização no GitHub, ou o dono da conta, numa conta pessoal.
+Qualquer membro da organização que entrar pode abrir a página de setup. Só admins podem conectar ou reconectar o Slack e o Linear e vincular espaços do Google Chat, e só admins veem as seções **API keys** e **Webhooks**. Admin é quem é admin da organização no GitHub, ou o dono da conta, numa conta pessoal.
 
 A página é uma lista de etapas. Um selo no topo conta as etapas, por exemplo **2 de 3 etapas concluídas**, e fica verde quando todas estão concluídas. Cada etapa tem um ícone de estado (um visto quando concluída, o número dela enquanto pendente, um x quando requer atenção) e um selo:
 
 - **GitHub App**: instalado na sua organização, com um aviso quando o Standcast perdeu o acesso ao `.github`;
 - **Slack**: **Conectar Slack**, ou **Reconectar Slack** depois de conectado, para admins;
-- **Linear**: **Conectar o Linear**, ou **Reconectar o Linear** depois de conectado, para admins. Só conta como etapa quando algum time usa o Linear, e aí vem antes do arquivo standcast.yml. Nos outros casos, mostra **Opcional** e vem por último;
+- **Linear**: **Conectar o Linear**, ou **Reconectar o Linear** depois de conectado, para admins. Só conta como etapa quando algum time usa o Linear, e aí vem antes do arquivo standcast.yml. Nos outros casos, mostra **Opcional** e vem depois do arquivo standcast.yml;
+- **Google Chat**: os espaços vinculados e, para admins, um campo **Código de vínculo** com **Vincular espaço**. Mostra **Opcional** até um espaço ser vinculado, e **Indisponível** quando o servidor não tem app do Google Chat. Vem por último. O selo do topo conta o Slack e o Google Chat como uma etapa só de chat, concluída quando o Slack está conectado ou um espaço está vinculado;
 - **Arquivo standcast.yml**: o estado do arquivo. Quando ele não existe, um botão para criá-lo a partir de um modelo, e o próprio modelo. Quando existe, **Editar no GitHub**, mesmo com o arquivo inválido. Um arquivo válido mostra também um cartão por time, com o canal e os horários, e um inválido, uma tabela com os erros.
 
 A coluna lateral mostra as últimas entregas com falha e, para admins, as API keys e os webhooks, e depois o endereço de suporte.
 
-## 3. Conecte o Slack
+## 3. Conecte o Slack ou o Google Chat
 
-Um admin clica em **Conectar Slack** e aprova o app no workspace do Slack. A etapa do Slack passa a mostrar um visto, o selo **Conectado** e "Conectado a" com o nome do workspace, e um botão **Reconectar Slack** para conectar de novo. Os outros membros veem a conexão só para leitura. Enquanto o Slack ainda não está conectado, eles veem "Só um admin pode conectar ou reconectar o Slack." Veja [Slack](/pt-BR/admin/slack) para as permissões e os canais privados.
+Cada time publica no Slack ou no Google Chat, conforme o `standcast.yml`. Conecte os que os seus times usam.
+
+**Slack.** Um admin clica em **Conectar Slack** e aprova o app no workspace do Slack. A etapa do Slack passa a mostrar um visto, o selo **Conectado** e "Conectado a" com o nome do workspace, e um botão **Reconectar Slack** para conectar de novo. Os outros membros veem a conexão só para leitura. Enquanto o Slack ainda não está conectado, eles veem "Só um admin pode conectar ou reconectar o Slack." Veja [Slack](/pt-BR/admin/slack) para as permissões e os canais privados.
+
+**Google Chat.** Adicione o app do Standcast ao espaço do Google Chat; ele publica um código de vínculo. Um admin cola o código na etapa **Google Chat**, ou no card do Google Chat do [app web](/pt-BR/admin/web-app), e clica em **Vincular espaço**. Depois, cada pessoa manda uma mensagem direta para o app uma vez, para vincular o usuário dela no Google Chat. Veja [Google Chat](/pt-BR/admin/google-chat).
 
 ## 4. Crie o `standcast.yml`
 
-Na etapa **Arquivo standcast.yml**, clique em **Criar standcast.yml com o modelo**. O GitHub abre o editor na branch padrão do repositório `.github`, com o arquivo já preenchido. O modelo usa o seu login como gestor e membro:
+Na etapa **Arquivo standcast.yml**, clique em **Criar standcast.yml com o modelo**. O GitHub abre o editor na branch padrão do repositório `.github`, com o arquivo já preenchido. O modelo tem um time no Slack e um no Google Chat, e usa o seu login como gestor e membro:
 
 ```text
 teams:
-  - name: Time
+  - name: Time Slack
     language: pt-BR
     timezone: America/Sao_Paulo
     remind_at: "09:00"
@@ -55,9 +60,19 @@ teams:
     chat:
       provider: slack
       channel: "#daily"
+  - name: Time Google Chat
+    language: pt-BR
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [seu-login]
+    members: [seu-login]
+    chat:
+      provider: google-chat
+      channel: spaces/AAAAAAAAAAA
 ```
 
-Troque o nome do time, o fuso, os horários, as pessoas e o canal e faça o commit. O arquivo tem que ficar na **raiz** do repositório `.github`, na branch padrão. Se o repositório `.github` não existir, a página mostra **Criar o repositório .github**, que abre o formulário de novo repositório do GitHub com o nome preenchido.
+Apague o time do chat que você não usa. Troque o nome do time, o fuso, os horários, as pessoas e o canal e faça o commit. No Google Chat, o canal é o nome do espaço que aparece no card do Google Chat. O arquivo tem que ficar na **raiz** do repositório `.github`, na branch padrão. Se o repositório `.github` não existir, a página mostra **Criar o repositório .github**, que abre o formulário de novo repositório do GitHub com o nome preenchido.
 
 Referência completa: [standcast.yml](/pt-BR/admin/configuration).
 
@@ -106,5 +121,6 @@ Quando um push em qualquer branch do repositório `.github` altera o `standcast.
 ## Próximos passos
 
 - Peça a cada membro para seguir os [Primeiros passos](/pt-BR/members/getting-started). As pessoas são ligadas ao usuário do Slack quando entram, então elas devem entrar depois que o Slack estiver conectado.
+- No Google Chat, peça a cada membro para entrar e depois mandar uma mensagem direta para o app do Standcast uma vez.
 - Se você usa o Linear, peça a cada membro para entrar depois que o Linear estiver conectado, para o usuário dele no Linear ser ligado.
 - Crie [API keys](/pt-BR/admin/api-keys) ou [webhooks](/pt-BR/admin/webhooks) se outros sistemas precisarem dos dados.

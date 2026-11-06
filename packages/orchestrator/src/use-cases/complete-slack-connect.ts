@@ -1,5 +1,5 @@
+import { ChatDeliveryError } from '@standcast/core';
 import { type MemberRow, saveConnection } from '@standcast/db';
-import { ChatDeliveryError } from '@standcast/slack';
 import type { Deps } from '../deps';
 import { hashSessionToken, verifyState } from '../state-token';
 import { DomainError } from './errors';

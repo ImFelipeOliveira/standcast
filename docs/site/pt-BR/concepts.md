@@ -4,7 +4,7 @@ Os termos usados no Standcast e nesta documentação.
 
 ## Instalação
 
-Uma instalação do GitHub App do Standcast numa organização ou conta pessoal do GitHub. Tudo no Standcast pertence a uma instalação: configuração, dailies, conexão com o Slack, API keys e webhooks. Os dados nunca passam de uma instalação para outra.
+Uma instalação do GitHub App do Standcast numa organização ou conta pessoal do GitHub. Tudo no Standcast pertence a uma instalação: configuração, dailies, conexões com o Slack e o Google Chat, API keys e webhooks. Os dados nunca passam de uma instalação para outra.
 
 ## Organização
 
@@ -12,7 +12,7 @@ A organização do GitHub (ou conta pessoal) onde o app está instalado. A CLI e
 
 ## Time
 
-Um grupo de pessoas declarado em `teams` no `standcast.yml`. Cada time tem fuso, dias úteis, horário do consolidado, idioma e canal do Slack próprios. Veja a [referência do standcast.yml](/pt-BR/admin/configuration).
+Um grupo de pessoas declarado em `teams` no `standcast.yml`. Cada time tem fuso, dias úteis, horário do consolidado, idioma e canal de chat próprios: um canal do Slack ou um espaço do Google Chat. Veja a [referência do standcast.yml](/pt-BR/admin/configuration).
 
 ## Membro
 
@@ -24,7 +24,7 @@ Um login do GitHub listado em `managers` de um time. Gestores leem os consolidad
 
 ## Admin
 
-O dono de uma conta pessoal, ou um membro com o papel `admin` na organização do GitHub. Admins conectam o Slack, criam [API keys](/pt-BR/admin/api-keys) e [webhooks](/pt-BR/admin/webhooks) e podem ler todos os times pelas tools de gestor.
+O dono de uma conta pessoal, ou um membro com o papel `admin` na organização do GitHub. Admins conectam o Slack, vinculam espaços do Google Chat, criam [API keys](/pt-BR/admin/api-keys) e [webhooks](/pt-BR/admin/webhooks) e podem ler todos os times pelas tools de gestor.
 
 ## Daily
 
@@ -47,7 +47,7 @@ O ponto de partida do "ontem", montado pelo Standcast a partir da atividade da p
 
 ## Consolidado
 
-Uma mensagem no Slack por time por dia útil, publicada no `digest_at` do time. Primeiro os impedimentos, depois os pedidos de apoio, depois a daily de cada pessoa e, no fim, a lista de quem não enviou.
+Uma mensagem por time por dia útil, no Slack ou no Google Chat, publicada no `digest_at` do time. Primeiro os impedimentos, depois os pedidos de apoio, depois a daily de cada pessoa e, no fim, a lista de quem não enviou.
 
 ## Daily atrasada
 
@@ -71,11 +71,11 @@ Enviar cada impedimento novo uma vez para quem pode ajudar: os revisores do pull
 
 ## Conexão com o Linear
 
-Uma conexão por instalação, feita por um admin na página de setup. Ela deixa o Standcast ler os cards de um workspace do Linear, só leitura. Veja [Instalar](/pt-BR/admin/install#5-conecte-o-linear-opcional).
+Uma conexão por instalação, feita por um admin na página de setup. Ela deixa o Standcast ler os cards de um workspace do Linear, só leitura. Veja [Instalar](/pt-BR/admin/install#_5-conecte-o-linear-opcional).
 
 ## Entrega
 
-Uma tentativa de enviar uma mensagem no Slack: um consolidado, uma daily atrasada, um lembrete ou um impedimento encaminhado por mensagem direta. Cada uma é registrada uma vez por time, data e tipo, então uma nova tentativa nunca publica duas vezes. As entregas com falha aparecem na página de setup com o erro.
+Uma tentativa de enviar uma mensagem no Slack ou no Google Chat: um consolidado, uma daily atrasada, um lembrete ou um impedimento encaminhado por mensagem direta. Cada uma é registrada uma vez por time, data e tipo, então uma nova tentativa nunca publica duas vezes. As entregas com falha aparecem na página de setup com o erro.
 
 ## API key
 

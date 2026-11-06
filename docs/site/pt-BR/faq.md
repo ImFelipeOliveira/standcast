@@ -38,11 +38,11 @@ Não. Não há ranking, nota, contagem de commits por pessoa nem agregados por p
 
 ## Funciona com Google Chat, Linear ou Jira?
 
-O Linear funciona hoje: os seus cards aparecem no rascunho, os impedimentos de card são encaminhados e cards parados viram sugestões. Veja [Instalar](/pt-BR/admin/install#5-conecte-o-linear-opcional). Google Chat e Jira vêm em breve. Hoje o consolidado vai para o Slack.
+O Google Chat funciona hoje: cada time publica no Slack ou no Google Chat. Veja [Google Chat](/pt-BR/admin/google-chat). O Linear também funciona: os seus cards aparecem no rascunho, os impedimentos de card são encaminhados e cards parados viram sugestões. Veja [Instalar](/pt-BR/admin/install#_5-conecte-o-linear-opcional). O Jira vem em breve.
 
 ## Tem lembrete para quem não mandou a daily?
 
-Sim. No `remind_at`, quem ainda não enviou a daily recebe uma mensagem direta no Slack, no máximo uma vez por dia. Veja [Como funciona](/pt-BR/how-it-works).
+Sim. No `remind_at`, quem ainda não enviou a daily recebe uma mensagem direta no Slack ou no Google Chat, no máximo uma vez por dia. Veja [Como funciona](/pt-BR/how-it-works).
 
 ## O meu gestor vê os impedimentos que o Standcast sugere?
 
@@ -58,7 +58,7 @@ Não. A configuração mora só no `standcast.yml` da raiz do repositório `.git
 
 ## Posso rodar o Standcast nos meus servidores?
 
-Não. O Standcast é um serviço hospedado. O código é aberto, com licença MIT.
+Sim. O Standcast tem código aberto, com licença MIT, e a [seção de self-hosting do README](https://github.com/ImFelipeOliveira/standcast#self-hosting) explica a API, o worker e o Postgres. Durante o beta, o suporte é para o serviço hospedado em `api-standcast.usefachada.dev`.
 
 ## Como falo com o suporte?
 

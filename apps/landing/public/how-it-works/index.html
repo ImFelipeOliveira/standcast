@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How it works · Standcast</title>
+<meta name="description" content="How Standcast runs your standup: a draft from GitHub and Linear, one reminder, one digest per team in Slack or Google Chat, and a standcast.yml.">
+<meta name="robots" content="max-image-preview:large">
+<link rel="canonical" href="https://standcast.usefachada.dev/how-it-works/">
+<link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/how-it-works/">
+<link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/como-funciona/">
+<link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/how-it-works/">
+<link rel="alternate" type="text/markdown" href="/how-it-works/index.md">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#F6F7FB" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1022" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Standcast">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="pt_BR">
+<meta property="og:url" content="https://standcast.usefachada.dev/how-it-works/">
+<meta property="og:title" content="How it works · Standcast">
+<meta property="og:description" content="A draft from GitHub and Linear, one reminder, one digest per team in Slack or Google Chat and a standcast.yml reviewed like code.">
+<meta property="og:image" content="https://standcast.usefachada.dev/og.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="Standcast: your daily standup, written in your AI agent">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How it works · Standcast">
+<meta name="twitter:description" content="A draft from GitHub and Linear, one reminder, one digest per team in Slack or Google Chat and a standcast.yml reviewed like code.">
+<meta name="twitter:image" content="https://standcast.usefachada.dev/og.png">
+<link rel="preload" href="/fonts/inter-latin.c9407645.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Standcast","item":"https://standcast.usefachada.dev/"},{"@type":"ListItem","position":2,"name":"How it works","item":"https://standcast.usefachada.dev/how-it-works/"}]}
+</script>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
+    <nav aria-label="Main"><ul>
+      <li><a href="/how-it-works/" aria-current="page">How it works</a></li>
+      <li><a href="/privacy/">Privacy</a></li>
+      <li><a href="/pricing/">Pricing</a></li>
+      <li><a href="/faq/">FAQ</a></li>
+      <li><a href="https://docs-standcast.usefachada.dev/">Docs</a></li>
+      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
+    </ul></nav>
+    <div class="nav-end">
+      <a class="lang" href="/pt-BR/como-funciona/" hreflang="pt-BR" lang="pt-BR">Português</a>
+      <a class="btn btn-primary" href="/beta/">Join the beta</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero intro">
+  <div class="wrap">
+    <div class="hero-copy">
+      <nav class="crumbs" aria-label="Breadcrumb"><ol>
+        <li><a href="/">Home</a></li>
+        <li aria-current="page">How it works</li>
+      </ol></nav>
+      <span class="eyebrow">How it works</span>
+      <h1>From your work to one team digest.</h1>
+      <p class="lede">Standcast drafts your daily from GitHub and Linear, you confirm it in your AI agent or the terminal, and each team gets one digest in Slack or Google Chat at the time it chose.</p>
+    </div>
+  </div>
+</section>
+
+<section class="flush" id="day">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">A day with Standcast</span>
+      <h2>Set two times in standcast.yml. Standcast runs the rest.</h2>
+      <p class="lede">This team has <code>remind_at: "09:30"</code> and <code>digest_at: "10:00"</code> in São Paulo time, Monday to Friday.</p>
+    </div>
+    <ol class="day" aria-label="Timeline of one day">
+      <li class="slot"><span class="k">Draft</span><time datetime="08:50">08:50</time><p><b>Ana runs /daily.</b> She edits the draft, adds a blocker that links a pull request and confirms. The reviewer gets a direct message.</p></li>
+      <li class="slot"><span class="k">remind_at</span><time datetime="09:30">09:30</time><p><b>Davi hasn't written yet,</b> so he gets one reminder. Never more than one a day.</p></li>
+      <li class="slot"><span class="k">digest_at</span><time datetime="10:00">10:00</time><p><b>One digest per team</b> in #daily-backend: blockers first, then updates, then who hasn't sent.</p></li>
+      <li class="slot"><span class="k">Late</span><time datetime="10:40">10:40</time><p><b>Davi sends late.</b> His daily goes in the digest thread, so nobody misses it.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="flush" id="features">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">What it does</span>
+      <h2>Collects, consolidates and delivers. You only write.</h2>
+    </div>
+    <div class="features">
+      <article class="feat"><h3>A draft from real work</h3><p>Pull requests opened, merged and reviewed, commits by repository, and Linear cards that started or finished. Monday covers the weekend.</p></article>
+      <article class="feat"><h3>Blockers reach who can help</h3><p>A blocker that links a pull request goes to its reviewers, then CODEOWNERS, then the team managers. A Linear card goes to the owner of the blocking card.</p></article>
+      <article class="feat"><h3>Nothing sent without you</h3><p>The MCP submit tool needs <code>confirmed: true</code>, which the agent passes only after you approve the text.</p></article>
+      <article class="feat"><h3>Several teams, one daily</h3><p>Write once and appear in every team digest you belong to, each in its own time zone and workdays.</p></article>
+      <article class="feat"><h3>Managers read from their agent</h3><p>Team digests, dailies and blockers for the last 90 days, through MCP read tools. Confirmed content only.</p></article>
+      <article class="feat"><h3>API and webhooks</h3><p>Read-only API keys with scopes, an OpenAPI reference, and signed <code>daily.submitted</code> and <code>blocker.opened</code> webhooks.</p></article>
+    </div>
+  </div>
+</section>
+
+<section id="config">
+  <div class="wrap split">
+    <div>
+      <div class="head tight">
+        <span class="eyebrow">Configuration as code</span>
+        <h2>One file in your .github repository.</h2>
+        <p class="lede">Teams, times, chat channels and managers live in <code>standcast.yml</code>. Every change is reviewed like code.</p>
+      </div>
+      <ul class="list">
+        <li><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span><b>Checked on every push.</b> A <code>Standcast config</code> check run points to the line with the error.</span></li>
+        <li><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span><b>Never breaks the team.</b> An invalid push keeps the last valid config in effect.</span></li>
+        <li><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span><b>Teams from GitHub.</b> Members can be logins or <code>@org/team</code>.</span></li>
+      </ul>
+      <p class="list-more"><a class="more" href="https://docs-standcast.usefachada.dev/admin/configuration">standcast.yml reference →</a></p>
+    </div>
+    <div class="code">
+<pre><span class="t-dim"># .github/standcast.yml</span>
+teams:
+  - name: Backend
+    timezone: America/Sao_Paulo
+    workdays: [mon, tue, wed, thu, fri]
+    remind_at: "09:30"
+    digest_at: "10:00"
+    chat:
+      provider: slack
+      channel: "#daily-backend"
+    tracker:
+      provider: linear
+      team: BE
+    managers: [bruno]
+    members: ["@acme/backend"]</pre>
+      <div class="check"><b class="check-ok">✓ Standcast config</b> passed · 1 team, 6 members</div>
+    </div>
+  </div>
+</section>
+
+<section class="flush" id="ways">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Three ways to write</span>
+      <h2>Pick the one that fits how you work.</h2>
+    </div>
+    <div class="ways">
+      <article class="way"><h3>Claude Code plugin</h3><p>The <code>/daily</code> skill drafts, asks for today and blockers, and confirms with you.</p>
+<pre>/plugin marketplace add \
+  ImFelipeOliveira/standcast
+/plugin install standcast@standcast
+/daily</pre></article>
+      <article class="way"><h3>Any MCP client</h3><p>Cursor, Codex, Claude Desktop and VS Code run the local <a href="https://docs-standcast.usefachada.dev/members/mcp">MCP server</a>.</p>
+<pre>{
+  "mcpServers": {
+    "standcast": {
+      "command": "standcast",
+      "args": ["mcp"]
+    }
+  }
+}</pre></article>
+      <article class="way"><h3>Terminal</h3><p>One binary for macOS, Linux and Windows, checked against SHA256SUMS.</p>
+<pre>standcast login
+standcast draft
+standcast submit</pre></article>
+    </div>
+  </div>
+</section>
+
+<section class="flush">
+  <div class="wrap">
+    <div class="beta">
+      <div class="head tight">
+        <span class="eyebrow">Public beta</span>
+        <h2>Try it with your team.</h2>
+        <p class="lede">We're looking for teams of 3 to 15 people on GitHub and Slack or Google Chat. We'll help you set it up.</p>
+      </div>
+      <div class="beta-cta">
+        <div class="cta-row">
+          <a class="btn btn-primary" href="/beta/">Join the beta</a>
+          <a class="btn btn-ghost" href="https://docs-standcast.usefachada.dev/admin/install">Install for your org</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
+    <ul aria-label="Footer">
+      <li><a href="/how-it-works/" aria-current="page">How it works</a></li>
+      <li><a href="/privacy/">Privacy</a></li>
+      <li><a href="/terms/">Terms</a></li>
+      <li><a href="/pricing/">Pricing</a></li>
+      <li><a href="/faq/">FAQ</a></li>
+      <li><a href="/beta/">Join the beta</a></li>
+      <li><a href="https://docs-standcast.usefachada.dev/">Documentation</a></li>
+      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
+      <li><a href="/llms.txt">llms.txt</a></li>
+      <li><a href="/pt-BR/como-funciona/" hreflang="pt-BR" lang="pt-BR">Português</a></li>
+    </ul>
+    <p>MIT · support.standcast@usefachada.dev</p>
+  </div>
+</footer>
+</body>
+</html>

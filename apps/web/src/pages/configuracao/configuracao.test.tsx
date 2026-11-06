@@ -2,12 +2,18 @@ import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import type { SetupStatus } from '@standcast/orchestrator';
 import { type QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { apiUrl, forgetSession, type OrgContext } from '../../api/client';
-import { type CreatedApiKey, useCreateApiKey } from '../../api/mutations';
+import { ApiError, apiUrl, forgetSession, type OrgContext } from '../../api/client';
+import {
+  type CreatedApiKey,
+  useCreateApiKey,
+  useLinkGoogleChatSpace,
+  useUnlinkGoogleChatSpace,
+} from '../../api/mutations';
 import { createQueryClient, orgContextQuery, setupStatusQuery } from '../../api/queries';
-import { applyLang } from '../../i18n';
+import { applyLang, translate } from '../../i18n';
 import { ApiKeys } from './ApiKeys';
 import { ConfiguracaoPage } from './ConfiguracaoPage';
+import { linkErrorMessage } from './labels';
 
 const originalFetch = globalThis.fetch;
 
@@ -26,6 +32,7 @@ function baseStatus(overrides: Partial<SetupStatus> = {}): SetupStatus {
     accessWarning: null,
     configRepo: { exists: true, defaultBranch: 'main' },
     slack: { connected: true, workspace: 'acme-hq' },
+    googleChat: { available: false, spaces: [] },
     linear: { connected: false },
     trackerNotices: [],
     teamNotices: [],
@@ -118,6 +125,23 @@ type CreateApiKey = ReturnType<typeof useCreateApiKey>['mutateAsync'];
 function CreateHarness({ onReady }: { onReady: (create: CreateApiKey) => void }) {
   onReady(useCreateApiKey(11).mutateAsync);
   return null;
+}
+
+type LinkSpace = ReturnType<typeof useLinkGoogleChatSpace>['mutateAsync'];
+type UnlinkSpace = ReturnType<typeof useUnlinkGoogleChatSpace>['mutateAsync'];
+
+function GoogleChatHarness({
+  onReady,
+}: {
+  onReady: (link: LinkSpace, unlink: UnlinkSpace) => void;
+}) {
+  onReady(useLinkGoogleChatSpace(11).mutateAsync, useUnlinkGoogleChatSpace(11).mutateAsync);
+  return null;
+}
+
+function googleChatCard(html: string): string {
+  const cards = html.split('<article').slice(1);
+  return cards.find((card) => card.includes('>Google Chat<')) ?? '';
 }
 
 function teamCard(html: string, name: string): string {
@@ -325,21 +349,227 @@ describe('configuração', () => {
     expect(html).toContain('Últimas entregas com falha');
     expect(html).toContain('Consolidado');
     expect(html).toContain('channel_not_found');
-    expect(html).toContain('O canal do Slack não foi encontrado.');
+    expect(html).toContain('O canal ou espaço do chat não foi encontrado.');
     expect(html).not.toContain('the channel was not found');
     expect(html).toContain('Lembrete');
-    expect(html).toContain('A pessoa não foi encontrada no Slack.');
+    expect(html).toContain('A pessoa não foi encontrada no chat.');
     expect(html).toContain('>3<');
 
     applyLang('en');
     const english = renderPage(status);
     expect(english).toContain('Latest failed deliveries');
     expect(english).toContain('Digest');
-    expect(english).toContain('The Slack channel was not found.');
+    expect(english).toContain('The chat channel or space was not found.');
   });
 
   test('no failures shows the empty state', () => {
     const html = renderPage(baseStatus());
     expect(html).toContain('Nenhuma entrega com falha.');
+  });
+
+  test('google chat card shows bound spaces', () => {
+    const googleChat = {
+      available: true,
+      spaces: [
+        { name: 'spaces/AAAA', displayName: 'Engenharia' },
+        { name: 'spaces/BBBB', displayName: 'Produto' },
+      ],
+    };
+    const admin = googleChatCard(renderPage(adminStatus({ googleChat }), adminContext));
+    expect(admin).toContain('Conectado');
+    expect(admin).toContain('Espaços vinculados');
+    expect(admin).toContain('Engenharia');
+    expect(admin).toContain('spaces/AAAA');
+    expect(admin).toContain('Produto');
+    expect(admin).toContain('spaces/BBBB');
+    expect(admin.match(/>Copiar</g)?.length).toBe(2);
+    expect(admin.match(/>Desvincular</g)?.length).toBe(2);
+    expect(admin).toContain('Código de vínculo');
+    expect(admin).toContain(
+      'Adicione o app do Standcast a um espaço do Google Chat; ele publica um código. Cole o código aqui.',
+    );
+    expect(admin).toContain('Vincular espaço');
+    expect(admin).not.toContain('Só um admin');
+
+    const member = googleChatCard(renderPage(baseStatus({ googleChat })));
+    expect(member).toContain('Engenharia');
+    expect(member).toContain('spaces/AAAA');
+    expect(member).toContain('>Copiar<');
+    expect(member).not.toContain('Desvincular');
+    expect(member).not.toContain('<form');
+    expect(member).toContain('Só um admin pode vincular ou desvincular um espaço do Google Chat.');
+
+    const empty = googleChatCard(
+      renderPage(adminStatus({ googleChat: { available: true, spaces: [] } }), adminContext),
+    );
+    expect(empty).toContain('Nenhum espaço vinculado ainda.');
+    expect(empty).toContain('Opcional');
+    expect(empty).toContain('<form');
+  });
+
+  test('unavailable server shows the notice', () => {
+    const html = googleChatCard(renderPage(adminStatus(), adminContext));
+    expect(html).toContain('Indisponível');
+    expect(html).toContain('O Google Chat não está disponível neste servidor.');
+    expect(html).not.toContain('<form');
+    expect(html).not.toContain('Vincular espaço');
+
+    applyLang('en');
+    const english = googleChatCard(renderPage(adminStatus(), adminContext));
+    expect(english).toContain('Google Chat is not available on this server.');
+  });
+
+  test('a linked google chat space counts as the chat step', () => {
+    const html = renderPage(
+      baseStatus({
+        slack: { connected: false },
+        googleChat: { available: true, spaces: [{ name: 'spaces/AAAA', displayName: 'Eng' }] },
+        teams: [],
+      }),
+    );
+    expect(html).toContain('3 de 3');
+  });
+
+  test('invalid code message', async () => {
+    const calls: string[] = [];
+    const bodies: string[] = [];
+    globalThis.fetch = mock(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      calls.push(`${init?.method ?? 'GET'} ${url}`);
+      if (url.endsWith('/v1/app/session')) {
+        return Response.json({ login: 'ana', avatarUrl: 'x', csrf: 'c1', installations: [] });
+      }
+      if (init?.method === 'DELETE') return new Response(null, { status: 204 });
+      bodies.push(String(init?.body));
+      return Response.json(
+        { error: { code: 'invalid_code', message: 'invalid code' } },
+        { status: 422 },
+      );
+    }) as unknown as typeof fetch;
+
+    const queryClient = seeded(adminStatus(), adminContext);
+    let link: LinkSpace | undefined;
+    let unlink: UnlinkSpace | undefined;
+    renderToStaticMarkup(
+      <QueryClientProvider client={queryClient}>
+        <GoogleChatHarness
+          onReady={(l, u) => {
+            link = l;
+            unlink = u;
+          }}
+        />
+      </QueryClientProvider>,
+    );
+    const failure = await link?.('ABCD2345').catch((error: unknown) => error);
+    expect(calls).toContain(`POST ${apiUrl}/v1/app/orgs/11/google-chat/spaces`);
+    expect(bodies).toEqual([JSON.stringify({ code: 'ABCD2345' })]);
+    const t = (key: Parameters<typeof translate>[1], vars?: Record<string, string>) =>
+      translate('pt-BR', key, vars);
+    expect(linkErrorMessage(t, failure)).toBe(
+      'Este código não é válido. Ele pode ter expirado ou já ter sido usado. Adicione o app ao espaço de novo para receber outro.',
+    );
+
+    await unlink?.('spaces/AAAA');
+    expect(calls).toContain(`DELETE ${apiUrl}/v1/app/orgs/11/google-chat/spaces/spaces%2FAAAA`);
+    expect(queryClient.getQueryState(setupStatusQuery(11).queryKey)?.isInvalidated).toBe(true);
+  });
+
+  test('link errors have their own messages', () => {
+    const t = (key: Parameters<typeof translate>[1], vars?: Record<string, string>) =>
+      translate('en', key, vars);
+    expect(linkErrorMessage(t, new ApiError(409, 'space_already_linked', 'x'))).toBe(
+      'This space is already linked to another organization.',
+    );
+    expect(linkErrorMessage(t, new ApiError(409, 'too_many_spaces', 'x'))).toBe(
+      'This organization already has 20 linked spaces, the maximum. Unlink one first.',
+    );
+    expect(linkErrorMessage(t, new ApiError(429, 'rate_limited', 'x'))).toBe(
+      'Too many attempts. Wait a minute and try again.',
+    );
+    expect(linkErrorMessage(t, new ApiError(403, 'forbidden', 'x'))).toBe(
+      'Only an admin can link or unlink a Google Chat space.',
+    );
+    expect(linkErrorMessage(t, new ApiError(500, 'internal_error', 'x'))).toBe(
+      'Could not finish right now. Try again in a moment.',
+    );
+  });
+
+  test('channel notice copy per provider', () => {
+    const html = renderPage(
+      baseStatus({
+        teams: [
+          {
+            name: 'backend',
+            channel: '#daily-backend',
+            remindAt: '09:00',
+            digestAt: '10:00',
+            tracker: null,
+          },
+          {
+            name: 'plataforma',
+            channel: 'spaces/PLAT',
+            remindAt: '09:30',
+            digestAt: '10:30',
+            tracker: null,
+          },
+        ],
+        teamNotices: [
+          { team: 'backend', reference: '#daily-backend', kind: 'channel_not_member' },
+          { team: 'plataforma', reference: 'spaces/PLAT', kind: 'space_not_member' },
+        ],
+      }),
+    );
+    expect(teamCard(html, 'backend')).toContain('/invite @Standcast');
+    const google = teamCard(html, 'plataforma');
+    expect(google).toContain(
+      'Time plataforma: o app do Standcast não está no espaço spaces/PLAT do Google Chat. Adicione o app do Standcast ao espaço.',
+    );
+    expect(google).not.toContain('/invite');
+
+    applyLang('en');
+    const english = renderPage(
+      baseStatus({
+        teamNotices: [{ team: 'plataforma', reference: 'spaces/PLAT', kind: 'space_not_found' }],
+      }),
+    );
+    expect(teamCard(english, 'plataforma')).toContain(
+      'Team plataforma: the Google Chat space spaces/PLAT was not found. Check the space name, and add the Standcast app to the space.',
+    );
+  });
+
+  test('google chat failure reasons are translated', () => {
+    const html = renderPage(
+      baseStatus({
+        teamFailures: [
+          {
+            kind: 'digest',
+            team: 'plataforma',
+            date: '2026-11-06',
+            at: new Date('2026-11-06T13:00:00Z'),
+            error: 'space_not_linked: the space is not linked to this organization',
+          },
+        ],
+        personFailures: [
+          {
+            kind: 'reminder',
+            error: 'no_dm_space: no direct message space',
+            count: 1,
+            lastAt: new Date('2026-11-06T12:00:00Z'),
+          },
+          {
+            kind: 'blocker_route',
+            error: 'timeout: Google Chat did not answer in time',
+            count: 1,
+            lastAt: new Date('2026-11-06T11:00:00Z'),
+          },
+        ],
+      }),
+    );
+    expect(html).toContain('O espaço do Google Chat não está vinculado a esta organização.');
+    expect(html).toContain('O chat não respondeu a tempo.');
+    expect(html).not.toContain('Slack não respondeu');
+    expect(html).toContain(
+      'A pessoa ainda não mandou mensagem para o app do Standcast no Google Chat.',
+    );
   });
 });

@@ -38,11 +38,11 @@ No. There are no rankings, scores, commit counts per person or per-person aggreg
 
 ## Does it work with Google Chat, Linear or Jira?
 
-Linear works today: your cards appear in your draft, card blockers are routed and stale cards become suggestions. See [Install](/admin/install#5-connect-linear-optional). Google Chat and Jira are coming soon. Today the digest goes to Slack.
+Google Chat works today: each team posts to Slack or Google Chat. See [Google Chat](/admin/google-chat). Linear works too: your cards appear in your draft, card blockers are routed and stale cards become suggestions. See [Install](/admin/install#_5-connect-linear-optional). Jira is coming soon.
 
 ## Are there reminders for people who did not send the daily?
 
-Yes. At `remind_at`, people who have not sent the daily get one direct message in Slack, at most once per day. See [How it works](/how-it-works).
+Yes. At `remind_at`, people who have not sent the daily get one direct message in Slack or Google Chat, at most once per day. See [How it works](/how-it-works).
 
 ## Does my manager see the blockers Standcast suggests?
 
@@ -58,7 +58,7 @@ No. The configuration lives only in `standcast.yml` at the root of the `.github`
 
 ## Can I run Standcast on my own servers?
 
-No. Standcast is a hosted service. The code is open source under the MIT license.
+Yes. Standcast is open source under the MIT license, and the [self-hosting section of the README](https://github.com/ImFelipeOliveira/standcast#self-hosting) covers the API, the worker and Postgres. The hosted service at `api-standcast.usefachada.dev` is the one we support during the beta.
 
 ## How do I contact support?
 

@@ -14,7 +14,8 @@ export function useCleanDb(): void {
     await db.execute(sql`
       TRUNCATE installations, members, member_installations, member_identities,
         connections, sessions, dailies, deliveries, rate_limits, api_keys,
-        webhook_endpoints, webhook_deliveries, suggestions, beta_requests, blocker_states CASCADE
+        webhook_endpoints, webhook_deliveries, suggestions, beta_requests, blocker_states,
+        google_chat_spaces CASCADE
     `);
   });
 }

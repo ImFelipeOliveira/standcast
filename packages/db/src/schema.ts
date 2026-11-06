@@ -53,7 +53,10 @@ export const members = pgTable(
     login: text('login').notNull(),
     email: text('email'),
   },
-  (t) => [uniqueIndex('members_login_lower_idx').on(sql`lower(${t.login})`)],
+  (t) => [
+    uniqueIndex('members_login_lower_idx').on(sql`lower(${t.login})`),
+    index('members_email_lower_idx').on(sql`lower(${t.email})`),
+  ],
 );
 
 const installationRef = () =>
@@ -95,6 +98,23 @@ export const connections = pgTable(
     createdAt: createdAt(),
   },
   (t) => [primaryKey({ columns: [t.installationId, t.provider] })],
+);
+
+export const googleChatSpaces = pgTable(
+  'google_chat_spaces',
+  {
+    spaceName: text('space_name').primaryKey(),
+    installationId: installationId().references(() => installations.id, { onDelete: 'cascade' }),
+    displayName: text('display_name').notNull(),
+    linkCodeHash: text('link_code_hash'),
+    linkCodeExpiresAt: timestamp('link_code_expires_at', { withTimezone: true }),
+    addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
+    linkedAt: timestamp('linked_at', { withTimezone: true }),
+  },
+  (t) => [
+    index('google_chat_spaces_installation_idx').on(t.installationId),
+    uniqueIndex('google_chat_spaces_link_code_idx').on(t.linkCodeHash),
+  ],
 );
 
 export const sessions = pgTable('sessions', {

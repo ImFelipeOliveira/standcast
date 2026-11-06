@@ -1,14 +1,14 @@
 # Standcast: a sua daily, escrita no seu agente de IA
 
-> Código aberto (MIT), grátis durante o beta público. Funciona hoje com GitHub e Slack. Google Chat e Jira vêm a seguir.
+> Código aberto (MIT), grátis durante o beta público. Funciona hoje com GitHub, Slack e Google Chat. O Jira vem a seguir.
 
-Rode `/daily` no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack.
+O Standcast é uma ferramenta de código aberto para a daily de times de software. Rode `/daily` no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack ou no Google Chat.
 
 ```sh
 curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh
 ```
 
-- [Entrar no beta](https://standcast.usefachada.dev/pt-BR/#beta)
+- [Entrar no beta](https://standcast.usefachada.dev/pt-BR/beta/)
 - [Instalar na sua organização](https://docs-standcast.usefachada.dev/pt-BR/admin/install)
 - [Documentação](https://docs-standcast.usefachada.dev/pt-BR/)
 - [GitHub](https://github.com/ImFelipeOliveira/standcast)
@@ -25,125 +25,38 @@ Defina dois horários no standcast.yml. O Standcast cuida do resto. Este time te
 - **10:00, digest_at.** Um consolidado por time no #daily-backend: primeiro os impedimentos, depois as atualizações, depois quem não enviou.
 - **10:40, atrasada.** Davi envia atrasado. A daily dele vai para a thread do consolidado, e ninguém perde nada.
 
-## O que ele faz
-
-Coleta, consolida e entrega. Você só escreve.
-
-- **Um rascunho do trabalho real.** Pull requests abertos, mergeados e revisados, commits por repositório e cards do Linear que começaram ou terminaram. Na segunda, o rascunho cobre o fim de semana.
-- **Impedimentos chegam a quem pode ajudar.** Um impedimento com link para um pull request vai para os reviewers, depois para o CODEOWNERS, depois para os gestores do time. Um card do Linear vai para o responsável pelo card que está bloqueando.
-- **Nada sai sem você.** A tool de envio do MCP exige `confirmed: true`, que o agente só passa depois que você aprova o texto.
-- **Vários times, uma daily.** Escreva uma vez e apareça no consolidado de todos os seus times, cada um no próprio fuso horário e nos próprios dias úteis.
-- **Gestores leem pelo próprio agente.** Consolidados, dailies e impedimentos dos últimos 90 dias, pelas tools de leitura do MCP. Só conteúdo confirmado.
-- **API e webhooks.** API keys somente leitura com escopos, uma referência OpenAPI e webhooks assinados `daily.submitted` e `blocker.opened`.
+[Veja como funciona](https://standcast.usefachada.dev/pt-BR/como-funciona/index.md)
 
 ## Privacidade
 
 Feito para times, não para vigiar pessoas. O Standcast sugere impedimentos a partir dos seus próprios sinais. Essas sugestões são suas. Um teste na CI garante que elas nunca saem do seu rascunho.
 
-O seu time vê:
-
-- As dailies que você confirmou, no consolidado do time
-- Os impedimentos que você confirmou, encaminhados para quem pode ajudar
-- Quem ainda não enviou a daily de hoje
-
-Só você vê:
-
-- Um pull request esperando review há dias
-- A CI falhando na sua branch há um dia
-- Um card do Linear parado em andamento
-
 Sem métricas de produtividade. Sem rankings. Sem contagem de commits. Nada enviado em nome de ninguém.
 
-## Configuração como código
-
-Um arquivo no seu repositório .github. Times, horários, canais do Slack e gestores ficam no `standcast.yml`. Toda mudança passa por review, como código.
-
-- **Validado a cada push.** Um check run `Standcast config` aponta a linha com erro.
-- **Nunca quebra o time.** Um push inválido mantém a última configuração válida em vigor.
-- **Times do GitHub.** Os membros podem ser logins ou `@org/team`.
-
-```yaml
-# .github/standcast.yml
-teams:
-  - name: Backend
-    timezone: America/Sao_Paulo
-    workdays: [mon, tue, wed, thu, fri]
-    remind_at: "09:30"
-    digest_at: "10:00"
-    chat:
-      provider: slack
-      channel: "#daily-backend"
-    tracker:
-      provider: linear
-      team: BE
-    managers: [bruno]
-    members: ["@acme/backend"]
-```
-
-Veja a [referência do standcast.yml](https://docs-standcast.usefachada.dev/pt-BR/admin/configuration).
+[Entenda a privacidade](https://standcast.usefachada.dev/pt-BR/privacidade/index.md)
 
 ## Três jeitos de escrever
 
-### Plugin do Claude Code
+O plugin do Claude Code, qualquer cliente MCP ou o terminal. Escolha o que combina com o seu jeito de trabalhar.
 
-A skill `/daily` rascunha, pergunta o plano de hoje e os impedimentos e confirma com você.
+[Jeitos de escrever](https://standcast.usefachada.dev/pt-BR/como-funciona/index.md)
 
-```text
-/plugin marketplace add \
-  ImFelipeOliveira/standcast
-/plugin install standcast@standcast
-/daily
-```
+## Preços
 
-### Qualquer cliente MCP
+Grátis durante o beta público. Os preços serão anunciados antes do fim do beta.
 
-Cursor, Codex, Claude Desktop e VS Code rodam o [servidor MCP](https://docs-standcast.usefachada.dev/pt-BR/members/mcp) local.
+[Ver preços](https://standcast.usefachada.dev/pt-BR/precos/index.md)
 
-```json
-{
-  "mcpServers": {
-    "standcast": {
-      "command": "standcast",
-      "args": ["mcp"]
-    }
-  }
-}
-```
+## Perguntas frequentes
 
-### Terminal
+O que o GitHub App lê, do que você precisa, quem vê os impedimentos sugeridos e se dá para hospedar por conta própria.
 
-Um binário para macOS, Linux e Windows, conferido contra o SHA256SUMS.
-
-```sh
-standcast login
-standcast draft
-standcast submit
-```
-
-## FAQ
-
-### É grátis?
-
-Sim, durante o beta público.
-
-### O Standcast lê o nosso código?
-
-Não. O GitHub App lê pull requests, reviews, checks, metadados de commits, o standcast.yml e o CODEOWNERS. Ele nunca lê arquivos de código.
-
-### Do que eu preciso?
-
-Uma organização ou conta pessoal no GitHub e um workspace no Slack. O Linear é opcional. Google Chat e Jira estão em desenvolvimento.
-
-### O meu gestor vê os impedimentos sugeridos para mim?
-
-Não. As sugestões aparecem só para você, no seu rascunho. Elas nunca chegam ao consolidado, à API, aos webhooks nem aos gestores.
-
-### Dá para hospedar por conta própria?
-
-Sim. O Standcast tem licença MIT. A [seção de self-hosting do README](https://github.com/ImFelipeOliveira/standcast#self-hosting) cobre a API, o worker e o Postgres.
+[Ler as perguntas](https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/index.md)
 
 ## Beta público
 
-Teste com o seu time. Procuramos times de 3 a 15 pessoas que usam GitHub e Slack. Ajudamos você a configurar. Peça acesso pelo formulário em [standcast.usefachada.dev/pt-BR/#beta](https://standcast.usefachada.dev/pt-BR/#beta).
+Teste com o seu time. Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat. Ajudamos você a configurar. [Pedir acesso ao beta](https://standcast.usefachada.dev/pt-BR/beta/)
+
+[Termos de uso](https://standcast.usefachada.dev/pt-BR/termos/index.md)
 
 Suporte: support.standcast@usefachada.dev

@@ -59,10 +59,10 @@ const FAILURE_REASONS: Record<string, MessageKey> = {
   not_in_channel: 'setup.failure.not_in_channel',
   channel_not_found: 'setup.failure.channel_not_found',
   is_archived: 'setup.failure.is_archived',
-  invalid_auth: 'setup.failure.slack_invalid',
-  not_authed: 'setup.failure.slack_invalid',
-  token_revoked: 'setup.failure.slack_invalid',
-  account_inactive: 'setup.failure.slack_invalid',
+  invalid_auth: 'setup.failure.chat_invalid',
+  not_authed: 'setup.failure.chat_invalid',
+  token_revoked: 'setup.failure.chat_invalid',
+  account_inactive: 'setup.failure.chat_invalid',
   user_not_found: 'setup.failure.user_not_found',
   user_disabled: 'setup.failure.user_disabled',
   ratelimited: 'setup.failure.ratelimited',
@@ -78,6 +78,8 @@ const FAILURE_REASONS: Record<string, MessageKey> = {
   unsupported_provider: 'setup.failure.unsupported_provider',
   internal_error: 'setup.failure.internal_error',
   worker_died: 'setup.failure.worker_died',
+  space_not_linked: 'setup.failure.space_not_linked',
+  no_dm_space: 'setup.failure.no_dm_space',
 };
 
 export type FailureReason = { code: string; text: string | null; detail: string | null };
@@ -104,6 +106,9 @@ const TEAM_NOTICES: Record<TeamNotice['kind'], MessageKey> = {
   truncated: 'setup.teams.truncated',
   channel_not_found: 'setup.teams.channelNotFound',
   channel_not_member: 'setup.teams.channelNotMember',
+  space_not_linked: 'setup.teams.spaceNotLinked',
+  space_not_found: 'setup.teams.spaceNotFound',
+  space_not_member: 'setup.teams.spaceNotMember',
 };
 
 export function noticeText(t: Translate, notice: TeamNotice): string {
@@ -131,4 +136,20 @@ export function errorMessage(t: Translate, error: unknown): string {
   return error instanceof ApiError && error.code === 'invalid_request'
     ? t('error.invalidRequest')
     : t('setup.actionFailed');
+}
+
+const LINK_ERRORS: Record<string, MessageKey> = {
+  invalid_code: 'setup.googleChat.invalidCode',
+  space_already_linked: 'setup.googleChat.alreadyLinked',
+  too_many_spaces: 'setup.googleChat.tooManySpaces',
+  rate_limited: 'setup.googleChat.rateLimited',
+  forbidden: 'setup.googleChat.forbidden',
+};
+
+export function linkErrorMessage(t: Translate, error: unknown): string {
+  const key =
+    error instanceof ApiError && Object.hasOwn(LINK_ERRORS, error.code)
+      ? LINK_ERRORS[error.code]
+      : undefined;
+  return key ? t(key) : errorMessage(t, error);
 }

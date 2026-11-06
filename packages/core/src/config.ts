@@ -3,6 +3,8 @@ import { z } from 'zod';
 
 export type Weekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 export type Language = 'pt-BR' | 'en';
+export const CHAT_PROVIDERS = ['slack', 'google-chat'] as const;
+export type ChatProvider = (typeof CHAT_PROVIDERS)[number];
 
 export type TeamConfig = {
   name: string;
@@ -13,7 +15,7 @@ export type TeamConfig = {
   language: Language;
   managers: string[];
   members: string[];
-  chat: { provider: 'slack' | 'google-chat'; channel: string };
+  chat: { provider: ChatProvider; channel: string };
   tracker?: { provider: 'linear' | 'jira'; team: string };
   signals: { prReviewHours: number; cardStaleDays: number; directMessage: boolean };
 };
@@ -63,7 +65,7 @@ const teamSchema = z.strictObject({
   managers: z.array(manager).min(1),
   members: z.array(login).min(1),
   chat: z.strictObject({
-    provider: z.enum(['slack', 'google-chat']),
+    provider: z.enum(CHAT_PROVIDERS),
     channel: z.string().min(1),
   }),
   tracker: z
@@ -83,6 +85,10 @@ const teamSchema = z.strictObject({
 
 export const SLACK_USER_ID = /^[UW][A-Z0-9]{2,}$/;
 
+export const GOOGLE_CHAT_USER_ID = /^users\/\d+$/;
+
+export const GOOGLE_CHAT_SPACE = /^spaces\/[A-Za-z0-9_-]+$/;
+
 export function isSlackUserId(id: string): boolean {
   return SLACK_USER_ID.test(id);
 }
@@ -94,7 +100,10 @@ export function memberOverrides(config: StandcastConfig, login: string): MemberO
 
 const overridesSchema = z.strictObject({
   slack: z.string().regex(SLACK_USER_ID, 'must be a Slack user id like U0123ABCD').optional(),
-  google_chat: z.string().optional(),
+  google_chat: z
+    .string()
+    .regex(GOOGLE_CHAT_USER_ID, 'must be a Google Chat user like users/123456789')
+    .optional(),
   linear: z.email('linear must be an email address').optional(),
   jira: z.string().optional(),
 });
@@ -122,8 +131,23 @@ const configSchema = z
           message: 'remind_at must be before digest_at',
         });
       }
+      if (t.chat.provider === 'google-chat' && !GOOGLE_CHAT_SPACE.test(t.chat.channel)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['teams', i, 'chat', 'channel'],
+          message: googleChatChannelMessage(t.chat.channel),
+        });
+      }
     });
   });
+
+const GOOGLE_CHAT_SPACE_IN_URL = /\/(?:room|space)\/([A-Za-z0-9_-]+)/;
+
+function googleChatChannelMessage(channel: string): string {
+  const base = 'must be a Google Chat space name like spaces/AAAAxxxxxxx';
+  const fromUrl = GOOGLE_CHAT_SPACE_IN_URL.exec(channel)?.[1];
+  return fromUrl ? `${base}; for this link use spaces/${fromUrl}` : base;
+}
 
 type RawConfig = z.output<typeof configSchema>;
 

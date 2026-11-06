@@ -26,7 +26,7 @@ function docsLocation(docsUrl: string, requestUrl: string): string {
 function llmsText(publicUrl: string, docsUrl: string): string {
   return `# Standcast API
 
-> Standcast orchestrates a team daily standup from GitHub to Slack. The public API is read-only: it exposes organization data to integrators. Dailies are never sent through the public API; they are sent through the MCP server or the CLI.
+> Standcast orchestrates a team daily standup from GitHub to Slack or Google Chat. The public API is read-only: it exposes organization data to integrators. Dailies are never sent through the public API; they are sent through the MCP server or the CLI.
 
 ## API
 

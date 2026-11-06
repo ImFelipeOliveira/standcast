@@ -484,7 +484,9 @@ describe('setup page', () => {
       await setInstallationConfig(db, id, { status: 'unconfigured', reason: 'no_file' });
     });
     const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    expect(await res.text()).toContain('no_file');
+    const html = await res.text();
+    expect(html).toContain('no_file');
+    expect(html).toContain('one Slack team and one Google Chat team');
   });
 
   test('setup prefilled link', async () => {

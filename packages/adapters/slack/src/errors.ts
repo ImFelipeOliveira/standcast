@@ -1,12 +1,6 @@
-export class ChatDeliveryError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-  ) {
-    super(message);
-    this.name = 'ChatDeliveryError';
-  }
-}
+import { ChatDeliveryError } from '@standcast/core';
+
+export { ChatDeliveryError };
 
 export async function mapSlackErrors<T>(run: () => Promise<T>): Promise<T> {
   try {

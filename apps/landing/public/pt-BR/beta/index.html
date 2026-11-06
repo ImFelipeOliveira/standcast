@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Entrar no beta · Standcast</title>
+<meta name="description" content="Peça acesso ao beta público do Standcast. Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat, e ajudamos você a configurar.">
+<meta name="robots" content="max-image-preview:large">
+<link rel="canonical" href="https://standcast.usefachada.dev/pt-BR/beta/">
+<link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/beta/">
+<link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/beta/">
+<link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/beta/">
+<link rel="alternate" type="text/markdown" href="/pt-BR/beta/index.md">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#F6F7FB" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1022" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Standcast">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://standcast.usefachada.dev/pt-BR/beta/">
+<meta property="og:title" content="Entrar no beta · Standcast">
+<meta property="og:description" content="Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat. Ajudamos você a configurar.">
+<meta property="og:image" content="https://standcast.usefachada.dev/og.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="Standcast: your daily standup, written in your AI agent">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Entrar no beta · Standcast">
+<meta name="twitter:description" content="Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat. Ajudamos você a configurar.">
+<meta name="twitter:image" content="https://standcast.usefachada.dev/og.png">
+<link rel="preload" href="/fonts/inter-latin.c9407645.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Standcast","item":"https://standcast.usefachada.dev/pt-BR/"},{"@type":"ListItem","position":2,"name":"Entrar no beta","item":"https://standcast.usefachada.dev/pt-BR/beta/"}]}
+</script>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="/pt-BR/" aria-label="Standcast, início"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
+    <nav aria-label="Principal"><ul>
+      <li><a href="/pt-BR/como-funciona/">Como funciona</a></li>
+      <li><a href="/pt-BR/privacidade/">Privacidade</a></li>
+      <li><a href="/pt-BR/precos/">Preços</a></li>
+      <li><a href="/pt-BR/perguntas-frequentes/">FAQ</a></li>
+      <li><a href="https://docs-standcast.usefachada.dev/pt-BR/">Documentação</a></li>
+      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
+    </ul></nav>
+    <div class="nav-end">
+      <a class="lang" href="/beta/" hreflang="en" lang="en">English</a>
+      <a class="btn btn-primary" href="/pt-BR/beta/">Entrar no beta</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero intro">
+  <div class="wrap">
+    <div class="hero-copy">
+      <nav class="crumbs" aria-label="Navegação estrutural"><ol>
+        <li><a href="/pt-BR/">Início</a></li>
+        <li aria-current="page">Entrar no beta</li>
+      </ol></nav>
+      <span class="eyebrow">Beta público</span>
+      <h1>Teste o Standcast com o seu time.</h1>
+      <p class="lede">Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat. Ajudamos você a configurar.</p>
+    </div>
+  </div>
+</section>
+
+<section id="beta" class="flush">
+  <div class="wrap">
+    <div class="beta">
+      <div class="head tight">
+        <h2>Pedir acesso ao beta</h2>
+        <p class="lede">Conte sobre o seu time. Depois de enviar o formulário, levamos você ao guia de instalação.</p>
+        <p class="fine">Guardamos o seu pedido por 12 meses para falar com o seu time. Veja <a href="https://docs-standcast.usefachada.dev/pt-BR/privacy#pedidos-de-beta">pedidos de beta</a> na página de privacidade.</p>
+      </div>
+      <form id="beta-form" action="https://api-standcast.usefachada.dev/beta" method="post">
+        <p class="invalid" id="beta-invalid" role="alert">Não conseguimos enviar o seu pedido. Confira o nome e o e-mail de trabalho, escolha uma opção em cada lista e tente de novo.</p>
+        <input type="hidden" name="locale" value="pt-BR">
+        <label for="f-name">Nome<input id="f-name" name="name" type="text" autocomplete="name" required maxlength="120"></label>
+        <label for="f-email">E-mail de trabalho<input id="f-email" name="email" type="email" autocomplete="email" required maxlength="254"></label>
+        <label for="f-size">Tamanho do time<select id="f-size" name="team_size" required>
+          <option value="" disabled selected>Escolha</option>
+          <option value="3-5">3–5</option>
+          <option value="6-15">6–15</option>
+          <option value="16+">16+</option>
+        </select></label>
+        <label for="f-chat">Chat<select id="f-chat" name="chat" required>
+          <option value="" disabled selected>Escolha</option>
+          <option value="slack">Slack</option>
+          <option value="google_chat">Google Chat</option>
+          <option value="other">Outro</option>
+        </select></label>
+        <label class="full" for="f-tracker">Gestão de tarefas<select id="f-tracker" name="tracker" required>
+          <option value="" disabled selected>Escolha</option>
+          <option value="linear">Linear</option>
+          <option value="jira">Jira</option>
+          <option value="github">Só GitHub</option>
+          <option value="other">Outro</option>
+        </select></label>
+        <div class="hp" aria-hidden="true"><label for="f-website">Site da empresa<input id="f-website" name="company_website" type="text" tabindex="-1" autocomplete="off"></label></div>
+        <button class="btn btn-primary" type="submit">Pedir acesso ao beta</button>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <a class="brand" href="/pt-BR/" aria-label="Standcast, início"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
+    <ul aria-label="Rodapé">
+      <li><a href="/pt-BR/como-funciona/">Como funciona</a></li>
+      <li><a href="/pt-BR/privacidade/">Privacidade</a></li>
+      <li><a href="/pt-BR/termos/">Termos</a></li>
+      <li><a href="/pt-BR/precos/">Preços</a></li>
+      <li><a href="/pt-BR/perguntas-frequentes/">Perguntas frequentes</a></li>
+      <li><a href="/pt-BR/beta/" aria-current="page">Entrar no beta</a></li>
+      <li><a href="https://docs-standcast.usefachada.dev/pt-BR/">Documentação</a></li>
+      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
+      <li><a href="/llms.txt">llms.txt</a></li>
+      <li><a href="/beta/" hreflang="en" lang="en">English</a></li>
+    </ul>
+    <p>MIT · support.standcast@usefachada.dev</p>
+  </div>
+</footer>
+</body>
+</html>

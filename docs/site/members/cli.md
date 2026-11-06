@@ -16,7 +16,7 @@ Signs in with GitHub using the device flow. The CLI shows a URL and a code, open
 standcast login
 ```
 
-Signing in also links your Slack user for mentions in the digest. Run it again when you join a new organization, when the app is installed in a new one, or when your admin connects Slack or changes your identity mapping.
+Signing in also links your Slack user for mentions in the digest. Run it again when you join a new organization, when the app is installed in a new one, or when your admin connects Slack or changes your identity mapping. Google Chat users are linked by sending the Standcast app a direct message, not by signing in.
 
 ### `standcast logout`
 

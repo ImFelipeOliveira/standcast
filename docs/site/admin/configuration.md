@@ -67,7 +67,7 @@ No other keys are accepted. An unknown key fails validation with `Unrecognized k
 | `managers` | list of GitHub logins, at least one | yes | | `[felipeoliveira]` |
 | `members` | list of GitHub logins or GitHub teams, at least one | yes | | `[alice, "@acme/backend"]` |
 | `chat.provider` | `slack` or `google-chat` | yes | | `slack` |
-| `chat.channel` | text, not empty | yes | | `"#daily-backend"` |
+| `chat.channel` | text, not empty | yes | | `"#daily-backend"` or `spaces/AAAAbbbbCCC` |
 | `tracker.provider` | `linear` or `jira` | no | | `linear` |
 | `tracker.team` | text, not empty | with `tracker` | | `BE` |
 | `signals.pr_review_hours` | number greater than 0 | no | `48` | `24` |
@@ -88,7 +88,7 @@ The days the team has a standup. Digests go out only on these days. A daily sent
 
 ### `remind_at`
 
-The local time of the reminder, sent as a Slack direct message on workdays to people who have not sent the daily. At most one per person per day. It must be before `digest_at`, otherwise the file is invalid. See [How it works](/how-it-works).
+The local time of the reminder, sent as a direct message in Slack or Google Chat on workdays to people who have not sent the daily. At most one per person per day. It must be before `digest_at`, otherwise the file is invalid. See [How it works](/how-it-works).
 
 ### `digest_at`
 
@@ -119,8 +119,9 @@ A person can be in several teams. Their daily appears in every team's digest, an
 
 Where the digest goes.
 
-- `provider`: `slack`. `google-chat` is accepted by the parser but not supported yet: digests for such a team fail with `unsupported_provider`.
-- `channel`: the Slack channel, as `"#name"` (quoted, because `#` starts a comment in YAML) or as a channel id such as `C0123456789`. For a private channel, invite the Standcast bot first. See [Slack](/admin/slack).
+- `provider`: `slack` or `google-chat`. Each team picks its own, so one organization can use both.
+- `channel` for Slack: the Slack channel, as `"#name"` (quoted, because `#` starts a comment in YAML) or as a channel id such as `C0123456789`. For a private channel, invite the Standcast bot first. See [Slack](/admin/slack).
+- `channel` for Google Chat: the space name, such as `spaces/AAAAbbbbCCC`. Any other format fails the `standcast.yml` check; if you paste the space link (`https://chat.google.com/room/AAAAbbbbCCC`), the error tells you the name to use. The space must have the Standcast app and be linked to your organization with a code, otherwise the digest fails with `space_not_linked`. See [Google Chat](/admin/google-chat).
 
 ### `tracker`
 
@@ -132,7 +133,7 @@ tracker:
   team: BE
 ```
 
-- `provider: linear`: Standcast reads the cards of the Linear workspace that an admin connected on the setup page. `team` is the Linear team key, such as `BE`, and limits the activity and the signals to that Linear team. See [Install](/admin/install#5-connect-linear-optional).
+- `provider: linear`: Standcast reads the cards of the Linear workspace that an admin connected on the setup page. `team` is the Linear team key, such as `BE`, and limits the activity and the signals to that Linear team. See [Install](/admin/install#_5-connect-linear-optional).
 - `provider: jira` is accepted by the parser, but Jira is still coming soon. The setup page shows a notice and nothing else happens.
 - If a team uses Linear and Linear is not connected, the setup page warns about it. Nothing breaks: the draft just has no cards.
 
@@ -165,7 +166,7 @@ teams:
 
 ## Several teams
 
-Each team has its own channel, time zone and times. Erin is in both teams, so her standup date follows `backend`, the first team that lists her.
+Each team has its own channel, time zone and times. Here `mobile` uses Google Chat. Erin is in both teams, so her standup date follows `backend`, the first team that lists her.
 
 ```yaml
 teams:
@@ -187,13 +188,13 @@ teams:
     managers: [frank]
     members: [erin, grace]
     chat:
-      provider: slack
-      channel: "#daily-mobile"
+      provider: google-chat
+      channel: spaces/AAAAbbbbCCC
 ```
 
 ## Identity mapping
 
-Standcast mentions people in Slack by matching the primary verified email of their GitHub account with the email of their Slack user. When the emails differ, map the person by hand under the top-level `members` key, using their GitHub login:
+Standcast mentions people in Slack by matching the primary verified email of their GitHub account with the email of their Slack user. In Google Chat, people link themselves by sending the Standcast app a direct message, matched by the same email. When the emails differ, map the person by hand under the top-level `members` key, using their GitHub login:
 
 ```yaml
 teams:
@@ -208,16 +209,19 @@ teams:
       channel: "#daily-backend"
 members:
   bob: { slack: U0456 }
+  erin: { google_chat: users/123456789 }
 ```
 
 | Key | Used today | Value |
 | --- | --- | --- |
 | `slack` | yes | Slack member id, such as `U0456`. In Slack, open the person's profile, click the three dots and **Copy member ID**. |
-| `google_chat` | coming soon | Google Chat user |
+| `google_chat` | yes | Google Chat user, as `users/` followed by digits, such as `users/123456789`. The digits are the person's Google user id. See [Google Chat](/admin/google-chat#how-people-are-linked) |
 | `linear` | yes | Email of the person in Linear. Optional: without it, Standcast uses their primary verified GitHub email. It must be an email |
 | `jira` | coming soon | Jira account |
 
 A `slack` mapping is used from the next digest on, even for people who have never signed in. People without a mapping are linked by email when they sign in with `standcast login` or on the setup page. If you connect a different Slack workspace, the email links are cleared and made again at the next sign-in.
+
+A `google_chat` mapping wins over the link made by a direct message to the app for digest mentions. When the mapping differs from that link, direct messages use it only if that user is a member of a Google Chat space linked to your organization; otherwise they fail with `no_chat_identity`. See [Google Chat](/admin/google-chat#how-people-are-linked).
 
 The `linear` email has priority over the GitHub email. Linear links are made when the person signs in, right after Linear is connected, and whenever `standcast.yml` changes, including people who are in a team through a GitHub team (`@org/team`). Standcast stores the Linear user id, never the email. If you connect a different Linear workspace, the Linear links are cleared.
 
@@ -233,11 +237,12 @@ These are the messages the setup page shows, as `path: message`. `teams.0` is th
 | `teams.0.workdays.0: Invalid option: expected one of "mon"\|"tue"\|"wed"\|"thu"\|"fri"\|"sat"\|"sun"` | `monday`, `Mon`, `seg` | Use the three-letter lowercase English names |
 | `teams.0.workdays: Too small: expected array to have >=1 items` | `workdays: []` | List at least one day, or remove the key |
 | `teams.0.language: Invalid option: expected one of "pt-BR"\|"en"` | `pt`, `pt_BR`, `english` | Use `pt-BR` or `en` |
-| `teams.0.chat.provider: Invalid option: expected one of "slack"\|"google-chat"` | `teams`, `Slack` | Use `slack` |
+| `teams.0.chat.provider: Invalid option: expected one of "slack"\|"google-chat"` | `teams`, `Slack`, `google_chat`, `gchat` | Use `slack` or `google-chat` |
 | `teams.0.members: Too small: expected array to have >=1 items` | `members: []` (same for `managers`) | List at least one person |
 | `teams.0.managers.0: managers must be GitHub logins, not teams or @-prefixed names` | `managers: ["@acme/leads"]` | List the logins, such as `[alice, bob]` |
 | `teams.0: Unrecognized key: "reminder"` | A misspelled or unknown key | Check the key against the tables above |
 | `members.alice.slack: must be a Slack user id like U0123ABCD` | A name, an email, a channel id or `<!channel>` | Use the member id, which starts with `U` or `W` |
+| `members.alice.google_chat: must be a Google Chat user like users/123456789` | An email, a name or a bare number | Use `users/` followed by the digits of the user id |
 | `members.alice: Unrecognized key: "slak"` | A misspelled identity key | Use `slack`, `google_chat`, `linear` or `jira` |
 | `teams.1.name: duplicate team name "backend"` | Two teams with the same name | Rename one of them |
 | `teams.0.signals.pr_review_hours: Too small: expected number to be >0` | `0` or a negative number | Use a positive number |

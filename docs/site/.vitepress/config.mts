@@ -15,6 +15,15 @@ type ThemeConfig = DefaultTheme.Config & { supportEmail: string };
 
 const DOCS_DOMAIN = 'https://docs-standcast.usefachada.dev';
 
+const OG_IMAGE = `${DOCS_DOMAIN}/og.png`;
+
+const OG_ALT = 'Standcast: your daily standup, written in your AI agent';
+
+function pageUrl(relativePath: string): string {
+  const path = relativePath.replace(/\.md$/, '').replace(/(^|\/)index$/, '$1');
+  return `${DOCS_DOMAIN}/${path}`;
+}
+
 const API_REFERENCE = { link: `${publicUrl}/reference`, target: '_self' };
 
 function sidebar(prefix: string, labels: Record<string, string>): DefaultTheme.SidebarItem[] {
@@ -35,6 +44,7 @@ function sidebar(prefix: string, labels: Record<string, string>): DefaultTheme.S
         { text: labels.configuration, link: `${prefix}/admin/configuration` },
         { text: labels.webApp, link: `${prefix}/admin/web-app` },
         { text: 'Slack', link: `${prefix}/admin/slack` },
+        { text: 'Google Chat', link: `${prefix}/admin/google-chat` },
         { text: labels.apiKeys, link: `${prefix}/admin/api-keys` },
         { text: 'Webhooks', link: `${prefix}/admin/webhooks` },
       ],
@@ -128,7 +138,7 @@ export default defineConfigWithTheme<ThemeConfig>({
         injectLLMHint: false,
         ignoreFiles: ['pt-BR/index.md'],
         ignoreFilesPerOutput: { llmsTxt: ['pt-BR/**'], llmsFullTxt: ['pt-BR/**'] },
-        customLLMsTxtTemplate: `# {title}\n\n> Standcast orchestrates your team's daily standup: each person writes it with their AI agent (Claude Code, Cursor, MCP or CLI) from GitHub and Linear activity, confirms it, and Standcast posts one digest per team to Slack.\n\n## Table of Contents\n\n{toc}\n\n## Optional\n\n- [Português (Brasil)](${DOCS_DOMAIN}/pt-BR/llms.txt): the documentation in Portuguese\n`,
+        customLLMsTxtTemplate: `# {title}\n\n> Standcast orchestrates your team's daily standup: each person writes it with their AI agent (Claude Code, Cursor, MCP or CLI) from GitHub and Linear activity, confirms it, and Standcast posts one digest per team to Slack or Google Chat.\n\n## Table of Contents\n\n{toc}\n\n## Optional\n\n- [Português (Brasil)](${DOCS_DOMAIN}/pt-BR/llms.txt): the documentation in Portuguese\n`,
       }),
     ],
   },
@@ -137,12 +147,38 @@ export default defineConfigWithTheme<ThemeConfig>({
       publicUrlPlugin(publicUrl)(md);
     },
   },
-  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }]],
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+    ['meta', { name: 'robots', content: 'max-image-preview:large' }],
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:site_name', content: 'Standcast' }],
+    ['meta', { property: 'og:image', content: OG_IMAGE }],
+    ['meta', { property: 'og:image:width', content: '1280' }],
+    ['meta', { property: 'og:image:height', content: '640' }],
+    ['meta', { property: 'og:image:alt', content: OG_ALT }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:image', content: OG_IMAGE }],
+  ],
+  transformPageData: (pageData, { siteConfig }) => {
+    const locale = pageData.relativePath.startsWith('pt-BR/') ? 'pt-BR' : 'root';
+    const localeConfig = siteConfig.site.locales[locale];
+    const title = pageData.frontmatter.layout === 'home' || !pageData.title
+      ? 'Standcast'
+      : `${pageData.title} | Standcast`;
+    const description = pageData.description || localeConfig?.description || '';
+    const head = (pageData.frontmatter.head ??= []);
+    head.push(
+      ['meta', { property: 'og:title', content: title }],
+      ['meta', { property: 'og:description', content: description }],
+      ['meta', { property: 'og:url', content: pageUrl(pageData.relativePath) }],
+      ['meta', { property: 'og:locale', content: locale === 'pt-BR' ? 'pt_BR' : 'en_US' }],
+    );
+  },
   locales: {
     root: {
       label: 'English',
       lang: 'en',
-      description: 'Standcast orchestrates your team daily standup from GitHub to Slack.',
+      description: 'Standcast orchestrates your team daily standup from GitHub to Slack or Google Chat.',
       themeConfig: {
         nav: [
           { text: 'Docs', link: '/' },
@@ -157,7 +193,7 @@ export default defineConfigWithTheme<ThemeConfig>({
       label: 'Português (Brasil)',
       lang: 'pt-BR',
       link: '/pt-BR/',
-      description: 'O Standcast orquestra a daily do seu time, do GitHub ao Slack.',
+      description: 'O Standcast orquestra a daily do seu time, do GitHub ao Slack ou ao Google Chat.',
       themeConfig: {
         nav: [
           { text: 'Docs', link: '/pt-BR/' },

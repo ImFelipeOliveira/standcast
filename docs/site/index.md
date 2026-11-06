@@ -4,13 +4,13 @@
 Standcast is in public beta. Expect rough edges and changes to behaviour, configuration and the API before 1.0. Report problems in [GitHub issues](https://github.com/ImFelipeOliveira/standcast/issues) or by email (see [Privacy](/privacy)).
 :::
 
-Standcast runs your team's daily standup. Each person writes their daily with their AI agent, starting from a draft of what they did on GitHub. Standcast collects the dailies and posts one digest per team to Slack at the time you choose.
+Standcast runs your team's daily standup. Each person writes their daily with their AI agent, starting from a draft of what they did on GitHub. Standcast collects the dailies and posts one digest per team to Slack or Google Chat at the time you choose.
 
 ## What it is
 
 Standcast is two things that work together:
 
-- **A GitHub App** that your organization admin installs. It reads the team setup from a `standcast.yml` file, receives the dailies and posts the team digest to Slack.
+- **A GitHub App** that your organization admin installs. It reads the team setup from a `standcast.yml` file, receives the dailies and posts the team digest to Slack or Google Chat.
 - **A skill, a CLI and an MCP server** that each person uses with their AI agent (Claude Code, Cursor, Codex, Claude Desktop, VS Code). The agent fetches a draft of yesterday's work, the person fixes it, writes today's plan and blockers, and confirms before anything is sent.
 
 It solves three problems that show up once a team writes dailies with AI:
@@ -22,14 +22,14 @@ It solves three problems that show up once a team writes dailies with AI:
 ## Who it is for
 
 - **Members** write their own daily through their AI agent. Start with [Getting started](/members/getting-started).
-- **Managers** get the team digest in Slack and can read their team's dailies, digests and blockers from their own AI agent. Start with [MCP server](/members/mcp).
-- **Admins** install the GitHub App, connect Slack and write `standcast.yml`. Start with [Install](/admin/install).
+- **Managers** get the team digest in Slack or Google Chat and can read their team's dailies, digests and blockers from their own AI agent. Start with [MCP server](/members/mcp).
+- **Admins** install the GitHub App, connect Slack or Google Chat and write `standcast.yml`. Start with [Install](/admin/install).
 - **Integrators** read organization data with an API key and receive webhooks. Start with the [API overview](/api/overview).
 
 ## How it works
 
 ```text
-  Member's AI agent                    Standcast                         Slack
+  Member's AI agent                    Standcast                       Slack / Google Chat
  ┌──────────────────────┐   draft   ┌────────────────────────┐      ┌───────────────────┐
  │ /daily skill         │ ◀──────── │ API                    │      │ #daily-backend    │
  │ standcast CLI        │           │  · reads GitHub        │      │                   │
@@ -55,7 +55,7 @@ Around it, Standcast orchestrates the day:
 - suggested blockers, such as a pull request waiting for review or with failing CI, appear only to you, in your own draft;
 - every change to `standcast.yml` is validated by a GitHub check run.
 
-Linear cards show up in the draft and in blocker routing. Coming soon: Google Chat and Jira.
+Linear cards show up in the draft and in blocker routing. Coming soon: Jira.
 
 Read [How it works](/how-it-works) for the full cycle of a day.
 
@@ -64,7 +64,7 @@ Read [How it works](/how-it-works) for the full cycle of a day.
 - **It is not a surveillance tool.** The person always has the final word on their own daily. Nothing is sent on someone's behalf without their explicit confirmation.
 - **It does not measure productivity.** There are no rankings, scores, commit counts per person or per-person aggregates, in the digest, the API or the MCP tools.
 - **It does not write the daily for you.** The draft is a starting point. Today's plan and the blockers are written by the person.
-- **It does not read your code or your Slack messages.** See [Privacy](/privacy).
+- **It does not read your code or your Slack or Google Chat messages.** See [Privacy](/privacy).
 - **It does not send your data to an AI model.** No LLM processes your data on the Standcast servers. Your own agent runs on your machine, with your own account.
 
 ## Start here

@@ -8,10 +8,11 @@
   "dependencies": {
     "@hono/zod-openapi": "^1.6.3",
     "@octokit/webhooks": "^14.2.0",
-    "@scalar/hono-api-reference": "^0.12.16",
+    "@scalar/hono-api-reference": "^0.12.17",
     "@standcast/core": "workspace:*",
     "@standcast/db": "workspace:*",
     "@standcast/github": "workspace:*",
+    "@standcast/google-chat": "workspace:*",
     "@standcast/linear": "workspace:*",
     "@standcast/orchestrator": "workspace:*",
     "@standcast/queue": "workspace:*",

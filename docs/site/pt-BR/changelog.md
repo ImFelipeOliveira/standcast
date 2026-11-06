@@ -10,6 +10,16 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- Google Chat: um time com `chat.provider: google-chat` recebe o consolidado num espaço do Google Chat, as dailies atrasadas na thread dele, e os lembretes, os impedimentos encaminhados e os impedimentos sugeridos por mensagem direta, pelo app do Standcast para o Google Chat. Adicione o app a um espaço, e um admin cola o código de vínculo que ele publica no app web (Configuração → Google Chat) ou na página de setup. Cada pessoa se vincula mandando uma mensagem direta para o app uma vez, ou com `members.<login>.google_chat: users/<dígitos>` no `standcast.yml`. Uma organização pode usar o Slack num time e o Google Chat em outro. O app funciona nos domínios do Google Workspace em que está disponível; uma listagem no Google Workspace Marketplace vem em breve. Veja [Google Chat](/pt-BR/admin/google-chat).
+- O modelo de `standcast.yml` da página de setup tem um time no Slack e um no Google Chat. Apague o que você não usa.
+- No app web, as entregas com falha que qualquer chat pode causar não citam mais o Slack.
+- Um time com `chat.provider: google-chat` precisa de um nome de espaço (`spaces/...`) em `chat.channel`. Antes, qualquer texto passava na verificação do `standcast.yml` e o consolidado falhava depois com `space_not_linked`. Quando o valor é o link do espaço, o erro diz o nome a usar.
+- Quando o app do Google Chat não acha a sua conta pelo e-mail, ou acha mais de uma, ele responde também com o seu id no Google Chat (`users/<dígitos>`), pronto para um admin pôr em `members.<login>.google_chat` no `standcast.yml`.
+
+### 0.4.1 — 02/11/2026
+
+- Só documentação: as entradas do changelog da 0.4.0. Nenhuma mudança no produto.
+
 ### 0.4.0 — 02/11/2026
 
 - O rascunho da daily pode usar as suas sessões locais de IA: o `standcast draft --sessions`, a tool `standcast_get_draft` do MCP (`includeSessions`, ligado por padrão) e a skill `/daily` leem as suas sessões do Claude Code na sua máquina e as agrupam com os seus pull requests, cards e commits no `work`, então o ontem vira uma linha por trabalho. O Standcast nunca envia os dados das sessões para a API dele; o seu cliente de IA recebe esses dados e pode enviá-los ao provedor do modelo dele. Para desligar, use `STANDCAST_SESSIONS=off`. Veja [Privacidade](/pt-BR/privacy#suas-sessoes-de-ia-na-sua-maquina).

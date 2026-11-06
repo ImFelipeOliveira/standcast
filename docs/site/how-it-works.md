@@ -23,11 +23,11 @@ Alice edits yesterday, writes today and one blocker, asks for a review on her mi
 
 ## 09:30 · Reminder
 
-At `remind_at`, in the team's time zone and only on workdays, people who have not sent the daily get a direct message in Slack. The message says when their digest goes out. It is the earliest pending digest if the person is in several teams.
+At `remind_at`, in the team's time zone and only on workdays, people who have not sent the daily get a direct message in Slack or Google Chat, depending on the team. The message says when their digest goes out. It is the earliest pending digest if the person is in several teams.
 
 - At most one reminder per person per day, even across several teams.
 - It is sent only while `remind_at` has passed and `digest_at` has not. If the worker was down, it can still go out up to 60 minutes after `remind_at`, but never at or after `digest_at`, and never once the team's digest has been posted.
-- People without a Slack identity get the failed delivery `no_chat_identity` on the setup page. See [Slack](/admin/slack#delivery-errors).
+- People without a chat identity get the failed delivery `no_chat_identity` on the setup page. See the delivery errors for [Slack](/admin/slack#delivery-errors) and [Google Chat](/admin/google-chat#delivery-errors).
 - `remind_at` must be before `digest_at`, otherwise the file is invalid.
 
 ## 10:00 · The digest
@@ -40,7 +40,7 @@ At `digest_at`, in the team's time zone and only on workdays, Standcast posts on
 4. each person's yesterday and today, in the order of `members` in `standcast.yml`;
 5. the people who did not send the daily.
 
-People are mentioned in Slack when Standcast knows their Slack user. Otherwise they appear as `@` followed by their GitHub login, as plain text. See [Slack](/admin/slack#how-people-are-mentioned).
+People are mentioned in Slack or Google Chat when Standcast knows their user there. Otherwise they appear as `@` followed by their GitHub login, as plain text. See [Slack](/admin/slack#how-people-are-mentioned) and [Google Chat](/admin/google-chat#how-people-are-linked).
 
 There is exactly one digest per team per day. If the worker is down at 10:00, the digest goes out when it comes back, as long as that is within 120 minutes. After 12:00 it is skipped for that day. A failed post is retried up to 3 attempts in total, and the error shows up on the setup page.
 
@@ -66,12 +66,12 @@ Rules:
 
 - The author never receives their own blocker, and at most 5 people get it.
 - For cards, only people linked to Standcast are considered, and cards from another Linear workspace are never read: they go to the managers. If Linear is not connected or its access was revoked, a card blocker goes to the managers.
-- If none of the people found has a Slack identity, or GitHub could not be read, the blocker goes to the managers.
+- If none of the people found has a chat identity, or GitHub could not be read, the blocker goes to the managers.
 - Pull requests from other organizations are not read, and go to the managers.
 - A blocker with a link is identified by the link, so rewording it or sending the daily again does not send it again. Without a link, the text identifies it. At most 10 different blockers per daily are routed.
 - The message says why the person got it: requested reviewer, code owner, owner of the blocking card, assignee, creator or team manager.
 - The message has only who reported it, the blocker text, the link and the date. It never includes the rest of the daily.
-- If there is no recipient at all, for example when the author is the team's only manager, the failed delivery `no_route_target` shows on the setup page. A manager without a Slack identity shows as `no_chat_identity`.
+- If there is no recipient at all, for example when the author is the team's only manager, the failed delivery `no_route_target` shows on the setup page. A manager without a chat identity shows as `no_chat_identity`.
 
 Blockers also appear at the top of the digest, in the `blocker.opened` webhook and in the manager tools.
 

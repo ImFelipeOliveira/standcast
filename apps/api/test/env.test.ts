@@ -91,4 +91,60 @@ describe('parseEnv', () => {
       expect(() => parseEnv({ ...base, LANDING_URL }), LANDING_URL).toThrow();
     }
   });
+
+  test('google chat is off without GOOGLE_CHAT_SERVICE_ACCOUNT', () => {
+    expect(parseEnv(base).GOOGLE_CHAT_SERVICE_ACCOUNT).toBeUndefined();
+    expect(parseEnv({ ...base, GOOGLE_CHAT_SERVICE_ACCOUNT: '' }).GOOGLE_CHAT_SERVICE_ACCOUNT).toBe(
+      undefined,
+    );
+  });
+
+  test('GOOGLE_CHAT_SERVICE_ACCOUNT is parsed at startup and fails fast when malformed', () => {
+    const key = Buffer.from(
+      JSON.stringify({ client_email: 'bot@p.iam.gserviceaccount.com', private_key: 'pem' }),
+    ).toString('base64');
+    expect(
+      parseEnv({ ...base, GOOGLE_CHAT_SERVICE_ACCOUNT: key, GOOGLE_CHAT_PROJECT_NUMBER: '1' })
+        .GOOGLE_CHAT_SERVICE_ACCOUNT,
+    ).toEqual({ clientEmail: 'bot@p.iam.gserviceaccount.com', privateKey: 'pem' });
+    for (const GOOGLE_CHAT_SERVICE_ACCOUNT of [
+      'not base64 json',
+      Buffer.from('{}').toString('base64'),
+    ]) {
+      expect(() => parseEnv({ ...base, GOOGLE_CHAT_SERVICE_ACCOUNT })).toThrow(
+        /must be a base64 encoded service account JSON key[\s\S]*GOOGLE_CHAT_SERVICE_ACCOUNT/,
+      );
+    }
+  });
+
+  test('GOOGLE_CHAT_PROJECT_NUMBER is required with GOOGLE_CHAT_SERVICE_ACCOUNT', () => {
+    const key = Buffer.from(
+      JSON.stringify({ client_email: 'bot@p.iam.gserviceaccount.com', private_key: 'pem' }),
+    ).toString('base64');
+    for (const GOOGLE_CHAT_PROJECT_NUMBER of [undefined, '']) {
+      expect(() =>
+        parseEnv({ ...base, GOOGLE_CHAT_SERVICE_ACCOUNT: key, GOOGLE_CHAT_PROJECT_NUMBER }),
+      ).toThrow(
+        /GOOGLE_CHAT_PROJECT_NUMBER[\s\S]*is required when GOOGLE_CHAT_SERVICE_ACCOUNT is set/,
+      );
+    }
+    expect(
+      parseEnv({
+        ...base,
+        GOOGLE_CHAT_SERVICE_ACCOUNT: key,
+        GOOGLE_CHAT_PROJECT_NUMBER: '123456789012',
+      }).GOOGLE_CHAT_PROJECT_NUMBER,
+    ).toBe('123456789012');
+  });
+
+  test('GOOGLE_CHAT_PROJECT_NUMBER must be digits', () => {
+    for (const GOOGLE_CHAT_PROJECT_NUMBER of [
+      'my-project',
+      'https://x.test/webhooks/google-chat',
+    ]) {
+      expect(() => parseEnv({ ...base, GOOGLE_CHAT_PROJECT_NUMBER })).toThrow(
+        /GOOGLE_CHAT_PROJECT_NUMBER[\s\S]*must be the numeric Google Cloud project number/,
+      );
+    }
+  });
 });

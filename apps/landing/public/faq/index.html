@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FAQ · Standcast</title>
+<meta name="description" content="Answers about Standcast: the free public beta, what the GitHub App reads, what you need, who sees suggested blockers and self-hosting.">
+<meta name="robots" content="max-image-preview:large">
+<link rel="canonical" href="https://standcast.usefachada.dev/faq/">
+<link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/faq/">
+<link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/">
+<link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/faq/">
+<link rel="alternate" type="text/markdown" href="/faq/index.md">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#F6F7FB" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1022" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Standcast">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="pt_BR">
+<meta property="og:url" content="https://standcast.usefachada.dev/faq/">
+<meta property="og:title" content="FAQ · Standcast">
+<meta property="og:description" content="The free public beta, what the GitHub App reads, what you need, who sees suggested blockers and self-hosting.">
+<meta property="og:image" content="https://standcast.usefachada.dev/og.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="Standcast: your daily standup, written in your AI agent">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FAQ · Standcast">
+<meta name="twitter:description" content="The free public beta, what the GitHub App reads, what you need, who sees suggested blockers and self-hosting.">
+<meta name="twitter:image" content="https://standcast.usefachada.dev/og.png">
+<link rel="preload" href="/fonts/inter-latin.c9407645.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"en","mainEntity":[
+{"@type":"Question","name":"Is it free?","acceptedAnswer":{"@type":"Answer","text":"Yes, during the public beta."}},
+{"@type":"Question","name":"How much will it cost after the beta?","acceptedAnswer":{"@type":"Answer","text":"Pricing will be announced before the public beta ends."}},
+{"@type":"Question","name":"Does Standcast read our code?","acceptedAnswer":{"@type":"Answer","text":"No. The GitHub App reads pull requests, reviews, checks, commit metadata, standcast.yml and CODEOWNERS. It never reads source files."}},
+{"@type":"Question","name":"What do I need?","acceptedAnswer":{"@type":"Answer","text":"A GitHub organization or personal account, and a Slack workspace or Google Chat in Google Workspace. Linear is optional. Jira is in development."}},
+{"@type":"Question","name":"Which agents can I write my daily with?","acceptedAnswer":{"@type":"Answer","text":"Claude Code, Cursor, Codex, Claude Desktop and VS Code, through the Claude Code plugin or the local MCP server. The terminal works too."}},
+{"@type":"Question","name":"Can my manager see my suggested blockers?","acceptedAnswer":{"@type":"Answer","text":"No. Suggestions are visible only to you, in your own draft. They never reach the digest, the API, webhooks or managers."}},
+{"@type":"Question","name":"Can Standcast send a daily for me?","acceptedAnswer":{"@type":"Answer","text":"No. The MCP submit tool needs confirmed: true, which the agent passes only after you approve the text."}},
+{"@type":"Question","name":"Can we self-host?","acceptedAnswer":{"@type":"Answer","text":"Yes. Standcast is MIT licensed. The self-hosting section of the README covers the API, the worker and Postgres."}}
+]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Standcast","item":"https://standcast.usefachada.dev/"},{"@type":"ListItem","position":2,"name":"FAQ","item":"https://standcast.usefachada.dev/faq/"}]}
+</script>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
+    <nav aria-label="Main"><ul>
+      <li><a href="/how-it-works/">How it works</a></li>
+      <li><a href="/privacy/">Privacy</a></li>
+      <li><a href="/pricing/">Pricing</a></li>
+      <li><a href="/faq/" aria-current="page">FAQ</a></li>
+      <li><a href="https://docs-standcast.usefachada.dev/">Docs</a></li>
+      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
+    </ul></nav>
+    <div class="nav-end">
+      <a class="lang" href="/pt-BR/perguntas-frequentes/" hreflang="pt-BR" lang="pt-BR">Português</a>
+      <a class="btn btn-primary" href="/beta/">Join the beta</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero intro">
+  <div class="wrap">
+    <div class="hero-copy">
+      <nav class="crumbs" aria-label="Breadcrumb"><ol>
+        <li><a href="/">Home</a></li>
+        <li aria-current="page">FAQ</li>
+      </ol></nav>
+      <span class="eyebrow">FAQ</span>
+      <h1>Questions before you install.</h1>
+      <p class="lede">What Standcast costs, what it reads, what it needs and who sees what.</p>
+    </div>
+  </div>
+</section>
+
+<section class="flush" id="questions">
+  <div class="wrap faq">
+    <div class="head">
+      <span class="eyebrow">Support</span>
+      <h2>Still have a question?</h2>
+      <p class="lede">Write to support.standcast@usefachada.dev or read the <a href="https://docs-standcast.usefachada.dev/">documentation</a>.</p>
+    </div>
+    <div>
+      <details open><summary>Is it free?</summary><p>Yes, during the public beta.</p></details>
+      <details><summary>How much will it cost after the beta?</summary><p>Pricing will be announced before the public beta ends.</p></details>
+      <details><summary>Does Standcast read our code?</summary><p>No. The GitHub App reads pull requests, reviews, checks, commit metadata, standcast.yml and CODEOWNERS. It never reads source files.</p></details>
+      <details><summary>What do I need?</summary><p>A GitHub organization or personal account, and a Slack workspace or Google Chat in Google Workspace. Linear is optional. Jira is in development.</p></details>
+      <details><summary>Which agents can I write my daily with?</summary><p>Claude Code, Cursor, Codex, Claude Desktop and VS Code, through the Claude Code plugin or the local MCP server. The terminal works too.</p></details>
+      <details><summary>Can my manager see my suggested blockers?</summary><p>No. Suggestions are visible only to you, in your own draft. They never reach the digest, the API, webhooks or managers.</p></details>
+      <details><summary>Can Standcast send a daily for me?</summary><p>No. The MCP submit tool needs <code>confirmed: true</code>, which the agent passes only after you approve the text.</p></details>
+      <details><summary>Can we self-host?</summary><p>Yes. Standcast is MIT licensed. The <a href="https://github.com/ImFelipeOliveira/standcast#self-hosting">self-hosting section of the README</a> covers the API, the worker and Postgres.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="flush">
+  <div class="wrap">
+    <div class="beta">
+      <div class="head tight">
+        <span class="eyebrow">Public beta</span>
+        <h2>Try it with your team.</h2>
+        <p class="lede">We're looking for teams of 3 to 15 people on GitHub and Slack or Google Chat. We'll help you set it up.</p>
+      </div>
+      <div class="beta-cta">
+        <div class="cta-row">
+          <a class="btn btn-primary" href="/beta/">Join the beta</a>
+          <a class="btn btn-ghost" href="https://docs-standcast.usefachada.dev/admin/install">Install for your org</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
+    <ul aria-label="Footer">
+      <li><a href="/how-it-works/">How it works</a></li>
+      <li><a href="/privacy/">Privacy</a></li>
+      <li><a href="/terms/">Terms</a></li>
+      <li><a href="/pricing/">Pricing</a></li>
+      <li><a href="/faq/" aria-current="page">FAQ</a></li>
+      <li><a href="/beta/">Join the beta</a></li>
+      <li><a href="https://docs-standcast.usefachada.dev/">Documentation</a></li>
+      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
+      <li><a href="/llms.txt">llms.txt</a></li>
+      <li><a href="/pt-BR/perguntas-frequentes/" hreflang="pt-BR" lang="pt-BR">Português</a></li>
+    </ul>
+    <p>MIT · support.standcast@usefachada.dev</p>
+  </div>
+</footer>
+</body>
+</html>

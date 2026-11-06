@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { ChatDeliveryError } from '@standcast/slack';
-import { describeDeliveryError } from '../../src/use-cases/delivery-error';
+import { describeDeliveryError, isTerminalDeliveryError } from '../../src/use-cases/delivery-error';
 
 describe('describeDeliveryError', () => {
   test('a known chat error keeps its code with a safe message', () => {
@@ -33,5 +33,36 @@ describe('describeDeliveryError', () => {
     const described = describeDeliveryError(error);
     expect(described).toBe('internal_error: unexpected error');
     expect(describeDeliveryError('boom')).toBe('internal_error: unexpected error');
+  });
+
+  test('google chat errors use google chat copy', () => {
+    expect(
+      describeDeliveryError(new ChatDeliveryError('not_in_channel', 'raw'), 'google-chat'),
+    ).toBe('not_in_channel: the Standcast app is not in the space');
+    expect(
+      describeDeliveryError(new ChatDeliveryError('space_not_linked', 'raw'), 'google-chat'),
+    ).toBe('space_not_linked: the space is not linked to this organization');
+    expect(describeDeliveryError(new ChatDeliveryError('no_dm_space', 'raw'), 'google-chat')).toBe(
+      'no_dm_space: the person has not opened a chat with the Standcast app yet',
+    );
+    expect(describeDeliveryError(new ChatDeliveryError('invalid_auth', 'raw'), 'google-chat')).toBe(
+      'invalid_auth: the Google Chat credentials are not valid',
+    );
+    expect(describeDeliveryError(new ChatDeliveryError('weird', 'raw'), 'google-chat')).toBe(
+      'weird: Google Chat rejected the message',
+    );
+  });
+
+  test('slack copy stays the default', () => {
+    expect(describeDeliveryError(new ChatDeliveryError('timeout', 'raw'), 'slack')).toBe(
+      'timeout: Slack did not answer in time',
+    );
+  });
+
+  test('only a missing dm space is terminal', () => {
+    expect(isTerminalDeliveryError(new ChatDeliveryError('no_dm_space', 'raw'))).toBe(true);
+    expect(isTerminalDeliveryError(new ChatDeliveryError('space_not_linked', 'raw'))).toBe(true);
+    expect(isTerminalDeliveryError(new ChatDeliveryError('timeout', 'raw'))).toBe(false);
+    expect(isTerminalDeliveryError(new Error('no_dm_space'))).toBe(false);
   });
 });

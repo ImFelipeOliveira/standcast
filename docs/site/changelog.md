@@ -10,6 +10,16 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- Google Chat: a team with `chat.provider: google-chat` gets the digest in a Google Chat space, late dailies in its thread, and reminders, routed blockers and suggested blockers by direct message, through the Standcast app for Google Chat. Add the app to a space, and an admin pastes the link code it posts in the web app (Settings → Google Chat) or on the setup page. People link themselves by sending the app a direct message once, or with `members.<login>.google_chat: users/<digits>` in `standcast.yml`. One organization can use Slack for one team and Google Chat for another. The app works in Google Workspace domains where it is available; a Google Workspace Marketplace listing is coming. See [Google Chat](/admin/google-chat).
+- The `standcast.yml` template on the setup page has one team on Slack and one on Google Chat. Delete the one you do not use.
+- In the web app, failed deliveries that any chat can cause no longer name Slack.
+- A team with `chat.provider: google-chat` needs a space name (`spaces/...`) in `chat.channel`. Before, any text passed the `standcast.yml` check and the digest failed later with `space_not_linked`. When the value is the space link, the error tells you the name to use.
+- When the Google Chat app finds no account for your email, or more than one, it also answers with your Google Chat id (`users/<digits>`), ready for an admin to put under `members.<login>.google_chat` in `standcast.yml`.
+
+### 0.4.1 — 2026-11-02
+
+- Documentation only: the 0.4.0 changelog entries. No product changes.
+
 ### 0.4.0 — 2026-11-02
 
 - The daily draft can use your local AI sessions: `standcast draft --sessions`, the MCP `standcast_get_draft` tool (`includeSessions`, on by default) and the `/daily` skill read your Claude Code sessions on your machine and group them with your pull requests, cards and commits into `work`, so yesterday becomes one line per piece of work. Standcast never sends session data to its API; your AI client receives it and may send it to its model provider. Turn it off with `STANDCAST_SESSIONS=off`. See [Privacy](/privacy#your-ai-sessions-on-your-machine).

@@ -1,6 +1,6 @@
 import type { RemindNowResult, SetupStatus } from '@standcast/orchestrator';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiPost } from './client';
+import { apiDelete, apiPost } from './client';
 import { setupStatusQuery, teamTodayQuery } from './queries';
 
 type ManagedKeys = Extract<SetupStatus['apiKeys'], { manage: true }>;
@@ -16,6 +16,7 @@ export type CreateApiKeyInput = { name: string; scopes: ApiKeyScope[] };
 export type CreatedApiKey = { key: ApiKeySummary; secret: string };
 export type CreateWebhookInput = { url: string; events: WebhookEvent[] };
 export type CreatedWebhook = { endpoint: WebhookEndpoint; secret: string };
+export type LinkedGoogleChatSpace = { space: string; displayName: string };
 
 const orgPath = (installationId: number) => `/v1/app/orgs/${installationId}`;
 
@@ -58,6 +59,18 @@ export function useDisableWebhook(installationId: number) {
 export function useTestWebhook(installationId: number) {
   return useSetupMutation(installationId, (endpointId: string) =>
     apiPost<void>(`${orgPath(installationId)}/webhooks/${encodeURIComponent(endpointId)}/test`),
+  );
+}
+
+export function useLinkGoogleChatSpace(installationId: number) {
+  return useSetupMutation(installationId, (code: string) =>
+    apiPost<LinkedGoogleChatSpace>(`${orgPath(installationId)}/google-chat/spaces`, { code }),
+  );
+}
+
+export function useUnlinkGoogleChatSpace(installationId: number) {
+  return useSetupMutation(installationId, (space: string) =>
+    apiDelete<void>(`${orgPath(installationId)}/google-chat/spaces/${encodeURIComponent(space)}`),
   );
 }
 

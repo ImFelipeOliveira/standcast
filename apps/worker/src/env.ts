@@ -1,4 +1,21 @@
+import { parseServiceAccount } from '@standcast/google-chat';
 import { z } from 'zod';
+
+const googleChatServiceAccount = z
+  .string()
+  .optional()
+  .transform((value, ctx) => {
+    if (!value) return undefined;
+    try {
+      return parseServiceAccount(value);
+    } catch {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'must be a base64 encoded service account JSON key',
+      });
+      return z.NEVER;
+    }
+  });
 
 const schema = z
   .object({
@@ -17,6 +34,7 @@ const schema = z
     SUPPORT_EMAIL: z.string().optional(),
     RESEND_API_KEY: z.string().optional(),
     BETA_EMAIL_FROM: z.string().optional(),
+    GOOGLE_CHAT_SERVICE_ACCOUNT: googleChatServiceAccount,
   })
   .superRefine((value, ctx) => {
     if (value.RESEND_API_KEY && !value.BETA_EMAIL_FROM) {

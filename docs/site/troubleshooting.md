@@ -10,6 +10,8 @@ Reminders go only to people who have not sent the daily, at most once per day, a
 
 Standcast has no Slack user for you, so it cannot send you a reminder or a routed blocker. The failed delivery shows on the setup page. Sign in again with `standcast login` after Slack was connected, or ask your admin to add `members.<your-login>.slack` to `standcast.yml`. See [My name shows as @login](#my-name-shows-as-login).
 
+On Google Chat, Standcast has no Google Chat user for you. Send the Standcast app a direct message in Google Chat, or ask your admin to add `members.<your-login>.google_chat`. See [Google Chat does not link me](#google-chat-does-not-link-me).
+
 ## `no_route_target`
 
 A blocker was reported but there was nobody to send it to at all. This happens, for example, when the author is the team's only manager: the author never receives their own blocker, so the list of recipients is empty. Ask your admin to add another manager to the team, then tell the right people by hand. A manager who exists but has no Slack identity shows as `no_chat_identity` with their login instead.
@@ -19,7 +21,7 @@ A blocker was reported but there was nobody to send it to at all. This happens, 
 1. **Blockers are routed once.** A blocker with a link is identified by the link: rewording it, or sending the daily again, does not send it again. A blocker without a link is identified by its text. At most 10 different blockers per daily are routed.
 2. **The link decides.** A pull request in your own organization goes to its requested reviewers, then its CODEOWNERS. A link to another organization, a malformed link or a missing pull request goes to the managers. Without a link, it goes to the managers.
 3. **You are never a recipient** of your own blocker.
-4. **People need a Slack identity.** If none of the people found has one, the blocker goes to the managers. A manager without one shows on the setup page as `no_chat_identity` with their login. If there is no manager to send it to at all, the setup page shows `no_route_target`.
+4. **People need a chat identity** in Slack or Google Chat, depending on the team. If none of the people found has one, the blocker goes to the managers. A manager without one shows on the setup page as `no_chat_identity` with their login. If there is no manager to send it to at all, the setup page shows `no_route_target`.
 
 ## My name shows as @login
 
@@ -32,6 +34,22 @@ The digest shows `@` and your GitHub login, as plain text, when Standcast does n
 ## The setup page shows a notice about a GitHub team
 
 The notice says that a GitHub team named in `standcast.yml` was not found, or is too large. For a team that was not found, check the name in `members` and that the GitHub App has the **Members** organization permission, which an owner of the organization must approve. For a team that is too large, only the first 5,000 members are used; list the rest by login. The notice goes away once the next configuration load no longer finds the problem.
+
+## Google Chat does not link me
+
+You link yourself by sending the Standcast app a direct message in Google Chat. Check the app's answer:
+
+1. **"No Standcast account uses this email"**: run `standcast login` first, then message the app again. If your Google account uses another email than your GitHub account, ask your admin to add `members.<your-login>.google_chat` with your user id, such as `users/123456789`.
+2. **"none of your organizations has connected Google Chat"**: an admin must first link a space. See [Google Chat](/admin/google-chat#_2-link-the-space).
+3. **No answer at all**: the app may not be available in your Google Workspace yet. See [Availability](/admin/google-chat#availability).
+
+## `no_dm_space`
+
+You are linked to Google Chat, but you never opened a direct message with the Standcast app, so Google Chat does not let it message you. Send the app a direct message once. These deliveries are not retried.
+
+## `space_not_linked`
+
+The team's `chat.channel` names a Google Chat space that is not linked to your organization. Nothing is posted. Add the Standcast app to the space and ask an admin to paste the code it posts in the Google Chat card. If the code says the space is linked to another organization, an admin there must unlink it first.
 
 ## How do I sign out of the setup page?
 
@@ -57,10 +75,10 @@ The setup page says that the connection to your Linear workspace "stopped workin
 Open the setup page and check, in order:
 
 1. **The configuration state.** If it is not configured, or invalid with no valid version in use, Standcast does not run. If it is invalid after a valid version, Standcast keeps using the last valid version, so a change you just pushed is not applied yet. See [Configuration states](/admin/install#configuration-states).
-2. **Slack is connected.** Otherwise the delivery fails with `no_chat_connection`. Only an admin can connect Slack.
-3. **"Latest failed deliveries"** for the team and date. The error code tells what happened; see [Delivery errors](/admin/slack#delivery-errors). A private channel needs the bot invited, or the error is `channel_not_found`.
+2. **The chat is connected.** Slack is connected, or for Google Chat, the team's space is linked. Otherwise the delivery fails with `no_chat_connection` or `space_not_linked`. Only an admin can connect Slack or link a space.
+3. **"Latest failed deliveries"** for the team and date. The error code tells what happened; see the delivery errors for [Slack](/admin/slack#delivery-errors) or [Google Chat](/admin/google-chat#delivery-errors). A private Slack channel needs the bot invited, or the error is `channel_not_found`.
 4. **Today is a workday** in the team's `workdays`, and `digest_at` is in the team's `timezone`. A digest is not sent more than 120 minutes after `digest_at`.
-5. **The team uses `chat.provider: slack`.** Google Chat is coming soon.
+5. **`chat.provider` matches the channel.** `slack` with a Slack channel, or `google-chat` with a `spaces/...` name.
 
 ## "More than one organization" or exit code 3
 
