@@ -2,16 +2,86 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://standcast.usefachada.dev/</loc>
-    <lastmod>2026-11-01</lastmod>
+    <lastmod>2026-11-06</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/"/>
     <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/"/>
   </url>
   <url>
     <loc>https://standcast.usefachada.dev/pt-BR/</loc>
-    <lastmod>2026-11-01</lastmod>
+    <lastmod>2026-11-06</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/"/>
     <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/"/>
+  </url>
+  <url>
+    <loc>https://standcast.usefachada.dev/how-it-works/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/how-it-works/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/como-funciona/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/how-it-works/"/>
+  </url>
+  <url>
+    <loc>https://standcast.usefachada.dev/pt-BR/como-funciona/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/how-it-works/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/como-funciona/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/how-it-works/"/>
+  </url>
+  <url>
+    <loc>https://standcast.usefachada.dev/privacy/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/privacidade/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/privacy/"/>
+  </url>
+  <url>
+    <loc>https://standcast.usefachada.dev/pt-BR/privacidade/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/privacidade/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/privacy/"/>
+  </url>
+  <url>
+    <loc>https://standcast.usefachada.dev/pricing/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/pricing/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/precos/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/pricing/"/>
+  </url>
+  <url>
+    <loc>https://standcast.usefachada.dev/pt-BR/precos/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/pricing/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/precos/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/pricing/"/>
+  </url>
+  <url>
+    <loc>https://standcast.usefachada.dev/faq/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/faq/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/faq/"/>
+  </url>
+  <url>
+    <loc>https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/faq/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/faq/"/>
+  </url>
+  <url>
+    <loc>https://standcast.usefachada.dev/beta/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/beta/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/beta/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/beta/"/>
+  </url>
+  <url>
+    <loc>https://standcast.usefachada.dev/pt-BR/beta/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/beta/"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/beta/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/beta/"/>
   </url>
 </urlset>

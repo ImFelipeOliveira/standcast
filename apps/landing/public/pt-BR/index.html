@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Standcast: a sua daily, escrita no seu agente de IA</title>
-<meta name="description" content="O Standcast rascunha a sua daily a partir do GitHub e do Linear no seu agente de IA, envia só depois que você confirma e publica um consolidado por time no Slack ou no Google Chat.">
+<meta name="description" content="O Standcast rascunha a sua daily do GitHub e do Linear no seu agente de IA, envia depois que você confirma e publica um consolidado por time no Slack.">
 <link rel="canonical" href="https://standcast.usefachada.dev/pt-BR/">
 <link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/">
 <link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/">
@@ -20,44 +20,46 @@
 <meta property="og:locale:alternate" content="en_US">
 <meta property="og:url" content="https://standcast.usefachada.dev/pt-BR/">
 <meta property="og:title" content="Standcast: a sua daily, escrita no seu agente de IA">
-<meta property="og:description" content="Rascunha a sua daily a partir do GitHub e do Linear no Claude Code, no Cursor ou no terminal, envia depois que você confirma e publica um consolidado por time no Slack ou no Google Chat.">
+<meta property="og:description" content="Rascunha a sua daily a partir do GitHub e do Linear no Claude Code, no Cursor ou no terminal, envia depois que você confirma e publica um consolidado por time no Slack.">
 <meta property="og:image" content="https://standcast.usefachada.dev/og.png">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="640">
 <meta property="og:image:alt" content="Standcast: your daily standup, written in your AI agent">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Standcast: a sua daily, escrita no seu agente de IA">
-<meta name="twitter:description" content="Rascunha a sua daily a partir do GitHub e do Linear no seu agente de IA, envia depois que você confirma e publica um consolidado por time no Slack ou no Google Chat.">
+<meta name="twitter:description" content="Rascunha a sua daily a partir do GitHub e do Linear no seu agente de IA, envia depois que você confirma e publica um consolidado por time no Slack.">
 <meta name="twitter:image" content="https://standcast.usefachada.dev/og.png">
 <link rel="preload" href="/fonts/inter-latin.c9407645.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/styles.css">
 <script src="/app.js" defer></script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Standcast","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","description":"Orquestrador de daily: rascunha a daily de cada pessoa a partir da atividade no GitHub e no Linear dentro do agente de IA dela (Claude Code, Cursor, Codex, MCP), envia só depois da confirmação e publica um consolidado por time no Slack ou no Google Chat.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Grátis durante o beta público"},"license":"https://opensource.org/licenses/MIT","codeRepository":"https://github.com/ImFelipeOliveira/standcast","url":"https://standcast.usefachada.dev/pt-BR/","inLanguage":"pt-BR","image":"https://standcast.usefachada.dev/og.png"}
+{"@context":"https://schema.org","@type":"Organization","@id":"https://standcast.usefachada.dev/#organization","name":"Standcast","url":"https://standcast.usefachada.dev/","logo":"https://standcast.usefachada.dev/favicon.svg","description":"O Standcast é uma ferramenta de código aberto para a daily de times de software, que rascunha a daily de cada pessoa a partir do GitHub e do Linear no agente de IA dela e publica um consolidado por time no Slack.","sameAs":["https://github.com/ImFelipeOliveira/standcast","https://docs-standcast.usefachada.dev/"]}
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"pt-BR","mainEntity":[
-{"@type":"Question","name":"É grátis?","acceptedAnswer":{"@type":"Answer","text":"Sim, durante o beta público."}},
-{"@type":"Question","name":"O Standcast lê o nosso código?","acceptedAnswer":{"@type":"Answer","text":"Não. O GitHub App lê pull requests, reviews, checks, metadados de commits, o standcast.yml e o CODEOWNERS. Ele nunca lê arquivos de código."}},
-{"@type":"Question","name":"Do que eu preciso?","acceptedAnswer":{"@type":"Answer","text":"Uma organização ou conta pessoal no GitHub, e um workspace no Slack ou o Google Chat do Google Workspace. O Linear é opcional. O Jira está em desenvolvimento."}},
-{"@type":"Question","name":"O meu gestor vê os impedimentos sugeridos para mim?","acceptedAnswer":{"@type":"Answer","text":"Não. As sugestões aparecem só para você, no seu rascunho. Elas nunca chegam ao consolidado, à API, aos webhooks nem aos gestores."}},
-{"@type":"Question","name":"Dá para hospedar por conta própria?","acceptedAnswer":{"@type":"Answer","text":"Sim. O Standcast tem licença MIT. A seção de self-hosting do README cobre a API, o worker e o Postgres."}}
-]}
+{"@context":"https://schema.org","@type":"WebSite","@id":"https://standcast.usefachada.dev/#website","name":"Standcast","url":"https://standcast.usefachada.dev/","inLanguage":"pt-BR","publisher":{"@id":"https://standcast.usefachada.dev/#organization"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Standcast","applicationCategory":"DeveloperApplication","operatingSystem":"macOS, Linux, Windows","description":"Orquestrador de daily: rascunha a daily de cada pessoa a partir da atividade no GitHub e no Linear dentro do agente de IA dela (Claude Code, Cursor, Codex, MCP), envia só depois da confirmação e publica um consolidado por time no Slack.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Grátis durante o beta público"},"license":"https://opensource.org/licenses/MIT","publisher":{"@id":"https://standcast.usefachada.dev/#organization"},"codeRepository":"https://github.com/ImFelipeOliveira/standcast","url":"https://standcast.usefachada.dev/pt-BR/","inLanguage":"pt-BR","image":"https://standcast.usefachada.dev/og.png"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Standcast","item":"https://standcast.usefachada.dev/pt-BR/"}]}
 </script>
 </head>
 <body>
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="#top" aria-label="Standcast, início"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
+    <a class="brand" href="/pt-BR/" aria-label="Standcast, início"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
     <nav aria-label="Principal"><ul>
-      <li><a href="#how">Como funciona</a></li>
-      <li><a href="#privacy">Privacidade</a></li>
+      <li><a href="/pt-BR/como-funciona/">Como funciona</a></li>
+      <li><a href="/pt-BR/privacidade/">Privacidade</a></li>
+      <li><a href="/pt-BR/precos/">Preços</a></li>
+      <li><a href="/pt-BR/perguntas-frequentes/">FAQ</a></li>
       <li><a href="https://docs-standcast.usefachada.dev/pt-BR/">Documentação</a></li>
       <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
     </ul></nav>
     <div class="nav-end">
       <a class="lang" href="/" hreflang="en" lang="en">English</a>
-      <a class="btn btn-primary" href="#beta">Entrar no beta</a>
+      <a class="btn btn-primary" href="/pt-BR/beta/">Entrar no beta</a>
     </div>
   </div>
 </header>
@@ -68,16 +70,16 @@
     <div class="hero-copy">
       <span class="pill"><b>Beta</b> Código aberto · MIT · grátis durante o beta</span>
       <h1>A sua daily, escrita no <em>seu agente de IA</em>.</h1>
-      <p class="lede">Rode <code>/daily</code> no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack ou no Google Chat.</p>
+      <p class="lede">O Standcast é uma ferramenta de código aberto para a daily de times de software. Rode <code>/daily</code> no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack.</p>
       <div class="install">
         <code id="cmd" data-copy="curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh"><span>$</span> curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh</code>
         <button class="copy" id="copy" type="button" aria-describedby="cmd" data-done="Copiado">Copiar</button>
       </div>
       <div class="cta-row">
-        <a class="btn btn-primary" href="#beta">Entrar no beta</a>
+        <a class="btn btn-primary" href="/pt-BR/beta/">Entrar no beta</a>
         <a class="btn btn-ghost" href="https://docs-standcast.usefachada.dev/pt-BR/admin/install">Instalar na sua organização</a>
       </div>
-      <p class="fine">Funciona hoje com GitHub, Slack e Google Chat. O Jira vem a seguir.</p>
+      <p class="fine">Funciona hoje com GitHub e Slack. Google Chat e Jira vêm a seguir.</p>
     </div>
 
     <figure class="stage" aria-label="Exemplo: uma daily rascunhada no terminal e o consolidado publicado no Slack">
@@ -127,6 +129,7 @@
       <span class="eyebrow">Um dia com o Standcast</span>
       <h2>Defina dois horários no standcast.yml. O Standcast cuida do resto.</h2>
       <p class="lede">Este time tem <code>remind_at: "09:30"</code> e <code>digest_at: "10:00"</code> no horário de São Paulo, de segunda a sexta.</p>
+      <p><a class="more" href="/pt-BR/como-funciona/">Veja como funciona →</a></p>
     </div>
     <ol class="day" aria-label="Linha do tempo de um dia">
       <li class="slot"><span class="k">Rascunho</span><time datetime="08:50">08:50</time><p><b>Ana roda /daily.</b> Ela edita o rascunho, adiciona um impedimento com link para um pull request e confirma. Quem revisa recebe uma mensagem direta.</p></li>
@@ -134,23 +137,6 @@
       <li class="slot"><span class="k">digest_at</span><time datetime="10:00">10:00</time><p><b>Um consolidado por time</b> no #daily-backend: primeiro os impedimentos, depois as atualizações, depois quem não enviou.</p></li>
       <li class="slot"><span class="k">Atrasada</span><time datetime="10:40">10:40</time><p><b>Davi envia atrasado.</b> A daily dele vai para a thread do consolidado, e ninguém perde nada.</p></li>
     </ol>
-  </div>
-</section>
-
-<section class="flush">
-  <div class="wrap">
-    <div class="head">
-      <span class="eyebrow">O que ele faz</span>
-      <h2>Coleta, consolida e entrega. Você só escreve.</h2>
-    </div>
-    <div class="features">
-      <article class="feat"><h3>Um rascunho do trabalho real</h3><p>Pull requests abertos, mergeados e revisados, commits por repositório e cards do Linear que começaram ou terminaram. Na segunda, o rascunho cobre o fim de semana.</p></article>
-      <article class="feat"><h3>Impedimentos chegam a quem pode ajudar</h3><p>Um impedimento com link para um pull request vai para os reviewers, depois para o CODEOWNERS, depois para os gestores do time. Um card do Linear vai para o responsável pelo card que está bloqueando.</p></article>
-      <article class="feat"><h3>Nada sai sem você</h3><p>A tool de envio do MCP exige <code>confirmed: true</code>, que o agente só passa depois que você aprova o texto.</p></article>
-      <article class="feat"><h3>Vários times, uma daily</h3><p>Escreva uma vez e apareça no consolidado de todos os seus times, cada um no próprio fuso horário e nos próprios dias úteis.</p></article>
-      <article class="feat"><h3>Gestores leem pelo próprio agente</h3><p>Consolidados, dailies e impedimentos dos últimos 90 dias, pelas tools de leitura do MCP. Só conteúdo confirmado.</p></article>
-      <article class="feat"><h3>API e webhooks</h3><p>API keys somente leitura com escopos, uma referência OpenAPI e webhooks assinados <code>daily.submitted</code> e <code>blocker.opened</code>.</p></article>
-    </div>
   </div>
 </section>
 
@@ -174,82 +160,16 @@
       </ul></div>
     </div>
     <p class="never">Sem métricas de produtividade. Sem rankings. Sem contagem de commits. Nada enviado em nome de ninguém.</p>
+    <p class="band-more"><a class="more" href="/pt-BR/privacidade/">Entenda a privacidade →</a></p>
   </div>
 </section>
 
 <section>
-  <div class="wrap split">
-    <div>
-      <div class="head tight">
-        <span class="eyebrow">Configuração como código</span>
-        <h2>Um arquivo no seu repositório .github.</h2>
-        <p class="lede">Times, horários, canais de chat e gestores ficam no <code>standcast.yml</code>. Toda mudança passa por review, como código.</p>
-      </div>
-      <ul class="list">
-        <li><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span><b>Validado a cada push.</b> Um check run <code>Standcast config</code> aponta a linha com erro.</span></li>
-        <li><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span><b>Nunca quebra o time.</b> Um push inválido mantém a última configuração válida em vigor.</span></li>
-        <li><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span><b>Times do GitHub.</b> Os membros podem ser logins ou <code>@org/team</code>.</span></li>
-      </ul>
-    </div>
-    <div class="code">
-<pre><span class="t-dim"># .github/standcast.yml</span>
-teams:
-  - name: Backend
-    timezone: America/Sao_Paulo
-    workdays: [mon, tue, wed, thu, fri]
-    remind_at: "09:30"
-    digest_at: "10:00"
-    chat:
-      provider: slack
-      channel: "#daily-backend"
-    tracker:
-      provider: linear
-      team: BE
-    managers: [bruno]
-    members: ["@acme/backend"]</pre>
-      <div class="check"><b class="check-ok">✓ Standcast config</b> aprovado · 1 time, 6 membros</div>
-    </div>
-  </div>
-</section>
-
-<section class="flush">
   <div class="wrap">
-    <div class="head">
-      <span class="eyebrow">Três jeitos de escrever</span>
-      <h2>Escolha o que combina com o seu jeito de trabalhar.</h2>
-    </div>
     <div class="ways">
-      <article class="way"><h3>Plugin do Claude Code</h3><p>A skill <code>/daily</code> rascunha, pergunta o plano de hoje e os impedimentos e confirma com você.</p>
-<pre>/plugin marketplace add \
-  ImFelipeOliveira/standcast
-/plugin install standcast@standcast
-/daily</pre></article>
-      <article class="way"><h3>Qualquer cliente MCP</h3><p>Cursor, Codex, Claude Desktop e VS Code rodam o servidor MCP local.</p>
-<pre>{
-  "mcpServers": {
-    "standcast": {
-      "command": "standcast",
-      "args": ["mcp"]
-    }
-  }
-}</pre></article>
-      <article class="way"><h3>Terminal</h3><p>Um binário para macOS, Linux e Windows, conferido contra o SHA256SUMS.</p>
-<pre>standcast login
-standcast draft
-standcast submit</pre></article>
-    </div>
-  </div>
-</section>
-
-<section class="flush">
-  <div class="wrap faq">
-    <div class="head"><span class="eyebrow">FAQ</span><h2>Perguntas antes de instalar.</h2></div>
-    <div>
-      <details open><summary>É grátis?</summary><p>Sim, durante o beta público.</p></details>
-      <details><summary>O Standcast lê o nosso código?</summary><p>Não. O GitHub App lê pull requests, reviews, checks, metadados de commits, o standcast.yml e o CODEOWNERS. Ele nunca lê arquivos de código.</p></details>
-      <details><summary>Do que eu preciso?</summary><p>Uma organização ou conta pessoal no GitHub, e um workspace no Slack ou o Google Chat do Google Workspace. O Linear é opcional. O Jira está em desenvolvimento.</p></details>
-      <details><summary>O meu gestor vê os impedimentos sugeridos para mim?</summary><p>Não. As sugestões aparecem só para você, no seu rascunho. Elas nunca chegam ao consolidado, à API, aos webhooks nem aos gestores.</p></details>
-      <details><summary>Dá para hospedar por conta própria?</summary><p>Sim. O Standcast tem licença MIT. A <a href="https://github.com/ImFelipeOliveira/standcast#self-hosting">seção de self-hosting do README</a> cobre a API, o worker e o Postgres.</p></details>
+      <article class="way" id="ways"><h3>Três jeitos de escrever</h3><p>O plugin do Claude Code, qualquer cliente MCP ou o terminal. Escolha o que combina com o seu jeito de trabalhar.</p><a class="more" href="/pt-BR/como-funciona/#ways">Jeitos de escrever →</a></article>
+      <article class="way" id="pricing"><h3>Preços</h3><p>Grátis durante o beta público. Os preços serão anunciados antes do fim do beta.</p><a class="more" href="/pt-BR/precos/">Ver preços →</a></article>
+      <article class="way" id="faq"><h3>Perguntas frequentes</h3><p>O que o GitHub App lê, do que você precisa, quem vê os impedimentos sugeridos e se dá para hospedar por conta própria.</p><a class="more" href="/pt-BR/perguntas-frequentes/">Ler as perguntas →</a></article>
     </div>
   </div>
 </section>
@@ -260,35 +180,15 @@ standcast submit</pre></article>
       <div class="head tight">
         <span class="eyebrow">Beta público</span>
         <h2>Teste com o seu time.</h2>
-        <p class="lede">Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat. Ajudamos você a configurar.</p>
+        <p class="lede">Procuramos times de 3 a 15 pessoas que usam GitHub e Slack. Ajudamos você a configurar.</p>
       </div>
-      <form id="beta-form" action="https://api-standcast.usefachada.dev/beta" method="post">
-        <p class="invalid" id="beta-invalid" role="alert">Não conseguimos enviar o seu pedido. Confira o nome e o e-mail de trabalho, escolha uma opção em cada lista e tente de novo.</p>
-        <input type="hidden" name="locale" value="pt-BR">
-        <label for="f-name">Nome<input id="f-name" name="name" type="text" autocomplete="name" required maxlength="120"></label>
-        <label for="f-email">E-mail de trabalho<input id="f-email" name="email" type="email" autocomplete="email" required maxlength="254"></label>
-        <label for="f-size">Tamanho do time<select id="f-size" name="team_size" required>
-          <option value="" disabled selected>Escolha</option>
-          <option value="3-5">3–5</option>
-          <option value="6-15">6–15</option>
-          <option value="16+">16+</option>
-        </select></label>
-        <label for="f-chat">Chat<select id="f-chat" name="chat" required>
-          <option value="" disabled selected>Escolha</option>
-          <option value="slack">Slack</option>
-          <option value="google_chat">Google Chat</option>
-          <option value="other">Outro</option>
-        </select></label>
-        <label class="full" for="f-tracker">Gestão de tarefas<select id="f-tracker" name="tracker" required>
-          <option value="" disabled selected>Escolha</option>
-          <option value="linear">Linear</option>
-          <option value="jira">Jira</option>
-          <option value="github">Só GitHub</option>
-          <option value="other">Outro</option>
-        </select></label>
-        <div class="hp" aria-hidden="true"><label for="f-website">Site da empresa<input id="f-website" name="company_website" type="text" tabindex="-1" autocomplete="off"></label></div>
-        <button class="btn btn-primary" type="submit">Pedir acesso ao beta</button>
-      </form>
+      <div class="beta-cta">
+        <p class="invalid" id="beta-invalid" role="alert">Não conseguimos enviar o seu pedido. Abra o formulário de novo, confira o nome e o e-mail de trabalho, escolha uma opção em cada lista e tente de novo.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="/pt-BR/beta/">Pedir acesso ao beta</a>
+          <a class="btn btn-ghost" href="https://docs-standcast.usefachada.dev/pt-BR/admin/install">Instalar na sua organização</a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -296,11 +196,15 @@ standcast submit</pre></article>
 
 <footer class="site-footer">
   <div class="wrap">
-    <a class="brand" href="#top" aria-label="Standcast, voltar ao topo"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
-    <ul>
+    <a class="brand" href="/pt-BR/" aria-label="Standcast, início"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
+    <ul aria-label="Rodapé">
+      <li><a href="/pt-BR/como-funciona/">Como funciona</a></li>
+      <li><a href="/pt-BR/privacidade/">Privacidade</a></li>
+      <li><a href="/pt-BR/precos/">Preços</a></li>
+      <li><a href="/pt-BR/perguntas-frequentes/">Perguntas frequentes</a></li>
+      <li><a href="/pt-BR/beta/">Entrar no beta</a></li>
       <li><a href="https://docs-standcast.usefachada.dev/pt-BR/">Documentação</a></li>
       <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
-      <li><a href="https://docs-standcast.usefachada.dev/pt-BR/privacy">Privacidade</a></li>
       <li><a href="/llms.txt">llms.txt</a></li>
       <li><a href="/" hreflang="en" lang="en">English</a></li>
     </ul>

@@ -58,7 +58,7 @@ Não. A configuração mora só no `standcast.yml` da raiz do repositório `.git
 
 ## Posso rodar o Standcast nos meus servidores?
 
-Não. O Standcast é um serviço hospedado. O código é aberto, com licença MIT.
+Sim. O Standcast tem código aberto, com licença MIT, e a [seção de self-hosting do README](https://github.com/ImFelipeOliveira/standcast#self-hosting) explica a API, o worker e o Postgres. Durante o beta, o suporte é para o serviço hospedado em `api-standcast.usefachada.dev`.
 
 ## Como falo com o suporte?
 

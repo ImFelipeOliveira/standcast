@@ -58,7 +58,7 @@ No. The configuration lives only in `standcast.yml` at the root of the `.github`
 
 ## Can I run Standcast on my own servers?
 
-No. Standcast is a hosted service. The code is open source under the MIT license.
+Yes. Standcast is open source under the MIT license, and the [self-hosting section of the README](https://github.com/ImFelipeOliveira/standcast#self-hosting) covers the API, the worker and Postgres. The hosted service at `api-standcast.usefachada.dev` is the one we support during the beta.
 
 ## How do I contact support?
 
