@@ -1,7 +1,7 @@
 import {
   buildDigest,
+  CHAT_PROVIDERS,
   ChatDeliveryError,
-  type ChatProvider,
   type DigestEntry,
   type MessageRef,
   type Person,
@@ -17,15 +17,14 @@ import {
   listDailies,
   operationalConfig,
 } from '@standcast/db';
+import { isChannelLinked } from '../chat';
 import { chatUserIdsFor } from '../chat-identity';
 import type { WorkerDeps } from '../deps';
 import { resolveTeams } from '../teams';
-import { describeDeliveryError } from './delivery-error';
+import { describeDeliveryError, spaceNotLinked } from './delivery-error';
 import { emitEventSafely } from './emit-event';
 
 export const DIGEST_POST_DEADLINE_MS = 5 * 60 * 1000;
-
-const CHAT_PROVIDERS: readonly ChatProvider[] = ['slack', 'google-chat'];
 
 export type SendDigestJob = { installationId: number; teamName: string; date: string };
 
@@ -82,6 +81,15 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
       await failDelivery(deps.db, key, claim.token, 'no_chat_connection');
       return;
     }
+    if (!(await isChannelLinked(deps, job.installationId, provider, teamConfig.chat.channel))) {
+      await failDelivery(
+        deps.db,
+        key,
+        claim.token,
+        describeDeliveryError(spaceNotLinked(), provider),
+      );
+      return;
+    }
     const [resolved] = await resolveTeams(deps, installation.id, installation.accountLogin, {
       ...config,
       teams: [teamConfig],
@@ -119,7 +127,7 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
       buildDigest({ team, date: job.date, entries, missing }),
     );
   } catch (error) {
-    await failDelivery(deps.db, key, claim.token, describeDeliveryError(error));
+    await failDelivery(deps.db, key, claim.token, describeDeliveryError(error, provider));
     throw error;
   }
 

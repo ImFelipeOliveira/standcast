@@ -26,6 +26,7 @@ function baseStatus(overrides: Partial<SetupStatus> = {}): SetupStatus {
     accessWarning: null,
     configRepo: { exists: true, defaultBranch: 'main' },
     slack: { connected: true, workspace: 'acme-hq' },
+    googleChat: { available: false, spaces: [] },
     linear: { connected: false },
     trackerNotices: [],
     teamNotices: [],

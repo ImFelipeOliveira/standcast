@@ -50,6 +50,7 @@ export type Deps = {
     fetch?: LinearFetch;
   };
   chatFor: (installationId: number, provider: ChatProvider) => Promise<ChatChannel | null>;
+  googleChatAvailable?: boolean;
   trackerFor: TrackerFor;
   webhookTransport?: SafeFetchOptions;
   env: {

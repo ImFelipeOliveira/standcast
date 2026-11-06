@@ -272,3 +272,13 @@ export async function getIdentityByLogin(
     .limit(2);
   return rows.length === 1 ? (rows[0]?.externalId ?? null) : null;
 }
+
+export async function findMembersByEmail(db: Db, email: string): Promise<MemberRow[]> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return [];
+  return db
+    .select()
+    .from(members)
+    .where(sql`lower(${members.email}) = ${normalized}`)
+    .orderBy(members.login);
+}

@@ -329,6 +329,7 @@ function status(overrides: Partial<SetupStatus> = {}): SetupStatus {
     accessWarning: null,
     configRepo: { exists: true, defaultBranch: 'main' },
     slack: { connected: true, workspace: 'Acme' },
+    googleChat: { available: false, spaces: [] },
     linear: { connected: true, workspace: 'Acme', urlKey: 'acme', invalid: false },
     trackerNotices: [],
     teamNotices: [],

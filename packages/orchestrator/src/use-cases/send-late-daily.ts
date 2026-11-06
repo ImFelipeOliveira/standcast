@@ -16,10 +16,11 @@ import {
   listDailies,
   operationalConfig,
 } from '@standcast/db';
+import { isChannelLinked } from '../chat';
 import { chatUserIdFor } from '../chat-identity';
 import type { WorkerDeps } from '../deps';
 import { resolveTeams } from '../teams';
-import { describeDeliveryError } from './delivery-error';
+import { describeDeliveryError, spaceNotLinked } from './delivery-error';
 
 type LateDailyEntry = Parameters<typeof buildLateDaily>[0];
 
@@ -77,11 +78,23 @@ export async function sendLateDaily(deps: WorkerDeps, job: SendLateDailyJob): Pr
       await failDelivery(deps.db, key, claim.token, 'no_chat_connection');
       continue;
     }
+    if (
+      !(await isChannelLinked(deps, job.installationId, team.chat.provider, digest.ref.channel))
+    ) {
+      const reason = describeDeliveryError(spaceNotLinked(), team.chat.provider);
+      await failDelivery(deps.db, key, claim.token, reason);
+      continue;
+    }
     let ref: MessageRef;
     try {
       ref = await chat.replyInThread(digest.ref, buildLateDaily(entry, team.language));
     } catch (error) {
-      await failDelivery(deps.db, key, claim.token, describeDeliveryError(error));
+      await failDelivery(
+        deps.db,
+        key,
+        claim.token,
+        describeDeliveryError(error, team.chat.provider),
+      );
       throw error;
     }
     await completeDelivery(deps.db, key, claim.token, ref);

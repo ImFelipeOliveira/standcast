@@ -27,7 +27,7 @@ import { blockerRouteId } from '../events';
 import { logError } from '../log-error';
 import type { CardOwners } from '../project-tracker';
 import { resolveTeams } from '../teams';
-import { describeDeliveryError } from './delivery-error';
+import { describeDeliveryError, isTerminalDeliveryError } from './delivery-error';
 
 export const ROUTE_BLOCKER_JOB = 'route-blocker';
 const MAX_ROUTE_TARGETS = 5;
@@ -275,7 +275,7 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
       );
       await completeDelivery(deps.db, key, claim.token, ref);
     } catch (error) {
-      await failDelivery(deps.db, key, claim.token, describeDeliveryError(error));
+      await failDelivery(deps.db, key, claim.token, describeDeliveryError(error, provider));
       const chatUserId = ids.get(login);
       if (chatUserId) {
         await forgetStaleChatIdentity(
@@ -288,7 +288,7 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
           error,
         );
       }
-      failure ??= error;
+      if (!isTerminalDeliveryError(error)) failure ??= error;
     }
   }
   if (failure) throw failure;

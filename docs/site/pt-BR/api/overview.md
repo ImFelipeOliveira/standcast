@@ -142,6 +142,8 @@ O `code` é o contrato estável: decida pelo `code`, não pela `message`. A `mes
 | `access_denied` | 403 | A pessoa negou a autorização. Nada mudou. |
 | `slack_oauth_failed` | 502 | O Slack recusou a conexão. Tente conectar de novo. |
 | `linear_oauth_failed` | 502 | O Linear recusou a conexão. Tente conectar de novo. |
+| `invalid_code` | 422 | O código de vínculo do Google Chat está errado, já foi usado ou tem mais de 24 horas. Remova o app do Standcast do espaço e adicione de novo para receber outro código. |
+| `space_already_linked` | 409 | O espaço do Google Chat está vinculado a outra organização. Um admin dessa organização precisa desvinculá-lo antes. |
 | `rate_limited` | 429 | Requisições demais. Espere `Retry-After` segundos e tente de novo (veja Limites de taxa). |
 | `internal` | 500 | Erro inesperado no servidor. Tente de novo com backoff e fale com o suporte se persistir. |
 

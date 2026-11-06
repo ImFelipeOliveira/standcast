@@ -20,6 +20,8 @@ export const STATUS: Record<DomainErrorCode, ContentfulStatusCode> = {
   not_found: 404,
   suggestion_already_decided: 409,
   invalid_beta_request: 422,
+  invalid_code: 422,
+  space_already_linked: 409,
 };
 
 export function onError(error: Error, c: Context): Response {

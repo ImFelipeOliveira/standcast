@@ -173,6 +173,28 @@ describe('sendReminder', () => {
     expect((await getDelivery(db, reminderKey('alice')))?.status).toBe('sent');
   });
 
+  test('no dm space is recorded without retry and keeps the identity', async () => {
+    const base = config();
+    const team = base.teams[0];
+    if (!team) throw new Error('no team');
+    const { deps } = await setup({
+      ...base,
+      teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
+    });
+    const alice = await seedMember('alice', 500);
+    await setIdentity(db, INST, alice.id, 'google-chat', 'users/111');
+    const google = fakeChat();
+    google.failWith(new ChatDeliveryError('no_dm_space', 'raw'));
+    deps.chatFor = async () => google.chat;
+    await sendReminder(deps, job('alice'));
+    const row = await getDelivery(db, reminderKey('alice'));
+    expect(row?.status).toBe('failed');
+    expect(row?.error).toBe(
+      'no_dm_space: the person has not opened a chat with the Standcast app yet',
+    );
+    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/111');
+  });
+
   test('google_chat override wins for a google-chat team', async () => {
     const parsed = config(
       '[alice, bob]',

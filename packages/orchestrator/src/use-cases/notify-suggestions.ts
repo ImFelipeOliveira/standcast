@@ -71,7 +71,7 @@ export async function notifySuggestions(
       await completeDelivery(deps.db, key, claim.token, ref);
       await markSuggestionNotified(deps.db, suggestion.id);
     } catch (error) {
-      await failDelivery(deps.db, key, claim.token, describeDeliveryError(error));
+      await failDelivery(deps.db, key, claim.token, describeDeliveryError(error, provider));
       logError('suggestion dm failed', error);
       if (chatUserId) {
         await forgetStaleChatIdentity(

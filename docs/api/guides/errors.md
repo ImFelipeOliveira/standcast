@@ -26,6 +26,8 @@ Every error response uses the same envelope:
 | `access_denied` | 403 | The person denied the authorization. Nothing was changed. |
 | `slack_oauth_failed` | 502 | Slack rejected the connection. Try connecting again. |
 | `linear_oauth_failed` | 502 | Linear rejected the connection. Try connecting again. |
+| `invalid_code` | 422 | The Google Chat link code is wrong, already used or older than 24 hours. Remove the Standcast app from the space and add it again to get a new code. |
+| `space_already_linked` | 409 | The Google Chat space is linked to another organization. An admin of that organization must unlink it first. |
 | `payload_too_large` | 413 | Only on the GitHub webhook receiver: the body is larger than 1 MB. Nothing was processed. |
 | `rate_limited` | 429 | Too many requests. Wait `Retry-After` seconds, then retry (see Rate limits). |
 | `internal` | 500 | Unexpected server error. Retry with backoff and contact support if it persists. |

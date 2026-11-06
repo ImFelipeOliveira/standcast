@@ -8,6 +8,11 @@ describe('crypto', () => {
     expect(decryptSecret(encryptSecret('xoxb-secret', key), key)).toBe('xoxb-secret');
   });
 
+  test('an empty secret roundtrips', () => {
+    const key = randomBytes(32);
+    expect(decryptSecret(encryptSecret('', key), key)).toBe('');
+  });
+
   test('decrypt with wrong key throws', () => {
     const blob = encryptSecret('xoxb-secret', randomBytes(32));
     expect(() => decryptSecret(blob, randomBytes(32))).toThrow();

@@ -10,7 +10,17 @@ import {
 import { ChatDeliveryError } from '@standcast/slack';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { DIGEST_POST_DEADLINE_MS, sendDigest, sendLateDaily } from '../../src';
-import { config, daily, fakeChat, fakeDeps, flakyDb, INST, seedMember, seedOrg } from './fakes';
+import {
+  config,
+  daily,
+  fakeChat,
+  fakeDeps,
+  flakyDb,
+  INST,
+  linkSpace,
+  seedMember,
+  seedOrg,
+} from './fakes';
 
 useCleanDb();
 
@@ -110,6 +120,7 @@ describe('sendDigest', () => {
       teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
     });
     await setIdentity(db, INST, alice.id, 'google-chat', 'users/111');
+    await linkSpace('spaces/AAAA');
     const google = fakeChat();
     const asked: string[] = [];
     deps.chatFor = async (_installationId, provider) => {
@@ -126,6 +137,36 @@ describe('sendDigest', () => {
     expect(text).not.toContain('@UALICE');
     const row = await getDelivery(db, key);
     expect(row?.status).toBe('sent');
+  });
+
+  test('mixed providers post each digest through its own provider', async () => {
+    const base = config();
+    const team = base.teams[0];
+    if (!team) throw new Error('no team');
+    const { deps, posted, alice } = await setup({
+      ...base,
+      teams: [
+        team,
+        { ...team, name: 'Beta', chat: { provider: 'google-chat', channel: 'spaces/BBBB' } },
+      ],
+    });
+    await setIdentity(db, INST, alice.id, 'google-chat', 'users/111');
+    await linkSpace('spaces/BBBB');
+    const slack = fakeChat();
+    const google = fakeChat();
+    deps.chatFor = async (_installationId, provider) =>
+      provider === 'google-chat' ? google.chat : slack.chat;
+    await sendDigest(deps, job);
+    await sendDigest(deps, { ...job, teamName: 'Beta' });
+    expect(posted).toHaveLength(0);
+    expect(slack.posted.map((p) => p.channel)).toEqual(['#alpha']);
+    expect(google.posted.map((p) => p.channel)).toEqual(['spaces/BBBB']);
+    expect(slack.posted[0]?.msg.fallbackText).toContain('@UALICE');
+    expect(slack.posted[0]?.msg.fallbackText).not.toContain('users/111');
+    expect(google.posted[0]?.msg.fallbackText).toContain('@users/111');
+    expect(google.posted[0]?.msg.fallbackText).not.toContain('UALICE');
+    expect((await getDelivery(db, key))?.status).toBe('sent');
+    expect((await getDelivery(db, { ...key, teamName: 'Beta' }))?.status).toBe('sent');
   });
 
   test('unknown provider fails without retry', async () => {

@@ -1,5 +1,5 @@
-import type { ChatChannel } from '@standcast/core';
-import { getConnection } from '@standcast/db';
+import type { ChatChannel, ChatProvider } from '@standcast/core';
+import { getConnection, isGoogleChatSpaceLinked } from '@standcast/db';
 import type { Deps } from './deps';
 
 export type ChatFactories = {
@@ -19,4 +19,14 @@ export function createChatFor(
     const googleChat = factories['google-chat'];
     return googleChat ? googleChat() : null;
   };
+}
+
+export async function isChannelLinked(
+  deps: Pick<Deps, 'db'>,
+  installationId: number,
+  provider: ChatProvider,
+  channel: string,
+): Promise<boolean> {
+  if (provider !== 'google-chat') return true;
+  return isGoogleChatSpaceLinked(deps.db, installationId, channel);
 }

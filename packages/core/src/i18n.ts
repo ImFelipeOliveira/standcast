@@ -222,6 +222,13 @@ const ptBR = {
   'checkRun.success.title': 'standcast.yml válido',
   'checkRun.failure.title': 'standcast.yml inválido',
   'checkRun.summary': '{count} erro(s) encontrado(s):\n{errors}',
+  'googleChat.linkCode':
+    'O Standcast está neste espaço. Para receber os consolidados aqui, um admin da sua organização no GitHub cola este código no Standcast, em Configuração → Google Chat: {code}. O código vale por 24 horas.',
+  'googleChat.linked': 'Vínculo feito, {logins}.',
+  'googleChat.notFound':
+    'Nenhuma conta do Standcast usa este e-mail. Rode `standcast login` primeiro e depois me mande uma mensagem de novo.',
+  'googleChat.notConnected':
+    'Achei a sua conta, mas nenhuma organização sua conectou o Google Chat ao Standcast ainda. Peça a um admin para vincular um espaço e me mande uma mensagem de novo.',
 } as const;
 
 const en = {
@@ -447,6 +454,13 @@ const en = {
   'checkRun.success.title': 'standcast.yml is valid',
   'checkRun.failure.title': 'standcast.yml is invalid',
   'checkRun.summary': '{count} error(s) found:\n{errors}',
+  'googleChat.linkCode':
+    'Standcast is in this space. To get digests here, an admin of your GitHub organization pastes this code in Standcast, Configuration → Google Chat: {code}. The code is valid for 24 hours.',
+  'googleChat.linked': "You're linked, {logins}.",
+  'googleChat.notFound':
+    'No Standcast account uses this email; run `standcast login` first, then message me again.',
+  'googleChat.notConnected':
+    'I found your account, but none of your organizations has connected Google Chat to Standcast yet. Ask an admin to link a space, then message me again.',
 } as const satisfies Record<keyof typeof ptBR, string>;
 
 const messages: {

@@ -12,6 +12,7 @@ import {
   listApiKeys,
   listFailedPersonDeliveryGroups,
   listFailedTeamDeliveries,
+  listGoogleChatSpaces,
   listMemberInstallations,
   type MemberRow,
   operationalConfig,
@@ -44,6 +45,7 @@ export type SetupStatus = {
   accessWarning: string | null;
   configRepo: { exists: true; defaultBranch: string } | { exists: false };
   slack: { connected: false } | { connected: true; workspace: string };
+  googleChat: { available: boolean; spaces: { name: string; displayName: string }[] };
   linear:
     | { connected: false }
     | { connected: true; workspace: string; urlKey: string; invalid: boolean };
@@ -221,16 +223,25 @@ export async function getSetupStatus(
   );
   const channelNoticesPromise = safeChannelNotices(deps, installation.id, operational);
   const octokit = await deps.github.installationOctokit(installation.id);
-  const [configRepo, connection, linearConnection, teamFailures, personFailures, admin, linked] =
-    await Promise.all([
-      findConfigRepo(octokit, installation.accountLogin),
-      getConnection(deps.db, installation.id, 'slack', deps.encryptionKey),
-      getConnectionInfo(deps.db, installation.id, 'linear'),
-      listFailedTeamDeliveries(deps.db, installation.id, TEAM_FAILURE_LIMIT),
-      listFailedPersonDeliveryGroups(deps.db, installation.id, PERSON_FAILURE_GROUP_LIMIT),
-      isInstallationAdmin(deps, installation.id, current).catch(() => false),
-      listMemberInstallations(deps.db, current.id),
-    ]);
+  const [
+    configRepo,
+    connection,
+    linearConnection,
+    teamFailures,
+    personFailures,
+    admin,
+    linked,
+    googleChatSpaces,
+  ] = await Promise.all([
+    findConfigRepo(octokit, installation.accountLogin),
+    getConnection(deps.db, installation.id, 'slack', deps.encryptionKey),
+    getConnectionInfo(deps.db, installation.id, 'linear'),
+    listFailedTeamDeliveries(deps.db, installation.id, TEAM_FAILURE_LIMIT),
+    listFailedPersonDeliveryGroups(deps.db, installation.id, PERSON_FAILURE_GROUP_LIMIT),
+    isInstallationAdmin(deps, installation.id, current).catch(() => false),
+    listMemberInstallations(deps.db, current.id),
+    listGoogleChatSpaces(deps.db, installation.id),
+  ]);
   const [apiKeys, webhooks]: [SetupStatus['apiKeys'], SetupStatus['webhooks']] = admin
     ? await Promise.all([
         listApiKeys(deps.db, installation.id).then((keys) => ({ manage: true as const, keys })),
@@ -273,6 +284,7 @@ export async function getSetupStatus(
     slack: connection
       ? { connected: true, workspace: connection.externalName ?? connection.externalId }
       : { connected: false },
+    googleChat: { available: deps.googleChatAvailable === true, spaces: googleChatSpaces },
     linear,
     trackerNotices: trackerNotices(operational, linear),
     teamNotices,

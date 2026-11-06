@@ -1,4 +1,4 @@
-import { type ChatProvider, memberOverrides } from '@standcast/core';
+import { CHAT_PROVIDERS, type ChatProvider, memberOverrides } from '@standcast/core';
 import {
   getConnectionExternalId,
   getInstallation,
@@ -9,8 +9,6 @@ import {
 import { chatOverrideFor } from './chat-identity';
 import type { Deps } from './deps';
 import { logError } from './log-error';
-
-const CHAT_PROVIDERS: ChatProvider[] = ['slack', 'google-chat'];
 
 async function lookupChatUser(
   deps: Deps,

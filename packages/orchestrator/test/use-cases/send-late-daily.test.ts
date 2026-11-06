@@ -10,7 +10,17 @@ import {
 import { ChatDeliveryError } from '@standcast/slack';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { sendLateDaily } from '../../src';
-import { config, daily, fakeChat, fakeDeps, flakyDb, INST, seedMember, seedOrg } from './fakes';
+import {
+  config,
+  daily,
+  fakeChat,
+  fakeDeps,
+  flakyDb,
+  INST,
+  linkSpace,
+  seedMember,
+  seedOrg,
+} from './fakes';
 
 useCleanDb();
 
@@ -129,6 +139,7 @@ describe('sendLateDaily', () => {
     });
     await setIdentity(db, INST, job.memberId, 'slack', 'UALICE');
     await setIdentity(db, INST, job.memberId, 'google-chat', 'users/111');
+    await linkSpace(DIGEST_REF.channel);
     const google = fakeChat();
     deps.chatFor = async (_installationId, provider) =>
       provider === 'google-chat' ? google.chat : null;
@@ -145,6 +156,32 @@ describe('sendLateDaily', () => {
       subject: job.memberId,
     });
     expect(row?.status).toBe('sent');
+  });
+
+  test('late daily to an unlinked space fails without replying', async () => {
+    const { deps, replies, job } = await setup();
+    const base = config();
+    const team = base.teams[0];
+    if (!team) throw new Error('no team');
+    await setInstallationConfig(db, INST, {
+      status: 'configured',
+      config: {
+        ...base,
+        teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
+      },
+    });
+    const google = fakeChat();
+    deps.chatFor = async () => google.chat;
+    await sendLateDaily(deps, job);
+    expect(replies).toHaveLength(0);
+    expect(google.replies).toHaveLength(0);
+    const row = await getDelivery(db, {
+      ...digestKey,
+      kind: 'late_daily',
+      subject: job.memberId,
+    });
+    expect(row?.status).toBe('failed');
+    expect(row?.error).toBe('space_not_linked: the space is not linked to this organization');
   });
 
   test('late daily mentions the config slack id first', async () => {

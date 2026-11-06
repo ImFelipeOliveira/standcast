@@ -12,7 +12,7 @@ import {
 import { chatUserIdFor, forgetStaleChatIdentity } from '../chat-identity';
 import type { WorkerDeps } from '../deps';
 import { resolveTeams } from '../teams';
-import { describeDeliveryError } from './delivery-error';
+import { describeDeliveryError, isTerminalDeliveryError } from './delivery-error';
 
 export type SendReminderJob = {
   installationId: number;
@@ -85,7 +85,7 @@ export async function sendReminder(deps: WorkerDeps, job: SendReminderJob): Prom
     );
     await completeDelivery(deps.db, key, claim.token, ref);
   } catch (error) {
-    await failDelivery(deps.db, key, claim.token, describeDeliveryError(error));
+    await failDelivery(deps.db, key, claim.token, describeDeliveryError(error, provider));
     if (chatUserId) {
       await forgetStaleChatIdentity(
         deps,
@@ -97,6 +97,7 @@ export async function sendReminder(deps: WorkerDeps, job: SendReminderJob): Prom
         error,
       );
     }
+    if (isTerminalDeliveryError(error)) return;
     throw error;
   }
 }
