@@ -128,4 +128,13 @@ describe('parseEnv', () => {
       /GOOGLE_CHAT_AUDIENCE/,
     );
   });
+
+  test('GOOGLE_CHAT_AUDIENCE must be https when set', () => {
+    expect(() =>
+      parseEnv({ ...base, GOOGLE_CHAT_AUDIENCE: 'http://x.test/webhooks/google-chat' }),
+    ).toThrow(/GOOGLE_CHAT_AUDIENCE/);
+    expect(parseEnv({ ...base, PUBLIC_URL: 'http://localhost:3000' }).GOOGLE_CHAT_AUDIENCE).toBe(
+      'http://localhost:3000/webhooks/google-chat',
+    );
+  });
 });

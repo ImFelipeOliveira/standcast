@@ -10,15 +10,16 @@ import {
   upsertMember,
 } from '@standcast/db';
 import { csrfToken } from '@standcast/orchestrator';
+import { eq } from 'drizzle-orm';
 import {
   generateKeys,
   signJwt,
   type TestKeys,
 } from '../../../packages/adapters/google-chat/test/keys';
-import { googleChatSpaces } from '../../../packages/db/src/schema';
+import { googleChatSpaces, rateLimits } from '../../../packages/db/src/schema';
 import { db, useCleanDb } from '../../../packages/db/test/setup';
-import { LINK_CODE_LIMIT } from '../src/middleware/rate-limit';
-import { createTestApp, type FakeRequest } from './support';
+import { FAILED_AUTH_LIMIT, LINK_CODE_LIMIT } from '../src/middleware/rate-limit';
+import { createTestApp, type FakeRequest, TEST_IP } from './support';
 
 useCleanDb();
 
@@ -68,10 +69,15 @@ async function harness(options: { enabled?: boolean } = {}) {
     throw Object.assign(new Error('not found'), { status: 404 });
   };
   const enabled = options.enabled ?? true;
+  const refreshes: boolean[] = [];
+  const jwks = async (opts?: { refresh?: boolean }) => {
+    if (opts?.refresh) refreshes.push(true);
+    return [keys.jwk];
+  };
   const { app, deps } = createTestApp({
     request,
     googleChatAvailable: enabled,
-    ...(enabled ? { googleChat: { audience: AUDIENCE, jwks: async () => [keys.jwk] } } : {}),
+    ...(enabled ? { googleChat: { audience: AUDIENCE, jwks } } : {}),
   });
   await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
   await setInstallationConfig(db, INST, { status: 'configured', config: config() });
@@ -82,7 +88,7 @@ async function harness(options: { enabled?: boolean } = {}) {
     const token = await createSession(db, member.id, 'web');
     return { cookie: `sc_web=${token}`, csrf: csrfToken('sess', token), member };
   };
-  return { app, deps, keys, alice: await session(1), bob: await session(2) };
+  return { app, deps, keys, refreshes, alice: await session(1), bob: await session(2) };
 }
 
 type Harness = Awaited<ReturnType<typeof harness>>;
@@ -91,11 +97,12 @@ async function token(
   h: Pick<Harness, 'deps'>,
   keys: TestKeys,
   overrides: Record<string, unknown> = {},
+  header: Record<string, unknown> = {},
 ): Promise<string> {
   const now = Math.floor(h.deps.now().getTime() / 1000);
   return signJwt(
     keys.privateKey,
-    { alg: 'RS256', typ: 'JWT', kid: 'k1' },
+    { alg: 'RS256', typ: 'JWT', kid: keys.jwk.kid, ...header },
     {
       iss: 'https://accounts.google.com',
       aud: AUDIENCE,
@@ -157,6 +164,7 @@ describe('POST /webhooks/google-chat', () => {
   test('rejects forged or misdirected events', async () => {
     const h = await harness();
     const forger = await generateKeys('k1');
+    const stranger = await generateKeys('k2');
     const now = Math.floor(h.deps.now().getTime() / 1000);
     const rejected = [
       undefined,
@@ -166,6 +174,9 @@ describe('POST /webhooks/google-chat', () => {
       `Bearer ${await token(h, h.keys, { exp: now - 1 })}`,
       `Bearer ${await token(h, h.keys, { email: 'someone@gmail.com' })}`,
       `Bearer ${await token(h, h.keys, { iss: 'https://evil.test' })}`,
+      `Bearer ${await token(h, stranger)}`,
+      `Bearer ${await token(h, h.keys, {}, { alg: 'HS256' })}`,
+      `Bearer ${await token(h, h.keys, {}, { alg: 'none' })}`,
     ];
     for (const authorization of rejected) {
       const res = await event(h, added, authorization);
@@ -173,6 +184,26 @@ describe('POST /webhooks/google-chat', () => {
       expect(await res.text()).toBe('');
     }
     expect(await db.select().from(googleChatSpaces)).toEqual([]);
+    expect(h.refreshes).toEqual([true]);
+  });
+
+  test('verification runs before any rate limit write and failures pay the auth limit', async () => {
+    const h = await harness();
+    expect((await event(h, added, `Bearer ${await token(h, h.keys)}`)).status).toBe(200);
+    expect((await db.select().from(rateLimits)).filter((row) => row.key.includes(TEST_IP))).toEqual(
+      [],
+    );
+    for (let i = 0; i < FAILED_AUTH_LIMIT; i++) {
+      expect((await event(h, added, 'Bearer forged')).status).toBe(401);
+    }
+    const limited = await event(h, added, 'Bearer forged');
+    expect(limited.status).toBe(429);
+    const [row] = await db
+      .select()
+      .from(rateLimits)
+      .where(eq(rateLimits.key, `authfail:ip:${TEST_IP}`));
+    expect(row?.count).toBe(FAILED_AUTH_LIMIT + 1);
+    expect((await event(h, added, `Bearer ${await token(h, h.keys)}`)).status).toBe(200);
   });
 
   test('bad json is 400 and only after verification', async () => {
@@ -255,6 +286,12 @@ describe('google chat link routes', () => {
     expect(unlinked.status).toBe(204);
     expect(await listGoogleChatSpaces(db, INST)).toEqual([]);
     expect((await unlinkSpace(h, h.alice, 'spaces/AAAA')).status).toBe(404);
+    for (const space of ['spaces/../x', 'foo']) {
+      const res = await unlinkSpace(h, h.alice, space);
+      expect(res.status, space).toBe(404);
+      expect(await errorCode(res)).toBe('not_found');
+    }
+    expect((await unlinkSpace(h, h.bob, 'foo')).status).toBe(403);
   });
 
   test('link attempts are rate limited', async () => {

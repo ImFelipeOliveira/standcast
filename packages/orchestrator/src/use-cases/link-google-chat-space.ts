@@ -26,6 +26,8 @@ export function hashLinkCode(code: string): string {
   return createHash('sha256').update(code).digest('hex');
 }
 
+const SPACE_NAME = /^spaces\/[A-Za-z0-9_-]{1,128}$/;
+
 const LINK_CODE = new RegExp(`^[${LINK_CODE_ALPHABET}]{${LINK_CODE_LENGTH}}$`);
 
 function normalizeLinkCode(code: string): string | null {
@@ -69,7 +71,10 @@ export async function unlinkGoogleChatSpace(
   input: { installationId: number; space: string },
 ): Promise<void> {
   const { installation } = await requireAdmin(deps, isMember, member, input.installationId);
-  if (!(await deleteGoogleChatSpaceBinding(deps.db, installation.id, input.space))) {
+  if (
+    !SPACE_NAME.test(input.space) ||
+    !(await deleteGoogleChatSpaceBinding(deps.db, installation.id, input.space))
+  ) {
     throw new DomainError('not_found', 'space not linked to this organization');
   }
   await deleteGoogleChatConnectionIfUnused(deps.db, installation.id);

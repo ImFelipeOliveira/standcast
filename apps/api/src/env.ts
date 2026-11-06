@@ -61,7 +61,7 @@ const schema = z
     LINEAR_CLIENT_ID: z.string().min(1),
     LINEAR_CLIENT_SECRET: z.string().min(1),
     GOOGLE_CHAT_SERVICE_ACCOUNT: googleChatServiceAccount,
-    GOOGLE_CHAT_AUDIENCE: z.url().optional(),
+    GOOGLE_CHAT_AUDIENCE: z.url({ protocol: /^https$/ }).optional(),
   })
   .transform(({ GOOGLE_CHAT_AUDIENCE, ...env }) => ({
     ...env,

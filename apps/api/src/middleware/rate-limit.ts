@@ -10,6 +10,7 @@ export const API_KEY_LIMIT = 600;
 export const SESSION_START_LIMIT = 10;
 export const BETA_LIMIT = 5;
 export const LINK_CODE_LIMIT = 10;
+export const GOOGLE_CHAT_SPACE_LIMIT = 120;
 
 export type GetClientIp = (c: Context) => string;
 

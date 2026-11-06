@@ -3,7 +3,12 @@ import { type Deps, handleGoogleChatEvent } from '@standcast/orchestrator';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { z } from 'zod';
-import { type GetClientIp, IP_LIMIT, ipRateLimit } from '../middleware/rate-limit';
+import {
+  enforceRateLimit,
+  FAILED_AUTH_LIMIT,
+  type GetClientIp,
+  GOOGLE_CHAT_SPACE_LIMIT,
+} from '../middleware/rate-limit';
 import { WEBHOOK_BODY_LIMIT_BYTES } from './webhooks';
 
 export type GoogleChatWebhook = { audience: string; jwks: JwksSource };
@@ -36,7 +41,6 @@ export function googleChatRoutes(
   }
   app.post(
     '/webhooks/google-chat',
-    ipRateLimit(deps, options.getClientIp, 'google-chat', IP_LIMIT),
     bodyLimit({
       maxSize: WEBHOOK_BODY_LIMIT_BYTES,
       onError: (c) =>
@@ -47,7 +51,10 @@ export function googleChatRoutes(
         jwks: googleChat.jwks,
         now: () => deps.now().getTime(),
       });
-      if (!verified) return c.body(null, 401);
+      if (!verified) {
+        await enforceRateLimit(deps, c, `authfail:ip:${options.getClientIp(c)}`, FAILED_AUTH_LIMIT);
+        return c.body(null, 401);
+      }
       let body: unknown;
       try {
         body = JSON.parse(await c.req.text());
@@ -58,6 +65,7 @@ export function googleChatRoutes(
       if (!parsed.success) return c.json(invalidBody, 400);
       const { space, ...event } = parsed.data;
       if (!space) return c.json({}, 200);
+      await enforceRateLimit(deps, c, `google-chat:space:${space.name}`, GOOGLE_CHAT_SPACE_LIMIT);
       const reply = await handleGoogleChatEvent(deps, { ...event, space });
       return c.json(reply ? { text: reply.text } : {}, 200);
     },

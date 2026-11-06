@@ -378,6 +378,24 @@ describe('unlinkGoogleChatSpace', () => {
     ).toBe('forbidden');
     expect(await listGoogleChatSpaces(db, INST)).toHaveLength(1);
   });
+
+  test('a malformed space name is not found for an admin and forbidden for a member', async () => {
+    const { deps, isMember, member, roles } = await setup();
+    for (const space of ['spaces/../x', 'foo', 'spaces/', `spaces/${'A'.repeat(129)}`]) {
+      expect(
+        await codeOf(
+          unlinkGoogleChatSpace(deps, isMember, member, { installationId: INST, space }),
+        ),
+        space,
+      ).toBe('not_found');
+    }
+    roles.set('alice', { role: 'member', state: 'active' });
+    expect(
+      await codeOf(
+        unlinkGoogleChatSpace(deps, isMember, member, { installationId: INST, space: 'foo' }),
+      ),
+    ).toBe('forbidden');
+  });
 });
 
 describe('handleGoogleChatEvent in a direct message', () => {
