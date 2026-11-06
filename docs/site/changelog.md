@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+### 0.5.0 — 2026-11-06
+
 - Google Chat: a team with `chat.provider: google-chat` gets the digest in a Google Chat space, late dailies in its thread, and reminders, routed blockers and suggested blockers by direct message, through the Standcast app for Google Chat. Add the app to a space, and an admin pastes the link code it posts in the web app (Settings → Google Chat) or on the setup page. People link themselves by sending the app a direct message once, or with `members.<login>.google_chat: users/<digits>` in `standcast.yml`. One organization can use Slack for one team and Google Chat for another. The app works in Google Workspace domains where it is available; a Google Workspace Marketplace listing is coming. See [Google Chat](/admin/google-chat).
 - The `standcast.yml` template on the setup page has one team on Slack and one on Google Chat. Delete the one you do not use.
 - In the web app, failed deliveries that any chat can cause no longer name Slack.
