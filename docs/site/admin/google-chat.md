@@ -84,9 +84,9 @@ Standcast matches the email of your Google account with the primary verified ema
 | I found your account, but none of your organizations has connected Google Chat to Standcast yet. Ask an admin to link a space, then message me again. | Link a space first, then message the app again. |
 | This email belongs to more than one GitHub account on Standcast, so I linked none of them. Ask an admin to set `google_chat` for you under `members` in standcast.yml, or keep the email only on your own GitHub account and run `standcast login` again. | Two or more GitHub accounts signed in to Standcast share this email, so Standcast links none of them. In each of their organizations that use Google Chat, it also removes the Google Chat links of those accounts and any link to this Google Chat user. Map the person by hand, as below, or remove the email from the other accounts. |
 
-The answer is in the team's language when Standcast knows it, otherwise in English and Portuguese.
+The answer is in the team's language when Standcast knows it, otherwise in English and Portuguese. When no account or more than one account has the email, the app also tells the person their Google Chat id (`users/` followed by digits), ready for the mapping below.
 
-When the emails differ, an admin maps the person by hand in `standcast.yml`, with their Google Chat user id:
+When the emails differ, for example when the primary GitHub email is a personal one and the Google email is the company one, an admin maps the person by hand in `standcast.yml`, with their Google Chat user id:
 
 ```text
 members:

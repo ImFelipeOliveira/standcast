@@ -14,6 +14,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 - The `standcast.yml` template on the setup page has one team on Slack and one on Google Chat. Delete the one you do not use.
 - In the web app, failed deliveries that any chat can cause no longer name Slack.
 - A team with `chat.provider: google-chat` needs a space name (`spaces/...`) in `chat.channel`. Before, any text passed the `standcast.yml` check and the digest failed later with `space_not_linked`. When the value is the space link, the error tells you the name to use.
+- When the Google Chat app finds no account for your email, or more than one, it also answers with your Google Chat id (`users/<digits>`), ready for an admin to put under `members.<login>.google_chat` in `standcast.yml`.
 
 ### 0.4.1 — 2026-11-02
 

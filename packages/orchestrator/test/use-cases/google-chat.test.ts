@@ -519,9 +519,12 @@ describe('handleGoogleChatEvent in a direct message', () => {
     expect(reply?.text).toContain('standcast login');
     expect(reply?.text).toContain('No Standcast account uses this email');
     expect(reply?.text).toContain('Nenhuma conta do Standcast usa este e-mail');
+    expect(reply?.text).toContain('Your Google Chat id is users/123');
+    expect(reply?.text).toContain('O seu id no Google Chat é users/123');
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
     const missing = await handleGoogleChatEvent(deps, dm(undefined));
-    expect(missing?.text).toBe(reply?.text);
+    expect(missing?.text).toContain('No Standcast account uses this email');
+    expect(missing?.text).not.toContain('users/123');
   });
 
   test('an email shared by two accounts links nobody and quarantines their links', async () => {
@@ -546,6 +549,7 @@ describe('handleGoogleChatEvent in a direct message', () => {
     expect(reply?.text).toContain('more than one GitHub account');
     expect(reply?.text).toContain('mais de uma conta do GitHub');
     expect(reply?.text).toContain('google_chat');
+    expect(reply?.text).toContain('google_chat: users/123');
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
     expect((await getIdentities(db, INST, 'slack')).get('alice')).toBe('U123');
     const other = await getIdentities(db, OTHER, 'google-chat');

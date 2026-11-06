@@ -14,6 +14,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 - O modelo de `standcast.yml` da página de setup tem um time no Slack e um no Google Chat. Apague o que você não usa.
 - No app web, as entregas com falha que qualquer chat pode causar não citam mais o Slack.
 - Um time com `chat.provider: google-chat` precisa de um nome de espaço (`spaces/...`) em `chat.channel`. Antes, qualquer texto passava na verificação do `standcast.yml` e o consolidado falhava depois com `space_not_linked`. Quando o valor é o link do espaço, o erro diz o nome a usar.
+- Quando o app do Google Chat não acha a sua conta pelo e-mail, ou acha mais de uma, ele responde também com o seu id no Google Chat (`users/<dígitos>`), pronto para um admin pôr em `members.<login>.google_chat` no `standcast.yml`.
 
 ### 0.4.1 — 02/11/2026
 
