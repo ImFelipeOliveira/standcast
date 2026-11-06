@@ -217,9 +217,10 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
     firstTeam,
     blocker,
   };
+  const provider = firstTeam.chat.provider;
   let target = await resolveRouteTarget(deps, ctx);
   const fallback = managerTarget(ctx);
-  const ids = await chatUserIdsFor(deps, job.installationId, config, [
+  const ids = await chatUserIdsFor(deps, job.installationId, config, provider, [
     ...target.logins,
     ...fallback.logins,
     author,
@@ -243,7 +244,7 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
     return;
   }
 
-  const chat = await deps.chatFor(job.installationId, 'slack');
+  const chat = await deps.chatFor(job.installationId, provider);
   const authorChatId = ids.get(author);
   let busy = false;
   let failure: unknown = null;
@@ -277,7 +278,15 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
       await failDelivery(deps.db, key, claim.token, describeDeliveryError(error));
       const chatUserId = ids.get(login);
       if (chatUserId) {
-        await forgetStaleChatIdentity(deps, job.installationId, config, login, chatUserId, error);
+        await forgetStaleChatIdentity(
+          deps,
+          job.installationId,
+          config,
+          provider,
+          login,
+          chatUserId,
+          error,
+        );
       }
       failure ??= error;
     }

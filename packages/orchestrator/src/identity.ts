@@ -1,4 +1,4 @@
-import { memberOverrides } from '@standcast/core';
+import { type ChatProvider, memberOverrides } from '@standcast/core';
 import {
   getConnectionExternalId,
   getInstallation,
@@ -6,8 +6,45 @@ import {
   operationalConfig,
   writeIdentityIfConnected,
 } from '@standcast/db';
+import { chatOverrideFor } from './chat-identity';
 import type { Deps } from './deps';
 import { logError } from './log-error';
+
+const CHAT_PROVIDERS: ChatProvider[] = ['slack', 'google-chat'];
+
+async function lookupChatUser(
+  deps: Deps,
+  installationId: number,
+  provider: ChatProvider,
+  override: string | undefined,
+  email: string | null,
+): Promise<string | null> {
+  if (provider === 'google-chat') return override ?? null;
+  const chat = await deps.chatFor(installationId, provider);
+  if (!chat) return null;
+  return override ?? (email ? await chat.findUserByEmail(email) : null);
+}
+
+async function linkProvider(
+  deps: Deps,
+  installationId: number,
+  provider: ChatProvider,
+  memberId: string,
+  override: string | undefined,
+  email: string | null,
+): Promise<void> {
+  const connectionExternalId = await getConnectionExternalId(deps.db, installationId, provider);
+  if (!connectionExternalId) return;
+  const externalId = await lookupChatUser(deps, installationId, provider, override, email);
+  if (!externalId) return;
+  await writeIdentityIfConnected(deps.db, {
+    installationId,
+    memberId,
+    provider,
+    connectionExternalId,
+    externalId,
+  });
+}
 
 export async function linkChatIdentities(
   deps: Deps,
@@ -23,20 +60,15 @@ export async function linkChatIdentities(
       const installation = await getInstallation(deps.db, installationId);
       const config = operationalConfig(installation);
       if (!config) continue;
-      const teamId = await getConnectionExternalId(deps.db, installationId, 'slack');
-      if (!teamId) continue;
-      const chat = await deps.chatFor(installationId, 'slack');
-      if (!chat) continue;
-      const externalId =
-        memberOverrides(config, login).slack ?? (email ? await chat.findUserByEmail(email) : null);
-      if (!externalId) continue;
-      await writeIdentityIfConnected(deps.db, {
-        installationId,
-        memberId,
-        provider: 'slack',
-        connectionExternalId: teamId,
-        externalId,
-      });
+      const overrides = memberOverrides(config, login);
+      for (const provider of CHAT_PROVIDERS) {
+        try {
+          const override = chatOverrideFor(overrides, provider);
+          await linkProvider(deps, installationId, provider, memberId, override, email);
+        } catch (error) {
+          logError('chat identity link failed', error);
+        }
+      }
     } catch (error) {
       logError('chat identity link failed', error);
     }

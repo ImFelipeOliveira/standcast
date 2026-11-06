@@ -66,14 +66,15 @@ export async function sendReminder(deps: WorkerDeps, job: SendReminderJob): Prom
   const claim = await claimDelivery(deps.db, key);
   if (claim.status !== 'claimed') return;
 
+  const provider = earliest.team.chat.provider;
   let chatUserId: string | null = null;
   try {
-    const chat = await deps.chatFor(job.installationId, 'slack');
+    const chat = await deps.chatFor(job.installationId, provider);
     if (!chat) {
       await failDelivery(deps.db, key, claim.token, 'no_chat_connection');
       return;
     }
-    chatUserId = await chatUserIdFor(deps, job.installationId, config, login);
+    chatUserId = await chatUserIdFor(deps, job.installationId, config, provider, login);
     if (!chatUserId) {
       await failDelivery(deps.db, key, claim.token, `no_chat_identity: ${login}`);
       return;
@@ -86,7 +87,15 @@ export async function sendReminder(deps: WorkerDeps, job: SendReminderJob): Prom
   } catch (error) {
     await failDelivery(deps.db, key, claim.token, describeDeliveryError(error));
     if (chatUserId) {
-      await forgetStaleChatIdentity(deps, job.installationId, config, login, chatUserId, error);
+      await forgetStaleChatIdentity(
+        deps,
+        job.installationId,
+        config,
+        provider,
+        login,
+        chatUserId,
+        error,
+      );
     }
     throw error;
   }

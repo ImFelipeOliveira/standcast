@@ -152,6 +152,45 @@ describe('sendReminder', () => {
     expect(directs[0]?.userId).toBe('U0CONF');
   });
 
+  test('reminder resolves the google-chat identity', async () => {
+    const base = config();
+    const team = base.teams[0];
+    if (!team) throw new Error('no team');
+    const { deps, directs } = await setup({
+      ...base,
+      teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
+    });
+    const alice = await seedMember('alice', 500);
+    await setIdentity(db, INST, alice.id, 'slack', 'U1');
+    await setIdentity(db, INST, alice.id, 'google-chat', 'users/111');
+    const google = fakeChat();
+    deps.chatFor = async (_installationId, provider) =>
+      provider === 'google-chat' ? google.chat : null;
+    await sendReminder(deps, job('alice'));
+    expect(directs).toHaveLength(0);
+    expect(google.directs).toHaveLength(1);
+    expect(google.directs[0]?.userId).toBe('users/111');
+    expect((await getDelivery(db, reminderKey('alice')))?.status).toBe('sent');
+  });
+
+  test('google_chat override wins for a google-chat team', async () => {
+    const parsed = config(
+      '[alice, bob]',
+      'members:\n  Alice: { slack: U0CONF, google_chat: users/999 }',
+    );
+    const team = parsed.teams[0];
+    if (!team) throw new Error('no team');
+    const { deps } = await setup({
+      ...parsed,
+      teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
+    });
+    const google = fakeChat();
+    deps.chatFor = async (_installationId, provider) =>
+      provider === 'google-chat' ? google.chat : null;
+    await sendReminder(deps, job('alice'));
+    expect(google.directs[0]?.userId).toBe('users/999');
+  });
+
   test('a person in two teams gets exactly one DM', async () => {
     const { deps, directs, setNow } = await setup(twoTeamsWithAlice());
     await identify('alice', 'U1');

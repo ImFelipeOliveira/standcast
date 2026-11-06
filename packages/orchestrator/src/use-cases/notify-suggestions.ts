@@ -44,6 +44,7 @@ export async function notifySuggestions(
 ): Promise<void> {
   const login = input.login.toLowerCase();
   const date = localDate(deps.now(), input.team.timezone);
+  const provider = input.team.chat.provider;
   for (const suggestion of input.suggestions) {
     const key: DeliveryKey = {
       installationId: input.installationId,
@@ -56,12 +57,12 @@ export async function notifySuggestions(
     if (claim.status !== 'claimed') continue;
     let chatUserId: string | null = null;
     try {
-      const chat = await deps.chatFor(input.installationId, 'slack');
+      const chat = await deps.chatFor(input.installationId, provider);
       if (!chat) {
         await failDelivery(deps.db, key, claim.token, 'no_chat_connection');
         continue;
       }
-      chatUserId = await chatUserIdFor(deps, input.installationId, input.config, login);
+      chatUserId = await chatUserIdFor(deps, input.installationId, input.config, provider, login);
       if (!chatUserId) {
         await failDelivery(deps.db, key, claim.token, 'no_chat_identity');
         continue;
@@ -77,6 +78,7 @@ export async function notifySuggestions(
           deps,
           input.installationId,
           input.config,
+          provider,
           login,
           chatUserId,
           error,

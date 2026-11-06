@@ -1,5 +1,7 @@
 import {
   buildDigest,
+  ChatDeliveryError,
+  type ChatProvider,
   type DigestEntry,
   type MessageRef,
   type Person,
@@ -15,7 +17,6 @@ import {
   listDailies,
   operationalConfig,
 } from '@standcast/db';
-import { ChatDeliveryError } from '@standcast/slack';
 import { chatUserIdsFor } from '../chat-identity';
 import type { WorkerDeps } from '../deps';
 import { resolveTeams } from '../teams';
@@ -23,6 +24,8 @@ import { describeDeliveryError } from './delivery-error';
 import { emitEventSafely } from './emit-event';
 
 export const DIGEST_POST_DEADLINE_MS = 5 * 60 * 1000;
+
+const CHAT_PROVIDERS: readonly ChatProvider[] = ['slack', 'google-chat'];
 
 export type SendDigestJob = { installationId: number; teamName: string; date: string };
 
@@ -62,7 +65,8 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
   if (claim.status !== 'claimed') return;
   const claimedAt = deps.now().getTime();
 
-  if (teamConfig.chat.provider !== 'slack') {
+  const provider = teamConfig.chat.provider;
+  if (!CHAT_PROVIDERS.includes(provider)) {
     await failDelivery(deps.db, key, claim.token, 'unsupported_provider');
     return;
   }
@@ -73,7 +77,7 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
   let entries: DigestEntry[];
   let missing: Person[];
   try {
-    const chat = await deps.chatFor(job.installationId, 'slack');
+    const chat = await deps.chatFor(job.installationId, provider);
     if (!chat) {
       await failDelivery(deps.db, key, claim.token, 'no_chat_connection');
       return;
@@ -85,7 +89,13 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
     if (!resolved) throw new Error('team not resolved');
     team = resolved;
     snapshot = teamDailies(team, await listDailies(deps.db, job.installationId, job.date));
-    const chatIds = await chatUserIdsFor(deps, job.installationId, config, team.memberLogins);
+    const chatIds = await chatUserIdsFor(
+      deps,
+      job.installationId,
+      config,
+      provider,
+      team.memberLogins,
+    );
     const stored = await getMemberLogins(deps.db, team.memberLogins);
     const written = new Map(teamConfig.members.map((m) => [m.toLowerCase(), m]));
     const person = (login: string): Person => {

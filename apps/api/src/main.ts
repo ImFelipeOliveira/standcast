@@ -16,7 +16,7 @@ import {
 import { exchangeLinearCode, refreshLinearToken } from '@standcast/linear';
 import { createChatFor, createTrackerFor, type Deps } from '@standcast/orchestrator';
 import { createPgBossQueue } from '@standcast/queue';
-import { exchangeSlackCode } from '@standcast/slack';
+import { createSlackChannel, exchangeSlackCode } from '@standcast/slack';
 import { createApp } from './app';
 import { parseEnv } from './env';
 import { clientIpResolver } from './middleware/rate-limit';
@@ -63,7 +63,10 @@ const deps: Deps = {
   },
   slack: { exchangeCode: exchangeSlackCode },
   linear: { exchangeCode: exchangeLinearCode, refreshToken: refreshLinearToken },
-  chatFor: createChatFor(db, env.STANDCAST_ENCRYPTION_KEY),
+  chatFor: createChatFor(db, env.STANDCAST_ENCRYPTION_KEY, {
+    slack: (secret) => createSlackChannel(secret),
+    'google-chat': null,
+  }),
   trackerFor: (...args) => createTrackerFor(deps)(...args),
   env: {
     publicUrl: env.PUBLIC_URL,

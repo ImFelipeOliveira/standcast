@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 export type Weekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 export type Language = 'pt-BR' | 'en';
+export type ChatProvider = 'slack' | 'google-chat';
 
 export type TeamConfig = {
   name: string;
@@ -13,7 +14,7 @@ export type TeamConfig = {
   language: Language;
   managers: string[];
   members: string[];
-  chat: { provider: 'slack' | 'google-chat'; channel: string };
+  chat: { provider: ChatProvider; channel: string };
   tracker?: { provider: 'linear' | 'jira'; team: string };
   signals: { prReviewHours: number; cardStaleDays: number; directMessage: boolean };
 };
@@ -83,6 +84,8 @@ const teamSchema = z.strictObject({
 
 export const SLACK_USER_ID = /^[UW][A-Z0-9]{2,}$/;
 
+export const GOOGLE_CHAT_USER_ID = /^users\/\d+$/;
+
 export function isSlackUserId(id: string): boolean {
   return SLACK_USER_ID.test(id);
 }
@@ -94,7 +97,10 @@ export function memberOverrides(config: StandcastConfig, login: string): MemberO
 
 const overridesSchema = z.strictObject({
   slack: z.string().regex(SLACK_USER_ID, 'must be a Slack user id like U0123ABCD').optional(),
-  google_chat: z.string().optional(),
+  google_chat: z
+    .string()
+    .regex(GOOGLE_CHAT_USER_ID, 'must be a Google Chat user like users/123456789')
+    .optional(),
   linear: z.email('linear must be an email address').optional(),
   jira: z.string().optional(),
 });

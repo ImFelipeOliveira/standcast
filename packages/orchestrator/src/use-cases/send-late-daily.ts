@@ -1,4 +1,10 @@
-import { buildLateDaily, type MessageRef, teamsForMember } from '@standcast/core';
+import {
+  buildLateDaily,
+  type ChatChannel,
+  type ChatProvider,
+  type MessageRef,
+  teamsForMember,
+} from '@standcast/core';
 import {
   claimDelivery,
   completeDelivery,
@@ -15,6 +21,8 @@ import type { WorkerDeps } from '../deps';
 import { resolveTeams } from '../teams';
 import { describeDeliveryError } from './delivery-error';
 
+type LateDailyEntry = Parameters<typeof buildLateDaily>[0];
+
 export type SendLateDailyJob = { installationId: number; memberId: string; date: string };
 
 export async function sendLateDaily(deps: WorkerDeps, job: SendLateDailyJob): Promise<void> {
@@ -27,18 +35,27 @@ export async function sendLateDaily(deps: WorkerDeps, job: SendLateDailyJob): Pr
     (d) => d.memberId === job.memberId,
   );
   if (!found) return;
-  const chat = await deps.chatFor(job.installationId, 'slack');
-
   const teams = await resolveTeams(deps, installation.id, installation.accountLogin, config);
-  const chatUserId = await chatUserIdFor(deps, job.installationId, config, member.login);
-  const entry = {
-    login: member.login,
-    ...(chatUserId ? { chatUserId } : {}),
-    daily: found.payload,
+  const chats = new Map<ChatProvider, ChatChannel | null>();
+  const entries = new Map<ChatProvider, LateDailyEntry>();
+  const lateDailyFor = async (provider: ChatProvider) => {
+    if (!chats.has(provider)) chats.set(provider, await deps.chatFor(job.installationId, provider));
+    let entry = entries.get(provider);
+    if (!entry) {
+      const chatUserId = await chatUserIdFor(
+        deps,
+        job.installationId,
+        config,
+        provider,
+        member.login,
+      );
+      entry = { login: member.login, ...(chatUserId ? { chatUserId } : {}), daily: found.payload };
+      entries.set(provider, entry);
+    }
+    return { chat: chats.get(provider) ?? null, entry };
   };
 
   for (const team of teamsForMember(member.login, teams)) {
-    if (team.chat.provider !== 'slack') continue;
     const digest = await getDelivery(deps.db, {
       installationId: job.installationId,
       teamName: team.name,
@@ -46,6 +63,7 @@ export async function sendLateDaily(deps: WorkerDeps, job: SendLateDailyJob): Pr
       kind: 'digest',
     });
     if (digest?.status !== 'sent' || !digest.ref) continue;
+    const { chat, entry } = await lateDailyFor(team.chat.provider);
     const key: DeliveryKey = {
       installationId: job.installationId,
       teamName: team.name,

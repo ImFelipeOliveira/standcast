@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { getIdentities, saveConnection, setIdentity } from '@standcast/db';
 import { db, useCleanDb } from '../../db/test/setup';
 import { forgetChatIdentity, linkChatIdentities } from '../src';
-import { fakeDeps, INST, seedMember, seedOrg } from './use-cases/fakes';
+import { config, fakeDeps, INST, seedMember, seedOrg } from './use-cases/fakes';
 
 useCleanDb();
 
@@ -46,6 +46,32 @@ describe('linkChatIdentities', () => {
   });
 });
 
+describe('linkChatIdentities for google-chat', () => {
+  test('applies only the google_chat override', async () => {
+    await seedOrg(config('[alice, bob]', 'members:\n  Alice: { google_chat: users/42 }'));
+    await saveConnection(db, INST, 'google-chat', 'spaces/AAAA', '-', KEY);
+    const member = await seedMember();
+    const { deps } = fakeDeps();
+    const asked: string[] = [];
+    deps.chatFor = async (_installationId, provider) => {
+      asked.push(provider);
+      return null;
+    };
+    await linkChatIdentities(deps, member.id, 'alice@acme.com', [INST]);
+    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/42');
+    expect(asked).toEqual([]);
+  });
+
+  test('links nobody by email', async () => {
+    await seedOrg();
+    await saveConnection(db, INST, 'google-chat', 'spaces/AAAA', '-', KEY);
+    const member = await seedMember();
+    const { deps } = fakeDeps();
+    await linkChatIdentities(deps, member.id, 'alice@acme.com', [INST]);
+    expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
+  });
+});
+
 describe('forgetChatIdentity', () => {
   test('deletes the stored slack identity that failed, only in that installation', async () => {
     await seedOrg();
@@ -54,7 +80,7 @@ describe('forgetChatIdentity', () => {
     await setIdentity(db, INST, member.id, 'slack', 'U1');
     await setIdentity(db, 12, member.id, 'slack', 'U1');
     await setIdentity(db, INST, member.id, 'linear', 'lin-1');
-    await forgetChatIdentity({ db }, INST, 'ALICE', 'U1');
+    await forgetChatIdentity({ db }, INST, 'slack', 'ALICE', 'U1');
     expect((await getIdentities(db, INST, 'slack')).size).toBe(0);
     expect((await getIdentities(db, 12, 'slack')).get('alice')).toBe('U1');
     expect((await getIdentities(db, INST, 'linear')).get('alice')).toBe('lin-1');
@@ -64,7 +90,7 @@ describe('forgetChatIdentity', () => {
     await seedOrg();
     const member = await seedMember();
     await setIdentity(db, INST, member.id, 'slack', 'U1');
-    await forgetChatIdentity({ db }, INST, 'alice', 'U0OVERRIDE');
+    await forgetChatIdentity({ db }, INST, 'slack', 'alice', 'U0OVERRIDE');
     expect((await getIdentities(db, INST, 'slack')).get('alice')).toBe('U1');
   });
 });

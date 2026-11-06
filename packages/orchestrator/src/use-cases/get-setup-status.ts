@@ -1,4 +1,10 @@
-import type { ChannelCheck, ConfigError, StandcastConfig } from '@standcast/core';
+import type {
+  ChannelCheck,
+  ChatProvider,
+  ConfigError,
+  StandcastConfig,
+  TeamConfig,
+} from '@standcast/core';
 import {
   type ApiKeySummary,
   getConnection,
@@ -129,14 +135,13 @@ const CHANNEL_NOTICES: Record<Exclude<ChannelCheck, 'ok'>, TeamNotice['kind']> =
   not_member: 'channel_not_member',
 };
 
-async function channelNotices(
+async function providerChannelNotices(
   deps: Deps,
   installationId: number,
-  config: StandcastConfig,
+  provider: ChatProvider,
+  teams: TeamConfig[],
 ): Promise<TeamNotice[]> {
-  const teams = config.teams.filter((team) => team.chat.provider === 'slack' && team.chat.channel);
-  if (teams.length === 0) return [];
-  const chat = await deps.chatFor(installationId, 'slack');
+  const chat = await deps.chatFor(installationId, provider);
   if (!chat) return [];
   const channels = [...new Set(teams.map((team) => team.chat.channel))];
   const checks = await Promise.all(
@@ -159,6 +164,25 @@ async function channelNotices(
     if (!result || result === 'ok') return [];
     return [{ team: team.name, reference: team.chat.channel, kind: CHANNEL_NOTICES[result] }];
   });
+}
+
+async function channelNotices(
+  deps: Deps,
+  installationId: number,
+  config: StandcastConfig,
+): Promise<TeamNotice[]> {
+  const byProvider = new Map<ChatProvider, TeamConfig[]>();
+  for (const team of config.teams) {
+    if (!team.chat.channel) continue;
+    byProvider.set(team.chat.provider, [...(byProvider.get(team.chat.provider) ?? []), team]);
+  }
+  const notices = await Promise.all(
+    [...byProvider].map(([provider, teams]) =>
+      providerChannelNotices(deps, installationId, provider, teams),
+    ),
+  );
+  const order = new Map(config.teams.map((team, i) => [team.name, i]));
+  return notices.flat().sort((a, b) => (order.get(a.team) ?? 0) - (order.get(b.team) ?? 0));
 }
 
 async function safeChannelNotices(

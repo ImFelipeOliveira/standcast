@@ -11,6 +11,7 @@
     "@standcast/orchestrator": "workspace:*",
     "@standcast/queue": "workspace:*",
     "@standcast/resend": "workspace:*",
+    "@standcast/slack": "workspace:*",
     "zod": "^4.6.7"
   }
 }
