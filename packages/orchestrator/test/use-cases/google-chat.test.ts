@@ -13,6 +13,7 @@ import {
   setIdentity,
   setMemberInstallations,
   upsertDaily,
+  upsertMember,
 } from '@standcast/db';
 import { googleChatSpaces } from '../../../db/src/schema';
 import { db, useCleanDb } from '../../../db/test/setup';
@@ -89,14 +90,16 @@ async function issueCode(
 
 async function bindElsewhere(spaceName: string, installationId = OTHER) {
   const reply = await handleGoogleChatEvent(fakeDeps().deps, added(spaceName));
-  const code = CODE.exec(reply?.text ?? '')?.[1] ?? '';
+  const code = CODE.exec(reply?.text ?? '')?.[1];
+  if (!code) throw new Error('no code in reply');
   const codeHash = createHash('sha256').update(code).digest('hex');
-  await redeemGoogleChatLinkCode(db, {
+  const result = await redeemGoogleChatLinkCode(db, {
     codeHash,
     installationId,
     now: new Date('2026-10-28T15:00:00Z'),
     connection: { secret: GOOGLE_CHAT_CONNECTION_SECRET, key: KEY },
   });
+  if (result.status !== 'linked') throw new Error(`unexpected link status: ${result.status}`);
 }
 
 describe('handleGoogleChatEvent in a room', () => {
@@ -517,6 +520,18 @@ describe('handleGoogleChatEvent in a direct message', () => {
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
     const missing = await handleGoogleChatEvent(deps, dm(undefined));
     expect(missing?.text).toBe(reply?.text);
+  });
+
+  test('an email shared by two accounts links nobody', async () => {
+    const { deps } = await setup();
+    const twin = await upsertMember(db, { githubUserId: 2, login: 'bob', email: 'Alice@acme.com' });
+    await setMemberInstallations(db, twin.id, [INST]);
+    await bindElsewhere('spaces/AAAA', INST);
+    const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
+    expect(reply?.text).toContain('more than one GitHub account');
+    expect(reply?.text).toContain('mais de uma conta do GitHub');
+    expect(reply?.text).toContain('google_chat');
+    expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
   });
 
   test('a member with no installation on google chat is told so', async () => {

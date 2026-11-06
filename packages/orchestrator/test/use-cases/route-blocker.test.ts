@@ -29,7 +29,7 @@ import {
   routeBlocker,
   submitDaily,
 } from '../../src';
-import { daily, fakeChat, fakeDeps, INST, seedMember, seedOrg } from './fakes';
+import { daily, fakeChat, fakeDeps, INST, linkSpace, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -495,6 +495,42 @@ describe('routeBlocker', () => {
     });
     expect(failed?.status).toBe('failed');
     expect(failed?.error).toStartWith('no_chat_identity');
+  });
+
+  test('a google chat membership error fails only that recipient', async () => {
+    const parsed = routeConfig(
+      'members:\n  mgr: { google_chat: users/999 }\n  carla: { google_chat: users/888 }',
+      '[mgr, carla]',
+    );
+    const cfg = {
+      ...parsed,
+      teams: parsed.teams.map((t) => ({
+        ...t,
+        chat: { provider: 'google-chat' as const, channel: 'spaces/AAAA' },
+      })),
+    };
+    await seedOrg(cfg);
+    await linkSpace('spaces/AAAA');
+    const fake = fakeDeps();
+    const google = fakeChat();
+    google.chat.isSpaceMember = async (_space, userId) => {
+      if (userId === 'users/999') throw new ChatDeliveryError('timeout', 'slow');
+      return true;
+    };
+    fake.deps.chatFor = async () => google.chat;
+    const blocker: Item = { text: 'Need prod access' };
+    const dailyId = await seedDaily([blocker]);
+    await routeBlocker(fake.deps, { installationId: INST, dailyId, blockerIndex: 0 });
+    expect(google.directs.map((d) => d.userId)).toEqual(['users/888']);
+    const failed = await getDelivery(db, {
+      installationId: INST,
+      teamName: '',
+      date: DATE,
+      kind: 'blocker_route',
+      subject: `${dailyId}:${blockerRouteId(blocker)}:mgr`,
+    });
+    expect(failed?.status).toBe('failed');
+    expect(failed?.error).toBe('no_chat_identity: mgr');
   });
 
   test('a resubmit that shifts indexes still routes each blocker exactly once', async () => {

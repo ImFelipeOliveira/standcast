@@ -81,6 +81,7 @@ Standcast matches the email of your Google account with the primary verified ema
 | You're linked, @your-login. | Done. |
 | No Standcast account uses this email; run `standcast login` first, then message me again. | Standcast has no account with this email. Sign in first. If your GitHub email is different, see below. |
 | I found your account, but none of your organizations has connected Google Chat to Standcast yet. Ask an admin to link a space, then message me again. | Link a space first, then message the app again. |
+| This email belongs to more than one GitHub account on Standcast, so I linked none of them. Ask an admin to set `google_chat` for you under `members` in standcast.yml, or keep the email only on your own GitHub account and run `standcast login` again. | Two or more GitHub accounts signed in to Standcast share this email, so Standcast links none of them. Map the person by hand, as below, or remove the email from the other accounts. |
 
 The answer is in the team's language when Standcast knows it, otherwise in English and Portuguese.
 
@@ -93,7 +94,7 @@ members:
 
 The value must be `users/` followed by digits. The digits are the person's Google user id, the same id the Google Workspace Admin SDK and the People API use.
 
-The digest mentions use the mapping. Direct messages use it only when the person is a member of at least one space linked to your organization: before each direct message, Standcast asks Google Chat whether that user is in one of your linked spaces. If they are not, nothing is sent and the delivery fails with `no_chat_identity`. This keeps a mapping from reaching people outside your organization. When the mapping is the same user the person linked by direct message, no check is needed.
+The digest mentions use the mapping. Direct messages use it only when the person is a member of at least one space linked to your organization: before each direct message, Standcast asks Google Chat whether that user is in one of your linked spaces. It checks at most 10 linked spaces, at the same time, and stops at the first one where the person is a member. If they are in none of them, or Google Chat does not answer in time, nothing is sent and the delivery fails with `no_chat_identity`. This keeps a mapping from reaching people outside your organization. When the mapping is the same user the person linked by direct message, no check is needed.
 
 The digest mentions each linked person with their Google Chat user, and shows `@` followed by their GitHub login as plain text otherwise.
 
@@ -117,7 +118,7 @@ When a post fails, the setup page and the web app list it under "Latest failed d
 | `invalid_auth` | Google Chat rejected the credentials of the Standcast app. | Contact support. |
 | `ratelimited` | Google Chat asked Standcast to slow down. | Nothing to do; it is retried. |
 | `timeout`, `request_failed`, `http_error`, `invalid_response` | Google Chat did not answer in time, could not be reached, or answered with an error. | Nothing to do; it is retried. Contact support if it repeats. |
-| `no_chat_connection` | No space is linked to this organization, or the server has no Google Chat app. | Link a space. |
+| `no_chat_connection` | No space is linked to this organization, or the server has no Google Chat app. | Link a space. If the setup page says Google Chat is not available on this server, contact the server operator to configure Google Chat. |
 | `no_chat_identity` | The person, or the manager a blocker fell back to, has no Google Chat link, or their `members.<login>.google_chat` user is in none of your linked spaces. | Ask the person to message the app, or add them to a linked space. |
 | `no_route_target` | A blocker had no recipient at all, for example because the author is the team's only manager. | Add another manager to the team. |
 | `worker_died` | The worker stopped three times while sending. | Contact support if it repeats. |

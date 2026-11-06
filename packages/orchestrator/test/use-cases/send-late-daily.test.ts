@@ -27,8 +27,9 @@ useCleanDb();
 const DATE = '2026-10-28';
 const digestKey = { installationId: INST, teamName: 'Alpha', date: DATE, kind: 'digest' as const };
 const DIGEST_REF = { channel: 'C1', id: '100.0' };
+const GOOGLE_DIGEST_REF = { channel: 'spaces/AAAA', id: 'spaces/AAAA/threads/t1' };
 
-async function setup(digestSent = true) {
+async function setup(digestSent = true, digestRef = DIGEST_REF) {
   await seedOrg();
   const alice = await seedMember();
   await upsertDaily(db, {
@@ -41,7 +42,7 @@ async function setup(digestSent = true) {
   if (digestSent) {
     const claim = await claimDelivery(db, digestKey);
     if (claim.status !== 'claimed') throw new Error('not claimed');
-    await completeDelivery(db, digestKey, claim.token, DIGEST_REF);
+    await completeDelivery(db, digestKey, claim.token, digestRef);
   }
   const fake = fakeDeps();
   const chat = fakeChat();
@@ -126,7 +127,7 @@ describe('sendLateDaily', () => {
   });
 
   test('late daily for a google-chat team replies in thread', async () => {
-    const { deps, replies, job } = await setup();
+    const { deps, replies, job } = await setup(true, GOOGLE_DIGEST_REF);
     const base = config();
     const team = base.teams[0];
     if (!team) throw new Error('no team');
@@ -139,14 +140,14 @@ describe('sendLateDaily', () => {
     });
     await setIdentity(db, INST, job.memberId, 'slack', 'UALICE');
     await setIdentity(db, INST, job.memberId, 'google-chat', 'users/111');
-    await linkSpace(DIGEST_REF.channel);
+    await linkSpace(GOOGLE_DIGEST_REF.channel);
     const google = fakeChat();
     deps.chatFor = async (_installationId, provider) =>
       provider === 'google-chat' ? google.chat : null;
     await sendLateDaily(deps, job);
     expect(replies).toHaveLength(0);
     expect(google.replies).toHaveLength(1);
-    expect(google.replies[0]?.ref).toEqual(DIGEST_REF);
+    expect(google.replies[0]?.ref).toEqual(GOOGLE_DIGEST_REF);
     const text = google.replies[0]?.msg.fallbackText ?? '';
     expect(text).toContain('late work');
     expect(text).toContain('@users/111');

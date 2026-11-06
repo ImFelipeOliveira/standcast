@@ -240,6 +240,38 @@ describe('sendReminder', () => {
     expect(row?.error).toBe('no_chat_identity: alice');
   });
 
+  test('a membership error in one space does not hide membership in another', async () => {
+    const { deps, google } = await googleOverrideSetup({ 'spaces/BBBB': ['users/999'] });
+    const check = google.chat.isSpaceMember;
+    google.chat.isSpaceMember = async (space, userId) => {
+      if (space === 'spaces/AAAA') throw new ChatDeliveryError('timeout', 'slow');
+      return (await check?.(space, userId)) === true;
+    };
+    await sendReminder(deps, job('alice'));
+    expect(google.directs[0]?.userId).toBe('users/999');
+  });
+
+  test('a google_chat override that cannot be verified gets no dm', async () => {
+    const { deps, google } = await googleOverrideSetup({});
+    google.chat.isSpaceMember = async () => {
+      throw new ChatDeliveryError('http_error', 'down');
+    };
+    await sendReminder(deps, job('alice'));
+    expect(google.directs).toHaveLength(0);
+    const row = await getDelivery(db, reminderKey('alice'));
+    expect(row?.status).toBe('failed');
+    expect(row?.error).toBe('no_chat_identity: alice');
+  });
+
+  test('membership is checked in at most 10 linked spaces', async () => {
+    const { deps, google, asked } = await googleOverrideSetup({ 'spaces/Z11': ['users/999'] });
+    for (let i = 1; i <= 11; i++) await linkSpace(`spaces/Z${String(i).padStart(2, '0')}`);
+    await sendReminder(deps, job('alice'));
+    expect(google.directs).toHaveLength(0);
+    expect(asked).toHaveLength(10);
+    expect(asked).not.toContain('spaces/Z11 users/999');
+  });
+
   test('a person in two teams gets exactly one DM', async () => {
     const { deps, directs, setNow } = await setup(twoTeamsWithAlice());
     await identify('alice', 'U1');

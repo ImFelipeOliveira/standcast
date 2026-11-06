@@ -45,16 +45,39 @@ export async function chatUserIdFor(
   return ids.get(login.toLowerCase()) ?? null;
 }
 
+const MAX_MEMBERSHIP_SPACES = 10;
+const MEMBERSHIP_BUDGET_MS = 20_000;
+
+function anyConfirmed(checks: Promise<boolean>[]): Promise<boolean> {
+  return new Promise((resolve) => {
+    let pending = checks.length;
+    const timer = setTimeout(() => resolve(false), MEMBERSHIP_BUDGET_MS);
+    const settle = (member: boolean) => {
+      pending -= 1;
+      if (!member && pending > 0) return;
+      clearTimeout(timer);
+      resolve(member);
+    };
+    for (const check of checks) {
+      check.then(settle, (error: unknown) => {
+        logError('google chat membership check failed', error);
+        settle(false);
+      });
+    }
+  });
+}
+
 async function inLinkedSpace(
   chat: ChatChannel | null,
   spaces: () => Promise<string[]>,
   userId: string,
 ): Promise<boolean> {
   if (!chat?.isSpaceMember) return false;
-  for (const space of await spaces()) {
-    if (await chat.isSpaceMember(space, userId)) return true;
-  }
-  return false;
+  const names = (await spaces()).slice(0, MAX_MEMBERSHIP_SPACES);
+  if (names.length === 0) return false;
+  return anyConfirmed(
+    names.map(async (space) => (await chat.isSpaceMember?.(space, userId)) === true),
+  );
 }
 
 export async function directMessageIdsFor(
@@ -76,6 +99,15 @@ export async function directMessageIdsFor(
     );
     return linkedSpaces;
   };
+  const verified = new Map<string, Promise<boolean>>();
+  const confirmed = (userId: string) => {
+    let check = verified.get(userId);
+    if (!check) {
+      check = inLinkedSpace(chat, spaces, userId);
+      verified.set(userId, check);
+    }
+    return check;
+  };
   const ids = new Map<string, string>();
   for (const login of logins) {
     const lower = login.toLowerCase();
@@ -85,7 +117,7 @@ export async function directMessageIdsFor(
       if (identity) ids.set(lower, identity);
       continue;
     }
-    if (await inLinkedSpace(chat, spaces, override)) ids.set(lower, override);
+    if (await confirmed(override)) ids.set(lower, override);
   }
   return ids;
 }

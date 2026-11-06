@@ -144,6 +144,9 @@ async function linkIdentities(
   }
   const members = await membersWithEmail(deps, email);
   if (members.length === 0) return bilingual('googleChat.notFound');
+  if (new Set(members.map((member) => member.id)).size > 1) {
+    return bilingual('googleChat.ambiguous');
+  }
   const linked: string[] = [];
   const languages = new Set<Language>();
   for (const member of members) {

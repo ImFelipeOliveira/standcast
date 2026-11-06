@@ -81,6 +81,7 @@ O Standcast compara o e-mail da sua conta do Google com o e-mail principal verif
 | Vínculo feito, @seu-login. | Pronto. |
 | Nenhuma conta do Standcast usa este e-mail. Rode `standcast login` primeiro e depois me mande uma mensagem de novo. | O Standcast não tem conta com este e-mail. Entre primeiro. Se o seu e-mail do GitHub é outro, veja abaixo. |
 | Achei a sua conta, mas nenhuma organização sua conectou o Google Chat ao Standcast ainda. Peça a um admin para vincular um espaço e me mande uma mensagem de novo. | Vincule um espaço primeiro e mande uma mensagem para o app de novo. |
+| Este e-mail pertence a mais de uma conta do GitHub no Standcast, então não vinculei nenhuma. Peça a um admin para definir `google_chat` para você em `members` no standcast.yml, ou deixe o e-mail certo só na sua conta do GitHub e rode `standcast login` de novo. | Duas ou mais contas do GitHub que entraram no Standcast têm este e-mail, então o Standcast não vincula nenhuma. Mapeie a pessoa à mão, como abaixo, ou tire o e-mail das outras contas. |
 
 A resposta vem no idioma do time quando o Standcast sabe qual é, e em inglês e português quando não sabe.
 
@@ -93,7 +94,7 @@ members:
 
 O valor precisa ser `users/` seguido de dígitos. Os dígitos são o id de usuário do Google da pessoa, o mesmo id que o Admin SDK do Google Workspace e a People API usam.
 
-As menções no consolidado usam o mapeamento. As mensagens diretas só usam o mapeamento quando a pessoa participa de pelo menos um espaço vinculado à sua organização: antes de cada mensagem direta, o Standcast pergunta ao Google Chat se esse usuário está em um dos seus espaços vinculados. Se não estiver, nada é enviado e a entrega falha com `no_chat_identity`. Assim um mapeamento não alcança pessoas de fora da sua organização. Quando o mapeamento é o mesmo usuário que a pessoa vinculou pela mensagem direta, a conferência não é necessária.
+As menções no consolidado usam o mapeamento. As mensagens diretas só usam o mapeamento quando a pessoa participa de pelo menos um espaço vinculado à sua organização: antes de cada mensagem direta, o Standcast pergunta ao Google Chat se esse usuário está em um dos seus espaços vinculados. Ele confere no máximo 10 espaços vinculados, ao mesmo tempo, e para no primeiro em que a pessoa participa. Se ela não estiver em nenhum, ou se o Google Chat não responder a tempo, nada é enviado e a entrega falha com `no_chat_identity`. Assim um mapeamento não alcança pessoas de fora da sua organização. Quando o mapeamento é o mesmo usuário que a pessoa vinculou pela mensagem direta, a conferência não é necessária.
 
 O consolidado menciona cada pessoa vinculada com o usuário dela no Google Chat, e mostra `@` seguido do login do GitHub, como texto, quando não há vínculo.
 
@@ -117,7 +118,7 @@ Quando uma publicação falha, a página de setup e o app web mostram a falha em
 | `invalid_auth` | O Google Chat recusou as credenciais do app do Standcast. | Fale com o suporte. |
 | `ratelimited` | O Google Chat pediu para o Standcast ir mais devagar. | Nada a fazer; há nova tentativa. |
 | `timeout`, `request_failed`, `http_error`, `invalid_response` | O Google Chat não respondeu a tempo, não pôde ser acessado, ou respondeu com erro. | Nada a fazer; há nova tentativa. Fale com o suporte se repetir. |
-| `no_chat_connection` | Nenhum espaço está vinculado a esta organização, ou o servidor não tem app do Google Chat. | Vincule um espaço. |
+| `no_chat_connection` | Nenhum espaço está vinculado a esta organização, ou o servidor não tem app do Google Chat. | Vincule um espaço. Se a página de setup diz que o Google Chat não está disponível neste servidor, fale com quem opera o servidor para configurar o Google Chat. |
 | `no_chat_identity` | A pessoa, ou o gestor para quem um impedimento foi, não tem vínculo com o Google Chat, ou o usuário em `members.<login>.google_chat` não está em nenhum dos seus espaços vinculados. | Peça para a pessoa mandar mensagem para o app, ou adicione a pessoa a um espaço vinculado. |
 | `no_route_target` | Um impedimento não tinha destinatário nenhum, por exemplo porque quem escreveu é o único gestor do time. | Adicione outro gestor ao time. |
 | `worker_died` | O worker parou três vezes durante o envio. | Fale com o suporte se repetir. |

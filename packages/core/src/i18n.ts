@@ -255,6 +255,8 @@ const ptBR = {
     'Nenhuma conta do Standcast usa este e-mail. Rode `standcast login` primeiro e depois me mande uma mensagem de novo.',
   'googleChat.notConnected':
     'Achei a sua conta, mas nenhuma organização sua conectou o Google Chat ao Standcast ainda. Peça a um admin para vincular um espaço e me mande uma mensagem de novo.',
+  'googleChat.ambiguous':
+    'Este e-mail pertence a mais de uma conta do GitHub no Standcast, então não vinculei nenhuma. Peça a um admin para definir `google_chat` para você em `members` no standcast.yml, ou deixe o e-mail certo só na sua conta do GitHub e rode `standcast login` de novo.',
 } as const;
 
 const en = {
@@ -512,6 +514,8 @@ const en = {
     'No Standcast account uses this email; run `standcast login` first, then message me again.',
   'googleChat.notConnected':
     'I found your account, but none of your organizations has connected Google Chat to Standcast yet. Ask an admin to link a space, then message me again.',
+  'googleChat.ambiguous':
+    'This email belongs to more than one GitHub account on Standcast, so I linked none of them. Ask an admin to set `google_chat` for you under `members` in standcast.yml, or keep the email only on your own GitHub account and run `standcast login` again.',
 } as const satisfies Record<keyof typeof ptBR, string>;
 
 const messages: {
