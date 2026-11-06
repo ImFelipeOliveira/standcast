@@ -1,6 +1,6 @@
 # Slack
 
-O Standcast publica o consolidado de cada time num canal do Slack. Cada instalação conecta um workspace do Slack.
+O Standcast publica o consolidado de cada time num canal do Slack. Cada instalação conecta um workspace do Slack. Os times que usam o Google Chat estão em [Google Chat](/pt-BR/admin/google-chat).
 
 ## Conectar
 
@@ -63,7 +63,7 @@ Quando uma publicação falha, a página de setup a lista em "Últimas entregas 
 | `no_chat_connection` | O Slack não está conectado nesta instalação. | Um admin clica em **Conectar Slack** na página de setup. |
 | `no_chat_identity` | Um lembrete ou impedimento encaminhado não pôde ser enviado porque a pessoa, ou o gestor para quem ele caiu, não tem usuário no Slack. A página de setup mostra o login. | Peça à pessoa para rodar `standcast login` depois que o Slack foi conectado, ou adicione `members.<login>.slack` no `standcast.yml`. |
 | `no_route_target` | Um impedimento foi reportado, mas não havia nenhum destinatário, por exemplo porque o autor é o único gestor do time. | Adicione outro gestor ao time. |
-| `unsupported_provider` | O time usa `chat.provider: google-chat`, que vem em breve. | Use `slack`. |
+| `unsupported_provider` | O `chat.provider` do time não é um que o Standcast conhece. | Use `slack` ou `google-chat`. |
 | `worker_died` | O worker parou três vezes durante o envio. | Fale com o suporte se repetir. |
 | `internal_error` | Erro inesperado. A mensagem traz os detalhes. | Fale com o suporte se repetir. |
 

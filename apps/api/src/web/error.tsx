@@ -12,6 +12,9 @@ const PAGE_CODES = [
   'linear_oauth_failed',
   'not_found',
   'rate_limited',
+  'invalid_code',
+  'space_already_linked',
+  'too_many_spaces',
 ] as const;
 
 type PageCode = (typeof PAGE_CODES)[number];
@@ -29,6 +32,9 @@ const TONES: Partial<Record<PageCode, ErrorTone>> = {
   linear_oauth_failed: 'danger',
   rate_limited: 'warning',
   installation_pending: 'warning',
+  invalid_code: 'warning',
+  space_already_linked: 'danger',
+  too_many_spaces: 'warning',
 };
 
 const ICONS: Record<ErrorTone, IconName> = { danger: 'x', warning: 'alert', neutral: 'alert' };

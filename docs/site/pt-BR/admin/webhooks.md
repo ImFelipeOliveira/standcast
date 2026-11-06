@@ -10,7 +10,7 @@ Esta página cobre a página de setup. Para os payloads, os headers e como verif
 | --- | --- |
 | `daily.submitted` | Uma pessoa envia a daily. Um reenvio no mesmo dia é enviado de novo com `replaced: true`. |
 | `blocker.opened` | Uma daily traz um impedimento novo naquele dia. |
-| `digest.sent` | O consolidado do time é publicado no Slack. |
+| `digest.sent` | O consolidado do time é publicado no Slack ou no Google Chat. |
 
 ## Adicionar um endpoint
 

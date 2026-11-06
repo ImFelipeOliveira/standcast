@@ -40,7 +40,7 @@ standcast login
 
 The CLI shows a code and opens GitHub in your browser. Enter the code and authorize Standcast. The CLI then prints "Signed in as" and your login.
 
-Signing in also links you to your Slack user, so that the digest can mention you. If your admin connects Slack or changes `standcast.yml` after you sign in, run `standcast login` again.
+Signing in also links you to your Slack user, so that the digest can mention you. If your admin connects Slack or changes `standcast.yml` after you sign in, run `standcast login` again. If your team uses Google Chat, also send the Standcast app a direct message once in Google Chat, to link your Google Chat user. See [Google Chat](/admin/google-chat#how-people-are-linked).
 
 Check who you are and which organizations you can write dailies for:
 

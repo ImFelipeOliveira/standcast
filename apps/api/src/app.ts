@@ -5,12 +5,17 @@ import type { GetClientIp } from './middleware/rate-limit';
 import { appRoutes } from './routes/app';
 import { betaRoutes } from './routes/beta';
 import { docsRoutes } from './routes/docs';
+import { type GoogleChatWebhook, googleChatRoutes } from './routes/google-chat';
 import { publicRoutes } from './routes/public';
 import { v1Routes } from './routes/v1';
 import { webRoutes } from './routes/web';
 import { webhookRoutes } from './routes/webhooks';
 
-export type AppOptions = { getClientIp: GetClientIp; healthTimeoutMs?: number };
+export type AppOptions = {
+  getClientIp: GetClientIp;
+  healthTimeoutMs?: number;
+  googleChat?: GoogleChatWebhook | null;
+};
 
 export function createApp(deps: Deps, options: AppOptions): Hono {
   const app = new Hono();
@@ -29,6 +34,13 @@ export function createApp(deps: Deps, options: AppOptions): Hono {
   );
   app.route('/', betaRoutes(deps, { getClientIp: options.getClientIp }));
   app.route('/webhooks', webhookRoutes(deps));
+  app.route(
+    '/',
+    googleChatRoutes(deps, {
+      getClientIp: options.getClientIp,
+      googleChat: options.googleChat ?? null,
+    }),
+  );
   app.route('/', webRoutes(deps, { getClientIp: options.getClientIp }));
   return app;
 }

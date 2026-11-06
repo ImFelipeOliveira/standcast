@@ -16,7 +16,7 @@ No. The GitHub App reads pull requests, reviews, checks, commit metadata, standc
 
 ## What do I need?
 
-A GitHub organization or personal account and a Slack workspace. Linear is optional. Google Chat and Jira are in development.
+A GitHub organization or personal account, and a Slack workspace or Google Chat in Google Workspace. Linear is optional. Jira is in development.
 
 ## Which agents can I write my daily with?
 

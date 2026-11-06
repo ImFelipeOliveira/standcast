@@ -1,4 +1,10 @@
-import type { ChannelCheck, ConfigError, StandcastConfig } from '@standcast/core';
+import type {
+  ChannelCheck,
+  ChatProvider,
+  ConfigError,
+  StandcastConfig,
+  TeamConfig,
+} from '@standcast/core';
 import {
   type ApiKeySummary,
   getConnection,
@@ -6,12 +12,14 @@ import {
   listApiKeys,
   listFailedPersonDeliveryGroups,
   listFailedTeamDeliveries,
+  listGoogleChatSpaces,
   listMemberInstallations,
   type MemberRow,
   operationalConfig,
   type PersonFailureGroup,
   type TeamFailure,
 } from '@standcast/db';
+import { isChannelLinked } from '../chat';
 import type { Deps } from '../deps';
 import { guarded } from '../guarded';
 import { statusOf } from '../membership';
@@ -38,6 +46,7 @@ export type SetupStatus = {
   accessWarning: string | null;
   configRepo: { exists: true; defaultBranch: string } | { exists: false };
   slack: { connected: false } | { connected: true; workspace: string };
+  googleChat: { available: boolean; spaces: { name: string; displayName: string }[] };
   linear:
     | { connected: false }
     | { connected: true; workspace: string; urlKey: string; invalid: boolean };
@@ -124,21 +133,48 @@ async function safeTeamNotices(
   );
 }
 
-const CHANNEL_NOTICES: Record<Exclude<ChannelCheck, 'ok'>, TeamNotice['kind']> = {
-  not_found: 'channel_not_found',
-  not_member: 'channel_not_member',
+const CHANNEL_NOTICES: Record<
+  ChatProvider,
+  Record<Exclude<ChannelCheck, 'ok'>, TeamNotice['kind']>
+> = {
+  slack: { not_found: 'channel_not_found', not_member: 'channel_not_member' },
+  'google-chat': { not_found: 'space_not_found', not_member: 'space_not_member' },
 };
 
-async function channelNotices(
+async function linkedTeams(
   deps: Deps,
   installationId: number,
-  config: StandcastConfig,
-): Promise<TeamNotice[]> {
-  const teams = config.teams.filter((team) => team.chat.provider === 'slack' && team.chat.channel);
-  if (teams.length === 0) return [];
-  const chat = await deps.chatFor(installationId, 'slack');
-  if (!chat) return [];
+  provider: ChatProvider,
+  teams: TeamConfig[],
+): Promise<{ linked: TeamConfig[]; unlinked: TeamConfig[] }> {
   const channels = [...new Set(teams.map((team) => team.chat.channel))];
+  const flags = await Promise.all(
+    channels.map((channel) => isChannelLinked(deps, installationId, provider, channel)),
+  );
+  const linkedChannels = new Set(channels.filter((_, i) => flags[i]));
+  return {
+    linked: teams.filter((team) => linkedChannels.has(team.chat.channel)),
+    unlinked: teams.filter((team) => !linkedChannels.has(team.chat.channel)),
+  };
+}
+
+async function providerChannelNotices(
+  deps: Deps,
+  installationId: number,
+  provider: ChatProvider,
+  teams: TeamConfig[],
+): Promise<TeamNotice[]> {
+  if (provider === 'google-chat' && !deps.googleChatAvailable) return [];
+  const { linked, unlinked } = await linkedTeams(deps, installationId, provider, teams);
+  const unlinkedNotices: TeamNotice[] = unlinked.map((team) => ({
+    team: team.name,
+    reference: team.chat.channel,
+    kind: 'space_not_linked',
+  }));
+  if (linked.length === 0) return unlinkedNotices;
+  const chat = await deps.chatFor(installationId, provider);
+  if (!chat) return unlinkedNotices;
+  const channels = [...new Set(linked.map((team) => team.chat.channel))];
   const checks = await Promise.all(
     channels.map((channel) =>
       guarded<ChannelCheck | null>(
@@ -154,11 +190,33 @@ async function channelNotices(
   channels.forEach((channel, i) => {
     results.set(channel, checks[i] ?? null);
   });
-  return teams.flatMap((team) => {
+  const checked = linked.flatMap((team): TeamNotice[] => {
     const result = results.get(team.chat.channel);
     if (!result || result === 'ok') return [];
-    return [{ team: team.name, reference: team.chat.channel, kind: CHANNEL_NOTICES[result] }];
+    return [
+      { team: team.name, reference: team.chat.channel, kind: CHANNEL_NOTICES[provider][result] },
+    ];
   });
+  return [...unlinkedNotices, ...checked];
+}
+
+async function channelNotices(
+  deps: Deps,
+  installationId: number,
+  config: StandcastConfig,
+): Promise<TeamNotice[]> {
+  const byProvider = new Map<ChatProvider, TeamConfig[]>();
+  for (const team of config.teams) {
+    if (!team.chat.channel) continue;
+    byProvider.set(team.chat.provider, [...(byProvider.get(team.chat.provider) ?? []), team]);
+  }
+  const notices = await Promise.all(
+    [...byProvider].map(([provider, teams]) =>
+      providerChannelNotices(deps, installationId, provider, teams),
+    ),
+  );
+  const order = new Map(config.teams.map((team, i) => [team.name, i]));
+  return notices.flat().sort((a, b) => (order.get(a.team) ?? 0) - (order.get(b.team) ?? 0));
 }
 
 async function safeChannelNotices(
@@ -197,16 +255,25 @@ export async function getSetupStatus(
   );
   const channelNoticesPromise = safeChannelNotices(deps, installation.id, operational);
   const octokit = await deps.github.installationOctokit(installation.id);
-  const [configRepo, connection, linearConnection, teamFailures, personFailures, admin, linked] =
-    await Promise.all([
-      findConfigRepo(octokit, installation.accountLogin),
-      getConnection(deps.db, installation.id, 'slack', deps.encryptionKey),
-      getConnectionInfo(deps.db, installation.id, 'linear'),
-      listFailedTeamDeliveries(deps.db, installation.id, TEAM_FAILURE_LIMIT),
-      listFailedPersonDeliveryGroups(deps.db, installation.id, PERSON_FAILURE_GROUP_LIMIT),
-      isInstallationAdmin(deps, installation.id, current).catch(() => false),
-      listMemberInstallations(deps.db, current.id),
-    ]);
+  const [
+    configRepo,
+    connection,
+    linearConnection,
+    teamFailures,
+    personFailures,
+    admin,
+    linked,
+    googleChatSpaces,
+  ] = await Promise.all([
+    findConfigRepo(octokit, installation.accountLogin),
+    getConnection(deps.db, installation.id, 'slack', deps.encryptionKey),
+    getConnectionInfo(deps.db, installation.id, 'linear'),
+    listFailedTeamDeliveries(deps.db, installation.id, TEAM_FAILURE_LIMIT),
+    listFailedPersonDeliveryGroups(deps.db, installation.id, PERSON_FAILURE_GROUP_LIMIT),
+    isInstallationAdmin(deps, installation.id, current).catch(() => false),
+    listMemberInstallations(deps.db, current.id),
+    listGoogleChatSpaces(deps.db, installation.id),
+  ]);
   const [apiKeys, webhooks]: [SetupStatus['apiKeys'], SetupStatus['webhooks']] = admin
     ? await Promise.all([
         listApiKeys(deps.db, installation.id).then((keys) => ({ manage: true as const, keys })),
@@ -249,6 +316,7 @@ export async function getSetupStatus(
     slack: connection
       ? { connected: true, workspace: connection.externalName ?? connection.externalId }
       : { connected: false },
+    googleChat: { available: deps.googleChatAvailable === true, spaces: googleChatSpaces },
     linear,
     trackerNotices: trackerNotices(operational, linear),
     teamNotices,

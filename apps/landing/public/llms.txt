@@ -1,6 +1,6 @@
 # Standcast
 
-> Standcast orchestrates a team's daily standup. Each person drafts their daily from GitHub and Linear activity inside their AI agent (Claude Code, Cursor, Codex, any MCP client) or the terminal, confirms it, and Standcast posts one digest per team to Slack. Open source (MIT), free during the public beta.
+> Standcast orchestrates a team's daily standup. Each person drafts their daily from GitHub and Linear activity inside their AI agent (Claude Code, Cursor, Codex, any MCP client) or the terminal, confirms it, and Standcast posts one digest per team to Slack or Google Chat. Open source (MIT), free during the public beta.
 
 ## Landing
 
@@ -26,7 +26,7 @@
 - [Full docs in one file](https://docs-standcast.usefachada.dev/llms-full.txt): the whole documentation in a single file
 - [Docs index in Brazilian Portuguese](https://docs-standcast.usefachada.dev/pt-BR/llms.txt): every pt-BR documentation page as Markdown
 - [Full docs in Brazilian Portuguese](https://docs-standcast.usefachada.dev/pt-BR/llms-full.txt): the whole pt-BR documentation in a single file
-- [Install](https://docs-standcast.usefachada.dev/admin/install): install the GitHub App, connect Slack and add standcast.yml
+- [Install](https://docs-standcast.usefachada.dev/admin/install): install the GitHub App, connect Slack or Google Chat and add standcast.yml
 - [Configuration](https://docs-standcast.usefachada.dev/admin/configuration): the standcast.yml reference
 - [MCP server](https://docs-standcast.usefachada.dev/members/mcp): write and read dailies from any MCP client
 

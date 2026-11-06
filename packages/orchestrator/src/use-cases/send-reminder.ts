@@ -9,10 +9,10 @@ import {
   listDailies,
   operationalConfig,
 } from '@standcast/db';
-import { chatUserIdFor, forgetStaleChatIdentity } from '../chat-identity';
+import { directMessageIdFor, forgetStaleChatIdentity } from '../chat-identity';
 import type { WorkerDeps } from '../deps';
 import { resolveTeams } from '../teams';
-import { describeDeliveryError } from './delivery-error';
+import { describeDeliveryError, isTerminalDeliveryError } from './delivery-error';
 
 export type SendReminderJob = {
   installationId: number;
@@ -66,14 +66,15 @@ export async function sendReminder(deps: WorkerDeps, job: SendReminderJob): Prom
   const claim = await claimDelivery(deps.db, key);
   if (claim.status !== 'claimed') return;
 
+  const provider = earliest.team.chat.provider;
   let chatUserId: string | null = null;
   try {
-    const chat = await deps.chatFor(job.installationId, 'slack');
+    const chat = await deps.chatFor(job.installationId, provider);
     if (!chat) {
       await failDelivery(deps.db, key, claim.token, 'no_chat_connection');
       return;
     }
-    chatUserId = await chatUserIdFor(deps, job.installationId, config, login);
+    chatUserId = await directMessageIdFor(deps, chat, job.installationId, config, provider, login);
     if (!chatUserId) {
       await failDelivery(deps.db, key, claim.token, `no_chat_identity: ${login}`);
       return;
@@ -84,10 +85,19 @@ export async function sendReminder(deps: WorkerDeps, job: SendReminderJob): Prom
     );
     await completeDelivery(deps.db, key, claim.token, ref);
   } catch (error) {
-    await failDelivery(deps.db, key, claim.token, describeDeliveryError(error));
+    await failDelivery(deps.db, key, claim.token, describeDeliveryError(error, provider));
     if (chatUserId) {
-      await forgetStaleChatIdentity(deps, job.installationId, config, login, chatUserId, error);
+      await forgetStaleChatIdentity(
+        deps,
+        job.installationId,
+        config,
+        provider,
+        login,
+        chatUserId,
+        error,
+      );
     }
+    if (isTerminalDeliveryError(error)) return;
     throw error;
   }
 }

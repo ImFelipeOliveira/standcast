@@ -2,7 +2,8 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 const LOCALE = 'pt-BR';
-const DESCRIPTION = 'O Standcast orquestra a daily do seu time, do GitHub ao Slack.';
+const DESCRIPTION =
+  'O Standcast orquestra a daily do seu time, do GitHub ao Slack ou ao Google Chat.';
 
 function titleOf(markdown: string, fallback: string): string {
   const heading = /^#\s+(.+)$/m.exec(markdown);

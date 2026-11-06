@@ -1,11 +1,14 @@
 import type { SetupStatus } from '@standcast/orchestrator';
-import type { ReactNode } from 'react';
+import { type FormEvent, type ReactNode, useId, useState } from 'react';
 import { apiUrl } from '../../api/client';
+import { useLinkGoogleChatSpace, useUnlinkGoogleChatSpace } from '../../api/mutations';
 import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
 import { useT } from '../../i18n';
-import { reasonText, TRACKER_NOTICES, type Translate } from './labels';
+import { linkErrorMessage, reasonText, TRACKER_NOTICES, type Translate } from './labels';
 
 type LinearState = 'done' | 'todo' | 'error';
 
@@ -17,10 +20,13 @@ export const linearState = (status: SetupStatus): LinearState => {
   return status.linear.invalid ? 'error' : 'done';
 };
 
+export const chatConnected = (status: SetupStatus) =>
+  status.slack.connected || status.googleChat.spaces.length > 0;
+
 export function setupProgress(status: SetupStatus): { done: number; total: number } {
   const steps = [
     true,
-    status.slack.connected,
+    chatConnected(status),
     status.config.status === 'configured',
     ...(usesLinear(status) ? [linearState(status) === 'done'] : []),
   ];
@@ -124,6 +130,248 @@ function SlackCard({ t, status }: { t: Translate; status: SetupStatus }) {
   );
 }
 
+type GoogleChatSpace = SetupStatus['googleChat']['spaces'][number];
+type CopyState = 'idle' | 'copied' | 'failed';
+
+function SpaceRow({
+  t,
+  space,
+  admin,
+  unlinking,
+  onUnlink,
+}: {
+  t: Translate;
+  space: GoogleChatSpace;
+  admin: boolean;
+  unlinking: boolean;
+  onUnlink: (space: GoogleChatSpace) => void;
+}) {
+  const [copy, setCopy] = useState<CopyState>('idle');
+  const [confirming, setConfirming] = useState(false);
+  const copyName = async () => {
+    try {
+      await navigator.clipboard.writeText(space.name);
+      setCopy('copied');
+    } catch {
+      setCopy('failed');
+    }
+  };
+  return (
+    <li className="flex flex-col gap-1.5 rounded-[10px] border border-border px-3 py-2.5">
+      <span className="break-words font-semibold text-[13px]">{space.displayName}</span>
+      <div className="flex flex-wrap items-center gap-2">
+        <code className="min-w-0 flex-[1_1_140px] select-all break-all font-mono text-[12px] text-muted">
+          {space.name}
+        </code>
+        <Button type="button" variant="outline" size="sm" onClick={() => void copyName()}>
+          {copy === 'copied' ? t('setup.secret.copied') : t('setup.secret.copy')}
+          <span className="sr-only"> {space.name}</span>
+        </Button>
+        {admin && !confirming ? (
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            disabled={unlinking}
+            onClick={() => setConfirming(true)}
+          >
+            {t('setup.googleChat.unlink')}
+            <span className="sr-only"> {space.displayName}</span>
+          </Button>
+        ) : null}
+      </div>
+      {admin && confirming ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="m-0 basis-full text-[12px] text-text2">
+            {t('setup.googleChat.unlinkWarning')}
+          </p>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            disabled={unlinking}
+            onClick={() => {
+              setConfirming(false);
+              onUnlink(space);
+            }}
+          >
+            {t('setup.googleChat.confirmUnlink')}
+            <span className="sr-only"> {space.displayName}</span>
+          </Button>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+            {t('setup.cancel')}
+          </Button>
+        </div>
+      ) : null}
+      <span role="status" className="sr-only">
+        {copy === 'copied' ? t('setup.secret.copied') : ''}
+      </span>
+      {copy === 'failed' ? (
+        <p role="alert" className="m-0 text-[12px] text-bad-ink">
+          {t('setup.secret.copyFailed')}
+        </p>
+      ) : null}
+    </li>
+  );
+}
+
+function LinkSpaceForm({
+  t,
+  installationId,
+  onLinked,
+}: {
+  t: Translate;
+  installationId: number;
+  onLinked: (displayName: string) => void;
+}) {
+  const id = useId();
+  const link = useLinkGoogleChatSpace(installationId);
+  const [code, setCode] = useState('');
+  const [problem, setProblem] = useState<string | null>(null);
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const value = code.trim();
+    if (!value) return;
+    setProblem(null);
+    try {
+      const linked = await link.mutateAsync(value);
+      setCode('');
+      onLinked(linked.displayName);
+    } catch (error) {
+      setProblem(linkErrorMessage(t, error));
+    }
+  };
+
+  return (
+    <form className="flex flex-col gap-1.5" onSubmit={(event) => void submit(event)}>
+      <Label htmlFor={`${id}-code`}>{t('setup.googleChat.code')}</Label>
+      <p id={`${id}-hint`} className="m-0 text-[12px] text-muted">
+        {t('setup.googleChat.instructions')}
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          id={`${id}-code`}
+          className="flex-[1_1_120px] font-mono uppercase"
+          value={code}
+          onChange={(event) => setCode(event.target.value)}
+          required
+          maxLength={32}
+          autoComplete="off"
+          autoCapitalize="characters"
+          spellCheck={false}
+          aria-describedby={problem ? `${id}-hint ${id}-problem` : `${id}-hint`}
+          aria-invalid={problem ? true : undefined}
+        />
+        <Button type="submit" disabled={link.isPending}>
+          {t('setup.googleChat.link')}
+        </Button>
+      </div>
+      {problem ? (
+        <p id={`${id}-problem`} role="alert" className="m-0 text-[13px] text-bad-ink">
+          {problem}
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
+function GoogleChatCard({ t, status }: { t: Translate; status: SetupStatus }) {
+  const { googleChat } = status;
+  const unlink = useUnlinkGoogleChatSpace(status.installationId);
+  const [linked, setLinked] = useState<string | null>(null);
+  const [unlinked, setUnlinked] = useState<string | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
+  const connected = googleChat.spaces.length > 0;
+
+  const unlinkSpace = (space: GoogleChatSpace) => {
+    setProblem(null);
+    setLinked(null);
+    setUnlinked(null);
+    unlink.mutate(space.name, {
+      onSuccess: () => setUnlinked(space.displayName),
+      onError: (error) => setProblem(linkErrorMessage(t, error)),
+    });
+  };
+
+  const badge = !googleChat.available ? (
+    <Badge variant="neutral">{t('setup.badge.unavailable')}</Badge>
+  ) : connected ? (
+    <Badge variant="ok">{t('setup.badge.connected')}</Badge>
+  ) : (
+    <Badge variant="neutral">{t('setup.badge.optional')}</Badge>
+  );
+
+  if (!googleChat.available && !connected) {
+    return (
+      <ConnectionCard
+        title={t('setup.googleChat.title')}
+        badge={badge}
+        description={t('setup.googleChat.unavailable')}
+      />
+    );
+  }
+
+  return (
+    <ConnectionCard
+      title={t('setup.googleChat.title')}
+      badge={badge}
+      description={
+        googleChat.available ? t('setup.googleChat.description') : t('setup.googleChat.unavailable')
+      }
+    >
+      {connected ? (
+        <div className="flex flex-col gap-1.5">
+          <h4 className="m-0 font-semibold text-[13px] text-text2">
+            {t('setup.googleChat.spaces')}
+          </h4>
+          <ul className="m-0 flex list-none flex-col gap-2 p-0">
+            {googleChat.spaces.map((space) => (
+              <SpaceRow
+                key={space.name}
+                t={t}
+                space={space}
+                admin={status.admin}
+                unlinking={unlink.isPending && unlink.variables === space.name}
+                onUnlink={unlinkSpace}
+              />
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <Note>{t('setup.googleChat.none')}</Note>
+      )}
+      {linked ? (
+        <p role="status" className="m-0 text-[13px] text-ok-ink">
+          {t('setup.googleChat.linked', { space: linked })}
+        </p>
+      ) : null}
+      {unlinked ? (
+        <p role="status" className="m-0 text-[13px] text-ok-ink">
+          {t('setup.googleChat.unlinked', { space: unlinked })}
+        </p>
+      ) : null}
+      {problem ? (
+        <p role="alert" className="m-0 text-[13px] text-bad-ink">
+          {problem}
+        </p>
+      ) : null}
+      {status.admin && googleChat.available ? (
+        <LinkSpaceForm
+          t={t}
+          installationId={status.installationId}
+          onLinked={(displayName) => {
+            setProblem(null);
+            setUnlinked(null);
+            setLinked(displayName);
+          }}
+        />
+      ) : null}
+      {status.admin ? null : <Note>{t('setup.googleChat.adminOnly')}</Note>}
+    </ConnectionCard>
+  );
+}
+
 function LinearCard({ t, status }: { t: Translate; status: SetupStatus }) {
   const href = connectUrl('linear', status.installationId);
   const { linear } = status;
@@ -189,6 +437,7 @@ export function Connections({ status }: { status: SetupStatus }) {
       <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3">
         <GithubCard t={t} status={status} />
         <SlackCard t={t} status={status} />
+        <GoogleChatCard t={t} status={status} />
         <LinearCard t={t} status={status} />
       </div>
     </section>

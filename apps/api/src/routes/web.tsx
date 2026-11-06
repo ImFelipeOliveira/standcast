@@ -12,6 +12,7 @@ import {
   DomainError,
   disableWebhookEndpoint,
   getSetupStatus,
+  linkGoogleChatSpace,
   logError,
   logoutWebSession,
   revokeInstallationApiKey,
@@ -28,7 +29,12 @@ import { secureHeaders } from 'hono/secure-headers';
 import { z } from 'zod';
 import installScript from '../../../../scripts/install.sh' with { type: 'text' };
 import { STATUS } from '../http/errors';
-import { type GetClientIp, ipRateLimit } from '../middleware/rate-limit';
+import {
+  type GetClientIp,
+  ipRateLimit,
+  linkCodeGuard,
+  linkCodeIpRateLimit,
+} from '../middleware/rate-limit';
 import { WEB_COOKIE, WEB_COOKIE_PATH, WEB_SESSION_SECONDS } from '../middleware/web-session';
 import { ErrorPage } from '../web/error';
 import {
@@ -78,6 +84,8 @@ const createKeyForm = z.object({
 });
 
 const installationForm = z.object({ installation_id: installationField });
+
+const linkSpaceForm = z.object({ installation_id: installationField, code: z.string() });
 
 const createWebhookForm = z.object({
   installation_id: installationField,
@@ -334,6 +342,19 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
     const session = await requireSession(c);
     const { installation_id: installationId } = await parseForm(c, session, installationForm);
     await sendTestEvent(deps, isMember, session.member, installationId, c.req.param('id'));
+    return c.redirect(`/setup?installation_id=${installationId}`, 303);
+  });
+
+  app.post('/setup/google-chat', linkCodeIpRateLimit(deps, options.getClientIp), async (c) => {
+    const session = await requireSession(c);
+    const { installation_id: installationId, code } = await parseForm(c, session, linkSpaceForm);
+    await linkGoogleChatSpace(
+      deps,
+      isMember,
+      session.member,
+      { installationId, code },
+      linkCodeGuard(deps, c),
+    );
     return c.redirect(`/setup?installation_id=${installationId}`, 303);
   });
 

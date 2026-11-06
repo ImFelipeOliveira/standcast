@@ -31,6 +31,7 @@ import {
 } from '@standcast/orchestrator';
 import { createPgBossQueue } from '@standcast/queue';
 import { sendEmail } from '@standcast/resend';
+import { chatFactories } from './chat-factories';
 import { parseEnv } from './env';
 import { deliverWebhookJob, requeueWebhooksJob } from './jobs/deliver-webhook';
 import { linkTrackerIdentitiesJob } from './jobs/link-tracker-identities';
@@ -88,7 +89,11 @@ const deps: WorkerDeps = {
         code,
       }),
   },
-  chatFor: createChatFor(db, env.STANDCAST_ENCRYPTION_KEY),
+  chatFor: createChatFor(
+    db,
+    env.STANDCAST_ENCRYPTION_KEY,
+    chatFactories(env.GOOGLE_CHAT_SERVICE_ACCOUNT),
+  ),
   trackerFor: (...args) => createTrackerFor(deps)(...args),
   linear: { exchangeCode: exchangeLinearCode, refreshToken: refreshLinearToken },
   email: resendApiKey ? { send: (message) => sendEmail(resendApiKey, message) } : null,

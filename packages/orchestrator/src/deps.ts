@@ -1,4 +1,4 @@
-import type { ChatChannel } from '@standcast/core';
+import type { ChatChannel, ChatProvider } from '@standcast/core';
 import type { Db } from '@standcast/db';
 import type {
   App,
@@ -49,7 +49,8 @@ export type Deps = {
     refreshToken: typeof refreshLinearToken;
     fetch?: LinearFetch;
   };
-  chatFor: (installationId: number, provider: 'slack') => Promise<ChatChannel | null>;
+  chatFor: (installationId: number, provider: ChatProvider) => Promise<ChatChannel | null>;
+  googleChatAvailable?: boolean;
   trackerFor: TrackerFor;
   webhookTransport?: SafeFetchOptions;
   env: {

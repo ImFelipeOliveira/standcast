@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray, ne, sql } from 'drizzle-orm';
+import { and, eq, gt, inArray, ne, or, sql } from 'drizzle-orm';
 import type { Db } from '../client';
 import {
   installations,
@@ -226,6 +226,26 @@ export async function deleteIdentityByLogin(
     );
 }
 
+export async function deleteInstallationIdentities(
+  db: Db,
+  installationId: number,
+  provider: Provider,
+  match: { memberIds: string[]; externalId: string },
+): Promise<void> {
+  await db
+    .delete(memberIdentities)
+    .where(
+      and(
+        eq(memberIdentities.installationId, installationId),
+        eq(memberIdentities.provider, provider),
+        or(
+          inArray(memberIdentities.memberId, match.memberIds),
+          eq(memberIdentities.externalId, match.externalId),
+        ),
+      ),
+    );
+}
+
 export async function listInstallationMembers(
   db: Db,
   installationId: number,
@@ -271,4 +291,14 @@ export async function getIdentityByLogin(
     )
     .limit(2);
   return rows.length === 1 ? (rows[0]?.externalId ?? null) : null;
+}
+
+export async function findMembersByEmail(db: Db, email: string): Promise<MemberRow[]> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return [];
+  return db
+    .select()
+    .from(members)
+    .where(sql`lower(${members.email}) = ${normalized}`)
+    .orderBy(members.login);
 }

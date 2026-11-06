@@ -53,6 +53,7 @@ const ptBR = {
   'web.badge.connected': 'Conectado',
   'web.badge.configured': 'Configurado',
   'web.badge.optional': 'Opcional',
+  'web.badge.unavailable': 'Indisponível',
   'web.badge.needsAttention': 'Requer atenção',
   'web.github.title': 'GitHub App',
   'web.github.installed': 'Instalado em {owner}',
@@ -71,6 +72,17 @@ const ptBR = {
   'web.slack.connect': 'Conectar Slack',
   'web.slack.reconnect': 'Reconectar Slack',
   'web.slack.adminOnly': 'Só um admin pode conectar ou reconectar o Slack.',
+  'web.googleChat.title': 'Google Chat',
+  'web.googleChat.description':
+    'Lembretes e consolidados são publicados em espaços do Google Chat.',
+  'web.googleChat.unavailable': 'O Google Chat não está disponível neste servidor.',
+  'web.googleChat.instructions':
+    'Adicione o app do Standcast a um espaço do Google Chat; ele publica um código. Cole o código aqui.',
+  'web.googleChat.spaces': 'Espaços vinculados',
+  'web.googleChat.none': 'Nenhum espaço vinculado ainda.',
+  'web.googleChat.code': 'Código de vínculo',
+  'web.googleChat.link': 'Vincular espaço',
+  'web.googleChat.adminOnly': 'Só um admin pode vincular um espaço do Google Chat.',
   'web.template.teamName': 'Time',
   'web.apiKeys.title': 'API keys',
   'web.apiKeys.description':
@@ -142,6 +154,15 @@ const ptBR = {
   'web.error.not_found.body': 'O item solicitado não existe ou já foi removido.',
   'web.error.rate_limited.title': 'Muitas requisições',
   'web.error.rate_limited.body': 'Você fez muitas requisições. Espere um minuto e tente de novo.',
+  'web.error.invalid_code.title': 'Código inválido',
+  'web.error.invalid_code.body':
+    'O código não existe, já foi usado ou expirou. Remova o app Standcast do espaço e adicione de novo para receber um código novo.',
+  'web.error.space_already_linked.title': 'Espaço já vinculado',
+  'web.error.space_already_linked.body':
+    'Este espaço do Google Chat está vinculado a outra organização. Um admin de lá precisa desvincular antes.',
+  'web.error.too_many_spaces.title': 'Espaços demais',
+  'web.error.too_many_spaces.body':
+    'Esta organização já tem 20 espaços do Google Chat vinculados, o máximo. Desvincule um antes de vincular outro.',
   'web.error.slack_oauth_failed.title': 'Falha ao conectar o Slack',
   'web.error.slack_oauth_failed.body':
     'Não foi possível concluir a conexão com o Slack. Tente conectar novamente.',
@@ -215,6 +236,12 @@ const ptBR = {
     'Time {team}: o canal {reference} do Slack não foi encontrado. Crie o canal ou, se ele for privado, convide o bot do Standcast com /invite @Standcast.',
   'setup.teams.channelNotMember':
     'Time {team}: o bot do Standcast não está no canal {reference} do Slack. Convide-o com /invite @Standcast no canal.',
+  'setup.teams.spaceNotLinked':
+    'Time {team}: este espaço do Google Chat ({reference}) ainda não está vinculado a esta organização. Adicione o app do Standcast ao espaço e cole o código que ele publicar em Configuração → Google Chat.',
+  'setup.teams.spaceNotFound':
+    'Time {team}: o espaço {reference} do Google Chat não foi encontrado. Confira o nome do espaço e adicione o app do Standcast a ele.',
+  'setup.teams.spaceNotMember':
+    'Time {team}: o app do Standcast não está no espaço {reference} do Google Chat. Adicione o app do Standcast ao espaço.',
   'setup.tracker.jiraComingSoon': 'A integração com o Jira ainda não está disponível.',
   'setup.tracker.notConnected':
     'Este time usa o Linear, mas o Linear ainda não está conectado a esta instalação.',
@@ -222,6 +249,17 @@ const ptBR = {
   'checkRun.success.title': 'standcast.yml válido',
   'checkRun.failure.title': 'standcast.yml inválido',
   'checkRun.summary': '{count} erro(s) encontrado(s):\n{errors}',
+  'googleChat.linkCode':
+    'O Standcast está neste espaço. Para receber os consolidados aqui, um admin da sua organização no GitHub cola este código no Standcast, em Configuração → Google Chat: {code}. O código vale por 24 horas.',
+  'googleChat.spaceLinked':
+    'Este espaço agora recebe os consolidados da organização {org} no Standcast. Se não era isso, remova o app do espaço para desfazer.',
+  'googleChat.linked': 'Vínculo feito, {logins}.',
+  'googleChat.notFound':
+    'Nenhuma conta do Standcast usa este e-mail. Rode `standcast login` primeiro e depois me mande uma mensagem de novo.',
+  'googleChat.notConnected':
+    'Achei a sua conta, mas nenhuma organização sua conectou o Google Chat ao Standcast ainda. Peça a um admin para vincular um espaço e me mande uma mensagem de novo.',
+  'googleChat.ambiguous':
+    'Este e-mail pertence a mais de uma conta do GitHub no Standcast, então não vinculei nenhuma. Peça a um admin para definir `google_chat` para você em `members` no standcast.yml, ou deixe o e-mail certo só na sua conta do GitHub e rode `standcast login` de novo.',
 } as const;
 
 const en = {
@@ -277,6 +315,7 @@ const en = {
   'web.badge.connected': 'Connected',
   'web.badge.configured': 'Configured',
   'web.badge.optional': 'Optional',
+  'web.badge.unavailable': 'Unavailable',
   'web.badge.needsAttention': 'Needs attention',
   'web.github.title': 'GitHub App',
   'web.github.installed': 'Installed on {owner}',
@@ -296,6 +335,16 @@ const en = {
   'web.slack.connect': 'Connect Slack',
   'web.slack.reconnect': 'Reconnect Slack',
   'web.slack.adminOnly': 'Only an admin can connect or reconnect Slack.',
+  'web.googleChat.title': 'Google Chat',
+  'web.googleChat.description': 'Reminders and digests are posted in Google Chat spaces.',
+  'web.googleChat.unavailable': 'Google Chat is not available on this server.',
+  'web.googleChat.instructions':
+    'Add the Standcast app to a Google Chat space; it posts a code. Paste it here.',
+  'web.googleChat.spaces': 'Linked spaces',
+  'web.googleChat.none': 'No space linked yet.',
+  'web.googleChat.code': 'Link code',
+  'web.googleChat.link': 'Link space',
+  'web.googleChat.adminOnly': 'Only an admin can link a Google Chat space.',
   'web.template.teamName': 'Team',
   'web.apiKeys.title': 'API keys',
   'web.apiKeys.description':
@@ -367,6 +416,15 @@ const en = {
   'web.error.not_found.body': 'The requested item does not exist or was already removed.',
   'web.error.rate_limited.title': 'Too many requests',
   'web.error.rate_limited.body': 'You made too many requests. Wait a minute and try again.',
+  'web.error.invalid_code.title': 'Invalid code',
+  'web.error.invalid_code.body':
+    'The code does not exist, was already used or has expired. Remove the Standcast app from the space and add it again to get a new code.',
+  'web.error.space_already_linked.title': 'Space already linked',
+  'web.error.space_already_linked.body':
+    'This Google Chat space is linked to another organization. An admin there must unlink it first.',
+  'web.error.too_many_spaces.title': 'Too many spaces',
+  'web.error.too_many_spaces.body':
+    'This organization already has 20 linked Google Chat spaces, the maximum. Unlink one before linking another.',
   'web.error.slack_oauth_failed.title': 'Slack connection failed',
   'web.error.slack_oauth_failed.body':
     'We could not complete the Slack connection. Please try connecting again.',
@@ -440,6 +498,12 @@ const en = {
     'Team {team}: the Slack channel {reference} was not found. Create it, or if it is private, invite the Standcast bot with /invite @Standcast.',
   'setup.teams.channelNotMember':
     'Team {team}: the Standcast bot is not in the Slack channel {reference}. Invite it with /invite @Standcast in the channel.',
+  'setup.teams.spaceNotLinked':
+    'Team {team}: this Google Chat space ({reference}) is not linked to this organization yet. Add the Standcast app to the space and paste the code it posts in Configuration → Google Chat.',
+  'setup.teams.spaceNotFound':
+    'Team {team}: the Google Chat space {reference} was not found. Check the space name, and add the Standcast app to the space.',
+  'setup.teams.spaceNotMember':
+    'Team {team}: the Standcast app is not in the Google Chat space {reference}. Add the Standcast app to the space.',
   'setup.tracker.jiraComingSoon': 'The Jira integration is not available yet.',
   'setup.tracker.notConnected':
     'This team uses Linear, but Linear is not connected to this installation yet.',
@@ -447,6 +511,17 @@ const en = {
   'checkRun.success.title': 'standcast.yml is valid',
   'checkRun.failure.title': 'standcast.yml is invalid',
   'checkRun.summary': '{count} error(s) found:\n{errors}',
+  'googleChat.linkCode':
+    'Standcast is in this space. To get digests here, an admin of your GitHub organization pastes this code in Standcast, Configuration → Google Chat: {code}. The code is valid for 24 hours.',
+  'googleChat.spaceLinked':
+    'This space now gets the digests of the {org} organization on Standcast. If that is not right, remove the app from the space to undo it.',
+  'googleChat.linked': "You're linked, {logins}.",
+  'googleChat.notFound':
+    'No Standcast account uses this email; run `standcast login` first, then message me again.',
+  'googleChat.notConnected':
+    'I found your account, but none of your organizations has connected Google Chat to Standcast yet. Ask an admin to link a space, then message me again.',
+  'googleChat.ambiguous':
+    'This email belongs to more than one GitHub account on Standcast, so I linked none of them. Ask an admin to set `google_chat` for you under `members` in standcast.yml, or keep the email only on your own GitHub account and run `standcast login` again.',
 } as const satisfies Record<keyof typeof ptBR, string>;
 
 const messages: {

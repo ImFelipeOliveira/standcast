@@ -1,5 +1,7 @@
 import {
   buildDigest,
+  CHAT_PROVIDERS,
+  ChatDeliveryError,
   type DigestEntry,
   type MessageRef,
   type Person,
@@ -15,11 +17,11 @@ import {
   listDailies,
   operationalConfig,
 } from '@standcast/db';
-import { ChatDeliveryError } from '@standcast/slack';
+import { isChannelLinked } from '../chat';
 import { chatUserIdsFor } from '../chat-identity';
 import type { WorkerDeps } from '../deps';
 import { resolveTeams } from '../teams';
-import { describeDeliveryError } from './delivery-error';
+import { describeDeliveryError, spaceNotLinked } from './delivery-error';
 import { emitEventSafely } from './emit-event';
 
 export const DIGEST_POST_DEADLINE_MS = 5 * 60 * 1000;
@@ -62,7 +64,8 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
   if (claim.status !== 'claimed') return;
   const claimedAt = deps.now().getTime();
 
-  if (teamConfig.chat.provider !== 'slack') {
+  const provider = teamConfig.chat.provider;
+  if (!CHAT_PROVIDERS.includes(provider)) {
     await failDelivery(deps.db, key, claim.token, 'unsupported_provider');
     return;
   }
@@ -73,9 +76,18 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
   let entries: DigestEntry[];
   let missing: Person[];
   try {
-    const chat = await deps.chatFor(job.installationId, 'slack');
+    const chat = await deps.chatFor(job.installationId, provider);
     if (!chat) {
       await failDelivery(deps.db, key, claim.token, 'no_chat_connection');
+      return;
+    }
+    if (!(await isChannelLinked(deps, job.installationId, provider, teamConfig.chat.channel))) {
+      await failDelivery(
+        deps.db,
+        key,
+        claim.token,
+        describeDeliveryError(spaceNotLinked(), provider),
+      );
       return;
     }
     const [resolved] = await resolveTeams(deps, installation.id, installation.accountLogin, {
@@ -85,7 +97,13 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
     if (!resolved) throw new Error('team not resolved');
     team = resolved;
     snapshot = teamDailies(team, await listDailies(deps.db, job.installationId, job.date));
-    const chatIds = await chatUserIdsFor(deps, job.installationId, config, team.memberLogins);
+    const chatIds = await chatUserIdsFor(
+      deps,
+      job.installationId,
+      config,
+      provider,
+      team.memberLogins,
+    );
     const stored = await getMemberLogins(deps.db, team.memberLogins);
     const written = new Map(teamConfig.members.map((m) => [m.toLowerCase(), m]));
     const person = (login: string): Person => {
@@ -109,7 +127,7 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
       buildDigest({ team, date: job.date, entries, missing }),
     );
   } catch (error) {
-    await failDelivery(deps.db, key, claim.token, describeDeliveryError(error));
+    await failDelivery(deps.db, key, claim.token, describeDeliveryError(error, provider));
     throw error;
   }
 

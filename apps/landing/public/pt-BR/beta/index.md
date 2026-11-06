@@ -1,6 +1,6 @@
 # Entrar no beta
 
-> Teste o Standcast com o seu time. Procuramos times de 3 a 15 pessoas que usam GitHub e Slack. Ajudamos você a configurar.
+> Teste o Standcast com o seu time. Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat. Ajudamos você a configurar.
 
 Conte sobre o seu time. Depois de enviar o formulário, levamos você ao guia de instalação. O formulário pede o seu nome, o e-mail de trabalho, o tamanho do time, o chat e a ferramenta de gestão de tarefas que o time usa. [Pedir acesso ao beta](https://standcast.usefachada.dev/pt-BR/beta/)
 

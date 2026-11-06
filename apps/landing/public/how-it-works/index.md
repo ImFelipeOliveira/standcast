@@ -1,6 +1,6 @@
 # How it works
 
-> From your work to one team digest. Standcast drafts your daily from GitHub and Linear, you confirm it in your AI agent or the terminal, and each team gets one digest in Slack at the time it chose.
+> From your work to one team digest. Standcast drafts your daily from GitHub and Linear, you confirm it in your AI agent or the terminal, and each team gets one digest in Slack or Google Chat at the time it chose.
 
 ## A day with Standcast
 
@@ -24,7 +24,7 @@ Collects, consolidates and delivers. You only write.
 
 ## Configuration as code
 
-One file in your .github repository. Teams, times, Slack channels and managers live in `standcast.yml`. Every change is reviewed like code.
+One file in your .github repository. Teams, times, chat channels and managers live in `standcast.yml`. Every change is reviewed like code.
 
 - **Checked on every push.** A `Standcast config` check run points to the line with the error.
 - **Never breaks the team.** An invalid push keeps the last valid config in effect.

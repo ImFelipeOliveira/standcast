@@ -1,8 +1,8 @@
 # Standcast: a sua daily, escrita no seu agente de IA
 
-> Código aberto (MIT), grátis durante o beta público. Funciona hoje com GitHub e Slack. Google Chat e Jira vêm a seguir.
+> Código aberto (MIT), grátis durante o beta público. Funciona hoje com GitHub, Slack e Google Chat. O Jira vem a seguir.
 
-O Standcast é uma ferramenta de código aberto para a daily de times de software. Rode `/daily` no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack.
+O Standcast é uma ferramenta de código aberto para a daily de times de software. Rode `/daily` no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack ou no Google Chat.
 
 ```sh
 curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh
@@ -55,6 +55,6 @@ O que o GitHub App lê, do que você precisa, quem vê os impedimentos sugeridos
 
 ## Beta público
 
-Teste com o seu time. Procuramos times de 3 a 15 pessoas que usam GitHub e Slack. Ajudamos você a configurar. [Pedir acesso ao beta](https://standcast.usefachada.dev/pt-BR/beta/)
+Teste com o seu time. Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat. Ajudamos você a configurar. [Pedir acesso ao beta](https://standcast.usefachada.dev/pt-BR/beta/)
 
 Suporte: support.standcast@usefachada.dev

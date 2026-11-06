@@ -2,6 +2,7 @@ export * from './activity';
 export * from './blocker-routed';
 export * from './calendar';
 export * from './card-signals';
+export * from './chat-error';
 export * from './codeowners';
 export * from './config';
 export * from './config-locate';

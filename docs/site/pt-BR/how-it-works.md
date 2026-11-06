@@ -23,11 +23,11 @@ Alice ajusta o ontem, escreve o hoje e um impedimento, pede um review da migraç
 
 ## 09:30 · Lembrete
 
-No `remind_at`, no fuso do time e só em dias úteis, quem ainda não enviou a daily recebe uma mensagem direta no Slack. A mensagem diz a que horas sai o consolidado. Se a pessoa está em vários times, vale o consolidado pendente mais próximo.
+No `remind_at`, no fuso do time e só em dias úteis, quem ainda não enviou a daily recebe uma mensagem direta no Slack ou no Google Chat, conforme o time. A mensagem diz a que horas sai o consolidado. Se a pessoa está em vários times, vale o consolidado pendente mais próximo.
 
 - No máximo um lembrete por pessoa por dia, mesmo em vários times.
 - Ele só sai enquanto o `remind_at` já passou e o `digest_at` ainda não. Se o worker estava fora do ar, ele ainda pode sair até 60 minutos depois do `remind_at`, mas nunca no `digest_at` ou depois, e nunca depois que o consolidado do time foi publicado.
-- Quem não tem identidade no Slack gera a entrega com falha `no_chat_identity` na página de setup. Veja [Slack](/pt-BR/admin/slack#erros-de-entrega).
+- Quem não tem identidade no chat gera a entrega com falha `no_chat_identity` na página de setup. Veja os erros de entrega do [Slack](/pt-BR/admin/slack#erros-de-entrega) e do [Google Chat](/pt-BR/admin/google-chat#erros-de-entrega).
 - O `remind_at` tem que ser antes do `digest_at`, senão o arquivo é inválido.
 
 ## 10:00 · O consolidado
@@ -40,7 +40,7 @@ No `digest_at`, no fuso do time e só em dias úteis, o Standcast publica uma me
 4. o ontem e o hoje de cada pessoa, na ordem de `members` no `standcast.yml`;
 5. quem não enviou a daily.
 
-As pessoas são mencionadas no Slack quando o Standcast conhece o usuário delas lá. Senão, aparecem como `@` seguido do login do GitHub, em texto. Veja [Slack](/pt-BR/admin/slack#como-as-pessoas-sao-mencionadas).
+As pessoas são mencionadas no Slack ou no Google Chat quando o Standcast conhece o usuário delas lá. Senão, aparecem como `@` seguido do login do GitHub, em texto. Veja [Slack](/pt-BR/admin/slack#como-as-pessoas-sao-mencionadas) e [Google Chat](/pt-BR/admin/google-chat#como-as-pessoas-sao-vinculadas).
 
 Existe exatamente um consolidado por time por dia. Se o worker estiver fora do ar às 10:00, o consolidado sai quando ele voltar, desde que dentro de 120 minutos. Depois das 12:00, ele não sai naquele dia. Uma publicação com falha é tentada até 3 vezes no total, e o erro aparece na página de setup.
 
@@ -66,12 +66,12 @@ Regras:
 
 - O autor nunca recebe o próprio impedimento, e no máximo 5 pessoas recebem.
 - Para cards, só entram pessoas ligadas ao Standcast, e cards de outro workspace do Linear nunca são lidos: vão para os gestores. Se o Linear não está conectado ou o acesso foi revogado, o impedimento de card vai para os gestores.
-- Se nenhuma das pessoas encontradas tem identidade no Slack, ou o GitHub não pôde ser lido, o impedimento vai para os gestores.
+- Se nenhuma das pessoas encontradas tem identidade no chat, ou o GitHub não pôde ser lido, o impedimento vai para os gestores.
 - Pull requests de outras organizações não são lidos e vão para os gestores.
 - Um impedimento com link é identificado pelo link, então reescrever o texto ou enviar a daily de novo não envia outra vez. Sem link, o texto o identifica. No máximo 10 impedimentos diferentes por daily são encaminhados.
 - A mensagem diz por que a pessoa a recebeu: revisor solicitado, dono de código, responsável pelo card que trava, responsável, criador ou gestor do time.
 - A mensagem traz só quem reportou, o texto do impedimento, o link e a data. Nunca o resto da daily.
-- Se não há nenhum destinatário, por exemplo quando o autor é o único gestor do time, a entrega com falha `no_route_target` aparece na página de setup. Um gestor sem identidade no Slack aparece como `no_chat_identity`.
+- Se não há nenhum destinatário, por exemplo quando o autor é o único gestor do time, a entrega com falha `no_route_target` aparece na página de setup. Um gestor sem identidade no chat aparece como `no_chat_identity`.
 
 Os impedimentos também aparecem no topo do consolidado, no webhook `blocker.opened` e nas tools de gestor.
 

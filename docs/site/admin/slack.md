@@ -1,6 +1,6 @@
 # Slack
 
-Standcast posts each team's digest to a Slack channel. One Slack workspace is connected per installation.
+Standcast posts each team's digest to a Slack channel. One Slack workspace is connected per installation. Teams that use Google Chat are covered in [Google Chat](/admin/google-chat).
 
 ## Connect
 
@@ -63,7 +63,7 @@ When a post fails, the setup page lists it under "Latest failed deliveries" with
 | `no_chat_connection` | Slack is not connected for this installation. | An admin clicks **Connect Slack** on the setup page. |
 | `no_chat_identity` | A reminder or routed blocker could not be sent because the person, or the manager it fell back to, has no Slack user. The setup page shows their login. | Ask the person to run `standcast login` after Slack is connected, or add `members.<login>.slack` to `standcast.yml`. |
 | `no_route_target` | A blocker was reported but there was no recipient at all, for example because the author is the team's only manager. | Add another manager to the team. |
-| `unsupported_provider` | The team uses `chat.provider: google-chat`, which is coming soon. | Use `slack`. |
+| `unsupported_provider` | The team's `chat.provider` is not one Standcast knows. | Use `slack` or `google-chat`. |
 | `worker_died` | The worker stopped three times while sending. | Contact support if it repeats. |
 | `internal_error` | Unexpected error. The message has the details. | Contact support if it repeats. |
 

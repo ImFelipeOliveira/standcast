@@ -15,7 +15,10 @@ export type DomainErrorCode =
   | 'insufficient_scope'
   | 'not_found'
   | 'suggestion_already_decided'
-  | 'invalid_beta_request';
+  | 'invalid_beta_request'
+  | 'invalid_code'
+  | 'space_already_linked'
+  | 'too_many_spaces';
 
 export class DomainError extends Error {
   constructor(

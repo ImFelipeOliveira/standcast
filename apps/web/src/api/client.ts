@@ -132,10 +132,11 @@ export async function fetchSession(options: RequestOptions = {}): Promise<Sessio
   return session;
 }
 
-export async function apiPost<T>(
+async function sendWithCsrf<T>(
+  method: 'POST' | 'DELETE',
   path: string,
-  body?: unknown,
-  options: RequestOptions = {},
+  body: unknown,
+  options: RequestOptions,
 ): Promise<T> {
   const csrf = csrfToken ?? (await fetchSession(options)).csrf;
   const headers: Record<string, string> = {
@@ -147,7 +148,7 @@ export async function apiPost<T>(
     return await request<T>(
       path,
       {
-        method: 'POST',
+        method,
         headers,
         body: body === undefined ? undefined : JSON.stringify(body),
       },
@@ -157,6 +158,14 @@ export async function apiPost<T>(
     if (error instanceof ApiError && error.status === 403) csrfToken = null;
     throw error;
   }
+}
+
+export function apiPost<T>(path: string, body?: unknown, options: RequestOptions = {}): Promise<T> {
+  return sendWithCsrf<T>('POST', path, body, options);
+}
+
+export function apiDelete<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  return sendWithCsrf<T>('DELETE', path, undefined, options);
 }
 
 export function forgetSession(): void {
