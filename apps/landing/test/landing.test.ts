@@ -90,6 +90,13 @@ const ENTITIES: Record<string, string> = {
   '&gt;': '>',
 };
 
+function elementIds(html: string): string[] {
+  const markup = html
+    .replace(/<script\b[\s\S]*?<\/script>/g, '')
+    .replace(/<style\b[\s\S]*?<\/style>/g, '');
+  return [...markup.matchAll(/<[a-zA-Z][^>]*\sid="([^"]+)"/g)].map((match) => match[1] ?? '');
+}
+
 function decode(text: string): string {
   return text
     .split(/<[^>]*>/)
@@ -463,7 +470,10 @@ describe('landing', () => {
   test('pricing names no price before it is announced', () => {
     for (const page of pagesOf('pricing')) {
       const main = block(read(page.file), /<main\b/, '</main>');
-      const html = main.slice(0, main.indexOf('<div class="beta">'));
+      const betaAt = main.indexOf('<div class="beta">');
+      expect(betaAt).toBeGreaterThan(0);
+      const html = main.slice(0, betaAt);
+      expect(html).toMatch(/<h1\b/);
       const markdown = read(`${page.path.slice(1)}index.md`).split(/\n## (?:More|Mais)/)[0] ?? '';
       for (const text of [decode(html), markdown]) {
         expect(text.length).toBeGreaterThan(100);
@@ -571,10 +581,11 @@ describe('landing', () => {
         const target = resolve(path.split('?')[0] ?? '');
         expect(existsSync(target) && statSync(target).isFile(), `${file} -> ${ref}`).toBe(true);
         if (fragment)
-          expect(readFileSync(target, 'utf8'), `${file} -> ${ref}`).toContain(` id="${fragment}"`);
+          expect(elementIds(readFileSync(target, 'utf8')), `${file} -> ${ref}`).toContain(fragment);
       }
+      const ids = elementIds(html);
       for (const match of html.matchAll(/\shref="#([^"]+)"/g)) {
-        expect(html, `${file} -> #${match[1]}`).toContain(` id="${match[1]}"`);
+        expect(ids, `${file} -> #${match[1]}`).toContain(match[1] ?? '');
       }
     }
   });
