@@ -62,6 +62,8 @@ async function announceLink(
   }
 }
 
+export const MAX_GOOGLE_CHAT_SPACES = 20;
+
 export async function linkGoogleChatSpace(
   deps: Deps,
   isMember: MembershipCheck,
@@ -80,6 +82,7 @@ export async function linkGoogleChatSpace(
     codeHash: hashLinkCode(code),
     installationId: installation.id,
     now: deps.now(),
+    maxSpaces: MAX_GOOGLE_CHAT_SPACES,
     connection: { secret: GOOGLE_CHAT_CONNECTION_SECRET, key: deps.encryptionKey },
   });
   if (result.status === 'invalid') {
@@ -89,6 +92,12 @@ export async function linkGoogleChatSpace(
     throw new DomainError(
       'space_already_linked',
       'this space is linked to another organization; an admin there must unlink it first',
+    );
+  }
+  if (result.status === 'too_many_spaces') {
+    throw new DomainError(
+      'too_many_spaces',
+      `an organization can link at most ${MAX_GOOGLE_CHAT_SPACES} google chat spaces; unlink one first`,
     );
   }
   await announceLink(deps, installation.id, installation.accountLogin, result.space.name);

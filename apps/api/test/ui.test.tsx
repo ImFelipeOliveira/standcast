@@ -398,6 +398,7 @@ const ERROR_CODES = [
   'rate_limited',
   'invalid_code',
   'space_already_linked',
+  'too_many_spaces',
   'generic',
 ];
 
@@ -866,6 +867,7 @@ const ERROR_TONES: Record<string, 'danger' | 'warning' | 'neutral'> = {
   rate_limited: 'warning',
   invalid_code: 'warning',
   space_already_linked: 'danger',
+  too_many_spaces: 'warning',
   generic: 'neutral',
   something_else: 'neutral',
 };

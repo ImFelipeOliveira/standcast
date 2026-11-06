@@ -8,7 +8,7 @@ import {
 } from '@standcast/core';
 import {
   deleteGoogleChatConnectionIfUnused,
-  deleteIdentitiesByExternalId,
+  deleteInstallationIdentities,
   findMembersByEmail,
   getConnectionExternalId,
   getInstallation,
@@ -135,6 +135,27 @@ async function membersWithEmail(deps: EventDeps, email: string): Promise<MemberR
   }
 }
 
+async function quarantineLinks(
+  deps: EventDeps,
+  members: MemberRow[],
+  userName: string,
+): Promise<void> {
+  const memberIds = members.map((member) => member.id);
+  const installations = new Set<number>();
+  for (const member of members) {
+    for (const { installationId } of await listMemberInstallations(deps.db, member.id)) {
+      installations.add(installationId);
+    }
+  }
+  for (const installationId of installations) {
+    if (!(await getConnectionExternalId(deps.db, installationId, 'google-chat'))) continue;
+    await deleteInstallationIdentities(deps.db, installationId, 'google-chat', {
+      memberIds,
+      externalId: userName,
+    });
+  }
+}
+
 async function linkIdentities(
   deps: EventDeps,
   user: GoogleChatEvent['user'],
@@ -146,7 +167,7 @@ async function linkIdentities(
   const members = await membersWithEmail(deps, email);
   if (members.length === 0) return bilingual('googleChat.notFound');
   if (new Set(members.map((member) => member.id)).size > 1) {
-    await deleteIdentitiesByExternalId(deps.db, 'google-chat', user.name);
+    await quarantineLinks(deps, members, user.name);
     return bilingual('googleChat.ambiguous');
   }
   const linked: string[] = [];

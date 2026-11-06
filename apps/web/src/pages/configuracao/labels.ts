@@ -141,6 +141,7 @@ export function errorMessage(t: Translate, error: unknown): string {
 const LINK_ERRORS: Record<string, MessageKey> = {
   invalid_code: 'setup.googleChat.invalidCode',
   space_already_linked: 'setup.googleChat.alreadyLinked',
+  too_many_spaces: 'setup.googleChat.tooManySpaces',
   rate_limited: 'setup.googleChat.rateLimited',
   forbidden: 'setup.googleChat.forbidden',
 };

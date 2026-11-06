@@ -436,6 +436,7 @@ export async function linkSpace(spaceName: string, installationId = INST): Promi
     codeHash,
     installationId,
     now,
+    maxSpaces: 100,
     connection: { secret: 'google-chat-app', key: new Uint8Array(32).fill(7) },
   });
 }

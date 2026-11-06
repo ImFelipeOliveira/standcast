@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray, ne, sql } from 'drizzle-orm';
+import { and, eq, gt, inArray, ne, or, sql } from 'drizzle-orm';
 import type { Db } from '../client';
 import {
   installations,
@@ -226,15 +226,23 @@ export async function deleteIdentityByLogin(
     );
 }
 
-export async function deleteIdentitiesByExternalId(
+export async function deleteInstallationIdentities(
   db: Db,
+  installationId: number,
   provider: Provider,
-  externalId: string,
+  match: { memberIds: string[]; externalId: string },
 ): Promise<void> {
   await db
     .delete(memberIdentities)
     .where(
-      and(eq(memberIdentities.provider, provider), eq(memberIdentities.externalId, externalId)),
+      and(
+        eq(memberIdentities.installationId, installationId),
+        eq(memberIdentities.provider, provider),
+        or(
+          inArray(memberIdentities.memberId, match.memberIds),
+          eq(memberIdentities.externalId, match.externalId),
+        ),
+      ),
     );
 }
 

@@ -160,6 +160,9 @@ const ptBR = {
   'web.error.space_already_linked.title': 'Espaço já vinculado',
   'web.error.space_already_linked.body':
     'Este espaço do Google Chat está vinculado a outra organização. Um admin de lá precisa desvincular antes.',
+  'web.error.too_many_spaces.title': 'Espaços demais',
+  'web.error.too_many_spaces.body':
+    'Esta organização já tem 20 espaços do Google Chat vinculados, o máximo. Desvincule um antes de vincular outro.',
   'web.error.slack_oauth_failed.title': 'Falha ao conectar o Slack',
   'web.error.slack_oauth_failed.body':
     'Não foi possível concluir a conexão com o Slack. Tente conectar novamente.',
@@ -419,6 +422,9 @@ const en = {
   'web.error.space_already_linked.title': 'Space already linked',
   'web.error.space_already_linked.body':
     'This Google Chat space is linked to another organization. An admin there must unlink it first.',
+  'web.error.too_many_spaces.title': 'Too many spaces',
+  'web.error.too_many_spaces.body':
+    'This organization already has 20 linked Google Chat spaces, the maximum. Unlink one before linking another.',
   'web.error.slack_oauth_failed.title': 'Slack connection failed',
   'web.error.slack_oauth_failed.body':
     'We could not complete the Slack connection. Please try connecting again.',

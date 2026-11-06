@@ -1,4 +1,4 @@
-import { and, asc, eq, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
+import { and, asc, count, eq, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
 import type { Db } from '../client';
 import { encryptSecret } from '../crypto';
 import { connections, googleChatSpaces } from '../schema';
@@ -8,7 +8,8 @@ export type GoogleChatSpace = { name: string; displayName: string };
 export type RedeemLinkCodeResult =
   | { status: 'linked'; space: GoogleChatSpace }
   | { status: 'invalid' }
-  | { status: 'linked_elsewhere' };
+  | { status: 'linked_elsewhere' }
+  | { status: 'too_many_spaces' };
 
 const connectionLock = (installationId: number) =>
   sql`select pg_advisory_xact_lock(hashtext(${`google-chat-connection:${installationId}`}))`;
@@ -62,6 +63,7 @@ export async function redeemGoogleChatLinkCode(
     codeHash: string;
     installationId: number;
     now: Date;
+    maxSpaces: number;
     connection: { secret: string; key: Uint8Array };
   },
 ): Promise<RedeemLinkCodeResult> {
@@ -86,6 +88,18 @@ export async function redeemGoogleChatLinkCode(
     }
     if (row.installationId !== null && row.installationId !== input.installationId) {
       return { status: 'linked_elsewhere' };
+    }
+    if (row.installationId === null) {
+      const [linked] = await tx
+        .select({ total: count() })
+        .from(googleChatSpaces)
+        .where(
+          and(
+            eq(googleChatSpaces.installationId, input.installationId),
+            isNotNull(googleChatSpaces.linkedAt),
+          ),
+        );
+      if ((linked?.total ?? 0) >= input.maxSpaces) return { status: 'too_many_spaces' };
     }
     await tx
       .update(googleChatSpaces)

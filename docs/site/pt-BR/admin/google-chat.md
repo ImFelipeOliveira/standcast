@@ -42,6 +42,7 @@ Se o código não funcionar:
 | Este código não é válido. Ele pode ter expirado ou já ter sido usado. | Remova o app do espaço e adicione de novo para receber outro código. |
 | Este espaço já está vinculado a outra organização. | Um admin dessa organização desvincula o espaço antes. |
 | Muitas tentativas. Espere um minuto e tente de novo. | Espere um minuto. As tentativas de vínculo são limitadas a 10 por minuto. |
+| Esta organização já tem 20 espaços vinculados, o máximo. Desvincule um antes. | Uma organização pode vincular até 20 espaços. Desvincule um que não usa mais. |
 
 Depois do vínculo, o app publica no espaço, em inglês e português, qual organização passa a receber os consolidados ali. Se não for a sua organização, remova o app do espaço para desfazer o vínculo.
 
@@ -81,7 +82,7 @@ O Standcast compara o e-mail da sua conta do Google com o e-mail principal verif
 | Vínculo feito, @seu-login. | Pronto. |
 | Nenhuma conta do Standcast usa este e-mail. Rode `standcast login` primeiro e depois me mande uma mensagem de novo. | O Standcast não tem conta com este e-mail. Entre primeiro. Se o seu e-mail do GitHub é outro, veja abaixo. |
 | Achei a sua conta, mas nenhuma organização sua conectou o Google Chat ao Standcast ainda. Peça a um admin para vincular um espaço e me mande uma mensagem de novo. | Vincule um espaço primeiro e mande uma mensagem para o app de novo. |
-| Este e-mail pertence a mais de uma conta do GitHub no Standcast, então não vinculei nenhuma. Peça a um admin para definir `google_chat` para você em `members` no standcast.yml, ou deixe o e-mail certo só na sua conta do GitHub e rode `standcast login` de novo. | Duas ou mais contas do GitHub que entraram no Standcast têm este e-mail, então o Standcast não vincula nenhuma e apaga qualquer vínculo que já tinha para este usuário do Google Chat. Mapeie a pessoa à mão, como abaixo, ou tire o e-mail das outras contas. |
+| Este e-mail pertence a mais de uma conta do GitHub no Standcast, então não vinculei nenhuma. Peça a um admin para definir `google_chat` para você em `members` no standcast.yml, ou deixe o e-mail certo só na sua conta do GitHub e rode `standcast login` de novo. | Duas ou mais contas do GitHub que entraram no Standcast têm este e-mail, então o Standcast não vincula nenhuma. Em cada organização dessas contas que usa o Google Chat, ele também apaga os vínculos do Google Chat dessas contas e qualquer vínculo com este usuário do Google Chat. Mapeie a pessoa à mão, como abaixo, ou tire o e-mail das outras contas. |
 
 A resposta vem no idioma do time quando o Standcast sabe qual é, e em inglês e português quando não sabe.
 
@@ -94,13 +95,14 @@ members:
 
 O valor precisa ser `users/` seguido de dígitos. Os dígitos são o id de usuário do Google da pessoa, o mesmo id que o Admin SDK do Google Workspace e a People API usam.
 
-As menções no consolidado usam o mapeamento como está, sem conferência. As mensagens diretas só conferem o mapeamento quando ele é um usuário diferente do que a pessoa vinculou pela mensagem direta: antes de cada uma dessas mensagens diretas, o Standcast pergunta ao Google Chat se esse usuário está em um dos seus espaços vinculados. Ele confere todos os espaços vinculados, até 5 ao mesmo tempo, e para no primeiro em que a pessoa participa. Se ela não estiver em nenhum, nada é enviado e a entrega falha com `no_chat_identity`. Se o Google Chat não responder a tempo, a entrega falha com `timeout` e há nova tentativa. Quando o mapeamento é o mesmo usuário que a pessoa vinculou pela mensagem direta, o Standcast envia sem a conferência. Um espaço vinculado pode ter convidados externos, então mapeie só pessoas em quem você confia.
+As menções no consolidado usam o mapeamento como está, sem conferência. As mensagens diretas só conferem o mapeamento quando ele é um usuário diferente do que a pessoa vinculou pela mensagem direta: antes de cada uma dessas mensagens diretas, o Standcast pergunta ao Google Chat se esse usuário está em um dos seus espaços vinculados. Ele confere todos os espaços vinculados, até 5 ao mesmo tempo, e para no primeiro em que a pessoa participa. Se ela não estiver em nenhum, nada é enviado e a entrega falha com `no_chat_identity`. Se o Google Chat não responder a tempo, a entrega falha com `timeout`: lembretes e impedimentos encaminhados são tentados de novo, uma mensagem de impedimento sugerido não. Quando o mapeamento é o mesmo usuário que a pessoa vinculou pela mensagem direta, o Standcast envia sem a conferência. Um espaço vinculado pode ter convidados externos, então mapeie só pessoas em quem você confia.
 
 O consolidado menciona cada pessoa vinculada com o usuário dela no Google Chat, e mostra `@` seguido do login do GitHub, como texto, quando não há vínculo.
 
 ## O que acontece sem vínculo
 
 - **A pessoa não está vinculada.** Lembretes, impedimentos encaminhados e impedimentos sugeridos para ela falham com `no_chat_identity`. O consolidado sai mesmo assim, com `@login`.
+- **Ninguém para quem um impedimento iria pode ser alcançado.** Quando nenhuma das pessoas que o Standcast escolheu para um impedimento, como quem revisa, os donos do código ou as pessoas do card, tem vínculo com o Google Chat ou um mapeamento confirmado, o impedimento vai para os gestores do time. Nenhuma falha é registrada para as pessoas escolhidas antes.
 - **A pessoa nunca abriu uma mensagem direta com o app.** O Google Chat só entrega mensagem direta depois que a pessoa falou com o app uma vez. As entregas para ela falham com `no_dm_space` e não são repetidas. Peça para ela mandar uma mensagem direta para o app.
 - **O espaço não está vinculado à sua organização.** O consolidado e as dailies atrasadas do time falham com `space_not_linked`. Nada é publicado, e não há nova tentativa. Vincule o espaço com um código.
 

@@ -26,6 +26,7 @@ import {
   getSetupStatus,
   handleGoogleChatEvent,
   linkGoogleChatSpace,
+  MAX_GOOGLE_CHAT_SPACES,
   sendDigest,
   unlinkGoogleChatSpace,
 } from '../../src';
@@ -97,6 +98,7 @@ async function bindElsewhere(spaceName: string, installationId = OTHER) {
     codeHash,
     installationId,
     now: new Date('2026-10-28T15:00:00Z'),
+    maxSpaces: MAX_GOOGLE_CHAT_SPACES,
     connection: { secret: GOOGLE_CHAT_CONNECTION_SECRET, key: KEY },
   });
   if (result.status !== 'linked') throw new Error(`unexpected link status: ${result.status}`);
@@ -522,22 +524,34 @@ describe('handleGoogleChatEvent in a direct message', () => {
     expect(missing?.text).toBe(reply?.text);
   });
 
-  test('an email shared by two accounts links nobody and drops existing links', async () => {
+  test('an email shared by two accounts links nobody and quarantines their links', async () => {
     const { deps, member } = await setup();
-    await seedOrg(googleConfig(), { id: OTHER, accountLogin: 'beta' });
-    await setIdentity(db, INST, member.id, 'google-chat', 'users/123');
-    await setIdentity(db, OTHER, member.id, 'google-chat', 'users/123');
-    await setIdentity(db, INST, member.id, 'slack', 'U123');
     const twin = await upsertMember(db, { githubUserId: 2, login: 'bob', email: 'Alice@acme.com' });
+    const carol = await upsertMember(db, { githubUserId: 3, login: 'carol', email: null });
+    await seedOrg(googleConfig(), { id: OTHER, accountLogin: 'beta' });
+    await seedOrg(googleConfig(), { id: 13, accountLogin: 'gamma' });
+    await setMemberInstallations(db, member.id, [INST, 13]);
     await setMemberInstallations(db, twin.id, [INST]);
+    await setMemberInstallations(db, carol.id, [INST, OTHER]);
     await bindElsewhere('spaces/AAAA', INST);
+    await bindElsewhere('spaces/BBBB', OTHER);
+    await setIdentity(db, INST, member.id, 'google-chat', 'users/555');
+    await setIdentity(db, INST, twin.id, 'google-chat', 'users/777');
+    await setIdentity(db, INST, carol.id, 'google-chat', 'users/123');
+    await setIdentity(db, INST, member.id, 'slack', 'U123');
+    await setIdentity(db, OTHER, member.id, 'google-chat', 'users/555');
+    await setIdentity(db, OTHER, carol.id, 'google-chat', 'users/123');
+    await setIdentity(db, 13, member.id, 'google-chat', 'users/555');
     const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
     expect(reply?.text).toContain('more than one GitHub account');
     expect(reply?.text).toContain('mais de uma conta do GitHub');
     expect(reply?.text).toContain('google_chat');
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
-    expect((await getIdentities(db, OTHER, 'google-chat')).size).toBe(0);
     expect((await getIdentities(db, INST, 'slack')).get('alice')).toBe('U123');
+    const other = await getIdentities(db, OTHER, 'google-chat');
+    expect(other.get('alice')).toBe('users/555');
+    expect(other.get('carol')).toBe('users/123');
+    expect((await getIdentities(db, 13, 'google-chat')).get('alice')).toBe('users/555');
   });
 
   test('a member with no installation on google chat is told so', async () => {

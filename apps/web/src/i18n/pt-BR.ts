@@ -147,6 +147,8 @@ export const ptBR = {
   'setup.googleChat.invalidCode':
     'Este código não é válido. Ele pode ter expirado ou já ter sido usado. Adicione o app ao espaço de novo para receber outro.',
   'setup.googleChat.alreadyLinked': 'Este espaço já está vinculado a outra organização.',
+  'setup.googleChat.tooManySpaces':
+    'Esta organização já tem 20 espaços vinculados, o máximo. Desvincule um antes.',
   'setup.googleChat.rateLimited': 'Muitas tentativas. Espere um minuto e tente de novo.',
   'setup.googleChat.unlinked': 'Espaço {space} desvinculado.',
   'setup.googleChat.confirmUnlink': 'Desvincular agora',

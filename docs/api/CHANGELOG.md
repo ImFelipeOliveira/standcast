@@ -4,7 +4,7 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 
 ## Unreleased
 
-- No public API changes. The errors guide lists two codes returned only by the web app routes that link Google Chat spaces: `invalid_code` (422) and `space_already_linked` (409). `payload_too_large` also applies to the Google Chat webhook receiver.
+- No public API changes. The errors guide lists three codes returned only by the web app routes that link Google Chat spaces: `invalid_code` (422), `space_already_linked` (409) and `too_many_spaces` (409). `payload_too_large` also applies to the Google Chat webhook receiver.
 
 ## 0.4.1 — 2026-11-02
 

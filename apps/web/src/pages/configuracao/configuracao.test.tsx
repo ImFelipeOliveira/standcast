@@ -480,6 +480,9 @@ describe('configuração', () => {
     expect(linkErrorMessage(t, new ApiError(409, 'space_already_linked', 'x'))).toBe(
       'This space is already linked to another organization.',
     );
+    expect(linkErrorMessage(t, new ApiError(409, 'too_many_spaces', 'x'))).toBe(
+      'This organization already has 20 linked spaces, the maximum. Unlink one first.',
+    );
     expect(linkErrorMessage(t, new ApiError(429, 'rate_limited', 'x'))).toBe(
       'Too many attempts. Wait a minute and try again.',
     );

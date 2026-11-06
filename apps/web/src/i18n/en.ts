@@ -146,6 +146,8 @@ export const en: Record<MessageKey, string> = {
   'setup.googleChat.invalidCode':
     'This code is not valid. It may have expired or been used already. Add the app to the space again to get a new one.',
   'setup.googleChat.alreadyLinked': 'This space is already linked to another organization.',
+  'setup.googleChat.tooManySpaces':
+    'This organization already has 20 linked spaces, the maximum. Unlink one first.',
   'setup.googleChat.rateLimited': 'Too many attempts. Wait a minute and try again.',
   'setup.googleChat.unlinked': 'Space {space} unlinked.',
   'setup.googleChat.confirmUnlink': 'Unlink now',
