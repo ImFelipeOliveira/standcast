@@ -222,7 +222,7 @@ members:
 
 Um mapeamento `slack` vale a partir do próximo consolidado, mesmo para quem nunca entrou. Quem não tem mapeamento é ligado pelo e-mail ao entrar com `standcast login` ou na página de setup. Se você conectar outro workspace do Slack, as ligações por e-mail são apagadas e refeitas no próximo login.
 
-Nas menções do consolidado, um mapeamento `google_chat` vale mais que o vínculo feito por mensagem direta para o app. As mensagens diretas só usam o mapeamento quando esse usuário participa de um espaço do Google Chat vinculado à sua organização; caso contrário, falham com `no_chat_identity`. Veja [Google Chat](/pt-BR/admin/google-chat#como-as-pessoas-sao-vinculadas).
+Nas menções do consolidado, um mapeamento `google_chat` vale mais que o vínculo feito por mensagem direta para o app. Quando o mapeamento é diferente desse vínculo, as mensagens diretas só o usam se esse usuário participa de um espaço do Google Chat vinculado à sua organização; caso contrário, falham com `no_chat_identity`. Veja [Google Chat](/pt-BR/admin/google-chat#como-as-pessoas-sao-vinculadas).
 
 O e-mail `linear` tem prioridade sobre o e-mail do GitHub. As ligações com o Linear são feitas quando a pessoa entra, logo depois de o Linear ser conectado, e sempre que o `standcast.yml` muda, inclusive para quem está num time por um time do GitHub (`@org/time`). O Standcast guarda o id do usuário no Linear, nunca o e-mail. Se você conectar outro workspace do Linear, as ligações com o Linear são apagadas.
 

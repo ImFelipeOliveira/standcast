@@ -303,13 +303,24 @@ describe('sendReminder', () => {
     expect((await getDelivery(db, reminderKey('alice')))?.error).toBe('no_chat_identity: alice');
   });
 
-  test('membership is checked in at most 10 linked spaces', async () => {
-    const { deps, google, asked } = await googleOverrideSetup({ 'spaces/Z11': ['users/999'] });
-    for (let i = 1; i <= 11; i++) await linkSpace(`spaces/Z${String(i).padStart(2, '0')}`);
+  test('membership is checked in every linked space, at most 5 at a time', async () => {
+    const { deps, google, asked } = await googleOverrideSetup({});
+    for (let i = 1; i <= 10; i++) await linkSpace(`spaces/Z${String(i).padStart(2, '0')}`);
+    let running = 0;
+    let peak = 0;
+    google.chat.isSpaceMember = async (space, userId) => {
+      asked.push(`${space} ${userId}`);
+      running += 1;
+      peak = Math.max(peak, running);
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      running -= 1;
+      return space === 'spaces/Z10' && userId === 'users/999';
+    };
     await sendReminder(deps, job('alice'));
-    expect(google.directs).toHaveLength(0);
-    expect(asked).toHaveLength(10);
-    expect(asked).not.toContain('spaces/Z11 users/999');
+    expect(asked).toHaveLength(12);
+    expect(asked.at(-1)).toBe('spaces/Z10 users/999');
+    expect(peak).toBe(5);
+    expect(google.directs[0]?.userId).toBe('users/999');
   });
 
   test('a person in two teams gets exactly one DM', async () => {

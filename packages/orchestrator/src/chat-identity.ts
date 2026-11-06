@@ -45,7 +45,7 @@ export async function chatUserIdFor(
   return ids.get(login.toLowerCase()) ?? null;
 }
 
-const MAX_MEMBERSHIP_SPACES = 10;
+const MEMBERSHIP_CONCURRENCY = 5;
 const MEMBERSHIP_BUDGET_MS = 20_000;
 
 type Membership = 'member' | 'not_member' | 'timeout';
@@ -60,25 +60,44 @@ export function membershipTimeout(): ChatDeliveryError {
   return new ChatDeliveryError('timeout', 'google chat membership check timed out');
 }
 
-function anyConfirmed(checks: Promise<boolean>[]): Promise<Membership> {
+function firstMembership(
+  spaces: string[],
+  check: (space: string) => Promise<boolean>,
+): Promise<Membership> {
   return new Promise((resolve) => {
-    let pending = checks.length;
+    let next = 0;
+    let running = 0;
+    let done = false;
     let timedOut = false;
-    const timer = setTimeout(() => resolve('timeout'), MEMBERSHIP_BUDGET_MS);
-    const settle = (member: boolean) => {
-      pending -= 1;
-      if (!member && pending > 0) return;
+    const finish = (result: Membership) => {
+      if (done) return;
+      done = true;
       clearTimeout(timer);
-      if (member) resolve('member');
-      else resolve(timedOut ? 'timeout' : 'not_member');
+      resolve(result);
     };
-    for (const check of checks) {
-      check.then(settle, (error: unknown) => {
-        logError('google chat membership check failed', error);
-        if (isTimeout(error)) timedOut = true;
-        settle(false);
-      });
-    }
+    const timer = setTimeout(() => finish('timeout'), MEMBERSHIP_BUDGET_MS);
+    const launch = () => {
+      while (!done && running < MEMBERSHIP_CONCURRENCY && next < spaces.length) {
+        const space = spaces[next] as string;
+        next += 1;
+        running += 1;
+        check(space).then(
+          (member) => settle(member),
+          (error: unknown) => {
+            logError('google chat membership check failed', error);
+            if (isTimeout(error)) timedOut = true;
+            settle(false);
+          },
+        );
+      }
+    };
+    const settle = (member: boolean) => {
+      running -= 1;
+      if (member) return finish('member');
+      if (next < spaces.length) return launch();
+      if (running === 0) finish(timedOut ? 'timeout' : 'not_member');
+    };
+    launch();
   });
 }
 
@@ -87,12 +106,11 @@ async function inLinkedSpace(
   spaces: () => Promise<string[]>,
   userId: string,
 ): Promise<Membership> {
-  if (!chat?.isSpaceMember) return 'not_member';
-  const names = (await spaces()).slice(0, MAX_MEMBERSHIP_SPACES);
+  const isSpaceMember = chat?.isSpaceMember?.bind(chat);
+  if (!isSpaceMember) return 'not_member';
+  const names = await spaces();
   if (names.length === 0) return 'not_member';
-  return anyConfirmed(
-    names.map(async (space) => (await chat.isSpaceMember?.(space, userId)) === true),
-  );
+  return firstMembership(names, async (space) => (await isSpaceMember(space, userId)) === true);
 }
 
 export async function directMessageIdsFor(
