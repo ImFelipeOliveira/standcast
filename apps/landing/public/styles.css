@@ -404,6 +404,89 @@ body::before {
   background-position: center -1px;
 }
 
+.hero-home {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-image: none;
+}
+
+.hero-field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  --field-a: #3b4bc8;
+  --field-b: #8b5cf6;
+  --field-c: #38bdf8;
+  --field-strength: 0.8;
+  -webkit-mask-image:
+    radial-gradient(circle, #000 0 1.6px, transparent 2.1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0%, rgba(0, 0, 0, 0.1) 38%, #000 62%, #000 100%);
+  -webkit-mask-size:
+    7px 7px,
+    100% 100%;
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(circle, #000 0 1.6px, transparent 2.1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0%, rgba(0, 0, 0, 0.1) 38%, #000 62%, #000 100%);
+  mask-size:
+    7px 7px,
+    100% 100%;
+  mask-composite: intersect;
+}
+
+.hero-field::before {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  opacity: var(--field-strength);
+  background:
+    radial-gradient(42% 52% at 68% 38%, var(--field-a), transparent 72%),
+    radial-gradient(36% 46% at 86% 70%, var(--field-b), transparent 72%),
+    radial-gradient(30% 38% at 50% 76%, var(--field-c), transparent 72%),
+    radial-gradient(38% 44% at 32% 22%, var(--field-b), transparent 74%),
+    radial-gradient(
+      70% 80% at 60% 50%,
+      color-mix(in srgb, var(--field-a) 45%, transparent),
+      transparent 80%
+    );
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .hero-field {
+    --field-a: #6d7cf5;
+    --field-b: #a855f7;
+    --field-c: #22d3ee;
+    --field-strength: 1;
+  }
+}
+
+:root[data-theme="dark"] .hero-field {
+  --field-a: #6d7cf5;
+  --field-b: #a855f7;
+  --field-c: #22d3ee;
+  --field-strength: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-field::before {
+    animation: field-drift 26s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes field-drift {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate3d(-6%, 4%, 0) rotate(8deg) scale(1.08);
+  }
+  100% {
+    transform: translate3d(5%, -3%, 0) rotate(-6deg) scale(1.04);
+  }
+}
+
 .hero-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
@@ -418,6 +501,11 @@ body::before {
   background: var(--bg);
   padding: 8px 0;
   box-shadow: 0 0 0 24px var(--bg);
+}
+
+.hero-home .hero-copy {
+  background: transparent;
+  box-shadow: none;
 }
 
 .hero h1 {
