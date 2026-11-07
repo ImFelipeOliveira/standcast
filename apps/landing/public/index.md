@@ -1,6 +1,6 @@
 # Standcast: your daily standup, written in your AI agent
 
-> Open source (MIT), free during the public beta. Works with GitHub, Slack and Google Chat today. Jira is next.
+> Open source (MIT), free during the public beta. GitHub, Linear, Slack and Google Chat today. Jira, ClickUp and others are coming.
 
 Standcast is an open source daily standup tool for software teams. Run `/daily` in Claude Code, Cursor or the terminal. Standcast drafts yesterday from your GitHub and Linear activity, you confirm, and your team gets one digest in Slack or Google Chat.
 
@@ -15,6 +15,28 @@ curl -fsSL https://api.standcast.app/install.sh | sh
 - [Versão em português](https://standcast.app/pt-BR/index.md)
 
 Write your daily where you already work: Claude Code, Cursor, Codex, Claude Desktop, VS Code and the terminal.
+
+## Integrations
+
+GitHub is where the draft starts. A tracker adds your cards. A chat is where the team digest goes. Each team picks its own chat, and Linear is optional.
+
+### Available now
+
+- **GitHub.** Pull requests, reviews and commits in the draft. An organization installs Standcast as a GitHub App.
+- **Linear.** Optional tracker. Your cards show in the draft, and a card blocker goes to the people who own the blocking card.
+- **Slack.** One digest per team, late dailies in the thread, one reminder and direct messages.
+- **Google Chat.** The same digest in a space, through the Standcast app.
+
+### Coming
+
+Not connected yet, so Standcast reads nothing from them.
+
+- **Jira.** Tracker. `standcast.yml` already accepts it, and setup says it is not available yet.
+- **ClickUp.** Tracker, the same role as Linear.
+- **Asana.** Tracker, the same role as Linear.
+- **GitHub Projects.** Tracker, the same role as Linear.
+- **Microsoft Teams.** Chat, the same role as Slack.
+- **Discord.** Chat, the same role as Slack.
 
 ## A day with Standcast
 

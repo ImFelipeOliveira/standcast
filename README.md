@@ -260,7 +260,8 @@ Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for commit co
 - [x] `standcast.yml` validation as a GitHub check run
 - [x] Linear integration: cards in the draft, card blocker routing and stale card suggestions
 - [x] Google Chat: digests, threads and direct messages through the Standcast app
-- [ ] Jira
+- [ ] Jira, then ClickUp, Asana and GitHub Projects
+- [ ] Microsoft Teams and Discord
 
 ## Support
 

@@ -56,7 +56,7 @@ Em volta disso, o Standcast orquestra o dia:
 - impedimentos sugeridos, como um pull request esperando revisão ou com CI falhando, aparecem só para você, no seu rascunho;
 - toda mudança no `standcast.yml` é validada por um check run no GitHub.
 
-Os cards do Linear aparecem no rascunho e no encaminhamento de impedimentos. Em breve: Jira.
+Os cards do Linear aparecem no rascunho e no encaminhamento de impedimentos. O que está conectado hoje, e o que ainda vem, está em [Integrações](/pt-BR/integrations).
 
 Veja [Como funciona](/pt-BR/how-it-works) para o ciclo completo de um dia.
 

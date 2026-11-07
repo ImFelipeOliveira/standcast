@@ -1,6 +1,6 @@
 # Como funciona
 
-> Do seu trabalho a um consolidado por time. O Standcast rascunha a sua daily a partir do GitHub e do Linear, você confirma no seu agente de IA ou no terminal, e cada time recebe um consolidado no Slack ou no Google Chat no horário que escolheu.
+> Do seu trabalho a um consolidado por time. O Standcast rascunha a sua daily a partir do GitHub e do Linear, você confirma no seu agente de IA ou no terminal, e cada time recebe um consolidado no Slack ou no Google Chat no horário que escolheu. [Jira, ClickUp e outros vêm a seguir.](https://standcast.app/pt-BR/#integrations)
 
 ## Um dia com o Standcast
 

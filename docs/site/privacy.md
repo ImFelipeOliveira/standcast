@@ -71,9 +71,9 @@ Tokens that look like secrets (API keys, GitHub, Slack, Standcast and AWS tokens
 
 To turn it off, set `STANDCAST_SESSIONS=off` in your environment, or ask the agent not to use your sessions.
 
-### Jira <Badge type="info" text="coming soon" />
+### Not connected yet <Badge type="info" text="coming" />
 
-Standcast does not connect to Jira yet, so it reads nothing from it.
+Standcast does not connect to Jira, ClickUp, Asana, GitHub Projects, Microsoft Teams or Discord yet, so it reads nothing from them. `tracker.provider: jira` is accepted in `standcast.yml` and the setup page says the integration is not available. See [Integrations](/integrations).
 
 ## What Standcast stores
 
