@@ -30,7 +30,7 @@ const schema = z
     LANDING_URL: z
       .url({ protocol: /^https$/ })
       .refine((url) => !url.endsWith('/'), 'must not end with a slash')
-      .default('https://standcast.usefachada.dev'),
+      .default('https://standcast.app'),
     APP_URL: z
       .string()
       .refine(

@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- The hosted service is at [standcast.app](https://standcast.app), with the app at [app.standcast.app](https://app.standcast.app), the docs at [docs.standcast.app](https://docs.standcast.app) and the API at [api.standcast.app](https://api.standcast.app). Support is support@standcast.app. The previous hostnames on usefachada.dev redirect there.
+
 ### 0.7.0 — 2026-11-06
 
 ### 0.6.0 — 2026-11-06

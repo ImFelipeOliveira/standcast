@@ -61,7 +61,7 @@ export const HealthSchema = z
 export const MetaSchema = z
   .object({
     githubClientId: z.string().openapi({ example: 'Iv1.0123456789abcdef' }),
-    supportEmail: z.string().openapi({ example: 'support.standcast@usefachada.dev' }),
+    supportEmail: z.string().openapi({ example: 'support@standcast.app' }),
   })
   .openapi('Meta');
 

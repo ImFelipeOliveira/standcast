@@ -137,7 +137,7 @@ export async function checkRootLinks(siteDir: string): Promise<string[]> {
 }
 
 const CANONICAL_INSTALL_URL = 'https://api.standcast.app/install.sh';
-export const PUBLISHED_INSTALL_URL = 'https://api-standcast.usefachada.dev/install.sh';
+export const PUBLISHED_INSTALL_URL = 'https://api.standcast.app/install.sh';
 const PUBLISHED_FILES = ['README.md', 'packages/plugin/skills/daily/SKILL.md'];
 
 async function markdownFiles(dir: string): Promise<string[]> {

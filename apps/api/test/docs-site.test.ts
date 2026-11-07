@@ -16,7 +16,7 @@ import { inlineScriptHashes } from '../../../scripts/docs-headers';
 const ROOT = join(import.meta.dir, '../../..');
 const SITE = join(ROOT, 'docs/site');
 const SUPPORT = 'help@sw.test';
-const PUBLIC_URL = 'https://api-standcast.usefachada.dev';
+const PUBLIC_URL = 'https://api.example.test';
 const temp = await mkdtemp(join(tmpdir(), 'standcast-docs-'));
 const outDir = join(temp, 'dist');
 
@@ -73,12 +73,10 @@ describe('site build', () => {
       if (page === '404.html' || page === 'pt-BR/404.html') continue;
       const html = await readFile(join(outDir, page), 'utf8');
       expect(html, page).toContain(
-        'property="og:image" content="https://docs-standcast.usefachada.dev/og.png"',
+        'property="og:image" content="https://docs.standcast.app/og.png"',
       );
       expect(html, page).toMatch(/property="og:title" content="[^"]+"/);
-      expect(html, page).toMatch(
-        /property="og:url" content="https:\/\/docs-standcast\.usefachada\.dev\//,
-      );
+      expect(html, page).toMatch(/property="og:url" content="https:\/\/docs\.standcast\.app\//);
       expect(html, page).toContain('name="twitter:card" content="summary_large_image"');
       expect(html, page).toContain('name="robots" content="max-image-preview:large"');
     }

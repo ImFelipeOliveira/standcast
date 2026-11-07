@@ -4,6 +4,8 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 
 ## Unreleased
 
+- The hosted base URL is `https://api.standcast.app`. Requests to `https://api-standcast.usefachada.dev` redirect there.
+
 ## 0.7.0 — 2026-11-06
 
 ## 0.6.0 — 2026-11-06

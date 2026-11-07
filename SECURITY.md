@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Standcast is in public beta. Only the latest release of the CLI and the hosted service at `https://api-standcast.usefachada.dev` receive security fixes.
+Standcast is in public beta. Only the latest release of the CLI and the hosted service at `https://api.standcast.app` receive security fixes.
 
 ## Reporting a vulnerability
 
@@ -10,7 +10,7 @@ Please **do not** open a public issue for security problems. Use GitHub's privat
 
 https://github.com/ImFelipeOliveira/standcast/security/advisories/new
 
-or email support.standcast@usefachada.dev. You should get a response within a week. Include reproduction steps and, if relevant, the CLI version (`standcast --version`).
+or email support@standcast.app. You should get a response within a week. Include reproduction steps and, if relevant, the CLI version (`standcast --version`).
 
 ## Scope
 

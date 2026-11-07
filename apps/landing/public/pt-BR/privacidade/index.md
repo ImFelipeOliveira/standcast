@@ -20,7 +20,7 @@ Sem métricas de produtividade. Sem rankings. Sem contagem de commits. Nada envi
 
 ## O que o Standcast lê
 
-Só o que uma daily precisa. O que o Standcast lê, o que guarda, por quanto tempo e quem vê o quê estão na [página de privacidade da documentação](https://docs-standcast.usefachada.dev/pt-BR/privacy).
+Só o que uma daily precisa. O que o Standcast lê, o que guarda, por quanto tempo e quem vê o quê estão na [página de privacidade da documentação](https://docs.standcast.app/pt-BR/privacy).
 
 - **Sem IA nos nossos servidores.** Nenhum LLM processa os seus dados nos servidores do Standcast. O rascunho vem da sua atividade no GitHub e no Linear, e o consolidado, do que as pessoas confirmaram.
 - **O seu código continua seu.** O GitHub App lê pull requests, reviews, checks, metadados de commits, o standcast.yml e o CODEOWNERS. Ele nunca lê arquivos de código e nunca escreve nos seus repositórios.
@@ -28,12 +28,12 @@ Só o que uma daily precisa. O que o Standcast lê, o que guarda, por quanto tem
 
 ## Mais sobre o Standcast
 
-- [Início](https://standcast.usefachada.dev/pt-BR/index.md)
-- [Como funciona](https://standcast.usefachada.dev/pt-BR/como-funciona/index.md)
-- [Preços](https://standcast.usefachada.dev/pt-BR/precos/index.md)
-- [Perguntas frequentes](https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/index.md)
-- [Entrar no beta](https://standcast.usefachada.dev/pt-BR/beta/index.md)
-- [Termos de uso](https://standcast.usefachada.dev/pt-BR/termos/index.md)
-- [English version](https://standcast.usefachada.dev/privacy/index.md)
+- [Início](https://standcast.app/pt-BR/index.md)
+- [Como funciona](https://standcast.app/pt-BR/como-funciona/index.md)
+- [Preços](https://standcast.app/pt-BR/precos/index.md)
+- [Perguntas frequentes](https://standcast.app/pt-BR/perguntas-frequentes/index.md)
+- [Entrar no beta](https://standcast.app/pt-BR/beta/index.md)
+- [Termos de uso](https://standcast.app/pt-BR/termos/index.md)
+- [English version](https://standcast.app/privacy/index.md)
 
-Suporte: support.standcast@usefachada.dev
+Suporte: support@standcast.app
