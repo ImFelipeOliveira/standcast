@@ -7,7 +7,7 @@ import {
   removeMemberInstallation,
 } from '@standcast/db';
 import type { Deps } from '../../deps';
-import { isOwnGitHubInstallation } from '../../github-installations';
+import { isOwnGitHubInstallation } from '../github/github-installations';
 import { DomainError } from './errors';
 import type { MembershipCheck } from './org-context';
 

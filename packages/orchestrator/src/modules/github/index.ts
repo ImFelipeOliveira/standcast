@@ -1,3 +1,4 @@
+export * from './github-installations';
 export * from './handle-github-event';
 export * from './load-installation-config';
 export * from './resolve-check-suite';

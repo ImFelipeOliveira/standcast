@@ -1,5 +1,5 @@
-import type { Deps } from './deps';
-import { scopedTtlCache } from './ttl-cache';
+import type { Deps } from '../../deps';
+import { scopedTtlCache } from '../../ttl-cache';
 
 export const GITHUB_INSTALLATIONS_TTL_MS = 10 * 60 * 1000;
 

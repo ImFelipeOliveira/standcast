@@ -1,6 +1,5 @@
 export * from './csrf';
 export * from './deps';
-export * from './github-installations';
 export * from './identity';
 export * from './log-error';
 export * from './membership';

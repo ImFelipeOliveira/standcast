@@ -8,10 +8,10 @@ import {
   upsertMember,
 } from '@standcast/db';
 import type { Deps } from '../../deps';
-import { rememberGitHubInstallations } from '../../github-installations';
 import { linkChatIdentities } from '../../identity';
 import { forgetMembership, statusOf } from '../../membership';
 import { DomainError } from '../access/errors';
+import { rememberGitHubInstallations } from '../github/github-installations';
 import { enqueueLinkTrackerIdentity } from '../linear/tracker-identity';
 
 export type StartSessionResult = {
