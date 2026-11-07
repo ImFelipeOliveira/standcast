@@ -2,8 +2,8 @@ import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test';
 import { SQL } from 'bun';
 import { createMemoryQueue, createPgBossQueue, type JobQueue, logPgBossError } from '../src';
 
-const TEST_DATABASE_URL =
-  process.env.TEST_DATABASE_URL ?? 'postgres://standcast:standcast@localhost:5433/standcast_test';
+const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
+if (!TEST_DATABASE_URL) throw new Error('test database was not provisioned');
 const PGBOSS_SCHEMA = 'pgboss_test';
 
 const admin = new SQL(TEST_DATABASE_URL);
