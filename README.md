@@ -147,8 +147,8 @@ Then pick how you write your daily:
 | Client                                     | Setup                                                                                                               |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | **Claude Code**                            | `/plugin marketplace add ImFelipeOliveira/standcast`, then `/plugin install standcast@standcast`, then run `/daily` |
-| **Cursor, Codex, Claude Desktop, VS Code** | Add the MCP server (`standcast mcp`): [MCP guide](https://docs.standcast.app/members/mcp)                |
-| **Terminal**                               | `standcast draft` and `standcast submit`: [CLI reference](https://docs.standcast.app/members/cli)        |
+| **Cursor, Codex, Claude Desktop, VS Code** | Add the MCP server (`standcast mcp`): [MCP guide](https://docs.standcast.app/members/mcp)                           |
+| **Terminal**                               | `standcast draft` and `standcast submit`: [CLI reference](https://docs.standcast.app/members/cli)                   |
 
 ## Configuration
 
