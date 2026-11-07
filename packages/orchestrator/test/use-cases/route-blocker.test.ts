@@ -493,6 +493,28 @@ describe('routeBlocker', () => {
     expect(fake.directs.map((d) => d.userId).sort()).toEqual(['U0ERIN', 'U0MGR']);
   });
 
+  test('explicit managers come first in config order before the members of a manager team', async () => {
+    const leads = ['aaron', 'abby', 'adam', 'alex', 'amy', 'ana', 'andy', 'anne'];
+    const fake = await setup(
+      {},
+      `${identities}\n  zoe: { slack: U0ZOE }\n  aaron: { slack: U0AARON }`,
+      '[zoe, "@acme/leads"]',
+    );
+    fake.deps.github.resolveTeamMembers = async (_o, _owner, members) => ({
+      logins: members.flatMap((m) => (m === '@acme/leads' ? leads : [m.toLowerCase()])),
+      missingTeams: [],
+      truncatedTeams: [],
+    });
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const dailyId = await seedDaily([{ text: 'Need prod access' }]);
+      await routeBlocker(fake.deps, { installationId: INST, dailyId, blockerIndex: 0 });
+    } finally {
+      errors.mockRestore();
+    }
+    expect(fake.directs.map((d) => d.userId)).toEqual(['U0ZOE', 'U0AARON']);
+  });
+
   test('a manager team that cannot be resolved routes to nobody through it', async () => {
     const fake = await setup({}, identities, '["@acme/leads"]');
     fake.deps.github.resolveTeamMembers = async (_o, _owner, members) => ({

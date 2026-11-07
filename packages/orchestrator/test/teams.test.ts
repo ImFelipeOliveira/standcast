@@ -4,7 +4,9 @@ import type { Deps } from '../src';
 import {
   explicitManagerTeams,
   invalidateResolvedTeams,
+  resolveManagerTeams,
   resolveTeams,
+  TEAM_FAILURE_TTL_MS,
   TEAMS_CACHE_TTL_MS,
   teamResolutionNotices,
 } from '../src';
@@ -88,15 +90,15 @@ describe('resolveTeams', () => {
     const { deps, resolved, advance } = counting();
     await resolveTeams(deps, 7, 'acme', parsed());
     await resolveTeams(deps, 7, 'acme', parsed());
-    expect(resolved).toHaveLength(2);
+    expect(resolved).toHaveLength(1);
     await resolveTeams(deps, 8, 'acme', parsed());
-    expect(resolved).toHaveLength(4);
+    expect(resolved).toHaveLength(2);
     advance(TEAMS_CACHE_TTL_MS + 1);
     await resolveTeams(deps, 7, 'acme', parsed());
-    expect(resolved).toHaveLength(6);
+    expect(resolved).toHaveLength(3);
   });
 
-  test('a changed member list misses the cache', async () => {
+  test('explicit member logins need no GitHub call and only a new team reference is fetched', async () => {
     const { deps, resolved } = counting();
     const config = parsed();
     await resolveTeams(deps, 7, 'acme', config);
@@ -104,9 +106,55 @@ describe('resolveTeams', () => {
     if (!alpha || !beta) throw new Error('teams');
     await resolveTeams(deps, 7, 'acme', {
       ...config,
-      teams: [alpha, { ...beta, members: ['erin'] }],
+      teams: [alpha, { ...beta, members: ['erin', '@acme/frontend'] }],
     });
-    expect(resolved).toEqual([['Alice', '@acme/backend'], ['carol'], ['erin']]);
+    expect(resolved).toEqual([['@acme/backend'], ['@acme/frontend']]);
+  });
+
+  test('a team reference in members and managers of several teams is fetched once', async () => {
+    const { deps, resolved } = counting();
+    const config = parsed();
+    const [alpha, beta] = config.teams;
+    if (!alpha || !beta) throw new Error('teams');
+    const teams = await resolveTeams(deps, 7, 'acme', {
+      ...config,
+      teams: [
+        { ...alpha, managers: ['@acme/backend'] },
+        { ...beta, members: ['@ACME/backend'], managers: ['@acme/backend'] },
+      ],
+    });
+    expect(resolved).toEqual([['@acme/backend']]);
+    expect(teams.map((t) => t.managerLogins)).toEqual([['@acme/backend'], ['@acme/backend']]);
+  });
+
+  test('distinct team references are fetched concurrently', async () => {
+    const config = parsed();
+    const [alpha] = config.teams;
+    if (!alpha) throw new Error('teams');
+    const started: string[] = [];
+    let release = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const deps = {
+      now: () => new Date('2026-10-28T15:00:00Z'),
+      github: {
+        installationOctokit: async () => ({}),
+        resolveTeamMembers: async (_o: unknown, _owner: string, members: string[]) => {
+          started.push(...members);
+          await gate;
+          return { logins: [], missingTeams: [], truncatedTeams: [] };
+        },
+      },
+    } as unknown as Deps;
+    const pending = resolveTeams(deps, 9, 'acme', {
+      ...config,
+      teams: [{ ...alpha, members: ['@acme/a', '@acme/b'], managers: ['@acme/c'] }],
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(started).toEqual(['@acme/a', '@acme/b', '@acme/c']);
+    release();
+    await pending;
   });
 
   test('invalidation drops the installation entries only', async () => {
@@ -116,7 +164,7 @@ describe('resolveTeams', () => {
     invalidateResolvedTeams(deps, 7);
     await resolveTeams(deps, 7, 'acme', parsed());
     await resolveTeams(deps, 8, 'acme', parsed());
-    expect(resolved).toHaveLength(6);
+    expect(resolved).toHaveLength(3);
   });
 });
 
@@ -138,12 +186,13 @@ teams:
     chat: { provider: slack, channel: "#beta" }
 `;
 
-type Listing = { logins: string[]; missing?: boolean; truncated?: boolean } | 'error';
+type Listing = { logins: string[]; missing?: boolean; truncated?: boolean } | 'error' | 'hang';
 
 function managerDeps(listings: Record<string, Listing>) {
   const calls: string[][] = [];
+  let now = new Date('2026-10-28T15:00:00Z');
   const deps = {
-    now: () => new Date('2026-10-28T15:00:00Z'),
+    now: () => now,
     github: {
       installationOctokit: async () => ({}),
       resolveTeamMembers: async (_o: unknown, _owner: string, members: string[]) => {
@@ -153,6 +202,7 @@ function managerDeps(listings: Record<string, Listing>) {
         const truncatedTeams: string[] = [];
         for (const member of members) {
           const listing = listings[member];
+          if (listing === 'hang') return await new Promise<never>(() => {});
           if (listing === 'error') throw Object.assign(new Error('boom'), { status: 502 });
           if (!listing) {
             logins.push(member);
@@ -166,7 +216,10 @@ function managerDeps(listings: Record<string, Listing>) {
       },
     },
   } as unknown as Deps;
-  return { deps, calls };
+  const advance = (ms: number) => {
+    now = new Date(now.getTime() + ms);
+  };
+  return { deps, calls, advance };
 }
 
 function managerConfig(managers: string): StandcastConfig {
@@ -176,12 +229,12 @@ function managerConfig(managers: string): StandcastConfig {
 }
 
 describe('resolveTeams managers', () => {
-  test('expands manager teams into deduplicated lowercase managerLogins', async () => {
+  test('expands manager teams into deduplicated lowercase managerLogins in config order', async () => {
     const { deps } = managerDeps({ '@acme/leads': { logins: ['Dave', 'boss', 'erin'] } });
-    const teams = await resolveTeams(deps, 7, 'acme', managerConfig('[Boss, "@acme/leads"]'));
-    expect(teams[0]?.managerLogins).toEqual(['boss', 'dave', 'erin']);
-    expect(teams[1]?.managerLogins).toEqual(['boss', 'dave', 'erin']);
-    expect(teams[0]?.managers).toEqual(['Boss', '@acme/leads']);
+    const teams = await resolveTeams(deps, 7, 'acme', managerConfig('["@acme/leads", Zed, Boss]'));
+    expect(teams[0]?.managerLogins).toEqual(['zed', 'boss', 'dave', 'erin']);
+    expect(teams[1]?.managerLogins).toEqual(['dave', 'boss', 'erin']);
+    expect(teams[0]?.managers).toEqual(['@acme/leads', 'Zed', 'Boss']);
   });
 
   test('explicit manager logins need no GitHub call', async () => {
@@ -191,7 +244,7 @@ describe('resolveTeams managers', () => {
     if (!alpha) throw new Error('team');
     const teams = await resolveTeams(deps, 7, 'acme', { ...config, teams: [alpha] });
     expect(teams[0]?.managerLogins).toEqual(['boss', 'zed']);
-    expect(calls).toEqual([['alice']]);
+    expect(calls).toEqual([]);
   });
 
   test('a manager team is resolved once and cached across teams', async () => {
@@ -235,20 +288,68 @@ describe('resolveTeams managers', () => {
     });
   });
 
-  test('a GitHub error on a manager team fails closed, keeps explicit logins and is retried', async () => {
+  test('a GitHub error on a manager team fails closed, keeps explicit logins and raises a notice', async () => {
     const errors = spyOn(console, 'error').mockImplementation(() => {});
     try {
-      const listings: Record<string, Listing> = { '@acme/leads': 'error' };
-      const { deps, calls } = managerDeps(listings);
+      const { deps } = managerDeps({ '@acme/leads': 'error' });
       const config = managerConfig('[boss, "@acme/leads"]');
       const teams = await resolveTeams(deps, 7, 'acme', config);
       expect(teams.map((t) => t.managerLogins)).toEqual([['boss'], []]);
       expect(teams[0]?.memberLogins).toEqual(['alice']);
+      expect(await teamResolutionNotices(deps, 7, 'acme', config)).toEqual([
+        { team: 'Alpha', reference: '@acme/leads', kind: 'managers_unavailable' },
+        { team: 'Beta', reference: '@acme/leads', kind: 'managers_unavailable' },
+      ]);
+      expect(String(errors.mock.calls[0]?.[0])).toBe('github team resolution failed');
+    } finally {
+      errors.mockRestore();
+    }
+  });
+
+  test('a failed manager team is not asked again until the failure expires', async () => {
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const listings: Record<string, Listing> = { '@acme/leads': 'error' };
+      const { deps, calls, advance } = managerDeps(listings);
+      const config = managerConfig('[boss, "@acme/leads"]');
+      await resolveTeams(deps, 7, 'acme', config);
       listings['@acme/leads'] = { logins: ['dave'] };
+      const cached = await resolveTeams(deps, 7, 'acme', config);
+      expect(cached[1]?.managerLogins).toEqual([]);
+      expect(calls).toEqual([['@acme/leads']]);
+      advance(TEAM_FAILURE_TTL_MS + 1);
       const again = await resolveTeams(deps, 7, 'acme', config);
       expect(again[1]?.managerLogins).toEqual(['dave']);
-      expect(calls.filter((c) => c.includes('@acme/leads'))).toHaveLength(3);
-      expect(String(errors.mock.calls[0]?.[0])).toBe('manager team resolution failed');
+      expect(calls).toEqual([['@acme/leads'], ['@acme/leads']]);
+    } finally {
+      errors.mockRestore();
+    }
+  });
+
+  test('a failing manager team does not affect the other manager teams', async () => {
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const { deps } = managerDeps({
+        '@acme/leads': 'error',
+        '@acme/oncall': { logins: ['Olga'] },
+      });
+      const config = managerConfig('[boss, "@acme/leads", "@acme/oncall"]');
+      const teams = await resolveTeams(deps, 7, 'acme', config);
+      expect(teams.map((t) => t.managerLogins)).toEqual([['boss', 'olga'], []]);
+    } finally {
+      errors.mockRestore();
+    }
+  });
+
+  test('a failing member team still fails the resolution', async () => {
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const { deps } = managerDeps({ '@acme/backend': 'error' });
+      const config = managerConfig('[boss]');
+      const [alpha] = config.teams;
+      if (!alpha) throw new Error('team');
+      const failing = { ...config, teams: [{ ...alpha, members: ['@acme/backend'] }] };
+      await expect(resolveTeams(deps, 7, 'acme', failing)).rejects.toThrow('boom');
     } finally {
       errors.mockRestore();
     }
@@ -266,6 +367,39 @@ describe('resolveTeams managers', () => {
       reference: '@other/leads',
       kind: 'managers_missing',
     });
+  });
+
+  test('resolveManagerTeams reads only manager teams', async () => {
+    const { deps, calls } = managerDeps({ '@acme/leads': { logins: ['dave'] } });
+    const teams = await resolveManagerTeams(
+      deps,
+      7,
+      'acme',
+      managerConfig('[boss, "@acme/leads"]'),
+      1000,
+    );
+    expect(teams.map((t) => t.managerLogins)).toEqual([['boss', 'dave'], ['dave']]);
+    expect(calls).toEqual([['@acme/leads']]);
+  });
+
+  test('resolveManagerTeams gives up on a slow manager team and keeps the others', async () => {
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const { deps } = managerDeps({ '@acme/slow': 'hang', '@acme/leads': { logins: ['dave'] } });
+      const started = Date.now();
+      const teams = await resolveManagerTeams(
+        deps,
+        7,
+        'acme',
+        managerConfig('[boss, "@acme/slow"]'),
+        50,
+      );
+      expect(Date.now() - started).toBeLessThan(1000);
+      expect(teams.map((t) => t.managerLogins)).toEqual([['boss'], ['dave']]);
+      expect(String(errors.mock.calls[0]?.[0])).toBe('manager team resolution timed out');
+    } finally {
+      errors.mockRestore();
+    }
   });
 
   test('explicitManagerTeams keeps only explicit manager logins', () => {

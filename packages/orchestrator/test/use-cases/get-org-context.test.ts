@@ -97,7 +97,11 @@ describe('getOrgContext', () => {
     expect(await codeOf(getOrgContext(deps, isMember, member, 99))).toBe('forbidden');
   });
   test('context survives a failing github', async () => {
-    const { deps, isMember, member, roles } = await setup('Carol', 3);
+    const { deps, isMember, member, roles } = await setup(
+      'Carol',
+      3,
+      config('[alice, "@acme/backend"]', BETA),
+    );
     roles.set('carol', { role: 'admin', state: 'active' });
     deps.github.resolveTeamMembers = async () => {
       throw new Error('github down');
@@ -111,7 +115,11 @@ describe('getOrgContext', () => {
   });
 
   test('context gives up after the timeout', async () => {
-    const { deps, isMember, member } = await setup('carol', 3);
+    const { deps, isMember, member } = await setup(
+      'carol',
+      3,
+      config('[alice, "@acme/backend"]', BETA),
+    );
     deps.github.resolveTeamMembers = () => new Promise(() => {});
     const started = Date.now();
     const context = await getOrgContext(deps, isMember, member, INST);

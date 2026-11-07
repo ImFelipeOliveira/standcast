@@ -5,10 +5,13 @@ import {
   type TeamConfig,
 } from '@standcast/core';
 import type { Deps } from './deps';
+import { guarded } from './guarded';
 import { logError } from './log-error';
 import { scopedTtlCache } from './ttl-cache';
 
 export const TEAMS_CACHE_TTL_MS = 5 * 60 * 1000;
+export const TEAM_FAILURE_TTL_MS = 60 * 1000;
+const TEAM_LOOKUP_CONCURRENCY = 4;
 
 export type TeamNotice = {
   team: string;
@@ -18,6 +21,7 @@ export type TeamNotice = {
     | 'truncated'
     | 'managers_missing'
     | 'managers_truncated'
+    | 'managers_unavailable'
     | 'channel_not_found'
     | 'channel_not_member'
     | 'space_not_linked'
@@ -25,81 +29,157 @@ export type TeamNotice = {
     | 'space_not_member';
 };
 
-type CachedTeam = { logins: string[]; missingTeams: string[]; truncatedTeams: string[] };
+type TeamListing = { logins: string[]; missing: boolean; truncated: boolean };
 
-type ManagerTeam = { logins: string[]; missing: boolean; truncated: boolean };
+type TeamFailure = { error: unknown };
 
-type ResolvedManagers = { logins: string[]; missing: string[]; truncated: string[] };
+type TeamLookup = TeamListing | TeamFailure;
+
+type Lookups = Map<string, TeamLookup>;
+
+type ResolvedMembers = { logins: string[]; missing: string[]; truncated: string[] };
+
+type ResolvedManagers = ResolvedMembers & { unavailable: string[] };
 
 type ResolveDeps = Pick<Deps, 'github' | 'now'>;
 
+type Scope = { installationId: number; owner: string };
+
 type Octokit = Awaited<ReturnType<Deps['github']['installationOctokit']>>;
 
-const membersCache = scopedTtlCache<CachedTeam>(TEAMS_CACHE_TTL_MS);
+const listingsCache = scopedTtlCache<TeamListing>(TEAMS_CACHE_TTL_MS);
 
-const managerTeamsCache = scopedTtlCache<ManagerTeam>(TEAMS_CACHE_TTL_MS);
+const failuresCache = scopedTtlCache<TeamFailure>(TEAM_FAILURE_TTL_MS);
 
 const keyPrefix = (installationId: number) => `${installationId}:`;
 
 export function invalidateResolvedTeams(deps: Pick<Deps, 'github'>, installationId: number): void {
   const prefix = keyPrefix(installationId);
-  membersCache(deps.github).deleteWhere((key) => key.startsWith(prefix));
-  managerTeamsCache(deps.github).deleteWhere((key) => key.startsWith(prefix));
+  const matches = (key: string) => key.startsWith(prefix);
+  listingsCache(deps.github).deleteWhere(matches);
+  failuresCache(deps.github).deleteWhere(matches);
 }
 
-async function resolveManagerTeam(
-  deps: ResolveDeps,
-  installationId: number,
-  owner: string,
-  reference: string,
-  octokit: () => Promise<Octokit>,
-): Promise<ManagerTeam | null> {
-  const cache = managerTeamsCache(deps.github);
-  const key = `${keyPrefix(installationId)}${owner.toLowerCase()}:${reference.toLowerCase()}`;
-  const cached = cache.get(key, deps.now().getTime());
-  if (cached) return cached;
-  try {
-    const resolved = await deps.github.resolveTeamMembers(await octokit(), owner, [reference]);
-    const entry: ManagerTeam = {
-      logins: [...new Set(resolved.logins.map((l) => l.toLowerCase()))],
-      missing: resolved.missingTeams.length > 0,
-      truncated: resolved.truncatedTeams.length > 0,
-    };
-    cache.set(key, entry, deps.now().getTime());
-    return entry;
-  } catch (error) {
-    logError('manager team resolution failed', error, { installationId: String(installationId) });
-    return null;
-  }
+function referenceKey(scope: Scope, reference: string): string {
+  return `${keyPrefix(scope.installationId)}${scope.owner.toLowerCase()}:${reference.toLowerCase()}`;
 }
 
-async function resolveManagers(
-  deps: ResolveDeps,
-  installationId: number,
-  owner: string,
-  team: TeamConfig,
-  octokit: () => Promise<Octokit>,
-): Promise<ResolvedManagers> {
+function isFailure(lookup: TeamLookup): lookup is TeamFailure {
+  return 'error' in lookup;
+}
+
+function isOwnTeam(entry: string, owner: string): boolean {
+  return parseTeamReference(entry)?.org.toLowerCase() === owner.toLowerCase();
+}
+
+function memberReferences(team: TeamConfig): string[] {
+  return team.members.filter((entry) => parseTeamReference(entry) !== null);
+}
+
+function managerReferences(team: TeamConfig, owner: string): string[] {
+  return team.managers.filter((entry) => isOwnTeam(entry, owner));
+}
+
+function explicitManagerLogins(team: TeamConfig): string[] {
+  const explicit = team.managers.filter((entry) => parseTeamReference(entry) === null);
+  return [...new Set(explicit.map((entry) => entry.toLowerCase()))];
+}
+
+function teamLookup(deps: ResolveDeps, scope: Scope): (reference: string) => Promise<TeamLookup> {
+  let client: Promise<Octokit> | undefined;
+  const octokit = () => {
+    client ??= deps.github.installationOctokit(scope.installationId);
+    return client;
+  };
+  return async (reference) => {
+    const listings = listingsCache(deps.github);
+    const failures = failuresCache(deps.github);
+    const key = referenceKey(scope, reference);
+    const now = deps.now().getTime();
+    const cached = listings.get(key, now) ?? failures.get(key, now);
+    if (cached) return cached;
+    try {
+      const resolved = await deps.github.resolveTeamMembers(await octokit(), scope.owner, [
+        reference,
+      ]);
+      const listing: TeamListing = {
+        logins: [...new Set(resolved.logins.map((login) => login.toLowerCase()))],
+        missing: resolved.missingTeams.length > 0,
+        truncated: resolved.truncatedTeams.length > 0,
+      };
+      listings.set(key, listing, deps.now().getTime());
+      return listing;
+    } catch (error) {
+      logError('github team resolution failed', error, {
+        installationId: String(scope.installationId),
+      });
+      const failure: TeamFailure = { error };
+      failures.set(key, failure, deps.now().getTime());
+      return failure;
+    }
+  };
+}
+
+async function lookupAll(
+  references: string[],
+  lookup: (reference: string) => Promise<TeamLookup>,
+  found: Lookups = new Map(),
+): Promise<Lookups> {
+  const pending = [...new Map(references.map((r) => [r.toLowerCase(), r])).values()];
+  const lane = async () => {
+    while (pending.length > 0) {
+      const reference = pending.shift() as string;
+      found.set(reference.toLowerCase(), await lookup(reference));
+    }
+  };
+  const lanes = Math.min(TEAM_LOOKUP_CONCURRENCY, pending.length);
+  await Promise.all(Array.from({ length: lanes }, lane));
+  return found;
+}
+
+function resolveMembers(team: TeamConfig, lookups: Lookups): ResolvedMembers {
   const logins = new Set<string>();
   const missing: string[] = [];
   const truncated: string[] = [];
-  for (const entry of team.managers) {
-    const reference = parseTeamReference(entry);
-    if (!reference) {
+  for (const entry of team.members) {
+    const lookup = parseTeamReference(entry) ? lookups.get(entry.toLowerCase()) : undefined;
+    if (!lookup) {
       logins.add(entry.toLowerCase());
       continue;
     }
-    if (reference.org.toLowerCase() !== owner.toLowerCase()) {
+    if (isFailure(lookup)) throw lookup.error;
+    for (const login of lookup.logins) logins.add(login);
+    if (lookup.missing) missing.push(entry);
+    if (lookup.truncated) truncated.push(entry);
+  }
+  return { logins: [...logins].sort(), missing, truncated };
+}
+
+function resolveManagers(team: TeamConfig, owner: string, lookups: Lookups): ResolvedManagers {
+  const logins = explicitManagerLogins(team);
+  const seen = new Set(logins);
+  const missing: string[] = [];
+  const truncated: string[] = [];
+  const unavailable: string[] = [];
+  for (const entry of team.managers) {
+    if (parseTeamReference(entry) === null) continue;
+    if (!isOwnTeam(entry, owner)) {
       missing.push(entry);
       continue;
     }
-    const resolved = await resolveManagerTeam(deps, installationId, owner, entry, octokit);
-    if (!resolved) continue;
-    if (resolved.missing) missing.push(entry);
-    else if (resolved.truncated) truncated.push(entry);
-    else for (const login of resolved.logins) logins.add(login);
+    const lookup = lookups.get(entry.toLowerCase());
+    if (!lookup || isFailure(lookup)) unavailable.push(entry);
+    else if (lookup.missing) missing.push(entry);
+    else if (lookup.truncated) truncated.push(entry);
+    else {
+      for (const login of lookup.logins) {
+        if (seen.has(login)) continue;
+        seen.add(login);
+        logins.push(login);
+      }
+    }
   }
-  return { logins: [...logins].sort(), missing, truncated };
+  return { logins, missing, truncated, unavailable };
 }
 
 async function resolveTeamsWithNotices(
@@ -108,40 +188,25 @@ async function resolveTeamsWithNotices(
   owner: string,
   config: StandcastConfig,
 ): Promise<{ teams: ResolvedTeam[]; notices: TeamNotice[] }> {
-  const cache = membersCache(deps.github);
-  let client: Promise<Octokit> | undefined;
-  const octokit = () => {
-    client ??= deps.github.installationOctokit(installationId);
-    return client;
-  };
+  const references = config.teams.flatMap((team) => [
+    ...memberReferences(team),
+    ...managerReferences(team, owner),
+  ]);
+  const lookups = await lookupAll(references, teamLookup(deps, { installationId, owner }));
   const teams: ResolvedTeam[] = [];
   const notices: TeamNotice[] = [];
   for (const team of config.teams) {
-    const key = `${keyPrefix(installationId)}${owner.toLowerCase()}:${JSON.stringify(team.members)}`;
-    let entry = cache.get(key, deps.now().getTime());
-    if (!entry) {
-      const resolved = await deps.github.resolveTeamMembers(await octokit(), owner, team.members);
-      entry = {
-        logins: [...new Set(resolved.logins.map((l) => l.toLowerCase()))],
-        missingTeams: resolved.missingTeams,
-        truncatedTeams: resolved.truncatedTeams,
-      };
-      cache.set(key, entry, deps.now().getTime());
-    }
-    const managers = await resolveManagers(deps, installationId, owner, team, octokit);
-    teams.push({ ...team, memberLogins: entry.logins, managerLogins: managers.logins });
-    for (const reference of entry.missingTeams) {
-      notices.push({ team: team.name, reference, kind: 'missing' });
-    }
-    for (const reference of entry.truncatedTeams) {
-      notices.push({ team: team.name, reference, kind: 'truncated' });
-    }
-    for (const reference of managers.missing) {
-      notices.push({ team: team.name, reference, kind: 'managers_missing' });
-    }
-    for (const reference of managers.truncated) {
-      notices.push({ team: team.name, reference, kind: 'managers_truncated' });
-    }
+    const members = resolveMembers(team, lookups);
+    const managers = resolveManagers(team, owner, lookups);
+    teams.push({ ...team, memberLogins: members.logins, managerLogins: managers.logins });
+    const add = (references: string[], kind: TeamNotice['kind']) => {
+      for (const reference of references) notices.push({ team: team.name, reference, kind });
+    };
+    add(members.missing, 'missing');
+    add(members.truncated, 'truncated');
+    add(managers.missing, 'managers_missing');
+    add(managers.truncated, 'managers_truncated');
+    add(managers.unavailable, 'managers_unavailable');
   }
   return { teams, notices };
 }
@@ -150,13 +215,31 @@ export function explicitManagerTeams(config: StandcastConfig): ResolvedTeam[] {
   return config.teams.map((team) => ({
     ...team,
     memberLogins: [],
-    managerLogins: [
-      ...new Set(
-        team.managers
-          .filter((entry) => parseTeamReference(entry) === null)
-          .map((entry) => entry.toLowerCase()),
-      ),
-    ].sort(),
+    managerLogins: explicitManagerLogins(team),
+  }));
+}
+
+export async function resolveManagerTeams(
+  deps: ResolveDeps,
+  installationId: number,
+  owner: string,
+  config: StandcastConfig,
+  timeoutMs: number,
+): Promise<ResolvedTeam[]> {
+  const references = config.teams.flatMap((team) => managerReferences(team, owner));
+  const found: Lookups = new Map();
+  await guarded(
+    lookupAll(references, teamLookup(deps, { installationId, owner }), found),
+    found,
+    timeoutMs,
+    'manager team resolution timed out',
+    { installationId: String(installationId) },
+  );
+  const lookups = new Map(found);
+  return config.teams.map((team) => ({
+    ...team,
+    memberLogins: [],
+    managerLogins: resolveManagers(team, owner, lookups).logins,
   }));
 }
 

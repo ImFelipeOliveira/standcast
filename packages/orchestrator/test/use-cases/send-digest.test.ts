@@ -243,7 +243,7 @@ describe('sendDigest', () => {
   });
 
   test('an attempt past its deadline fails before posting', async () => {
-    const { deps, posted, setNow } = await setup();
+    const { deps, posted, setNow } = await setup(config('[alice, "@acme/backend"]'));
     const resolve = deps.github.resolveTeamMembers;
     deps.github.resolveTeamMembers = async (...args) => {
       setNow(new Date(deps.now().getTime() + DIGEST_POST_DEADLINE_MS + 1));

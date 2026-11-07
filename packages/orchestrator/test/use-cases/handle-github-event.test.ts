@@ -320,10 +320,10 @@ describe('handleGitHubEvent', () => {
       await resolveTeams(deps, INST, 'acme', cfg);
       await handleGitHubEvent(deps, event, { action: 'removed', installation: { id: 999 } });
       await resolveTeams(deps, INST, 'acme', cfg);
-      expect(lists).toHaveLength(2);
+      expect(lists).toEqual([['@acme/leads']]);
       await handleGitHubEvent(deps, event, { action: 'removed', installation: { id: INST } });
       await resolveTeams(deps, INST, 'acme', cfg);
-      expect(lists).toHaveLength(4);
+      expect(lists).toEqual([['@acme/leads'], ['@acme/leads']]);
     }
   });
 

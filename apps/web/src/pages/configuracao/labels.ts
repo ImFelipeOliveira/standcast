@@ -110,6 +110,7 @@ const TEAM_NOTICES: Record<TeamNotice['kind'], MessageKey> = {
   truncated: 'setup.teams.truncated',
   managers_missing: 'setup.teams.managersMissing',
   managers_truncated: 'setup.teams.managersTruncated',
+  managers_unavailable: 'setup.teams.managersUnavailable',
   channel_not_found: 'setup.teams.channelNotFound',
   channel_not_member: 'setup.teams.channelNotMember',
   space_not_linked: 'setup.teams.spaceNotLinked',

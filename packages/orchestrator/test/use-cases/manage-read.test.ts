@@ -142,6 +142,55 @@ describe('readableTeams', () => {
     }
   });
 
+  test('a failing manager team removes access through it only', async () => {
+    await seedOrg(teams('[dave, "@acme/leads", "@acme/oncall"]'));
+    const { deps } = harness({ teams: { '@acme/oncall': ['erin'] } });
+    const resolve = deps.github.resolveTeamMembers;
+    deps.github.resolveTeamMembers = async (octokit, owner, members) => {
+      if (members.includes('@acme/leads')) throw Object.assign(new Error('boom'), { status: 502 });
+      return resolve(octokit, owner, members);
+    };
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(await canReadTeam(deps, INST, who('erin'), 'backend')).toBe(true);
+      expect(await canReadTeam(deps, INST, who('dave'), 'backend')).toBe(true);
+      expect(await canReadTeam(deps, INST, who('carol'), 'backend')).toBe(false);
+    } finally {
+      errors.mockRestore();
+    }
+  });
+
+  test('a manager team that does not answer in time grants nothing and the read still returns', async () => {
+    await seedOrg(teams('[dave, "@acme/leads"]'));
+    const { deps } = harness({ teams: { '@acme/leads': ['carol'] } });
+    deps.github.resolveTeamMembers = () => new Promise(() => {});
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const started = Date.now();
+      expect(await canReadTeam(deps, INST, who('dave'), 'backend')).toBe(true);
+      expect(Date.now() - started).toBeLessThan(4500);
+    } finally {
+      errors.mockRestore();
+    }
+  }, 10000);
+
+  test('admins and unknown github users read without resolving manager teams', async () => {
+    await seedOrg(teams('["@acme/leads"]'));
+    const { deps, roles } = harness({ teams: { '@acme/leads': ['carol'] } });
+    roles.set('frank', { role: 'admin', state: 'active' });
+    let resolutions = 0;
+    const resolve = deps.github.resolveTeamMembers;
+    deps.github.resolveTeamMembers = async (...args) => {
+      resolutions++;
+      return resolve(...args);
+    };
+    const stranger = await upsertMember(db, { githubUserId: 999, login: 'ghost', email: null });
+    const readable = await readableTeams(deps, INST, who('frank'));
+    expect(readable.map((t) => t.name)).toEqual(['backend', 'platform']);
+    expect(await readableTeams(deps, INST, stranger)).toEqual([]);
+    expect(resolutions).toBe(0);
+  });
+
   test('the manager is matched by the current login of the github id', async () => {
     await seedOrg(teams());
     const renamed = await upsertMember(db, { githubUserId: 500, login: 'old-carol', email: null });

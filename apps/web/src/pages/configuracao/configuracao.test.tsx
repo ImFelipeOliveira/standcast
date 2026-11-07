@@ -349,6 +349,22 @@ describe('configuração', () => {
     );
   });
 
+  test('a manager team GitHub did not answer for shows a notice', () => {
+    const notices: Notice[] = [
+      { team: 'backend', reference: '@acme/leads', kind: 'managers_unavailable' },
+    ];
+    const html = renderPage(baseStatus({ teamNotices: notices }));
+    expect(teamCard(html, 'backend')).toContain(
+      'Time backend: o GitHub não respondeu quando o Standcast leu o time @acme/leads do GitHub em managers.',
+    );
+    expect(teamCard(html, 'plataforma')).not.toContain('@acme/leads');
+    applyLang('en');
+    const english = renderPage(baseStatus({ teamNotices: notices }));
+    expect(teamCard(english, 'backend')).toContain(
+      'Team backend: GitHub did not answer when Standcast read the GitHub team @acme/leads in managers.',
+    );
+  });
+
   test('secret is not persisted', async () => {
     const status = adminStatus();
     const created: CreatedApiKey = {

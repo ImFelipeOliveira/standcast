@@ -208,6 +208,8 @@ export const en: Record<MessageKey, string> = {
     'Team {team}: the GitHub team {reference} in managers was not found in this organization, or Standcast cannot see it. Nobody gets manager access through it until this is fixed. Check the name, and that the app has the Members permission on the organization.',
   'setup.teams.managersTruncated':
     'Team {team}: the GitHub team {reference} in managers is too large (5,000 members or more). Nobody gets manager access through it. Use a smaller team for managers.',
+  'setup.teams.managersUnavailable':
+    'Team {team}: GitHub did not answer when Standcast read the GitHub team {reference} in managers. Nobody gets manager access through it until GitHub answers again. Standcast tries again after a minute.',
   'setup.teams.channelNotFound':
     'Team {team}: the Slack channel {reference} was not found. Create it, or if it is private, invite the Standcast bot with /invite @Standcast.',
   'setup.teams.channelNotMember':
