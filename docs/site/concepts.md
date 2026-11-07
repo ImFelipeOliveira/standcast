@@ -20,7 +20,7 @@ A person listed under `members` of a team, by GitHub login or through a GitHub t
 
 ## Manager
 
-A GitHub login listed under `managers` of a team. Managers read their team's digests, dailies and blockers through the [manager tools](/members/mcp#manager-tools) of the MCP server. Blockers with no one else to route to go to the managers.
+A GitHub login listed under `managers` of a team, or a member of a GitHub team listed there. Managers read their team's digests, dailies and blockers through the [manager tools](/members/mcp#manager-tools) of the MCP server. Blockers with no one else to route to go to the managers.
 
 ## Admin
 

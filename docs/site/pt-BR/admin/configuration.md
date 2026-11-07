@@ -76,7 +76,7 @@ Nenhuma outra chave é aceita. Uma chave desconhecida falha na validação com `
 | `remind_at` | `HH:MM`, 24 horas | sim | | `"09:30"` |
 | `digest_at` | `HH:MM`, 24 horas | sim | | `"10:00"` |
 | `language` | `en` ou `pt-BR` | não | `en` | `pt-BR` |
-| `managers` | lista de logins do GitHub, pelo menos um | sim | | `[felipeoliveira]` |
+| `managers` | lista de logins ou times do GitHub, pelo menos um | sim | | `[felipeoliveira, "@acme/leads"]` |
 | `members` | lista de logins ou times do GitHub, pelo menos um | sim | | `[alice, "@acme/backend"]` |
 | `chat.provider` | `slack` ou `google-chat` | sim | | `slack` |
 | `chat.channel` | texto, não vazio | sim | | `"#daily-backend"` ou `spaces/AAAAbbbbCCC` |
@@ -112,9 +112,24 @@ O idioma do consolidado e das dailies atrasadas publicadas na thread dele: `en` 
 
 ### `managers`
 
-Logins do GitHub dos gestores do time. Gestores leem os consolidados, as dailies e os impedimentos do time pelas [tools de gestor do MCP](/pt-BR/members/mcp#tools-de-gestor). Admins da organização leem todos os times sem precisar estar listados. Impedimentos sem outra pessoa para encaminhar vão para os gestores.
+Quem gere o time. Gestores leem os consolidados, as dailies e os impedimentos do time pelas [tools de gestor do MCP](/pt-BR/members/mcp#tools-de-gestor) e pelo app web, marcam impedimentos como resolvidos ou abertos de novo e enviam o lembrete na hora. Admins da organização fazem o mesmo em todos os times sem precisar estar listados. Impedimentos sem outra pessoa para encaminhar vão para os gestores.
 
-Cada item precisa ser um login simples. Nomes que começam com `@`, como `@acme/leads`, não são aceitos: o Standcast não expande times do GitHub, então liste os logins um a um. Um item de time é rejeitado com um erro.
+Cada item é:
+
+- um login do GitHub, como `felipeoliveira`; ou
+- um time do GitHub da sua organização, escrito `"@org/slug-do-time"`, como `"@acme/leads"`. Use aspas, porque o YAML não aceita um valor que começa com `@`.
+
+Dá para misturar os dois, como em `[felipeoliveira, "@acme/leads"]`. Mantenha pelo menos um item. Qualquer outro valor que começa com `@`, como `@alice` ou `@acme/`, é rejeitado.
+
+O acesso de gestor segue o time do GitHub. O Standcast guarda os membros de cada time do GitHub por até 5 minutos, então quem entra ou sai do time ganha ou perde o acesso de gestor em até 5 minutos, ou antes, quando o app recebe o evento de membership do GitHub. Um time que o Standcast não consegue ler não dá acesso de gestor a ninguém:
+
+- um time de outra organização, um time que não existe ou um time que o app não enxerga (confira a permissão Members) mostra um aviso na página Configuração;
+- um time com 5.000 membros ou mais mostra um aviso e não é usado;
+- quando o GitHub falha, o time fica de fora até o GitHub responder de novo.
+
+Logins listados diretamente continuam funcionando em todos esses casos.
+
+Se o seu repositório de configuração for público, liste os gestores como um time do GitHub em vez de logins: o arquivo mostra só o nome do time, e quem gere cada time fica no GitHub, onde a visibilidade e os membros do time são controlados pela sua organização.
 
 ### `members`
 
@@ -161,7 +176,7 @@ O CI falhando no commit head de um pull request conta depois de 24 horas, e não
 
 ## Times do GitHub
 
-Use um time do GitHub em vez de listar as pessoas uma a uma. É o jeito recomendado: o time muda no GitHub sem editar o arquivo, e o arquivo não lista logins. O app precisa da permissão Members (read), que ele pede na instalação.
+Use um time do GitHub em vez de listar as pessoas uma a uma, em `members` e em `managers`. É o jeito recomendado: o time muda no GitHub sem editar o arquivo, e o arquivo não lista logins. O app precisa da permissão Members (read), que ele pede na instalação.
 
 ```yaml
 teams:
@@ -169,7 +184,7 @@ teams:
     timezone: Europe/Lisbon
     remind_at: "09:00"
     digest_at: "09:30"
-    managers: [carol]
+    managers: [carol, "@acme/platform-leads"]
     members: ["@acme/platform", dave]
     chat:
       provider: slack
@@ -253,7 +268,7 @@ Estas são as mensagens que a página de setup mostra, no formato `caminho: mens
 | `teams.0.language: Invalid option: expected one of "pt-BR"\|"en"` | `pt`, `pt_BR`, `portugues` | Use `pt-BR` ou `en` |
 | `teams.0.chat.provider: Invalid option: expected one of "slack"\|"google-chat"` | `teams`, `Slack`, `google_chat`, `gchat` | Use `slack` ou `google-chat` |
 | `teams.0.members: Too small: expected array to have >=1 items` | `members: []` (o mesmo vale para `managers`) | Liste pelo menos uma pessoa |
-| `teams.0.managers.0: managers must be GitHub logins, not teams or @-prefixed names` | `managers: ["@acme/leads"]` | Liste os logins, como `[alice, bob]` |
+| `teams.0.managers.0: managers must be GitHub logins or GitHub teams written as @org/team-slug` | `managers: ["@leads"]` | Escreva um login, como `alice`, ou um time, como `"@acme/leads"` |
 | `teams.0: Unrecognized key: "reminder"` | Uma chave escrita errado ou desconhecida | Confira a chave nas tabelas acima |
 | `members.alice.slack: must be a Slack user id like U0123ABCD` | Um nome, um e-mail, um id de canal ou `<!channel>` | Use o id de membro, que começa com `U` ou `W` |
 | `members.alice.google_chat: must be a Google Chat user like users/123456789` | Um e-mail, um nome ou só um número | Use `users/` seguido dos dígitos do id de usuário |
