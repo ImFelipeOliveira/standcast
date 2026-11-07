@@ -36,7 +36,7 @@ reviews:
         - regexes that can backtrack on user input, GraphQL inputs not passed as variables, redirects built from request data;
         - imports of packages not declared in the package's own package.json;
         - dead code, duplicated helpers and tests that would pass without the feature.
-    - path: "packages/orchestrator/src/use-cases/**"
+    - path: "packages/orchestrator/src/modules/**"
       instructions: |
         Use cases hold the business rules and throw DomainError with a stable code. Check idempotency on retries, concurrency between two workers, tenant scoping and the anti-surveillance rule. Every new behaviour needs a use-case test without HTTP.
     - path: "apps/api/src/{web/**,routes/web.tsx}"

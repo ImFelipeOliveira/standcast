@@ -6,9 +6,9 @@ import {
   operationalConfig,
   writeIdentityIfConnected,
 } from '@standcast/db';
-import { chatOverrideFor } from './chat-identity';
 import type { Deps } from './deps';
 import { logError } from './log-error';
+import { chatOverrideFor } from './modules/chat/chat-identity';
 
 async function lookupChatUser(
   deps: Deps,

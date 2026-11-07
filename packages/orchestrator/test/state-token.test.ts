@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { signState, verifyState } from '../src/state-token';
-import { sanitizeNext } from '../src/use-cases/start-web-login';
+import { sanitizeNext } from '../src/modules/session/start-web-login';
 
 const NOW = new Date('2026-10-28T15:00:00Z');
 const later = (minutes: number) => new Date(NOW.getTime() + minutes * 60_000);

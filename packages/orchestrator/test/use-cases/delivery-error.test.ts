@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { ChatDeliveryError } from '@standcast/slack';
-import { describeDeliveryError, isTerminalDeliveryError } from '../../src/use-cases/delivery-error';
+import { describeDeliveryError, isTerminalDeliveryError } from '../../src/modules/delivery/delivery-error';
 
 describe('describeDeliveryError', () => {
   test('a known chat error keeps its code with a safe message', () => {
