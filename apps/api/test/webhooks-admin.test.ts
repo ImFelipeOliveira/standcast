@@ -13,6 +13,7 @@ import {
 import { csrfToken } from '@standcast/orchestrator';
 import rootPackage from '../../../package.json' with { type: 'json' };
 import { db, useCleanDb } from '../../../packages/db/test/setup';
+import { openFlash } from '../src/web/flash';
 import { createTestApp, type FakeRequest } from './support';
 
 useCleanDb();
@@ -77,8 +78,12 @@ async function harness() {
 type App = Awaited<ReturnType<typeof harness>>['app'];
 type User = { token: string; cookie: string };
 
+const KEY = new Uint8Array(32).fill(7);
+
 const setupPage = (app: App, cookie: string, headers: Record<string, string> = {}) =>
   app.request(`/setup?installation_id=${INST}`, { headers: { cookie, ...headers } });
+
+const flashValue = (cookie: string) => decodeURIComponent(cookie.slice(cookie.indexOf('=') + 1));
 
 const post = (app: App, path: string, cookie: string, fields: [string, string][]) =>
   app.request(path, {
@@ -114,8 +119,13 @@ async function createAndShow(app: App, user: User, headers: Record<string, strin
   const page = await app.request(location, {
     headers: { cookie: `${user.cookie}; ${flash}`, ...headers },
   });
-  const html = await page.text();
-  return { res, page, html, flash, secret: SECRET.exec(html)?.[0] ?? '' };
+  const opened = openFlash(KEY, user.token, INST, flashValue(flash));
+  return {
+    res,
+    page,
+    flash,
+    secret: opened?.kind === 'webhook' ? opened.secret : '',
+  };
 }
 
 async function endpointId(): Promise<string> {
@@ -125,45 +135,39 @@ async function endpointId(): Promise<string> {
 }
 
 describe('webhooks section', () => {
-  test('only an admin sees the section', async () => {
+  test('setup redirects an admin and a member to the app', async () => {
     const { app, alice, bob } = await harness();
-    const admin = await (await setupPage(app, alice.cookie)).text();
-    expect(admin).toContain('action="/setup/webhooks"');
-    expect(admin).toContain('Webhooks');
-    const member = await (await setupPage(app, bob.cookie)).text();
-    expect(member).not.toContain('/setup/webhooks');
-    expect(member).not.toContain('Webhooks');
+    for (const cookie of [alice.cookie, bob.cookie]) {
+      const res = await setupPage(app, cookie);
+      expect(res.status).toBe(302);
+      expect(res.headers.get('location')).toBe(`https://app.test/setup?installation_id=${INST}`);
+    }
   });
 
   test('an admin creates an endpoint and sees the secret once', async () => {
     const { app, alice } = await harness();
-    const { res, page, html, secret } = await createAndShow(app, alice);
+    const { res, page, secret } = await createAndShow(app, alice);
     expect(res.status).toBe(303);
     expect(res.headers.get('location')).toBe(`/setup?installation_id=${INST}`);
     expect(res.headers.get('cache-control')).toBe('no-store');
-    expect(page.headers.get('cache-control')).toBe('no-store');
+    expect(page.status).toBe(302);
+    expect(page.headers.get('location') ?? '').not.toContain(secret);
     expect(secret).not.toBe('');
     expect(
       await getWebhookEndpointSecret(db, INST, await endpointId(), new Uint8Array(32).fill(7)),
     ).toBe(secret);
-    expect(html).toContain('Copy it now');
-    expect(html).toContain(URL_OK);
-    const again = await (await setupPage(app, alice.cookie)).text();
-    expect(again).not.toMatch(SECRET);
-    expect(again).toContain(URL_OK);
-    expect(again).toContain('daily.submitted');
+    const again = await setupPage(app, alice.cookie);
+    expect(await again.text()).not.toMatch(SECRET);
     expect(await listInstallationWebhookEndpoints(db, INST)).toHaveLength(1);
   });
 
-  test('copy follows the language', async () => {
+  test('the redirect target does not change with language', async () => {
     const { app, alice } = await harness();
-    const { html } = await createAndShow(app, alice, { 'accept-language': 'en' });
-    expect(html).toContain('Copy it now');
-    expect(html).toContain('Send test event');
-    expect(html).not.toContain('Copie agora');
+    const { page } = await createAndShow(app, alice, { 'accept-language': 'en' });
+    expect(page.headers.get('location')).toBe(`https://app.test/setup?installation_id=${INST}`);
   });
 
-  test('an api key flash is never shown as a webhook secret', async () => {
+  test('an api key flash stays an api key and is not a webhook secret', async () => {
     const { app, alice } = await harness();
     const res = await post(app, '/setup/api-keys', alice.cookie, [
       ['csrf', csrfToken('sess', alice.token)],
@@ -171,13 +175,15 @@ describe('webhooks section', () => {
       ['name', 'Reporting'],
       ['scopes', 'teams:read'],
     ]);
-    const html = await (
-      await app.request(`/setup?installation_id=${INST}`, {
-        headers: { cookie: `${alice.cookie}; ${flashOf(res)}` },
-      })
-    ).text();
-    expect(html).toMatch(/sck_[A-Za-z0-9_-]{43}/);
-    expect(html).not.toMatch(SECRET);
+    const opened = openFlash(KEY, alice.token, INST, flashValue(flashOf(res)));
+    expect(opened?.kind).toBe('apiKey');
+    const page = await app.request(`/setup?installation_id=${INST}`, {
+      headers: { cookie: `${alice.cookie}; ${flashOf(res)}` },
+    });
+    const body = await page.text();
+    expect(body).not.toMatch(/sck_[A-Za-z0-9_-]{43}/);
+    expect(body).not.toMatch(SECRET);
+    expect(page.headers.get('location') ?? '').not.toMatch(SECRET);
   });
 
   test('invalid urls and events are 422', async () => {
@@ -211,9 +217,6 @@ describe('webhooks section', () => {
     ]);
     expect(res.status).toBe(303);
     expect(queue.enqueued.filter((j) => j.name === 'deliver-webhook')).toHaveLength(1);
-    const html = await (await setupPage(app, alice.cookie)).text();
-    expect(html).toContain('ping');
-    expect(html).toContain('Pending');
   });
 
   test('an admin disables an endpoint', async () => {
@@ -227,9 +230,6 @@ describe('webhooks section', () => {
     expect(res.status).toBe(303);
     const [endpoint] = await listInstallationWebhookEndpoints(db, INST);
     expect(endpoint?.active).toBe(false);
-    const html = await (await setupPage(app, alice.cookie)).text();
-    expect(html).toContain('Disabled');
-    expect(html).not.toContain(`/setup/webhooks/${id}/test`);
   });
 });
 

@@ -263,9 +263,9 @@ describe('suggestions never leak outside the person', () => {
     const page = await app.request(`/setup?installation_id=${INST}`, {
       headers: { cookie: `sc_web=${web}`, 'accept-language': 'en' },
     });
-    const html = await page.text();
-    expect(page.status).toBe(200);
-    expect(html).toContain('acme');
+    const html = `${page.headers.get('location') ?? ''}\n${await page.text()}`;
+    expect(page.status).toBe(302);
+    expect(page.headers.get('location')).toBe(`https://app.test/setup?installation_id=${INST}`);
     expectNoLeak('setup page', html, seeded);
     expect(html).not.toContain('no_chat_identity');
   });

@@ -12,6 +12,7 @@ import {
 } from '@standcast/db';
 import { csrfToken } from '@standcast/orchestrator';
 import { db, useCleanDb } from '../../../packages/db/test/setup';
+import { openFlash } from '../src/web/flash';
 import { createTestApp, type FakeRequest } from './support';
 
 useCleanDb();
@@ -71,10 +72,12 @@ async function harness() {
 
 type App = Awaited<ReturnType<typeof harness>>['app'];
 
+const KEY = new Uint8Array(32).fill(7);
+
 const setupPage = (app: App, cookie: string, headers: Record<string, string> = {}) =>
   app.request(`/setup?installation_id=${INST}`, { headers: { cookie, ...headers } });
 
-const csrfOf = (html: string) => /name="csrf" value="([^"]+)"/.exec(html)?.[1] ?? '';
+const flashValue = (cookie: string) => decodeURIComponent(cookie.slice(cookie.indexOf('=') + 1));
 
 const post = (
   app: App,
@@ -110,8 +113,13 @@ async function createAndShow(app: App, user: User, headers: Record<string, strin
   const page = location
     ? await app.request(location, { headers: { cookie: `${user.cookie}; ${flash}`, ...headers } })
     : res;
-  const html = await page.text();
-  return { res, page, html, flash, key: /sck_[A-Za-z0-9_-]{43}/.exec(html)?.[0] ?? '' };
+  const opened = openFlash(KEY, user.token, INST, flashValue(flash));
+  return {
+    res,
+    page,
+    flash,
+    key: opened?.kind === 'apiKey' ? opened.key : '',
+  };
 }
 
 const createFields = (csrf: string, extra: [string, string][] = []): [string, string][] => [
@@ -124,25 +132,21 @@ const createFields = (csrf: string, extra: [string, string][] = []): [string, st
 ];
 
 describe('api keys section visibility', () => {
-  test('only an admin sees the section', async () => {
+  test('setup redirects an admin and a member to the app', async () => {
     const { app, alice, bob } = await harness();
-    const admin = await (await setupPage(app, alice.cookie)).text();
-    expect(admin).toContain('/setup/api-keys');
-    expect(admin).toContain('API keys');
-    expect(csrfOf(admin)).toBe(csrfToken('sess', alice.token));
-    const member = await setupPage(app, bob.cookie);
-    expect(member.status).toBe(200);
-    const html = await member.text();
-    expect(html).not.toContain('/setup/api-keys');
-    expect(html).not.toContain('action="/setup/');
-    expect(html).not.toContain('API keys');
+    for (const cookie of [alice.cookie, bob.cookie]) {
+      const res = await setupPage(app, cookie);
+      expect(res.status).toBe(302);
+      expect(res.headers.get('location')).toBe(`https://app.test/setup?installation_id=${INST}`);
+      expect(await res.text()).toBe('');
+    }
   });
 });
 
 describe('creating keys', () => {
   test('an admin creates a key, the secret shows once and the list shows the prefix', async () => {
     const { app, alice } = await harness();
-    const { res, page, html, key } = await createAndShow(app, alice);
+    const { res, page, key } = await createAndShow(app, alice);
     expect(res.status).toBe(303);
     expect(res.headers.get('location')).toBe(`/setup?installation_id=${INST}`);
     expect(res.headers.get('cache-control')).toBe('no-store');
@@ -153,17 +157,15 @@ describe('creating keys', () => {
     expect(flashCookie).toContain('Path=/setup');
     expect(flashCookie).toContain('Max-Age=60');
     expect(flashCookie).not.toContain(key.slice(4));
-    expect(page.headers.get('cache-control')).toBe('no-store');
-    expect(page.headers.getSetCookie().join(';')).toMatch(/sc_flash=;.*Max-Age=0/s);
+    expect(page.status).toBe(302);
+    expect(page.headers.get('location')).toBe(`https://app.test/setup?installation_id=${INST}`);
+    expect(page.headers.get('location') ?? '').not.toContain(key);
+    expect(await page.text()).not.toContain(key);
     expect(key).not.toBe('');
-    expect(html).toContain('Copy it now');
-    expect(html).toContain('Revoke this key');
-    expect(html).toContain('Reporting');
-    const again = await (await setupPage(app, alice.cookie)).text();
-    expect(again).not.toContain(key);
-    expect(again).toContain(key.slice(4, 12));
-    expect(again).toContain('Reporting');
-    expect(again).toContain('Never');
+    const listed = await listApiKeys(db, INST);
+    expect(listed.map((item) => item.name)).toEqual(['Reporting']);
+    const again = await setupPage(app, alice.cookie);
+    expect(await again.text()).not.toContain(key);
     const resolved = await resolveApiKey(db, key);
     expect(resolved?.installationId).toBe(INST);
     expect(resolved?.scopes).toEqual(['teams:read', 'dailies:read']);
@@ -185,42 +187,39 @@ describe('creating keys', () => {
   test('a flash cookie of another session or a tampered one shows nothing', async () => {
     const { app, alice, bob } = await harness();
     const { flash } = await createAndShow(app, alice);
-    const other = await (
-      await app.request(`/setup?installation_id=${INST}`, {
-        headers: { cookie: `${bob.cookie}; ${flash}` },
-      })
-    ).text();
-    expect(other).not.toMatch(FULL_KEY);
-    const tampered = await (
-      await app.request(`/setup?installation_id=${INST}`, {
-        headers: { cookie: `${alice.cookie}; ${corrupt(flash)}` },
-      })
-    ).text();
-    expect(tampered).not.toMatch(FULL_KEY);
-    expect(tampered).toContain('API keys');
+    expect(openFlash(KEY, bob.token, INST, flashValue(flash))).toBeUndefined();
+    expect(openFlash(KEY, alice.token, INST, flashValue(corrupt(flash)))).toBeUndefined();
+    const other = await app.request(`/setup?installation_id=${INST}`, {
+      headers: { cookie: `${bob.cookie}; ${flash}` },
+    });
+    const tampered = await app.request(`/setup?installation_id=${INST}`, {
+      headers: { cookie: `${alice.cookie}; ${corrupt(flash)}` },
+    });
+    expect(other.headers.get('location') ?? '').not.toMatch(FULL_KEY);
+    expect(tampered.headers.get('location') ?? '').not.toMatch(FULL_KEY);
+    expect(await other.text()).not.toMatch(FULL_KEY);
+    expect(await tampered.text()).not.toMatch(FULL_KEY);
   });
 
-  test('the copy-now warning and labels follow the language', async () => {
+  test('the redirect target does not change with language', async () => {
     const { app, alice } = await harness();
-    const csrf = csrfOf(await (await setupPage(app, alice.cookie)).text());
-    const { html } = await createAndShow(app, alice, { 'accept-language': 'en' });
-    expect(csrf).not.toBe('');
-    expect(html).toContain('Copy it now');
-    expect(html).toContain('Revoke this key');
-    expect(html).toContain('Create key');
-    expect(html).not.toContain('Copie agora');
+    const { page } = await createAndShow(app, alice, { 'accept-language': 'pt-BR' });
+    expect(page.headers.get('location')).toBe(`https://app.test/setup?installation_id=${INST}`);
   });
 
-  test('key names are escaped', async () => {
+  test('a key name is stored and the redirect does not render it', async () => {
     const { app, alice } = await harness();
-    const csrf = csrfOf(await (await setupPage(app, alice.cookie)).text());
-    await post(app, '/setup/api-keys', alice.cookie, [
+    const csrf = csrfToken('sess', alice.token);
+    const res = await post(app, '/setup/api-keys', alice.cookie, [
       ...createFields(csrf).filter(([k]) => k !== 'name'),
       ['name', '<script>alert(1)</script>'],
     ]);
+    expect(res.status).toBe(303);
     const html = await (await setupPage(app, alice.cookie)).text();
     expect(html).not.toContain('<script>alert(1)</script>');
-    expect(html).toContain('&lt;script&gt;');
+    expect((await listApiKeys(db, INST)).map((item) => item.name)).toEqual([
+      '<script>alert(1)</script>',
+    ]);
   });
 
   test('a plain member gets 403 and nothing is created', async () => {
@@ -315,9 +314,6 @@ describe('revoking keys', () => {
     expect(res.status).toBe(303);
     expect(res.headers.get('location')).toBe(`/setup?installation_id=${INST}`);
     expect(await resolveApiKey(db, key)).toBeNull();
-    const page = await (await setupPage(app, alice.cookie)).text();
-    expect(page).toContain('Revoked');
-    expect(page).not.toContain(`/setup/api-keys/${listed?.id}/revoke`);
   });
 
   test('a plain member cannot revoke', async () => {

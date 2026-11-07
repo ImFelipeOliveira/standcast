@@ -7,7 +7,6 @@ import {
   createInstallationApiKey,
   createMembershipCheck,
   createWebhookEndpoint,
-  csrfToken,
   type Deps,
   DomainError,
   disableWebhookEndpoint,
@@ -16,7 +15,6 @@ import {
   logError,
   logoutWebSession,
   revokeInstallationApiKey,
-  type SetupStatus,
   sendTestEvent,
   startLinearConnect,
   startSlackConnect,
@@ -37,16 +35,8 @@ import {
 } from '../middleware/rate-limit';
 import { WEB_COOKIE, WEB_COOKIE_PATH, WEB_SESSION_SECONDS } from '../middleware/web-session';
 import { ErrorPage } from '../web/error';
-import {
-  FLASH_COOKIE,
-  FLASH_PATH,
-  FLASH_SECONDS,
-  type FlashValue,
-  openFlash,
-  sealFlash,
-} from '../web/flash';
+import { FLASH_COOKIE, FLASH_PATH, FLASH_SECONDS, type FlashValue, sealFlash } from '../web/flash';
 import { PAGE_CSS } from '../web/layout';
-import { SetupPage } from '../web/setup';
 
 const LOGIN_COOKIE = 'sc_login';
 const LOGIN_COOKIE_PATH = '/auth/github';
@@ -122,17 +112,6 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
     return form;
   };
 
-  const setupPage = (c: Context, session: Session, status: SetupStatus, flash?: FlashValue) => (
-    <SetupPage
-      lang={negotiateLanguage(c.req.header('accept-language'))}
-      status={status}
-      csrf={csrfToken(deps.env.sessionSecret, session.token)}
-      docsUrl={deps.env.docsUrl}
-      newKey={flash?.kind === 'apiKey' ? flash : undefined}
-      newWebhook={flash?.kind === 'webhook' ? flash : undefined}
-    />
-  );
-
   const parseForm = async <T extends z.ZodType>(c: Context, session: Session, schema: T) => {
     const parsed = schema.safeParse(await readForm(c, session));
     if (!parsed.success) {
@@ -168,6 +147,11 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
     return c.redirect(
       `/auth/github/login?next=${encodeURIComponent(`${url.pathname}${url.search}`)}`,
     );
+  };
+
+  const appSetup = (c: Context) => {
+    const url = new URL(c.req.url);
+    return c.redirect(`${deps.env.appUrl}/setup${url.search}`);
   };
 
   const installationId = (c: Context) => {
@@ -273,17 +257,12 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
 
   app.get('/setup', async (c) => {
     const session = await readSession(c);
-    if (!session) return loginRedirect(c);
+    if (!session) return appSetup(c);
     const result = await resyncOnPending(c, () =>
       getSetupStatus(deps, isMember, session.member, installationId(c)),
     );
     if (result instanceof Response) return result;
-    const raw = getCookie(c, FLASH_COOKIE);
-    if (!raw) return c.html(setupPage(c, session, result));
-    deleteCookie(c, FLASH_COOKIE, { path: FLASH_PATH, secure: true });
-    c.header('Cache-Control', 'no-store');
-    const flash = openFlash(deps.encryptionKey, session.token, result.installationId, raw);
-    return c.html(setupPage(c, session, result, flash));
+    return appSetup(c);
   });
 
   app.post('/setup/api-keys', async (c) => {
