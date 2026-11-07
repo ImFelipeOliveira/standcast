@@ -10,7 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
-- O serviço hospedado está em [standcast.app](https://standcast.app), com o app em [app.standcast.app](https://app.standcast.app), a documentação em [docs.standcast.app](https://docs.standcast.app) e a API em [api.standcast.app](https://api.standcast.app). O suporte é support@standcast.app. Os hostnames antigos em usefachada.dev redirecionam para esses endereços.
+- A landing e a documentação listam o que está conectado hoje (GitHub, Linear, Slack, Google Chat) e o que ainda vem (Jira, ClickUp, Asana, GitHub Projects, Microsoft Teams, Discord). Veja [Integrações](/pt-BR/integrations).
+- O serviço hospedado está em [standcast.app](https://standcast.app), com o app em [app.standcast.app](https://app.standcast.app), a documentação em [docs.standcast.app](https://docs.standcast.app) e a API em [api.standcast.app](https://api.standcast.app). O suporte é support@standcast.app. O hostname antigo da API, `https://api-standcast.usefachada.dev`, continua servindo a API, sem redirecionamento, então uma integração existente mantém a URL base.
 
 ### 0.7.0 — 06/11/2026
 

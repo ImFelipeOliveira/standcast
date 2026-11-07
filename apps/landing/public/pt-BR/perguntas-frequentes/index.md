@@ -16,7 +16,7 @@ Não. O GitHub App lê pull requests, reviews, checks, metadados de commits, o s
 
 ## Do que eu preciso?
 
-Uma organização ou conta pessoal no GitHub, e um workspace no Slack ou o Google Chat do Google Workspace. O Linear é opcional. O Jira está em desenvolvimento.
+Uma organização ou conta pessoal no GitHub, e um workspace no Slack ou o Google Chat do Google Workspace. O Linear é opcional. Jira, ClickUp, Asana, GitHub Projects, Microsoft Teams e Discord vêm a seguir e ainda não estão conectados.
 
 ## Com quais agentes eu escrevo a minha daily?
 
