@@ -169,7 +169,7 @@
     const days = [...document.querySelectorAll('.day')];
     const reveals = [
       ...document.querySelectorAll(
-        'main section:not(.hero) .head, .features > *, .ways > *, .privacy-grid > .col, .beta',
+        'main section:not(.hero) .head, .features > *, .ways > *, .connect > *, .privacy-grid > .col, .beta',
       ),
     ].filter((element) => !element.closest('.day-grid'));
     for (const element of reveals) element.classList.add('reveal');

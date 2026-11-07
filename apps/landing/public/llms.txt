@@ -1,6 +1,6 @@
 # Standcast
 
-> Standcast orchestrates a team's daily standup. Each person drafts their daily from GitHub and Linear activity inside their AI agent (Claude Code, Cursor, Codex, any MCP client) or the terminal, confirms it, and Standcast posts one digest per team to Slack or Google Chat. Open source (MIT), free during the public beta.
+> Standcast orchestrates a team's daily standup. Each person drafts their daily from GitHub and Linear activity inside their AI agent (Claude Code, Cursor, Codex, any MCP client) or the terminal, confirms it, and Standcast posts one digest per team to Slack or Google Chat. Jira, ClickUp, Asana, GitHub Projects, Microsoft Teams and Discord are not connected yet. Open source (MIT), free during the public beta.
 
 ## Landing
 

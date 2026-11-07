@@ -134,7 +134,7 @@ tracker:
 ```
 
 - `provider: linear`: Standcast reads the cards of the Linear workspace that an admin connected on the setup page. `team` is the Linear team key, such as `BE`, and limits the activity and the signals to that Linear team. See [Install](/admin/install#_5-connect-linear-optional).
-- `provider: jira` is accepted by the parser, but Jira is still coming soon. The setup page shows a notice and nothing else happens.
+- `provider: jira` is accepted by the parser, but Jira is still coming soon. The setup page shows a notice and nothing else happens. ClickUp, Asana, GitHub Projects, Microsoft Teams and Discord are not accepted yet. See [Integrations](/integrations).
 - If a team uses Linear and Linear is not connected, the setup page warns about it. Nothing breaks: the draft just has no cards.
 
 ### `signals`

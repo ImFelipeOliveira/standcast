@@ -55,7 +55,7 @@ Around it, Standcast orchestrates the day:
 - suggested blockers, such as a pull request waiting for review or with failing CI, appear only to you, in your own draft;
 - every change to `standcast.yml` is validated by a GitHub check run.
 
-Linear cards show up in the draft and in blocker routing. Coming soon: Jira.
+Linear cards show up in the draft and in blocker routing. What is connected today, and what is still to come, is on [Integrations](/integrations).
 
 Read [How it works](/how-it-works) for the full cycle of a day.
 

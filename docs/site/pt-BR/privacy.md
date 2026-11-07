@@ -71,9 +71,9 @@ Trechos que parecem segredos (API keys, tokens do GitHub, do Slack, do Standcast
 
 Para desligar, defina `STANDCAST_SESSIONS=off` no seu ambiente, ou peça ao agente para não usar as suas sessões.
 
-### Jira <Badge type="info" text="em breve" />
+### Ainda não conectados <Badge type="info" text="em breve" />
 
-O Standcast ainda não se conecta ao Jira, então não lê nada dele.
+O Standcast ainda não se conecta ao Jira, ao ClickUp, ao Asana, ao GitHub Projects, ao Microsoft Teams nem ao Discord, então não lê nada deles. `tracker.provider: jira` é aceito no `standcast.yml` e a página de setup avisa que a integração não está disponível. Veja [Integrações](/pt-BR/integrations).
 
 ## O que o Standcast guarda
 

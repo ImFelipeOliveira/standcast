@@ -36,9 +36,9 @@ No. No LLM processes your data on the Standcast servers. Your agent runs on your
 
 No. There are no rankings, scores, commit counts per person or per-person aggregates anywhere.
 
-## Does it work with Google Chat, Linear or Jira?
+## Which integrations work today?
 
-Google Chat works today: each team posts to Slack or Google Chat. See [Google Chat](/admin/google-chat). Linear works too: your cards appear in your draft, card blockers are routed and stale cards become suggestions. See [Install](/admin/install#_5-connect-linear-optional). Jira is coming soon.
+GitHub, Linear, Slack and Google Chat work today. Jira, ClickUp, Asana, GitHub Projects, Microsoft Teams and Discord are coming and are not connected yet, so Standcast reads nothing from them. See [Integrations](/integrations).
 
 ## Are there reminders for people who did not send the daily?
 

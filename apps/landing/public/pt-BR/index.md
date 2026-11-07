@@ -1,6 +1,6 @@
 # Standcast: a sua daily, escrita no seu agente de IA
 
-> Código aberto (MIT), grátis durante o beta público. Funciona hoje com GitHub, Slack e Google Chat. O Jira vem a seguir.
+> Código aberto (MIT), grátis durante o beta público. GitHub, Linear, Slack e Google Chat hoje. Jira, ClickUp e outros vêm a seguir.
 
 O Standcast é uma ferramenta de código aberto para a daily de times de software. Rode `/daily` no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack ou no Google Chat.
 
@@ -15,6 +15,28 @@ curl -fsSL https://api.standcast.app/install.sh | sh
 - [English version](https://standcast.app/index.md)
 
 Escreva a sua daily onde você já trabalha: Claude Code, Cursor, Codex, Claude Desktop, VS Code e o terminal.
+
+## Integrações
+
+O GitHub é de onde sai o rascunho. Um tracker acrescenta os seus cards. Um chat é onde o consolidado do time chega. Cada time escolhe o próprio chat, e o Linear é opcional.
+
+### Disponível agora
+
+- **GitHub.** Pull requests, reviews e commits no rascunho. Uma organização instala o Standcast como GitHub App.
+- **Linear.** Tracker opcional. Os seus cards aparecem no rascunho, e um impedimento de card vai para quem é dono do card que bloqueia.
+- **Slack.** Um consolidado por time, dailies atrasadas na thread, um lembrete e mensagens diretas.
+- **Google Chat.** O mesmo consolidado num espaço, pelo app do Standcast.
+
+### Em breve
+
+Ainda não conectados, então o Standcast não lê nada deles.
+
+- **Jira.** Tracker. O `standcast.yml` já aceita, e a página de setup avisa que ainda não está disponível.
+- **ClickUp.** Tracker, o mesmo papel do Linear.
+- **Asana.** Tracker, o mesmo papel do Linear.
+- **GitHub Projects.** Tracker, o mesmo papel do Linear.
+- **Microsoft Teams.** Chat, o mesmo papel do Slack.
+- **Discord.** Chat, o mesmo papel do Slack.
 
 ## Um dia com o Standcast
 

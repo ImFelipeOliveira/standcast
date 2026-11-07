@@ -1,6 +1,6 @@
 # How it works
 
-> From your work to one team digest. Standcast drafts your daily from GitHub and Linear, you confirm it in your AI agent or the terminal, and each team gets one digest in Slack or Google Chat at the time it chose.
+> From your work to one team digest. Standcast drafts your daily from GitHub and Linear, you confirm it in your AI agent or the terminal, and each team gets one digest in Slack or Google Chat at the time it chose. [Jira, ClickUp and others are coming.](https://standcast.app/#integrations)
 
 ## A day with Standcast
 
