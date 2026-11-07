@@ -52,9 +52,9 @@ Não. Os impedimentos sugeridos aparecem só para você, no seu rascunho. O gest
 
 Cada impedimento novo vai uma vez, por mensagem direta, para os revisores do pull request ligado, ou os CODEOWNERS dele, ou os gestores do time. Veja [Encaminhamento de impedimentos](/pt-BR/how-it-works#encaminhamento-de-impedimentos).
 
-## Dá para configurar o Standcast sem o repositório `.github`?
+## Dá para configurar o Standcast sem o repositório `.github-private` ou `.github`?
 
-Não. A configuração mora só no `standcast.yml` da raiz do repositório `.github`. Um repositório `.github` privado funciona.
+Não. A configuração mora só no `standcast.yml` da raiz do repositório `.github-private` ou, quando ele não tem o arquivo, do repositório `.github`. Prefira o `.github-private`, ou torne o `.github` privado: o arquivo cita as pessoas dos seus times. Veja [Onde fica o arquivo](/pt-BR/admin/configuration#onde-fica-o-arquivo).
 
 ## Posso rodar o Standcast nos meus servidores?
 

@@ -6,7 +6,9 @@ Configure o Standcast na sua organização em quatro passos. Você precisa ser d
 
 Na [página do GitHub App do Standcast](https://github.com/apps/standcast/installations/new), clique em **Install** e escolha a organização ou a conta pessoal.
 
-Escolha **All repositories**, ou **Only select repositories** incluindo o repositório `.github`. O Standcast lê a configuração desse repositório. Se ele ainda não existe, você pode criá-lo no passo 4 e liberá-lo para o app depois.
+Escolha **All repositories**, ou **Only select repositories** incluindo o repositório `.github-private` (recomendado) e o repositório `.github`. O Standcast lê a configuração do `.github-private` quando ele tem o `standcast.yml`, e do `.github` nos outros casos. Se nenhum dos dois existe ainda, você pode criar o `.github-private` no passo 4 e liberá-lo para o app depois.
+
+Mantenha o arquivo em um repositório **privado**: o `.github-private`, ou um `.github` que você tornou privado. Na maioria das organizações o `.github` é público, e o `standcast.yml` cita as pessoas dos seus times. Veja [Onde fica o arquivo](/pt-BR/admin/configuration#onde-fica-o-arquivo).
 
 O app pede estas permissões:
 
@@ -28,11 +30,11 @@ Qualquer membro da organização que entrar pode abrir a página de setup. Só a
 
 A página é uma lista de etapas. Um selo no topo conta as etapas, por exemplo **2 de 3 etapas concluídas**, e fica verde quando todas estão concluídas. Cada etapa tem um ícone de estado (um visto quando concluída, o número dela enquanto pendente, um x quando requer atenção) e um selo:
 
-- **GitHub App**: instalado na sua organização, com um aviso quando o Standcast perdeu o acesso ao `.github`;
+- **GitHub App**: instalado na sua organização, com um aviso quando o Standcast perdeu o acesso ao repositório de configuração;
 - **Slack**: **Conectar Slack**, ou **Reconectar Slack** depois de conectado, para admins;
 - **Linear**: **Conectar o Linear**, ou **Reconectar o Linear** depois de conectado, para admins. Só conta como etapa quando algum time usa o Linear, e aí vem antes do arquivo standcast.yml. Nos outros casos, mostra **Opcional** e vem depois do arquivo standcast.yml;
 - **Google Chat**: os espaços vinculados e, para admins, um campo **Código de vínculo** com **Vincular espaço**. Mostra **Opcional** até um espaço ser vinculado, e **Indisponível** quando o servidor não tem app do Google Chat. Vem por último. O selo do topo conta o Slack e o Google Chat como uma etapa só de chat, concluída quando o Slack está conectado ou um espaço está vinculado;
-- **Arquivo standcast.yml**: o estado do arquivo. Quando ele não existe, um botão para criá-lo a partir de um modelo, e o próprio modelo. Quando existe, **Editar no GitHub**, mesmo com o arquivo inválido. Um arquivo válido mostra também um cartão por time, com o canal e os horários, e um inválido, uma tabela com os erros.
+- **Arquivo standcast.yml**: o estado do arquivo e o repositório de onde ele vem. Quando ele não existe, um botão para criá-lo a partir de um modelo, e o próprio modelo. Quando existe, **Editar no GitHub**, mesmo com o arquivo inválido. Um arquivo válido mostra também um cartão por time, com o canal e os horários, e um inválido, uma tabela com os erros. Quando o arquivo está em um repositório público e tem overrides de identidade em `members`, um aviso pede para movê-lo para o `.github-private` ou remover os overrides.
 
 A coluna lateral mostra as últimas entregas com falha e, para admins, as API keys e os webhooks, e depois o endereço de suporte.
 
@@ -46,7 +48,7 @@ Cada time publica no Slack ou no Google Chat, conforme o `standcast.yml`. Conect
 
 ## 4. Crie o `standcast.yml`
 
-Na etapa **Arquivo standcast.yml**, clique em **Criar standcast.yml com o modelo**. O GitHub abre o editor na branch padrão do repositório `.github`, com o arquivo já preenchido. O modelo tem um time no Slack e um no Google Chat, e usa o seu login como gestor e membro:
+Na etapa **Arquivo standcast.yml**, clique em **Criar standcast.yml com o modelo**. O GitHub abre o editor na branch padrão do repositório `.github-private`, ou do `.github` quando só ele existe, com o arquivo já preenchido. O modelo tem um time no Slack e um no Google Chat, e usa o seu login como gestor e membro:
 
 ```text
 teams:
@@ -72,11 +74,13 @@ teams:
       channel: spaces/AAAAAAAAAAA
 ```
 
-Apague o time do chat que você não usa. Troque o nome do time, o fuso, os horários, as pessoas e o canal e faça o commit. No Google Chat, o canal é o nome do espaço que aparece no card do Google Chat. O arquivo tem que ficar na **raiz** do repositório `.github`, na branch padrão. Se o repositório `.github` não existir, a página mostra **Criar o repositório .github**, que abre o formulário de novo repositório do GitHub com o nome preenchido.
+Apague o time do chat que você não usa. Troque o nome do time, o fuso, os horários, as pessoas e o canal e faça o commit. No Google Chat, o canal é o nome do espaço que aparece no card do Google Chat. O arquivo tem que ficar na **raiz** do repositório, na branch padrão. Se nem o `.github-private` nem o `.github` existirem, a página mostra **Criar o repositório .github-private**, que abre o formulário de novo repositório do GitHub com o nome preenchido e a visibilidade privada.
+
+O modelo lista o seu login. Para um time maior, prefira um time do GitHub (`members: ["@org/team-slug"]`), para o arquivo não listar logins, e deixe de fora o mapa `members` do nível de cima: as pessoas são vinculadas pelo e-mail verificado da conta do GitHub quando rodam `standcast login`, e no Google Chat por uma mensagem direta para o app. Os overrides em `members.<login>` são só para exceções, e são rejeitados em repositório público. Veja [Mapeamento de identidades](/pt-BR/admin/configuration#mapeamento-de-identidades).
 
 Referência completa: [standcast.yml](/pt-BR/admin/configuration).
 
-O Standcast recarrega o arquivo a cada push na branch padrão do `.github` que altera o `standcast.yml`, e quando os repositórios da instalação mudam. Atualize a página de setup para ver o novo estado. Quando o arquivo existe, a etapa mostra **Editar no GitHub**, que abre o `standcast.yml` no GitHub, mesmo com o arquivo inválido.
+O Standcast recarrega o arquivo a cada push na branch padrão do `.github-private` ou do `.github`, e quando os repositórios da instalação mudam. Atualize a página de setup para ver o novo estado. Quando o arquivo existe, a etapa mostra **Editar no GitHub**, que abre o `standcast.yml` no GitHub, mesmo com o arquivo inválido.
 
 ## 5. Conecte o Linear (opcional)
 
@@ -100,15 +104,15 @@ O selo **Configurado**. O Standcast está funcionando: as pessoas podem enviar d
 
 ### Não configurado
 
-O selo **Pendente** e "Ainda não configurado." O Standcast não encontrou o arquivo. Apagar o arquivo, ou apagar o repositório `.github`, desliga o Standcast para a organização: a configuração anterior é descartada, então um arquivo inválido depois não a traz de volta. A página mostra o motivo:
+O selo **Pendente** e "Ainda não configurado." O Standcast não encontrou o arquivo nem no `.github-private` nem no `.github`. Apagar o arquivo, ou apagar o repositório que o tem, desliga o Standcast para a organização: a configuração anterior é descartada, então um arquivo inválido depois não a traz de volta. Se o outro repositório também tem um `standcast.yml`, o Standcast passa a ler esse. A página mostra o motivo:
 
 | Motivo | Significado | Como resolver |
 | --- | --- | --- |
-| `no_repo` | O repositório `.github` não existe. | Crie o repositório, adicione o `standcast.yml` e confira se o app tem acesso a ele. |
-| `no_file` | O `standcast.yml` não está na raiz do `.github`, na branch padrão. | Crie o arquivo lá. Um arquivo numa subpasta ou em outra branch não é lido. |
-| `no_access` | O Standcast não tem acesso ao repositório `.github`, e ainda não havia configuração. | Nas configurações da instalação do app no GitHub, adicione o `.github` aos repositórios selecionados, ou escolha todos os repositórios. |
+| `no_repo` | Nem o repositório `.github-private` nem o `.github` existem. | Crie o `.github-private`, adicione o `standcast.yml` e confira se o app tem acesso a ele. |
+| `no_file` | O `standcast.yml` não está na raiz do `.github-private` nem do `.github`, na branch padrão. | Crie o arquivo lá. Um arquivo numa subpasta ou em outra branch não é lido. |
+| `no_access` | O Standcast não tem acesso ao repositório de configuração, e ainda não havia configuração. | Nas configurações da instalação do app no GitHub, adicione o `.github-private` e o `.github` aos repositórios selecionados, ou escolha todos os repositórios. |
 
-`no_access` é um aviso quando já há uma configuração em uso. O GitHub pode negar o acesso por um momento, por exemplo por limite de requisições, ou porque o `.github` saiu dos repositórios selecionados. O Standcast então mantém a configuração e o estado atuais, e a página de setup mostra "O Standcast não tem acesso ao repositório .github. O Standcast continua usando a configuração atual." junto de qualquer estado. O aviso some na próxima leitura bem-sucedida do `standcast.yml`, válida ou inválida. Dê de novo ao app acesso ao `.github` para limpar o aviso.
+`no_access` é um aviso quando já há uma configuração em uso. O GitHub pode negar o acesso por um momento, por exemplo por limite de requisições, ou porque o repositório saiu dos repositórios selecionados. Quando o `.github-private` nega o acesso, o Standcast não cai para o `.github`, para nunca trocar de arquivo por acidente. O Standcast então mantém a configuração e o estado atuais, e a página de setup mostra "O Standcast não tem acesso ao repositório de configuração. O Standcast continua usando a configuração atual." junto de qualquer estado. O aviso some na próxima leitura bem-sucedida do `standcast.yml`, válida ou inválida. Dê de novo ao app acesso ao repositório para limpar o aviso.
 
 ### Inválido
 
@@ -116,7 +120,7 @@ O selo **Requer atenção** e "O standcast.yml é inválido. Corrija os erros ab
 
 Se o arquivo estava válido logo antes do push inválido, a página também diz "O Standcast continua usando a última versão válida até você corrigir." O consolidado sai e o rascunho e o envio continuam funcionando, com a última versão válida. Corrija o arquivo e faça o commit para aplicar as suas mudanças. Se não há uma versão válida em uso (o arquivo nunca foi válido, ou foi apagado antes do push inválido), o Standcast não roda para a organização: nenhum consolidado é publicado, e o rascunho e o envio falham com `org_not_configured`.
 
-Quando um push em qualquer branch do repositório `.github` altera o `standcast.yml`, e nos pull requests do `.github` que o alteram, o Standcast cria o check run `Standcast config`, com sucesso ou falha. Na falha há uma anotação por erro, na linha dele, e o resumo lista todos os erros. Se o arquivo não existe, não há check. Qualquer push na branch padrão recarrega a configuração, inclusive force push.
+Quando um push em qualquer branch do repositório `.github-private` ou `.github` altera o `standcast.yml`, e nos pull requests desses repositórios que o alteram, o Standcast cria o check run `Standcast config` nesse repositório, com sucesso ou falha. Na falha há uma anotação por erro, na linha dele, e o resumo lista todos os erros. Um arquivo válido em repositório público também falha quando o mapa `members` do nível de cima tem overrides de identidade: o check tem o título "standcast.yml expõe dados pessoais", com uma anotação na chave `members`. O mesmo arquivo em repositório privado passa, e esse check nunca muda a configuração em uso. Se o arquivo não existe, não há check. Qualquer push na branch padrão recarrega a configuração, inclusive force push.
 
 ## Próximos passos
 

@@ -52,9 +52,9 @@ No. Suggested blockers show only to you, in your draft. Your manager sees a bloc
 
 Each new blocker goes once by direct message to the reviewers of the linked pull request, or its CODEOWNERS, or the team managers. See [Blocker routing](/how-it-works#blocker-routing).
 
-## Can I configure Standcast without a `.github` repository?
+## Can I configure Standcast without a `.github-private` or `.github` repository?
 
-No. The configuration lives only in `standcast.yml` at the root of the `.github` repository. A private `.github` repository works.
+No. The configuration lives only in `standcast.yml` at the root of the `.github-private` repository or, when that one has no file, of the `.github` repository. Prefer `.github-private`, or make `.github` private: the file names the people of your teams. See [Where the file lives](/admin/configuration#where-the-file-lives).
 
 ## Can I run Standcast on my own servers?
 
