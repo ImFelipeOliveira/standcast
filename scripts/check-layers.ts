@@ -95,8 +95,21 @@ export function entersAnotherPackage(
   return dest.startsWith(`apps${sep}`) || dest.startsWith(`packages${sep}`);
 }
 
+function isEnoent(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
+}
+
+async function readDirOrEmpty(dir: string) {
+  try {
+    return await readdir(dir, { withFileTypes: true });
+  } catch (error) {
+    if (isEnoent(error)) return [];
+    throw error;
+  }
+}
+
 async function sourceFiles(dir: string): Promise<string[]> {
-  const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
+  const entries = await readDirOrEmpty(dir);
   const files: string[] = [];
   for (const entry of entries) {
     const path = join(dir, entry.name);
@@ -109,7 +122,7 @@ async function sourceFiles(dir: string): Promise<string[]> {
 async function workspaceDirs(root: string): Promise<string[]> {
   const dirs: string[] = [];
   for (const glob of WORKSPACE_GLOBS) {
-    const entries = await readdir(join(root, glob), { withFileTypes: true }).catch(() => []);
+    const entries = await readDirOrEmpty(join(root, glob));
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
       const dir = join(root, glob, entry.name);
