@@ -85,6 +85,6 @@ Primeiro beta público.
 
 ## API
 
-O changelog da API é mantido em inglês.
+O changelog da API está em inglês. A mudança da URL base também está em português.
 
 <!--@include: ../../api/CHANGELOG.md{3,}-->
