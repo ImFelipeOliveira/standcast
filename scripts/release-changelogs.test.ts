@@ -39,10 +39,11 @@ describe('release changelogs', () => {
   });
 
   test('an empty product changelog fails and an empty API changelog says so', () => {
-    const product = '# Changelog\n\n## Product\n\n### Unreleased\n\n### 0.4.1 — 2026-11-02\n\n- Old.\n';
-    expect(() =>
-      releaseChangelog(CHANGELOGS[0], product, '0.5.0', '2026-11-06'),
-    ).toThrow('has no notes under ### Unreleased');
+    const product =
+      '# Changelog\n\n## Product\n\n### Unreleased\n\n### 0.4.1 — 2026-11-02\n\n- Old.\n';
+    expect(() => releaseChangelog(CHANGELOGS[0], product, '0.5.0', '2026-11-06')).toThrow(
+      'has no notes under ### Unreleased',
+    );
     const api = CHANGELOGS[2];
     const text = releaseChangelog(
       api,
