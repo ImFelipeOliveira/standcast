@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+### 0.8.2 — 2026-11-07
+
 - The landing and the README no longer name beta testers.
 
 ### 0.8.1 — 2026-11-07

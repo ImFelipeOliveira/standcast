@@ -4,6 +4,11 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 
 ## Unreleased
 
+## 0.8.2 — 2026-11-07
+
+- No public API changes.
+
+
 ## 0.8.1 — 2026-11-07
 
 - No public API changes.

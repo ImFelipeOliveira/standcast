@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.8.2](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.8.1...standcast-v0.8.2) (2026-11-07)
+
+
+### Bug Fixes
+
+* accept an empty product release and a real funding link ([729b639](https://github.com/ImFelipeOliveira/standcast/commit/729b63956fa04b4c232aeb80910be8fbd8e8d325))
+* accept an empty product release and a real funding link ([#113](https://github.com/ImFelipeOliveira/standcast/issues/113)) ([2e1d653](https://github.com/ImFelipeOliveira/standcast/commit/2e1d653d8321514b89fd10bc7975195ad1f07e5e))
+* **test:** retry a deadlocked truncate of the shared test database ([17c9520](https://github.com/ImFelipeOliveira/standcast/commit/17c9520f6bdbb2c38071823a409895af783a3e65))
+* **test:** retry a deadlocked truncate of the shared test database ([#112](https://github.com/ImFelipeOliveira/standcast/issues/112)) ([4f977d5](https://github.com/ImFelipeOliveira/standcast/commit/4f977d5431051a2174b3606584d523a4dd0f48b5))
+* treat star and plus changelog bullets as notes ([7e40186](https://github.com/ImFelipeOliveira/standcast/commit/7e40186d9ef1832cf4d701acbc6cbde1c4d70074))
+
 ## [0.8.1](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.8.0...standcast-v0.8.1) (2026-11-07)
 
 
