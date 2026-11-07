@@ -60,7 +60,7 @@ export function releaseChangelog(
 function versionSectionEmpty(lines: string[], headingAt: number, prefix: string): boolean {
   for (let i = headingAt + 1; i < lines.length; i++) {
     const line = lines[i] ?? '';
-    if (line.startsWith('- ')) return false;
+    if (line.startsWith('- ') || line.startsWith('* ') || line.startsWith('+ ')) return false;
     if (line.startsWith(prefix) && line.includes(' — ')) return true;
   }
   return true;
