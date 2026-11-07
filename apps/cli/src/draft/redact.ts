@@ -141,7 +141,7 @@ function closingQuoteAt(
     if (text[index] !== quote) continue;
     let slashes = 0;
     for (let at = index - 1; at >= start && text[at] === '\\'; at--) slashes++;
-    if (escapedDelimiter ? slashes === 1 : slashes % 2 === 0)
+    if (escapedDelimiter ? slashes % 2 === 1 : slashes % 2 === 0)
       return index - Number(escapedDelimiter);
   }
   return -1;
@@ -164,7 +164,7 @@ function redactLabeled(text: string): string {
         ? text.slice(valueStart, closeAt)
         : quote
           ? text.slice(valueStart)
-          : (text.slice(rawStart).match(/^[^\s"']+/)?.[0] ?? '');
+          : (text.slice(rawStart).match(/^(?:\\["']|[^\s"'])+/)?.[0] ?? '');
     const value = closeAt >= 0 ? raw : raw.replace(TRAILING_PUNCTUATION, '');
     const explicit = scheme.length > 0 || (ASSIGNMENT.test(gap) && STRONG_LABEL.test(label));
     const shaped = value.length >= 8 && (/\d/.test(value) || value.length >= MIN_LABELED_VALUE);

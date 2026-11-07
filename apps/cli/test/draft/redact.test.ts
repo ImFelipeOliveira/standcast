@@ -208,4 +208,16 @@ describe('redact', () => {
   test('redacts credentials whose JSON quotes are escaped', () => {
     expect(redact('\\"password\\": \\"hunter2\\"')).toBe('\\"password\\": \\"[redacted]\\"');
   });
+
+  test('redacts escaped quotes inside unquoted credentials', () => {
+    const result = redact(String.raw`password=abc\"defSECRET`);
+    expect(result).toBe('password=[redacted]');
+    expect(result).not.toContain('defSECRET');
+  });
+
+  test('keeps text after an escaped credential ending in an encoded backslash', () => {
+    expect(redact(String.raw`\"password\": \"abc\\\" after`)).toBe(
+      String.raw`\"password\": \"[redacted]\" after`,
+    );
+  });
 });
