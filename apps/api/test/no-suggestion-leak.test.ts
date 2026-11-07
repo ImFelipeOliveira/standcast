@@ -263,11 +263,8 @@ describe('suggestions never leak outside the person', () => {
     const page = await app.request(`/setup?installation_id=${INST}`, {
       headers: { cookie: `sc_web=${web}`, 'accept-language': 'en' },
     });
-    const html = await page.text();
-    expect(page.status).toBe(200);
-    expect(html).toContain('acme');
-    expectNoLeak('setup page', html, seeded);
-    expect(html).not.toContain('no_chat_identity');
+    expect(page.status).toBe(302);
+    expect(page.headers.get('location')).toBe(`https://app.test/setup?installation_id=${INST}`);
   });
 
   test('the web app org context and setup carry no suggestion for an admin or a manager', async () => {

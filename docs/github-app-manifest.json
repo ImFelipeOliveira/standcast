@@ -6,7 +6,7 @@
     "active": true
   },
   "redirect_url": "https://standcast.example.com/docs/",
-  "setup_url": "https://standcast.example.com/setup",
+  "setup_url": "https://app.standcast.example.com/setup",
   "callback_urls": [
     "https://standcast.example.com/auth/github/callback"
   ],

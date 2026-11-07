@@ -15,8 +15,6 @@ A Configuração mostra tudo o que o Standcast sabe sobre a organização:
 - cada time, com os horários do lembrete e do consolidado, o canal e qualquer time do GitHub, canal do Slack ou espaço do Google Chat que o Standcast não encontra ou que não está vinculado;
 - as últimas entregas que falharam, para você ver quando um consolidado, um lembrete ou um impedimento encaminhado não chegou.
 
-A página de setup renderizada pelo servidor continua funcionando.
-
 ## Hoje
 
 Hoje mostra um time no dia atual, no fuso horário do time. Escolha o time na barra lateral. Em um dia que não é dia útil do time, Hoje mostra o próximo dia útil.

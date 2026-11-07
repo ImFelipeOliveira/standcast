@@ -7,12 +7,14 @@ import {
   type RouterHistory,
   redirect,
 } from '@tanstack/react-router';
+import { signInUrl } from './api/client';
 import { orgContextQuery, sessionQuery } from './api/queries';
 import { ComingSoon } from './pages/ComingSoon';
 import { ConfiguracaoPage } from './pages/configuracao/ConfiguracaoPage';
 import { HojePage } from './pages/hoje/HojePage';
 import { NoInstallations } from './pages/NoInstallations';
 import { Loading, NotFound, RouteError } from './pages/RouteStates';
+import { SetupPending } from './pages/SetupPending';
 import { SignedOut } from './pages/SignedOut';
 import { AppShell } from './shell/AppShell';
 import { teamsOf } from './shell/roles';
@@ -69,17 +71,37 @@ const indexRoute = createRoute({
 const setupRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/setup',
-  validateSearch: (search: Record<string, unknown>): { installation_id?: number } => {
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { installation_id?: number; resynced?: '1' } => {
     const id = parseInstallationId(search.installation_id);
-    return id === null ? {} : { installation_id: id };
+    const resynced = search.resynced === '1' || search.resynced === 1 ? '1' : undefined;
+    return {
+      ...(id === null ? {} : { installation_id: id }),
+      ...(resynced ? { resynced } : {}),
+    };
   },
-  beforeLoad: ({ search }) => {
+  beforeLoad: async ({ context, search }) => {
     if (search.installation_id === undefined) throw redirect({ to: '/', replace: true });
-    throw redirect({
-      to: '/orgs/$installationId/configuracao',
-      params: { installationId: search.installation_id },
-      replace: true,
-    });
+    const session = await context.queryClient.ensureQueryData(sessionQuery);
+    if (session.installations.some((installation) => installation.id === search.installation_id)) {
+      throw redirect({
+        to: '/orgs/$installationId/configuracao',
+        params: { installationId: search.installation_id },
+        replace: true,
+      });
+    }
+    if (search.resynced !== '1') {
+      throw redirect({
+        href: signInUrl(`/setup?installation_id=${search.installation_id}&resynced=1`),
+        reloadDocument: true,
+      });
+    }
+  },
+  component: function SetupHold() {
+    const { installation_id: installationId } = setupRoute.useSearch();
+    if (installationId === undefined) return null;
+    return <SetupPending installationId={installationId} />;
   },
 });
 
@@ -144,9 +166,20 @@ const historicoRoute = createRoute({
 const configuracaoRoute = createRoute({
   getParentRoute: () => orgRoute,
   path: 'configuracao',
+  validateSearch: (search: Record<string, unknown>): { connected?: 'slack' | 'linear' } =>
+    search.connected === 'slack' || search.connected === 'linear'
+      ? { connected: search.connected }
+      : {},
   component: function Configuracao() {
     const { installationId } = orgRoute.useParams();
-    return <ConfiguracaoPage key={installationId} installationId={installationId} />;
+    const { connected } = configuracaoRoute.useSearch();
+    return (
+      <ConfiguracaoPage
+        key={installationId}
+        installationId={installationId}
+        connected={connected}
+      />
+    );
   },
 });
 

@@ -156,6 +156,22 @@ describe('/v1/app/orgs', () => {
     expect(webhook.status).toBe(403);
   });
 
+  test('a non-admin cannot disable or test a webhook', async () => {
+    const { app, queue, alice, bob } = await harness();
+    const created = await post(app, alice, `${INST}/webhooks`, {
+      url: HOOK_URL,
+      events: ['daily.submitted'],
+    });
+    const id = (await created.json()).endpoint.id;
+    for (const action of ['disable', 'test']) {
+      const res = await post(app, bob, `${INST}/webhooks/${id}/${action}`);
+      expect(res.status).toBe(403);
+    }
+    const [endpoint] = await listInstallationWebhookEndpoints(db, INST);
+    expect(endpoint?.active).toBe(true);
+    expect(queue.enqueued.filter((job) => job.name === 'deliver-webhook')).toHaveLength(0);
+  });
+
   test('create key returns the secret once', async () => {
     const { app, alice } = await harness();
     const res = await post(app, alice, `${INST}/api-keys`, {
@@ -279,6 +295,32 @@ describe('/v1/app/orgs', () => {
       body: JSON.stringify({ name: 'CI', scopes: ['teams:read'] }),
     });
     expect(res.status).toBe(403);
+  });
+
+  test('webhook disable and test reject a missing or foreign csrf token', async () => {
+    const { app, queue, alice, bob } = await harness();
+    const created = await post(app, alice, `${INST}/webhooks`, {
+      url: HOOK_URL,
+      events: ['daily.submitted'],
+    });
+    const id = (await created.json()).endpoint.id;
+    const send = (action: string, csrf?: string) =>
+      app.request(`/v1/app/orgs/${INST}/webhooks/${id}/${action}`, {
+        method: 'POST',
+        headers: {
+          cookie: alice.cookie,
+          origin: APP,
+          'content-type': 'application/json',
+          ...(csrf === undefined ? {} : { 'x-standcast-csrf': csrf }),
+        },
+      });
+    for (const action of ['disable', 'test']) {
+      expect((await send(action)).status).toBe(403);
+      expect((await send(action, bob.csrf)).status).toBe(403);
+    }
+    const [endpoint] = await listInstallationWebhookEndpoints(db, INST);
+    expect(endpoint?.active).toBe(true);
+    expect(queue.enqueued.filter((job) => job.name === 'deliver-webhook')).toHaveLength(0);
   });
 
   test('context for an admin, a manager-only person and a plain member', async () => {

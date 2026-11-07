@@ -38,10 +38,10 @@ Set these on the api service. The worker needs `DATABASE_URL`, `STANDCAST_ENCRYP
 | `DATABASE_URL` | Reference the Postgres service |
 | `PORT` | Set by Railway |
 | `PUBLIC_URL` | Public address of the api, for example `https://api.standcast.app` |
-| `SUPPORT_EMAIL` | Shown in the setup and error pages and the OpenAPI document |
-| `DOCS_URL` | Address of the documentation site, `https` with no trailing slash, for example `https://docs.standcast.app`. Defaults to `https://docs.standcast.app`. The setup header links to it, and the api redirects `/docs` and `/docs/*` to it with a 301 |
+| `SUPPORT_EMAIL` | Shown on the web app Settings page, the API error pages, and the OpenAPI document |
+| `DOCS_URL` | Address of the documentation site, `https` with no trailing slash, for example `https://docs.standcast.app`. Defaults to `https://docs.standcast.app`. The OpenAPI document links to it, and the api redirects `/docs` and `/docs/*` to it with a 301 |
 | `LANDING_URL` | Address of the landing page, `https` with no trailing slash. Defaults to `https://standcast.app`. It is where the api sends the browser back when the beta request form is invalid |
-| `APP_URL` | **Required.** Origin of the web app: `https`, lowercase host, no path, query, trailing slash or default port (or `http://localhost` with an optional port for local development). The api fails to start without it. The api allows cross-origin requests with cookies from this origin only, for example `https://app.standcast.app` |
+| `APP_URL` | **Required.** Origin of the web app: `https`, lowercase host, no path, query, trailing slash or default port (or `http://localhost` with an optional port for local development). The api fails to start without it. `GET /setup` redirects to this origin. The api allows cross-origin requests with cookies from this origin only, for example `https://app.standcast.app` |
 | `TRUST_PROXY` | `true` behind Railway |
 | `TRUSTED_PROXY_HOPS` | `1` behind Railway |
 | `STANDCAST_ENCRYPTION_KEY` | 32 random bytes, base64: `openssl rand -base64 32`. Keep it identical on api and worker |
@@ -74,7 +74,7 @@ The landing page is a separate Cloudflare Worker, `standcast-landing`. See [clou
 
 ## Documentation site (Cloudflare Pages)
 
-The documentation site is a static VitePress build hosted on Cloudflare Pages, on its own domain. The api does not serve it: it keeps the API reference at `/reference`, `/openapi.json`, setup, OAuth, webhooks and `/install.sh`, and answers the old URLs with permanent redirects:
+The documentation site is a static VitePress build hosted on Cloudflare Pages, on its own domain. The api does not serve it: it keeps the API reference at `/reference`, `/openapi.json`, OAuth, webhooks and `/install.sh`, redirects `GET /setup` to `APP_URL`, and answers the old URLs with permanent redirects:
 
 | Old URL | Redirects to |
 | --- | --- |
@@ -98,10 +98,10 @@ Add the custom domain `app.standcast.app` to the Worker in Cloudflare, then set 
 
 ## Deploying without the final domain
 
-The hosted api is `https://api.standcast.app`. It also serves setup, OAuth, webhooks, the API reference at `/reference` and `/install.sh`. The documentation site is `https://docs.standcast.app`. Set `PUBLIC_URL` to `https://api.standcast.app` and point everything below at it:
+The hosted api is `https://api.standcast.app`. It serves OAuth, webhooks, the API reference at `/reference` and `/install.sh`. `GET /setup` redirects to the web app, which serves setup. The documentation site is `https://docs.standcast.app`. Set `PUBLIC_URL` to `https://api.standcast.app` and point everything below at it:
 
 - **GitHub App:** the callback URL, the webhook URL and the setup URL. See [github-app.md](github-app.md).
-- **GitHub App setup URL:** keep it pointing at the api `/setup` page for now. It changes to the web app only in the later switch-over PR.
+- **GitHub App setup URL:** `https://app.standcast.app/setup`. `https://api.standcast.app/setup` keeps redirecting there, so an install that still has the API address keeps working. Change the GitHub setting by hand after this deploy.
 - **Slack app:** the redirect URLs.
 - **Linear app:** the redirect URL. See [linear-app.md](linear-app.md).
 - **Google Chat app:** the HTTP endpoint URL. See [google-chat-app.md](google-chat-app.md).
@@ -117,10 +117,10 @@ These settings live outside the repository, so a domain change does not update t
 
 | App | Setting | Value | Symptom when wrong |
 | --- | --- | --- | --- |
-| GitHub App | Setup URL | `<PUBLIC_URL>/setup` | After installing the app, the browser lands on a 404 page of another site |
+| GitHub App | Setup URL | `https://app.standcast.app/setup` | After installing the app, the browser lands on a 404 page of another site. `https://api.standcast.app/setup` still redirects here until this GitHub setting is changed by hand |
 | GitHub App | Homepage URL | the landing address (`LANDING_URL`) | People who open the app from GitHub land on the old domain |
-| GitHub App | Callback URL | `<PUBLIC_URL>/auth/github/callback` | Signing in to the setup page fails with a redirect URI error on GitHub |
-| GitHub App | Webhook URL | `<PUBLIC_URL>/webhooks/github` | Installs and `standcast.yml` pushes are never seen; the setup page stays unconfigured |
+| GitHub App | Callback URL | `<PUBLIC_URL>/auth/github/callback` | Signing in to the web app fails with a redirect URI error on GitHub |
+| GitHub App | Webhook URL | `<PUBLIC_URL>/webhooks/github` | Installs and `standcast.yml` pushes are never seen; Configuração stays unconfigured |
 | GitHub App | Enable Device Flow | on | `standcast login` fails with `device_flow_disabled` |
 | Slack app | Redirect URL | `<PUBLIC_URL>/oauth/slack/callback` | Connecting Slack fails with `redirect_uri did not match any configured URIs` |
 | Linear app | Callback URL | `<PUBLIC_URL>/oauth/linear/callback` | Connecting Linear fails with a redirect URI error on Linear |
