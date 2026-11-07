@@ -1,8 +1,8 @@
-import { teamsForMember } from '@standcast/core';
+import { managesTeam, teamsForMember } from '@standcast/core';
 import { type MemberRow, operationalConfig } from '@standcast/db';
 import type { Deps } from '../../deps';
 import { guarded } from '../../guarded';
-import { resolveTeams } from '../../teams';
+import { explicitManagerTeams, resolveTeams } from '../../teams';
 import { authorizeInstallation } from '../access/authorize-installation';
 import { isInstallationAdmin } from '../access/is-installation-admin';
 import type { MembershipCheck } from '../access/org-context';
@@ -37,7 +37,7 @@ export async function getOrgContext(
     config
       ? guarded(
           resolveTeams(deps, installation.id, installation.accountLogin, config),
-          [],
+          explicitManagerTeams(config),
           TEAM_RESOLUTION_TIMEOUT_MS,
           'org context team resolution failed',
           { installationId: String(installation.id) },
@@ -46,9 +46,7 @@ export async function getOrgContext(
   ]);
   return {
     admin,
-    managerOf: (config?.teams ?? [])
-      .filter((team) => team.managers.some((m) => m.toLowerCase() === login))
-      .map((team) => team.name),
+    managerOf: resolved.filter((team) => managesTeam(login, team)).map((team) => team.name),
     memberOf: teamsForMember(login, resolved).map((team) => team.name),
   };
 }

@@ -351,6 +351,42 @@ teams:
     });
   });
 
+  test('a member of a manager team gets manager actions, someone outside it does not', async () => {
+    const leads = config('[alice, bob, carol]', '', '["@acme/leads"]');
+    const { deps, isMember, dave, bob } = await setup(
+      { teams: { '@acme/leads': ['dave'] } },
+      leads,
+    );
+    expect(await getTeamToday(deps, isMember, dave, team)).toMatchObject({
+      canRemind: true,
+      canResolve: true,
+    });
+    expect(await getTeamToday(deps, isMember, bob, team)).toMatchObject({
+      canRemind: false,
+      canResolve: false,
+    });
+  });
+
+  test('a manager team that cannot be resolved grants no access', async () => {
+    const leads = config('[alice, bob, carol]', '', '["@acme/leads"]');
+    const { deps, isMember, dave } = await setup({}, leads);
+    await expect(getTeamToday(deps, isMember, dave, team)).rejects.toMatchObject({
+      code: 'forbidden',
+    });
+  });
+
+  test('a blocker routed to manager team members reads as routed to managers', async () => {
+    const leads = config('[alice, bob, carol]', '', '[alice, "@acme/leads"]');
+    const { deps, isMember, alice, bob } = await setup(
+      { teams: { '@acme/leads': ['dave'] } },
+      leads,
+    );
+    const id = await store(bob, '2026-10-28', { blockers: [pr(7)] });
+    await routed(id, pr(7), ['dave'], '2026-10-28');
+    const today = await getTeamToday(deps, isMember, alice, team);
+    expect(today.blockers[0]?.routedTo).toEqual({ logins: ['dave'], reason: 'manager' });
+  });
+
   test('outsider is forbidden and unknown team is not found', async () => {
     const { deps, isMember, dave, alice } = await setup();
     await expect(getTeamToday(deps, isMember, dave, team)).rejects.toMatchObject({

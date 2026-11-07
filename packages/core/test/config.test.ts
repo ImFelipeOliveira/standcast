@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { parseConfig } from '../src/config';
+import { parseConfig, parseTeamReference } from '../src/config';
 
 const specExample = `
 teams:
@@ -150,16 +150,41 @@ describe('parseConfig', () => {
     expect(r.errors.some((e) => e.path === 'teams.0.digest_at')).toBe(true);
   });
 
-  test('rejects managers written as @org/team', () => {
-    const r = parseConfig(toYaml([team({ managers: ['@acme/leads'] })]));
+  test('accepts managers written as @org/team-slug, mixed with logins', () => {
+    const r = parseConfig(
+      toYaml([team({ managers: ['alice', '@acme/eng-leads', '@Acme/ops_1'] })]),
+    );
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.config.teams[0]?.managers).toEqual(['alice', '@acme/eng-leads', '@Acme/ops_1']);
+  });
+
+  test('rejects @-prefixed managers that are not @org/team-slug', () => {
+    for (const value of ['@alice', '@acme/', '@/leads', '@acme/leads/extra', '@ac me/leads', '@']) {
+      const r = parseConfig(toYaml([team({ managers: [value] })]));
+      expect(r.ok).toBe(false);
+      if (r.ok) return;
+      const error = r.errors.find((e) => e.path === 'teams.0.managers.0');
+      expect(error?.message).toContain('@org/team-slug');
+    }
+  });
+
+  test('still requires at least one manager', () => {
+    const r = parseConfig(toYaml([team({ managers: [] })]));
     expect(r.ok).toBe(false);
     if (r.ok) return;
-    const error = r.errors.find((e) => e.path === 'teams.0.managers.0');
-    expect(error?.message).toContain('managers must be GitHub logins');
+    expect(r.errors.some((e) => e.path === 'teams.0.managers')).toBe(true);
   });
 
   test('accepts plain logins as managers', () => {
     expect(parseConfig(toYaml([team({ managers: ['alice', 'bob'] })])).ok).toBe(true);
+  });
+
+  test('parseTeamReference splits org and slug, and rejects anything else', () => {
+    expect(parseTeamReference('@acme/eng-leads')).toEqual({ org: 'acme', slug: 'eng-leads' });
+    expect(parseTeamReference('alice')).toBeNull();
+    expect(parseTeamReference('@acme')).toBeNull();
+    expect(parseTeamReference('@acme/leads/x')).toBeNull();
   });
 
   test('rejects unknown timezone', () => {

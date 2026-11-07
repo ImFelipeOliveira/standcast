@@ -20,14 +20,17 @@ import { config, daily, fakeDeps, INST, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
-async function setup() {
-  await seedOrg(config('[alice, bob, carol]'));
+async function setup(
+  team = config('[alice, bob, carol]'),
+  opts: Parameters<typeof fakeDeps>[0] = {},
+) {
+  await seedOrg(team);
   await seedOrg(config(), { id: 22, accountLogin: 'other' });
   const alice = await seedMember();
   const bob = await upsertMember(db, { githubUserId: 2, login: 'bob', email: null });
   const carol = await upsertMember(db, { githubUserId: 3, login: 'carol', email: null });
   for (const m of [alice, bob, carol]) await setMemberInstallations(db, m.id, [INST]);
-  const fake = fakeDeps();
+  const fake = fakeDeps(opts);
   fake.users.set(2, 'bob');
   fake.users.set(3, 'carol');
   fake.orgMembers.add('bob');
@@ -227,8 +230,8 @@ describe('recordBlockers', () => {
 });
 
 describe('setBlockerResolved', () => {
-  async function opened() {
-    const ctx = await setup();
+  async function opened(...args: Parameters<typeof setup>) {
+    const ctx = await setup(...args);
     await recordBlockers(ctx.deps, {
       installationId: INST,
       memberId: ctx.bob.id,
@@ -269,6 +272,43 @@ describe('setBlockerResolved', () => {
       resolved: true,
     });
     expect((await getBlockerState(db, INST, id))?.resolvedByMemberId).toBe(alice.id);
+  });
+
+  test('a member of a manager team can resolve, someone outside it cannot', async () => {
+    const team = config('[alice, bob]', '', '["@acme/leads"]');
+    const { deps, isMember, alice, carol, id } = await opened(team, {
+      teams: { '@acme/leads': ['carol'] },
+    });
+    const byAlice = setBlockerResolved(deps, isMember, alice, {
+      installationId: INST,
+      blockerStateId: id,
+      resolved: true,
+    });
+    await expect(byAlice).rejects.toMatchObject({ code: 'forbidden' });
+    await setBlockerResolved(deps, isMember, carol, {
+      installationId: INST,
+      blockerStateId: id,
+      resolved: true,
+    });
+    expect((await getBlockerState(db, INST, id))?.resolvedByMemberId).toBe(carol.id);
+    await setBlockerResolved(deps, isMember, carol, {
+      installationId: INST,
+      blockerStateId: id,
+      resolved: false,
+    });
+    expect((await getBlockerState(db, INST, id))?.resolvedAt).toBeNull();
+  });
+
+  test('a manager team that cannot be resolved grants nothing', async () => {
+    const team = config('[alice, bob]', '', '["@acme/leads"]');
+    const { deps, isMember, carol, id } = await opened(team);
+    const attempt = setBlockerResolved(deps, isMember, carol, {
+      installationId: INST,
+      blockerStateId: id,
+      resolved: true,
+    });
+    await expect(attempt).rejects.toMatchObject({ code: 'forbidden' });
+    expect((await getBlockerState(db, INST, id))?.resolvedAt).toBeNull();
   });
 
   test('admin can resolve', async () => {

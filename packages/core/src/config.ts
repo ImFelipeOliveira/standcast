@@ -51,9 +51,20 @@ const timezone = z.string().refine((tz) => {
 
 const weekday = z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
 const login = z.string().min(1);
-const manager = login.refine((value) => !value.startsWith('@'), {
-  message: 'managers must be GitHub logins, not teams or @-prefixed names',
-});
+const GITHUB_TEAM_REFERENCE = /^@([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+)$/;
+
+export type GitHubTeamReference = { org: string; slug: string };
+
+export function parseTeamReference(value: string): GitHubTeamReference | null {
+  const match = GITHUB_TEAM_REFERENCE.exec(value);
+  if (!match) return null;
+  return { org: match[1] as string, slug: match[2] as string };
+}
+
+const manager = login.refine(
+  (value) => !value.startsWith('@') || parseTeamReference(value) !== null,
+  { message: 'managers must be GitHub logins or GitHub teams written as @org/team-slug' },
+);
 
 const teamSchema = z.strictObject({
   name: z.string().min(1),

@@ -142,6 +142,7 @@ async function linkCard(
 const team = (cfg: StandcastConfig): ResolvedTeam => ({
   ...(cfg.teams[0] as StandcastConfig['teams'][number]),
   memberLogins: ['bob', 'carla'],
+  managerLogins: (cfg.teams[0]?.managers ?? []).map((m) => m.toLowerCase()),
 });
 
 async function setup(
@@ -478,6 +479,39 @@ describe('routeBlocker', () => {
     const dailyId = await seedDaily([prBlocker()]);
     await routeBlocker(fake.deps, { installationId: INST, dailyId, blockerIndex: 0 });
     expect(fake.directs.map((d) => d.userId)).toEqual(['U0MGR']);
+  });
+
+  test('a blocker without a ref routes to the members of a manager team', async () => {
+    const fake = await setup({}, identities, '[mgr, "@acme/leads"]');
+    fake.deps.github.resolveTeamMembers = async (_o, _owner, members) => ({
+      logins: members.flatMap((m) => (m === '@acme/leads' ? ['Erin'] : [m.toLowerCase()])),
+      missingTeams: [],
+      truncatedTeams: [],
+    });
+    const dailyId = await seedDaily([{ text: 'Need prod access' }]);
+    await routeBlocker(fake.deps, { installationId: INST, dailyId, blockerIndex: 0 });
+    expect(fake.directs.map((d) => d.userId).sort()).toEqual(['U0ERIN', 'U0MGR']);
+  });
+
+  test('a manager team that cannot be resolved routes to nobody through it', async () => {
+    const fake = await setup({}, identities, '["@acme/leads"]');
+    fake.deps.github.resolveTeamMembers = async (_o, _owner, members) => ({
+      logins: members.filter((m) => !m.startsWith('@')).map((m) => m.toLowerCase()),
+      missingTeams: members.filter((m) => m === '@acme/leads'),
+      truncatedTeams: [],
+    });
+    const blocker: Item = { text: 'Need prod access' };
+    const dailyId = await seedDaily([blocker]);
+    await routeBlocker(fake.deps, { installationId: INST, dailyId, blockerIndex: 0 });
+    expect(fake.directs).toEqual([]);
+    const failed = await getDelivery(db, {
+      installationId: INST,
+      teamName: '',
+      date: DATE,
+      kind: 'blocker_route',
+      subject: `${dailyId}:${blockerRouteId(blocker)}:-`,
+    });
+    expect(failed?.error).toBe('no_route_target');
   });
 
   test('a target without a chat id fails as no_chat_identity', async () => {

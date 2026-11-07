@@ -23,11 +23,12 @@ async function setup(
   login: string,
   githubUserId: number,
   cfg: Parameters<typeof seedOrg>[0] = config('[alice, bob]', BETA),
+  opts: Parameters<typeof fakeDeps>[0] = {},
 ) {
   await seedOrg(cfg);
   const member = await seedMember(login, githubUserId);
   await setMemberInstallations(db, member.id, [INST]);
-  const fake = fakeDeps();
+  const fake = fakeDeps(opts);
   fake.users.set(githubUserId, login);
   fake.orgMembers.add(login.toLowerCase());
   return { ...fake, member, isMember: createMembershipCheck(fake.deps) };
@@ -51,6 +52,24 @@ describe('getOrgContext', () => {
       managerOf: ['Beta'],
       memberOf: [],
     });
+  });
+
+  test('managers listed through a GitHub team follow its members', async () => {
+    const cfg = config('[alice, bob]', BETA.replace('[Carol]', '["@acme/leads"]'));
+    const lead = await setup('carol', 3, cfg, { teams: { '@acme/leads': ['carol'] } });
+    expect(await getOrgContext(lead.deps, lead.isMember, lead.member, INST)).toMatchObject({
+      managerOf: ['Beta'],
+    });
+    const outsider = await setup('erin', 5, cfg, { teams: { '@acme/leads': ['carol'] } });
+    expect(
+      await getOrgContext(outsider.deps, outsider.isMember, outsider.member, INST),
+    ).toMatchObject({ managerOf: [] });
+  });
+
+  test('a manager team that cannot be resolved makes nobody its manager', async () => {
+    const cfg = config('[alice, bob]', BETA.replace('[Carol]', '["@acme/leads"]'));
+    const { deps, isMember, member } = await setup('carol', 3, cfg);
+    expect(await getOrgContext(deps, isMember, member, INST)).toMatchObject({ managerOf: [] });
   });
 
   test('a plain member', async () => {

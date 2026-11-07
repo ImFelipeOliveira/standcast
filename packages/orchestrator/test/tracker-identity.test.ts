@@ -426,6 +426,14 @@ describe('loginForLinearUser', () => {
     ).toBe('bob');
   });
 
+  test('includes the resolved members of a manager team, never the team reference', async () => {
+    const cfg = config('[alice]', '', '[mgr, "@acme/leads"]');
+    await seedOrg(cfg);
+    const { deps } = fakeDeps({ teams: { '@acme/leads': ['carol'] } });
+    const resolved = await configPeople(deps, INST, 'acme', cfg);
+    expect([...resolved].sort()).toEqual(['alice', 'carol', 'mgr']);
+  });
+
   test('returns null when two members hold the same linear id', async () => {
     await seedOrg();
     const alice = await seedMember();

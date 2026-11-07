@@ -108,6 +108,8 @@ export type TeamNotice = SetupStatus['teamNotices'][number];
 const TEAM_NOTICES: Record<TeamNotice['kind'], MessageKey> = {
   missing: 'setup.teams.missing',
   truncated: 'setup.teams.truncated',
+  managers_missing: 'setup.teams.managersMissing',
+  managers_truncated: 'setup.teams.managersTruncated',
   channel_not_found: 'setup.teams.channelNotFound',
   channel_not_member: 'setup.teams.channelNotMember',
   space_not_linked: 'setup.teams.spaceNotLinked',

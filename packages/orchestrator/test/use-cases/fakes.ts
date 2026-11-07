@@ -22,14 +22,18 @@ import { createTrackerFor, type Deps, type WorkerDeps } from '../../src';
 
 export const INST = 11;
 
-export function config(members = '[alice, bob]', extra = ''): StandcastConfig {
+export function config(
+  members = '[alice, bob]',
+  extra = '',
+  managers = '[alice]',
+): StandcastConfig {
   const parsed = parseConfig(`
 teams:
   - name: Alpha
     timezone: America/Sao_Paulo
     remind_at: "09:00"
     digest_at: "10:00"
-    managers: [alice]
+    managers: ${managers}
     members: ${members}
     chat: { provider: slack, channel: "#alpha" }
 ${extra}`);

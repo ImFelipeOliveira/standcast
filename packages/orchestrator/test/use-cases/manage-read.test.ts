@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'bun:test';
+import { beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { parseConfig, type StandcastConfig } from '@standcast/core';
 import {
   addMemberInstallation,
@@ -21,14 +21,14 @@ import { fakeDeps, INST, seedOrg } from './fakes';
 
 useCleanDb();
 
-function teams(): StandcastConfig {
+function teams(backendManagers = '[Carol]'): StandcastConfig {
   const parsed = parseConfig(`
 teams:
   - name: backend
     timezone: America/Sao_Paulo
     remind_at: "09:00"
     digest_at: "10:00"
-    managers: [Carol]
+    managers: ${backendManagers}
     members: [alice, bob]
     chat: { provider: slack, channel: "#backend" }
   - name: platform
@@ -58,8 +58,8 @@ const who = (login: string) => {
   return member;
 };
 
-function harness() {
-  const fake = fakeDeps();
+function harness(opts: Parameters<typeof fakeDeps>[0] = {}) {
+  const fake = fakeDeps(opts);
   for (const [i, login] of LOGINS.entries()) {
     fake.users.set(100 + i, login);
     fake.orgMembers.add(login);
@@ -107,6 +107,39 @@ describe('readableTeams', () => {
     expect(await canReadTeam(deps, INST, who('carol'), 'backend')).toBe(true);
     expect(await canReadTeam(deps, INST, who('carol'), 'platform')).toBe(false);
     expect(await canReadTeam(deps, INST, who('dave'), 'platform')).toBe(true);
+  });
+
+  test('a member of a manager team reads the team, someone outside it does not', async () => {
+    await seedOrg(teams('[dave, "@acme/leads"]'));
+    const { deps } = harness({ teams: { '@acme/leads': ['carol'] } });
+    expect(await canReadTeam(deps, INST, who('carol'), 'backend')).toBe(true);
+    expect(await canReadTeam(deps, INST, who('dave'), 'backend')).toBe(true);
+    expect(await canReadTeam(deps, INST, who('erin'), 'backend')).toBe(false);
+    expect(await canReadTeam(deps, INST, who('carol'), 'platform')).toBe(false);
+  });
+
+  test('a manager team that cannot be resolved grants nothing, explicit managers keep access', async () => {
+    await seedOrg(teams('[dave, "@acme/leads"]'));
+    const { deps } = harness();
+    expect(await canReadTeam(deps, INST, who('carol'), 'backend')).toBe(false);
+    expect(await canReadTeam(deps, INST, who('dave'), 'backend')).toBe(true);
+  });
+
+  test('a GitHub failure while resolving teams keeps only explicit managers and admins', async () => {
+    await seedOrg(teams('[dave, "@acme/leads"]'));
+    const { deps, roles } = harness({ teams: { '@acme/leads': ['carol'] } });
+    roles.set('frank', { role: 'admin', state: 'active' });
+    deps.github.resolveTeamMembers = async () => {
+      throw Object.assign(new Error('boom'), { status: 502 });
+    };
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(await canReadTeam(deps, INST, who('carol'), 'backend')).toBe(false);
+      expect(await canReadTeam(deps, INST, who('dave'), 'backend')).toBe(true);
+      expect(await canReadTeam(deps, INST, who('frank'), 'backend')).toBe(true);
+    } finally {
+      errors.mockRestore();
+    }
   });
 
   test('the manager is matched by the current login of the github id', async () => {

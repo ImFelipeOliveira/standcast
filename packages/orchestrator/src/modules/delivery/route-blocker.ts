@@ -69,7 +69,7 @@ function cleanLogins(logins: string[], excluded: string[]): string[] {
 }
 
 function managerTarget(ctx: RouteContext): RouteTarget {
-  return { reason: 'manager', logins: cleanLogins(ctx.firstTeam.managers, [ctx.author]) };
+  return { reason: 'manager', logins: cleanLogins(ctx.firstTeam.managerLogins, [ctx.author]) };
 }
 
 async function expandOwners(

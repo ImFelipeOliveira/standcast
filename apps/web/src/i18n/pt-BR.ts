@@ -207,6 +207,10 @@ export const ptBR = {
     'Time {team}: o time {reference} do GitHub não foi encontrado, ou o Standcast não consegue vê-lo. Confira o nome e se o app tem a permissão Members na organização.',
   'setup.teams.truncated':
     'Time {team}: o time {reference} do GitHub é grande demais; só os primeiros 5.000 membros são usados.',
+  'setup.teams.managersMissing':
+    'Time {team}: o time {reference} do GitHub em managers não foi encontrado nesta organização, ou o Standcast não consegue vê-lo. Ninguém recebe acesso de gestor por ele até isso ser corrigido. Confira o nome e se o app tem a permissão Members na organização.',
+  'setup.teams.managersTruncated':
+    'Time {team}: o time {reference} do GitHub em managers é grande demais (5.000 membros ou mais). Ninguém recebe acesso de gestor por ele. Use um time menor para os gestores.',
   'setup.teams.channelNotFound':
     'Time {team}: o canal {reference} do Slack não foi encontrado. Crie o canal ou, se ele for privado, convide o bot do Standcast com /invite @Standcast.',
   'setup.teams.channelNotMember':
