@@ -220,4 +220,10 @@ describe('redact', () => {
       String.raw`\"password\": \"[redacted]\" after`,
     );
   });
+
+  test('redacts the suffix after an encoded quote inside an escaped credential', () => {
+    const result = redact(String.raw`\"password\": \"abc\\\"defSECRET\"`);
+    expect(result).toBe(String.raw`\"password\": \"[redacted]\"`);
+    expect(result).not.toContain('defSECRET');
+  });
 });

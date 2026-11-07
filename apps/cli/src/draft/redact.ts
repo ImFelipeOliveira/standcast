@@ -23,6 +23,7 @@ const CREDENTIAL_LABEL = new RegExp(
 const STRONG_LABEL = new RegExp(`(?:^|[_-])(?:${STRONG_LABELS})$`, 'i');
 const AUTH_SCHEME = /^(?:Bearer|Basic)[ \t]+/i;
 const ASSIGNMENT = /[:=]/;
+const ESCAPED_VALUE_END = /[\s,}\]]/;
 const TRAILING_PUNCTUATION = /[.,;:!?)\]}]+$/;
 const MIN_LABELED_VALUE = 16;
 
@@ -141,8 +142,13 @@ function closingQuoteAt(
     if (text[index] !== quote) continue;
     let slashes = 0;
     for (let at = index - 1; at >= start && text[at] === '\\'; at--) slashes++;
-    if (escapedDelimiter ? slashes % 2 === 1 : slashes % 2 === 0)
-      return index - Number(escapedDelimiter);
+    const escaped = slashes % 2 === 1;
+    if (escapedDelimiter) {
+      const next = text[index + 1];
+      if (escaped && (next === undefined || ESCAPED_VALUE_END.test(next))) return index - 1;
+      continue;
+    }
+    if (!escaped) return index;
   }
   return -1;
 }
