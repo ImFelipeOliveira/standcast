@@ -46,12 +46,7 @@ export function releaseChangelog(
   const heading = `${changelog.prefix}${version} — ${changelog.date(isoDate)}`;
   const next = [...lines.slice(0, index + 1), '', heading, ...lines.slice(index + 1)];
   const headingAt = index + 2;
-  if (versionSectionEmpty(next, headingAt, changelog.prefix)) {
-    if (!changelog.emptyNote) {
-      throw new Error(
-        `${changelog.file}: ${version} has no notes under ${changelog.unreleased}. A release comes from a change, so write that change before cutting the version.`,
-      );
-    }
+  if (versionSectionEmpty(next, headingAt, changelog.prefix) && changelog.emptyNote) {
     next.splice(headingAt + 1, 0, '', changelog.emptyNote, '');
   }
   return next.join('\n');
