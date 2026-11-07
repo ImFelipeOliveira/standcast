@@ -38,12 +38,15 @@ describe('release changelogs', () => {
     expect(pt).toContain('### Não lançado\n\n### 0.5.0 — 06/11/2026\n\n- Novidade.');
   });
 
-  test('an empty product changelog fails and an empty API changelog says so', () => {
+  test('an empty product changelog stays empty and an empty API changelog says so', () => {
     const product =
       '# Changelog\n\n## Product\n\n### Unreleased\n\n### 0.4.1 — 2026-11-02\n\n- Old.\n';
-    expect(() => releaseChangelog(CHANGELOGS[0], product, '0.5.0', '2026-11-06')).toThrow(
-      'has no notes under ### Unreleased',
-    );
+    const released = releaseChangelog(CHANGELOGS[0], product, '0.5.0', '2026-11-06');
+    expect(released).toContain('### Unreleased\n\n### 0.5.0 — 2026-11-06\n\n### 0.4.1');
+    expect(released).not.toContain('No product');
+    const existing =
+      '# Changelog\n\n## Product\n\n### Unreleased\n\n### 0.5.0 — 2026-11-06\n\n### 0.4.1 — 2026-11-02\n\n- Old.\n';
+    expect(releaseChangelog(CHANGELOGS[0], existing, '0.5.0', '2026-11-06')).toBe(existing);
     const api = CHANGELOGS[2];
     const text = releaseChangelog(
       api,
