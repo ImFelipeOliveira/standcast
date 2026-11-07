@@ -6,9 +6,9 @@ Google renames console labels from time to time. If a label below differs, use t
 
 Before submitting:
 
-- Felipe reviews the [terms of use](https://standcast.usefachada.dev/terms/) (`apps/landing/public/terms/`). They were drafted without legal advice.
+- Felipe reviews the [terms of use](https://standcast.app/terms/) (`apps/landing/public/terms/`). They were drafted without legal advice.
 - The landing with `/terms/`, `/privacy/` and `/brand/` is deployed, and every URL on this page answers 200.
-- `usefachada.dev` is verified in Google Search Console with the account that owns the Google Cloud project.
+- `standcast.app` is verified in Google Search Console with the account that owns the Google Cloud project.
 
 ## Assets
 
@@ -16,12 +16,12 @@ The PNGs are rendered with `rsvg-convert` from the SVG sources in [brand/](brand
 
 | Asset | Size | File | Public URL |
 | --- | --- | --- | --- |
-| Icon | 32×32 | `apps/landing/public/brand/logo-32.png` | https://standcast.usefachada.dev/brand/logo-32.png |
-| Icon | 48×48 | `apps/landing/public/brand/logo-48.png` | https://standcast.usefachada.dev/brand/logo-48.png |
-| Icon | 96×96 | `apps/landing/public/brand/logo-96.png` | https://standcast.usefachada.dev/brand/logo-96.png |
-| Icon | 128×128 | `apps/landing/public/brand/logo-128.png` | https://standcast.usefachada.dev/brand/logo-128.png |
-| Chat app avatar | 256×256 | `apps/landing/public/brand/logo-256.png` | https://standcast.usefachada.dev/brand/logo-256.png |
-| Card banner | 220×140 | `apps/landing/public/brand/banner-220x140.png` | https://standcast.usefachada.dev/brand/banner-220x140.png |
+| Icon | 32×32 | `apps/landing/public/brand/logo-32.png` | https://standcast.app/brand/logo-32.png |
+| Icon | 48×48 | `apps/landing/public/brand/logo-48.png` | https://standcast.app/brand/logo-48.png |
+| Icon | 96×96 | `apps/landing/public/brand/logo-96.png` | https://standcast.app/brand/logo-96.png |
+| Icon | 128×128 | `apps/landing/public/brand/logo-128.png` | https://standcast.app/brand/logo-128.png |
+| Chat app avatar | 256×256 | `apps/landing/public/brand/logo-256.png` | https://standcast.app/brand/logo-256.png |
+| Card banner | 220×140 | `apps/landing/public/brand/banner-220x140.png` | https://standcast.app/brand/banner-220x140.png |
 | Screenshot 1: landing hero | 1280×800 | `docs/marketplace/screenshots/1-landing-hero.png` | upload the file |
 | Screenshot 2: a day with Standcast | 1280×800 | `docs/marketplace/screenshots/2-how-it-works-digest.png` | upload the file |
 | Screenshot 3: the digest in Google Chat | 1280×800 | `docs/marketplace/screenshots/3-google-chat-digest.png` | upload the file |
@@ -44,10 +44,10 @@ rsvg-convert -w 220 -h 140 docs/marketplace/brand/banner.svg -o apps/landing/pub
 | Field | Value |
 | --- | --- |
 | App name | `Standcast` |
-| Avatar URL | `https://standcast.usefachada.dev/brand/logo-256.png` |
+| Avatar URL | `https://standcast.app/brand/logo-256.png` |
 | Description | `Daily standup digests from your AI agent` (40 characters, the maximum) |
 | Functionality | **Join spaces and group conversations** on |
-| Connection settings | **HTTP endpoint URL**: `https://api-standcast.usefachada.dev/webhooks/google-chat` |
+| Connection settings | **HTTP endpoint URL**: `https://api.standcast.app/webhooks/google-chat` |
 | Authentication audience | **Project number** |
 | Visibility | Keep your own domain while testing. Public availability comes from the Marketplace listing, not from this field |
 
@@ -60,13 +60,13 @@ rsvg-convert -w 220 -h 140 docs/marketplace/brand/banner.svg -o apps/landing/pub
 | User type / Audience | **External** |
 | Publishing status | **In production** |
 | App name | `Standcast` |
-| User support email | `support.standcast@usefachada.dev` |
+| User support email | `support@standcast.app` |
 | App logo | `apps/landing/public/brand/logo-128.png` (120×120 or larger, square) |
-| Application home page | `https://standcast.usefachada.dev/` |
-| Application privacy policy link | `https://standcast.usefachada.dev/privacy/` |
-| Application terms of service link | `https://standcast.usefachada.dev/terms/` |
-| Authorized domains | `usefachada.dev` |
-| Developer contact information | `support.standcast@usefachada.dev` |
+| Application home page | `https://standcast.app/` |
+| Application privacy policy link | `https://standcast.app/privacy/` |
+| Application terms of service link | `https://standcast.app/terms/` |
+| Authorized domains | `standcast.app` |
+| Developer contact information | `support@standcast.app` |
 | Scopes | None |
 
 **Why no scopes.** Standcast calls the Chat API only as the app itself, with a service account and the `https://www.googleapis.com/auth/chat.bot` scope. That scope is granted to the service account, not requested from users, so it is not added on the consent screen. The app requests no user data scopes: no Gmail, Drive, Calendar, Directory or user Chat scopes, and no sign in with Google. People sign in to Standcast with GitHub. Without sensitive or restricted scopes, the consent screen needs only brand verification (the logo, the home page and the authorized domain), not a security assessment.
@@ -82,12 +82,12 @@ rsvg-convert -w 220 -h 140 docs/marketplace/brand/banner.svg -o apps/landing/pub
 | App integration | **Google Chat app**. Check **Use the Chat API configuration** (or the equivalent): the integration links to the Chat API configuration above, with no other settings here |
 | OAuth scopes | Leave empty. If the form requires an entry for a Chat app, add `https://www.googleapis.com/auth/chat.bot` only, the scope the app uses through its service account. Never add user data scopes |
 | Developer information: name | `Felipe Oliveira` |
-| Developer website URL | `https://standcast.usefachada.dev` |
-| Developer email | `support.standcast@usefachada.dev` |
-| Terms of service URL | `https://standcast.usefachada.dev/terms/` |
-| Privacy policy URL | `https://standcast.usefachada.dev/privacy/` |
-| Support URL | `https://docs-standcast.usefachada.dev/troubleshooting` |
-| Admin guide URL | `https://docs-standcast.usefachada.dev/admin/google-chat` |
+| Developer website URL | `https://standcast.app` |
+| Developer email | `support@standcast.app` |
+| Terms of service URL | `https://standcast.app/terms/` |
+| Privacy policy URL | `https://standcast.app/privacy/` |
+| Support URL | `https://docs.standcast.app/troubleshooting` |
+| Admin guide URL | `https://docs.standcast.app/admin/google-chat` |
 
 ## Store listing
 
@@ -105,11 +105,11 @@ rsvg-convert -w 220 -h 140 docs/marketplace/brand/banner.svg -o apps/landing/pub
 | Application card banner | `banner-220x140.png` |
 | Screenshots | The three screenshots, in order |
 | YouTube video URL | Leave empty |
-| Terms of service URL | `https://standcast.usefachada.dev/terms/` |
-| Privacy policy URL | `https://standcast.usefachada.dev/privacy/` |
-| Support URL | `https://docs-standcast.usefachada.dev/troubleshooting` |
-| Help URL | `https://docs-standcast.usefachada.dev/admin/google-chat` |
-| Report issue URL | `mailto:support.standcast@usefachada.dev` |
+| Terms of service URL | `https://standcast.app/terms/` |
+| Privacy policy URL | `https://standcast.app/privacy/` |
+| Support URL | `https://docs.standcast.app/troubleshooting` |
+| Help URL | `https://docs.standcast.app/admin/google-chat` |
+| Report issue URL | `mailto:support@standcast.app` |
 | Distribution: regions | All regions |
 
 ### Detailed description (en)
@@ -132,9 +132,9 @@ How to start:
 
 Standcast is open source (MIT) and free during the public beta. No productivity metrics, no rankings: suggested blockers stay private to each person until they confirm them.
 
-Admin guide: https://docs-standcast.usefachada.dev/admin/google-chat
-Privacy: https://standcast.usefachada.dev/privacy/
-Support: support.standcast@usefachada.dev
+Admin guide: https://docs.standcast.app/admin/google-chat
+Privacy: https://standcast.app/privacy/
+Support: support@standcast.app
 ```
 
 ### Detailed description (pt-BR)
@@ -157,9 +157,9 @@ Como começar:
 
 O Standcast é open source (MIT) e gratuito durante o beta público. Sem métricas de produtividade, sem rankings: os impedimentos sugeridos ficam visíveis só para cada pessoa até ela confirmar.
 
-Guia para admins: https://docs-standcast.usefachada.dev/pt-BR/admin/google-chat
-Privacidade: https://standcast.usefachada.dev/pt-BR/privacidade/
-Suporte: support.standcast@usefachada.dev
+Guia para admins: https://docs.standcast.app/pt-BR/admin/google-chat
+Privacidade: https://standcast.app/pt-BR/privacidade/
+Suporte: support@standcast.app
 ```
 
 ## Notes for the reviewer
@@ -174,11 +174,11 @@ How to test:
 2. Send the app a direct message. It answers that no Standcast account uses your email, because linking requires a Standcast account created with GitHub. This confirms direct messages work.
 3. Remove the app from the space. Standcast deletes the space record.
 
-Posting a digest needs a GitHub organization with the Standcast GitHub App and a standcast.yml. We can set up a test organization and link your test space on request: support.standcast@usefachada.dev.
+Posting a digest needs a GitHub organization with the Standcast GitHub App and a standcast.yml. We can set up a test organization and link your test space on request: support@standcast.app.
 
-Admin guide: https://docs-standcast.usefachada.dev/admin/google-chat
-Privacy: https://standcast.usefachada.dev/privacy/ and https://docs-standcast.usefachada.dev/privacy
-Terms: https://standcast.usefachada.dev/terms/
+Admin guide: https://docs.standcast.app/admin/google-chat
+Privacy: https://standcast.app/privacy/ and https://docs.standcast.app/privacy
+Terms: https://standcast.app/terms/
 ```
 
 ## After approval

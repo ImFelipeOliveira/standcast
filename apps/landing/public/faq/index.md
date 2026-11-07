@@ -36,16 +36,16 @@ Yes. Standcast is MIT licensed. The [self-hosting section of the README](https:/
 
 ## Still have a question?
 
-Write to support.standcast@usefachada.dev or read the [documentation](https://docs-standcast.usefachada.dev/).
+Write to support@standcast.app or read the [documentation](https://docs.standcast.app/).
 
 ## More about Standcast
 
-- [Home](https://standcast.usefachada.dev/index.md)
-- [How it works](https://standcast.usefachada.dev/how-it-works/index.md)
-- [Privacy](https://standcast.usefachada.dev/privacy/index.md)
-- [Pricing](https://standcast.usefachada.dev/pricing/index.md)
-- [Join the beta](https://standcast.usefachada.dev/beta/index.md)
-- [Terms of use](https://standcast.usefachada.dev/terms/index.md)
-- [Versão em português](https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/index.md)
+- [Home](https://standcast.app/index.md)
+- [How it works](https://standcast.app/how-it-works/index.md)
+- [Privacy](https://standcast.app/privacy/index.md)
+- [Pricing](https://standcast.app/pricing/index.md)
+- [Join the beta](https://standcast.app/beta/index.md)
+- [Terms of use](https://standcast.app/terms/index.md)
+- [Versão em português](https://standcast.app/pt-BR/perguntas-frequentes/index.md)
 
-Support: support.standcast@usefachada.dev
+Support: support@standcast.app

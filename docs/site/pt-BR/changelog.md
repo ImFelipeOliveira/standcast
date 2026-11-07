@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- O serviço hospedado está em [standcast.app](https://standcast.app), com o app em [app.standcast.app](https://app.standcast.app), a documentação em [docs.standcast.app](https://docs.standcast.app) e a API em [api.standcast.app](https://api.standcast.app). O suporte é support@standcast.app. Os hostnames antigos em usefachada.dev redirecionam para esses endereços.
+
 ### 0.7.0 — 06/11/2026
 
 ### 0.6.0 — 06/11/2026
@@ -83,6 +85,6 @@ Primeiro beta público.
 
 ## API
 
-O changelog da API é mantido em inglês.
+O changelog da API está em inglês. A mudança da URL base também está em português.
 
 <!--@include: ../../api/CHANGELOG.md{3,}-->

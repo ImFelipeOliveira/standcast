@@ -4,12 +4,12 @@
 
 ## Documentation
 
-- [Docs index for agents](https://docs-standcast.usefachada.dev/llms.txt): every documentation page as Markdown
-- [Full docs in one file](https://docs-standcast.usefachada.dev/llms-full.txt): the whole documentation in a single file
+- [Docs index for agents](https://docs.standcast.app/llms.txt): every documentation page as Markdown
+- [Full docs in one file](https://docs.standcast.app/llms-full.txt): the whole documentation in a single file
 
 ## API
 
-- [API index for agents](https://api-standcast.usefachada.dev/llms.txt): OpenAPI document, reference and webhooks guide
+- [API index for agents](https://api.standcast.app/llms.txt): OpenAPI document, reference and webhooks guide
 - [Changelog of the API](docs/api/CHANGELOG.md): changes to the public API contract
 
 ## Repository

@@ -22,9 +22,12 @@ describe('install url check', () => {
 
   test('files read outside the docs build use the published url', () => {
     const published = `curl -fsSL ${PUBLISHED_INSTALL_URL} | sh`;
+    expect(PUBLISHED_INSTALL_URL).toBe('https://api.standcast.app/install.sh');
     expect(installUrlProblems('README.md', published, PUBLISHED_INSTALL_URL)).toEqual([]);
-    expect(installUrlProblems('README.md', CANONICAL, PUBLISHED_INSTALL_URL)).toHaveLength(1);
-    expect(installUrlProblems('a.md', published)).toHaveLength(1);
+    expect(installUrlProblems('a.md', published)).toEqual([]);
+    expect(
+      installUrlProblems('README.md', 'https://example.test/install.sh', PUBLISHED_INSTALL_URL),
+    ).toHaveLength(1);
   });
 
   test('the repository uses only the expected urls', async () => {

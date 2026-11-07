@@ -1,6 +1,6 @@
 # App web
 
-O app web em [app-standcast.usefachada.dev](https://app-standcast.usefachada.dev) mostra a sua organização em duas telas: **Configuração** e **Hoje**. Entre com o GitHub. O app lista as organizações onde o Standcast está instalado e das quais você é membro.
+O app web em [app.standcast.app](https://app.standcast.app) mostra a sua organização em duas telas: **Configuração** e **Hoje**. Entre com o GitHub. O app lista as organizações onde o Standcast está instalado e das quais você é membro.
 
 O app está em português e inglês, com tema claro e escuro.
 

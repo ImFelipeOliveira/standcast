@@ -10,12 +10,12 @@
 
 ## Mais sobre o Standcast
 
-- [Início](https://standcast.usefachada.dev/pt-BR/index.md)
-- [Como funciona](https://standcast.usefachada.dev/pt-BR/como-funciona/index.md)
-- [Privacidade](https://standcast.usefachada.dev/pt-BR/privacidade/index.md)
-- [Perguntas frequentes](https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/index.md)
-- [Entrar no beta](https://standcast.usefachada.dev/pt-BR/beta/index.md)
-- [Termos de uso](https://standcast.usefachada.dev/pt-BR/termos/index.md)
-- [English version](https://standcast.usefachada.dev/pricing/index.md)
+- [Início](https://standcast.app/pt-BR/index.md)
+- [Como funciona](https://standcast.app/pt-BR/como-funciona/index.md)
+- [Privacidade](https://standcast.app/pt-BR/privacidade/index.md)
+- [Perguntas frequentes](https://standcast.app/pt-BR/perguntas-frequentes/index.md)
+- [Entrar no beta](https://standcast.app/pt-BR/beta/index.md)
+- [Termos de uso](https://standcast.app/pt-BR/termos/index.md)
+- [English version](https://standcast.app/pricing/index.md)
 
-Suporte: support.standcast@usefachada.dev
+Suporte: support@standcast.app

@@ -57,7 +57,7 @@ function baseStatus(overrides: Partial<SetupStatus> = {}): SetupStatus {
     personFailures: [],
     apiKeys: { manage: false },
     webhooks: { manage: false },
-    supportEmail: 'support.standcast@usefachada.dev',
+    supportEmail: 'support@standcast.app',
     ...overrides,
   };
 }
@@ -178,7 +178,7 @@ describe('configuração', () => {
     expect(html).not.toContain('/connect/linear');
     expect(html).not.toContain('API keys');
     expect(html).not.toContain('Webhooks');
-    expect(html).toContain('href="mailto:support.standcast@usefachada.dev"');
+    expect(html).toContain('href="mailto:support@standcast.app"');
   });
 
   test('admin sees keys and webhooks', () => {

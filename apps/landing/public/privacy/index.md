@@ -20,7 +20,7 @@ No productivity metrics. No rankings. No commit counts. Nothing sent on anyone's
 
 ## What Standcast reads
 
-Only what a daily needs. What Standcast reads, what it stores, how long it keeps it and who sees what are all in the [privacy page of the documentation](https://docs-standcast.usefachada.dev/privacy).
+Only what a daily needs. What Standcast reads, what it stores, how long it keeps it and who sees what are all in the [privacy page of the documentation](https://docs.standcast.app/privacy).
 
 - **No AI on our servers.** No LLM processes your data on the Standcast servers. The draft comes from your GitHub and Linear activity, and the digest from what people confirmed.
 - **Your code stays yours.** The GitHub App reads pull requests, reviews, checks, commit metadata, standcast.yml and CODEOWNERS. It never reads source files and never writes to your repositories.
@@ -28,12 +28,12 @@ Only what a daily needs. What Standcast reads, what it stores, how long it keeps
 
 ## More about Standcast
 
-- [Home](https://standcast.usefachada.dev/index.md)
-- [How it works](https://standcast.usefachada.dev/how-it-works/index.md)
-- [Pricing](https://standcast.usefachada.dev/pricing/index.md)
-- [FAQ](https://standcast.usefachada.dev/faq/index.md)
-- [Join the beta](https://standcast.usefachada.dev/beta/index.md)
-- [Terms of use](https://standcast.usefachada.dev/terms/index.md)
-- [Versão em português](https://standcast.usefachada.dev/pt-BR/privacidade/index.md)
+- [Home](https://standcast.app/index.md)
+- [How it works](https://standcast.app/how-it-works/index.md)
+- [Pricing](https://standcast.app/pricing/index.md)
+- [FAQ](https://standcast.app/faq/index.md)
+- [Join the beta](https://standcast.app/beta/index.md)
+- [Terms of use](https://standcast.app/terms/index.md)
+- [Versão em português](https://standcast.app/pt-BR/privacidade/index.md)
 
-Support: support.standcast@usefachada.dev
+Support: support@standcast.app

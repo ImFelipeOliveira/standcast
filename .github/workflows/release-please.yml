@@ -80,7 +80,7 @@ jobs:
       - name: Build CLI binaries
         if: hashFiles('apps/cli/src/main.ts') != ''
         env:
-          STANDCAST_DEFAULT_API_URL: https://api-standcast.usefachada.dev
+          STANDCAST_DEFAULT_API_URL: https://api.standcast.app
         run: bun run build:cli
       - name: Upload CLI binaries
         if: hashFiles('apps/cli/src/main.ts') != ''

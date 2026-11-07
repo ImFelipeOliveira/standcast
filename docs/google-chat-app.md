@@ -1,6 +1,6 @@
 # Create the Google Chat app
 
-Standcast is hosted by one operator, who creates one Google Chat app. Organizations then add that app to their Google Chat spaces and link each space with a code. There is no per-organization secret. Replace `<PUBLIC_URL>` below with the public address of your API. It must be the same value as the `PUBLIC_URL` environment variable, for example `https://api-standcast.usefachada.dev`.
+Standcast is hosted by one operator, who creates one Google Chat app. Organizations then add that app to their Google Chat spaces and link each space with a code. There is no per-organization secret. Replace `<PUBLIC_URL>` below with the public address of your API. It must be the same value as the `PUBLIC_URL` environment variable, for example `https://api.standcast.app`.
 
 Google Chat is optional. Without `GOOGLE_CHAT_SERVICE_ACCOUNT`, the api and the worker start normally, `POST /webhooks/google-chat` answers 404, the Google Chat card in the web app and the setup page shows "Google Chat is not available on this server.", and deliveries for `google-chat` teams fail with `no_chat_connection`.
 
