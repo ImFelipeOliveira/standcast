@@ -186,4 +186,14 @@ describe('redact', () => {
     expect(redact("'secret'='v'")).toBe("'secret'='[redacted]'");
     expect(redact('the secret is out')).toBe('the secret is out');
   });
+
+  test('redacts an entire quoted credential containing escaped quotes', () => {
+    expect(redact('password="abc\\"defSECRET"')).toBe('password="[redacted]"');
+    expect(redact("token='ab\\'cdSECRET'")).toBe("token='[redacted]'");
+    expect(redact('api_key=plainSECRET')).toBe('api_key=[redacted]');
+  });
+
+  test('redacts credentials whose JSON quotes are escaped', () => {
+    expect(redact('\\"password\\": \\"hunter2\\"')).toBe('\\"password\\": \\"[redacted]\\"');
+  });
 });

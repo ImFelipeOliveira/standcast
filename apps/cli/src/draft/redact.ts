@@ -17,7 +17,7 @@ const STRONG_LABELS =
   'password|passwd|pwd|secret|token|api_key|api-key|apikey|client_secret|access_key';
 const WEAK_LABELS = 'authorization|auth|bearer|key';
 const CREDENTIAL_LABEL = new RegExp(
-  `(?<![A-Za-z0-9])((?:[A-Za-z0-9]+[_-])*(?:${STRONG_LABELS}|${WEAK_LABELS}))(?![A-Za-z0-9])(["']?(?:[ \\t]*[:=][ \\t]*|[ \\t]+)["']?)((?:Bearer|Basic)[ \\t]+)?([^\\s"']+)`,
+  `(?<![A-Za-z0-9])((?:[A-Za-z0-9]+[_-])*(?:${STRONG_LABELS}|${WEAK_LABELS}))(?![A-Za-z0-9])((?:\\\\?["'])?[ \\t]*[:=][ \\t]*|[ \\t]+)(\\\\?["']?)`,
   'gi',
 );
 const STRONG_LABEL = new RegExp(`(?:^|[_-])(?:${STRONG_LABELS})$`, 'i');
@@ -130,18 +130,53 @@ function redactTokens(text: string): string {
   return out;
 }
 
+function closingQuoteAt(
+  text: string,
+  start: number,
+  quote: string,
+  escapedDelimiter: boolean,
+): number {
+  for (let index = start; index < text.length; index++) {
+    if (text[index] !== quote) continue;
+    let slashes = 0;
+    for (let at = index - 1; at >= start && text[at] === '\\'; at--) slashes++;
+    if (escapedDelimiter ? slashes === 1 : slashes % 2 === 0)
+      return index - Number(escapedDelimiter);
+  }
+  return -1;
+}
+
 function redactLabeled(text: string): string {
-  return text.replace(
-    CREDENTIAL_LABEL,
-    (match, label: string, gap: string, scheme: string | undefined, raw: string) => {
-      const value = raw.replace(TRAILING_PUNCTUATION, '');
-      if (value.length === 0) return match;
-      const explicit = ASSIGNMENT.test(gap) && STRONG_LABEL.test(label);
-      const shaped = value.length >= 8 && (/\d/.test(value) || value.length >= MIN_LABELED_VALUE);
-      if (!explicit && !shaped) return match;
-      return `${label}${gap}${scheme ?? ''}${MARK}${raw.slice(value.length)}`;
-    },
-  );
+  CREDENTIAL_LABEL.lastIndex = 0;
+  let output = '';
+  let cursor = 0;
+  for (let match = CREDENTIAL_LABEL.exec(text); match; match = CREDENTIAL_LABEL.exec(text)) {
+    const [prefix = '', label = '', gap = '', opener = ''] = match;
+    const valueStart = CREDENTIAL_LABEL.lastIndex;
+    const quote = opener.at(-1);
+    const escapedDelimiter = opener.startsWith('\\');
+    const closeAt = quote ? closingQuoteAt(text, valueStart, quote, escapedDelimiter) : -1;
+    const raw =
+      closeAt >= 0
+        ? text.slice(valueStart, closeAt)
+        : (text.slice(valueStart).match(/^[^\s"']+/)?.[0] ?? '');
+    const value = closeAt >= 0 ? raw : raw.replace(TRAILING_PUNCTUATION, '');
+    const explicit = ASSIGNMENT.test(gap) && STRONG_LABEL.test(label);
+    const shaped = value.length >= 8 && (/\d/.test(value) || value.length >= MIN_LABELED_VALUE);
+    if (value.length === 0 || (!explicit && !shaped)) continue;
+
+    output += text.slice(cursor, match.index) + prefix + MARK;
+    if (closeAt >= 0) {
+      const closingLength = escapedDelimiter ? 2 : 1;
+      output += text.slice(closeAt, closeAt + closingLength);
+      cursor = closeAt + closingLength;
+    } else {
+      output += raw.slice(value.length);
+      cursor = valueStart + raw.length;
+    }
+    CREDENTIAL_LABEL.lastIndex = cursor;
+  }
+  return output + text.slice(cursor);
 }
 
 export function redact(text: string): string {
