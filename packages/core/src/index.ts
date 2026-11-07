@@ -6,6 +6,7 @@ export * from './chat-error';
 export * from './codeowners';
 export * from './config';
 export * from './config-locate';
+export * from './config-repository';
 export * from './daily';
 export * from './digest';
 export * from './error-fields';

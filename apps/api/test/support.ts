@@ -46,7 +46,7 @@ export function createTestApp(
         missingTeams: [],
         truncatedTeams: [],
       }),
-      fetchConfigSource: async () => ({ found: false, reason: 'no_repo' }),
+      fetchConfigSource: async () => ({ found: false, reason: 'no_repo', repository: null }),
       getPullRequest: async () => null,
       pullRequestMerged: async () => null,
       listPullRequestFiles: async () => [],

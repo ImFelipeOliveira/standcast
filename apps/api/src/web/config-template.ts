@@ -1,4 +1,9 @@
-import type { Language } from '@standcast/core';
+import {
+  CONFIG_FILE,
+  type ConfigRepo,
+  type Language,
+  PREFERRED_CONFIG_REPO,
+} from '@standcast/core';
 
 export function standcastYmlTemplate(login: string, teamName: string, lang: Language): string {
   return `teams:
@@ -25,10 +30,15 @@ export function standcastYmlTemplate(login: string, teamName: string, lang: Lang
 `;
 }
 
-export function newConfigFileUrl(owner: string, branch: string, template: string): string {
-  return `https://github.com/${encodeURIComponent(owner)}/.github/new/${encodeURIComponent(branch)}?filename=standcast.yml&value=${encodeURIComponent(template)}`;
+export function newConfigFileUrl(
+  owner: string,
+  repo: ConfigRepo,
+  branch: string,
+  template: string,
+): string {
+  return `https://github.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/new/${encodeURIComponent(branch)}?filename=${CONFIG_FILE}&value=${encodeURIComponent(template)}`;
 }
 
 export function newConfigRepoUrl(): string {
-  return 'https://github.com/new?name=.github&visibility=private';
+  return `https://github.com/new?name=${encodeURIComponent(PREFERRED_CONFIG_REPO)}&visibility=private`;
 }

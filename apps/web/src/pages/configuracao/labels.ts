@@ -1,4 +1,4 @@
-import type { SetupStatus, TrackerNotice } from '@standcast/orchestrator';
+import type { ConfigNotice, SetupStatus, TrackerNotice } from '@standcast/orchestrator';
 import { ApiError } from '../../api/client';
 import type {
   ApiKeyScope,
@@ -97,6 +97,10 @@ export function failureReason(t: Translate, error: string): FailureReason {
 export const TRACKER_NOTICES: Record<TrackerNotice, MessageKey> = {
   linear_not_connected: 'setup.tracker.notConnected',
   jira_coming_soon: 'setup.tracker.jiraComingSoon',
+};
+
+export const CONFIG_NOTICES: Record<ConfigNotice, MessageKey> = {
+  public_identity_overrides: 'setup.config.notice.publicIdentityOverrides',
 };
 
 export type TeamNotice = SetupStatus['teamNotices'][number];

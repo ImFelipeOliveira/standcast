@@ -18,7 +18,7 @@ import {
   signState,
   startSlackConnect,
 } from '../../src';
-import { fakeDeps, INST, seedMember, seedOrg } from './fakes';
+import { fakeDeps, found, INST, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -222,13 +222,13 @@ describe('completeSlackConnect', () => {
 
 describe('getSetupStatus', () => {
   test('summarizes config, repo, slack and failures', async () => {
-    const { deps, member, isMember } = await setup();
+    const { deps, member, isMember } = await setup({ source: found('teams: []') });
     const status = await getSetupStatus(deps, isMember, member, INST);
     expect(status).toMatchObject({
       installationId: INST,
       owner: 'acme',
       config: { status: 'configured' },
-      configRepo: { exists: true, defaultBranch: 'trunk' },
+      configRepo: { exists: true, name: '.github', defaultBranch: 'trunk' },
       slack: { connected: false },
       teamFailures: [],
       personFailures: [],
@@ -236,15 +236,18 @@ describe('getSetupStatus', () => {
     });
   });
 
-  test('reports a missing .github repository', async () => {
-    const { deps, member, isMember } = await setup({ configRepo: 'missing' });
+  test('reports a missing config repository and suggests .github-private', async () => {
+    const { deps, member, isMember } = await setup();
     expect((await getSetupStatus(deps, isMember, member, INST)).configRepo).toEqual({
       exists: false,
+      name: '.github-private',
     });
   });
 
   test('rethrows unexpected github errors', async () => {
-    const { deps, member, isMember } = await setup({ configRepo: 'error' });
+    const { deps, member, isMember } = await setup({
+      sourceError: Object.assign(new Error('boom'), { status: 500 }),
+    });
     const error = await getSetupStatus(deps, isMember, member, INST).catch((e: unknown) => e);
     expect((error as { status?: number }).status).toBe(500);
   });

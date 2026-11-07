@@ -1,9 +1,13 @@
-import type {
-  ChannelCheck,
-  ChatProvider,
-  ConfigError,
-  StandcastConfig,
-  TeamConfig,
+import {
+  type ChannelCheck,
+  type ChatProvider,
+  CONFIG_FILE,
+  type ConfigError,
+  type ConfigRepo,
+  hasIdentityOverrides,
+  PREFERRED_CONFIG_REPO,
+  type StandcastConfig,
+  type TeamConfig,
 } from '@standcast/core';
 import {
   type ApiKeySummary,
@@ -21,7 +25,6 @@ import {
 } from '@standcast/db';
 import type { Deps } from '../../deps';
 import { guarded } from '../../guarded';
-import { statusOf } from '../../membership';
 import { type TeamNotice, teamResolutionNotices } from '../../teams';
 import { authorizeInstallation } from '../access/authorize-installation';
 import { isInstallationAdmin } from '../access/is-installation-admin';
@@ -44,7 +47,9 @@ export type SetupStatus = {
     | { status: 'invalid'; errors: ConfigError[]; lastValid: boolean }
     | { status: 'unconfigured'; reason: string };
   accessWarning: string | null;
-  configRepo: { exists: true; defaultBranch: string } | { exists: false };
+  configRepo:
+    | { exists: true; name: ConfigRepo; defaultBranch: string }
+    | { exists: false; name: ConfigRepo };
   slack: { connected: false } | { connected: true; workspace: string };
   googleChat: { available: boolean; spaces: { name: string; displayName: string }[] };
   linear:
@@ -52,6 +57,7 @@ export type SetupStatus = {
     | { connected: true; workspace: string; urlKey: string; invalid: boolean };
   trackerNotices: TrackerNotice[];
   teamNotices: TeamNotice[];
+  configNotices: ConfigNotice[];
   teams: SetupTeam[];
   configFileUrl: string | null;
   teamFailures: TeamFailure[];
@@ -86,7 +92,7 @@ function configFileUrl(
 ): string | null {
   if (!configRepo.exists || config.status === 'unconfigured') return null;
   const branch = configRepo.defaultBranch.split('/').map(encodeURIComponent).join('/');
-  return `https://github.com/${encodeURIComponent(owner)}/.github/blob/${branch}/standcast.yml`;
+  return `https://github.com/${encodeURIComponent(owner)}/${encodeURIComponent(configRepo.name)}/blob/${branch}/${CONFIG_FILE}`;
 }
 
 export type TrackerNotice = 'linear_not_connected' | 'jira_coming_soon';
@@ -102,19 +108,28 @@ function trackerNotices(
   return notices;
 }
 
-type Octokit = Awaited<ReturnType<Deps['github']['installationOctokit']>>;
+export type ConfigNotice = 'public_identity_overrides';
 
-async function findConfigRepo(octokit: Octokit, owner: string): Promise<SetupStatus['configRepo']> {
-  try {
-    const response = await octokit.request('GET /repos/{owner}/{repo}', {
-      owner,
-      repo: '.github',
-    });
-    return { exists: true, defaultBranch: response.data.default_branch || 'main' };
-  } catch (error) {
-    if (statusOf(error) === 404) return { exists: false };
-    throw error;
-  }
+type ConfigLocation = { repo: SetupStatus['configRepo']; public: boolean };
+
+async function findConfigRepo(
+  deps: Deps,
+  installationId: number,
+  owner: string,
+): Promise<ConfigLocation> {
+  const octokit = await deps.github.installationOctokit(installationId);
+  const source = await deps.github.fetchConfigSource(octokit, owner);
+  const repository = source.repository;
+  if (!repository) return { repo: { exists: false, name: PREFERRED_CONFIG_REPO }, public: false };
+  return {
+    repo: { exists: true, name: repository.name, defaultBranch: repository.defaultBranch },
+    public: source.found && !repository.private,
+  };
+}
+
+function configNotices(config: StandcastConfig | null, location: ConfigLocation): ConfigNotice[] {
+  if (!config || !location.public || !hasIdentityOverrides(config)) return [];
+  return ['public_identity_overrides'];
 }
 
 async function safeTeamNotices(
@@ -254,9 +269,8 @@ export async function getSetupStatus(
     operational,
   );
   const channelNoticesPromise = safeChannelNotices(deps, installation.id, operational);
-  const octokit = await deps.github.installationOctokit(installation.id);
   const [
-    configRepo,
+    configLocation,
     connection,
     linearConnection,
     teamFailures,
@@ -265,7 +279,7 @@ export async function getSetupStatus(
     linked,
     googleChatSpaces,
   ] = await Promise.all([
-    findConfigRepo(octokit, installation.accountLogin),
+    findConfigRepo(deps, installation.id, installation.accountLogin),
     getConnection(deps.db, installation.id, 'slack', deps.encryptionKey),
     getConnectionInfo(deps.db, installation.id, 'linear'),
     listFailedTeamDeliveries(deps.db, installation.id, TEAM_FAILURE_LIMIT),
@@ -312,7 +326,7 @@ export async function getSetupStatus(
     admin,
     config,
     accessWarning: installation.accessWarning,
-    configRepo,
+    configRepo: configLocation.repo,
     slack: connection
       ? { connected: true, workspace: connection.externalName ?? connection.externalId }
       : { connected: false },
@@ -320,8 +334,9 @@ export async function getSetupStatus(
     linear,
     trackerNotices: trackerNotices(operational, linear),
     teamNotices,
+    configNotices: configNotices(operational, configLocation),
     teams: setupTeams(operational),
-    configFileUrl: configFileUrl(installation.accountLogin, configRepo, config),
+    configFileUrl: configFileUrl(installation.accountLogin, configLocation.repo, config),
     teamFailures,
     personFailures,
     apiKeys,

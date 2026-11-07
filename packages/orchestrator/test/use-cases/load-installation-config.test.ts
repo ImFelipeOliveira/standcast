@@ -13,7 +13,7 @@ import {
   loadInstallationConfig,
   resolveOrgContext,
 } from '../../src';
-import { type FakeOptions, fakeDeps, INST, seedMember, seedOrg } from './fakes';
+import { type FakeOptions, fakeDeps, found, INST, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -27,7 +27,7 @@ const VALID = `teams:
     chat: { provider: slack, channel: "#alpha" }
 `;
 
-const noAccess: FakeOptions['source'] = { found: false, reason: 'no_access' };
+const noAccess: FakeOptions['source'] = { found: false, reason: 'no_access', repository: null };
 
 async function load(source: FakeOptions['source']) {
   const fake = fakeDeps({ source });
@@ -55,7 +55,7 @@ describe('loadInstallationConfig access errors', () => {
 
   test('no_access keeps an invalid installation with its last valid config', async () => {
     await seedOrg();
-    await load({ found: true, source: 'teams: nope' });
+    await load(found('teams: nope'));
     await load(noAccess);
     const row = await getInstallation(db, INST);
     expect(row?.status).toBe('invalid');
@@ -76,14 +76,14 @@ describe('loadInstallationConfig access errors', () => {
   test('a configured load clears the warning', async () => {
     await seedOrg();
     await load(noAccess);
-    await load({ found: true, source: VALID });
+    await load(found(VALID));
     expect((await getInstallation(db, INST))?.accessWarning).toBeNull();
   });
 
   test('an invalid load clears the warning', async () => {
     await seedOrg();
     await load(noAccess);
-    await load({ found: true, source: 'teams: nope' });
+    await load(found('teams: nope'));
     expect((await getInstallation(db, INST))?.accessWarning).toBeNull();
   });
 
@@ -91,7 +91,7 @@ describe('loadInstallationConfig access errors', () => {
     test(`${reason} still drops the config and the warning`, async () => {
       await seedOrg();
       await load(noAccess);
-      await load({ found: false, reason });
+      await load({ found: false, reason, repository: null });
       const row = await getInstallation(db, INST);
       expect(row?.status).toBe('unconfigured');
       expect(row?.config).toBeNull();
@@ -122,7 +122,7 @@ members:
   }
 
   async function loadWithSpy(source: string) {
-    const fake = fakeDeps({ source: { found: true, source } });
+    const fake = fakeDeps({ source: found(source) });
     const options: unknown[] = [];
     const enqueue = fake.deps.queue.enqueue.bind(fake.deps.queue);
     fake.deps.queue.enqueue = async (name, data, opts) => {
@@ -151,7 +151,7 @@ members:
   test('a relink enqueued while one is active is kept', async () => {
     await seedOrg();
     await connectLinear();
-    const fake = fakeDeps({ source: { found: true, source: LINEAR_TEAM } });
+    const fake = fakeDeps({ source: found(LINEAR_TEAM) });
     let runs = 0;
     await fake.deps.queue.work(
       'link-tracker-identities',

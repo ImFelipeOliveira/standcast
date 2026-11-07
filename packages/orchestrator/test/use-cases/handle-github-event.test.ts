@@ -2,7 +2,7 @@ import { describe, expect, spyOn, test } from 'bun:test';
 import { getInstallation, upsertInstallation } from '@standcast/db';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { handleGitHubEvent, loadConfig, scanMemberSignals } from '../../src';
-import { config, fakeDeps, seedOrg } from './fakes';
+import { config, fakeDeps, found, seedOrg } from './fakes';
 
 const INST = 21;
 
@@ -47,7 +47,7 @@ useCleanDb();
 
 describe('handleGitHubEvent', () => {
   test('installation created stores it and only enqueues a config load', async () => {
-    const { deps, calls, queue } = fakeDeps({ source: { found: true, source: VALID } });
+    const { deps, calls, queue } = fakeDeps({ source: found(VALID) });
     noGitHub(deps);
     await handleGitHubEvent(deps, 'installation', created);
     const row = await getInstallation(db, INST);
@@ -61,7 +61,7 @@ describe('handleGitHubEvent', () => {
   });
 
   test('the enqueued load-config job loads the config', async () => {
-    const { deps, queue } = fakeDeps({ source: { found: true, source: VALID } });
+    const { deps, queue } = fakeDeps({ source: found(VALID) });
     await handleGitHubEvent(deps, 'installation', created);
     await queue.work(
       'load-config',
@@ -73,7 +73,7 @@ describe('handleGitHubEvent', () => {
   });
 
   test('installation_repositories stores the account id and enqueues a config load', async () => {
-    const { deps, queue } = fakeDeps({ source: { found: true, source: VALID } });
+    const { deps, queue } = fakeDeps({ source: found(VALID) });
     noGitHub(deps);
     await handleGitHubEvent(deps, 'installation_repositories', { ...created, action: 'added' });
     expect((await getInstallation(db, INST))?.accountId).toBe(500);
@@ -91,7 +91,7 @@ describe('handleGitHubEvent', () => {
 
   test('push touching standcast.yml on the default branch validates and loads', async () => {
     await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
-    const { deps, calls, queue } = fakeDeps({ source: { found: true, source: VALID } });
+    const { deps, calls, queue } = fakeDeps({ source: found(VALID) });
     noGitHub(deps);
     await handleGitHubEvent(
       deps,
@@ -102,7 +102,7 @@ describe('handleGitHubEvent', () => {
     expect(configJobs(queue)).toEqual([
       {
         name: 'validate-config',
-        data: { installationId: INST, owner: 'acme', headSha: 'sha-after' },
+        data: { installationId: INST, owner: 'acme', repo: '.github', headSha: 'sha-after' },
       },
       { name: 'load-config', data: { installationId: INST, owner: 'acme' } },
     ]);
@@ -120,8 +120,48 @@ describe('handleGitHubEvent', () => {
     expect(configJobs(queue)).toEqual([
       {
         name: 'validate-config',
-        data: { installationId: INST, owner: 'acme', headSha: 'sha-after' },
+        data: { installationId: INST, owner: 'acme', repo: '.github', headSha: 'sha-after' },
       },
+    ]);
+  });
+
+  test('push touching standcast.yml in .github-private validates there and loads', async () => {
+    await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
+    const { deps, queue } = fakeDeps();
+    noGitHub(deps);
+    await handleGitHubEvent(
+      deps,
+      'push',
+      push('.github-private', 'refs/heads/main', { modified: ['standcast.yml'] }),
+    );
+    expect(configJobs(queue)).toEqual([
+      {
+        name: 'validate-config',
+        data: {
+          installationId: INST,
+          owner: 'acme',
+          repo: '.github-private',
+          headSha: 'sha-after',
+        },
+      },
+      { name: 'load-config', data: { installationId: INST, owner: 'acme' } },
+    ]);
+  });
+
+  test('the same sha in both config repositories gets one validation each', async () => {
+    await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
+    const { deps, queue } = fakeDeps();
+    noGitHub(deps);
+    for (const repo of ['.github', '.github-private']) {
+      await handleGitHubEvent(
+        deps,
+        'push',
+        push(repo, 'refs/heads/feature', { modified: ['standcast.yml'] }),
+      );
+    }
+    expect(configJobs(queue).map((j) => (j.data as { repo: string }).repo)).toEqual([
+      '.github',
+      '.github-private',
     ]);
   });
 
@@ -163,7 +203,7 @@ describe('handleGitHubEvent', () => {
 
   test('push filters out other repos, owners, files, deletions and unknown installations', async () => {
     await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
-    const { deps, calls, queue } = fakeDeps({ source: { found: true, source: VALID } });
+    const { deps, calls, queue } = fakeDeps({ source: found(VALID) });
     await handleGitHubEvent(
       deps,
       'push',
@@ -211,7 +251,13 @@ describe('handleGitHubEvent', () => {
       expect(configJobs(queue)).toEqual([
         {
           name: 'validate-config',
-          data: { installationId: INST, owner: 'acme', headSha: 'pr-head', pullNumber: 4 },
+          data: {
+            installationId: INST,
+            owner: 'acme',
+            repo: '.github',
+            headSha: 'pr-head',
+            pullNumber: 4,
+          },
         },
       ]);
     }
@@ -231,8 +277,38 @@ describe('handleGitHubEvent', () => {
     expect(configJobs(queue)).toEqual([]);
   });
 
+  test('pull_request on .github-private enqueues a validation in that repository', async () => {
+    await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
+    const { deps, queue } = fakeDeps();
+    noGitHub(deps);
+    await handleGitHubEvent(deps, 'pull_request', {
+      action: 'opened',
+      installation: { id: INST },
+      repository: { name: '.github-private', owner: { login: 'acme' } },
+      pull_request: { number: 9, head: { sha: 'pr-head' }, user: { login: 'carol' } },
+    });
+    await handleGitHubEvent(deps, 'pull_request', {
+      action: 'opened',
+      installation: { id: INST },
+      repository: { name: 'github-private', owner: { login: 'acme' } },
+      pull_request: { number: 9, head: { sha: 'pr-head' }, user: { login: 'carol' } },
+    });
+    expect(configJobs(queue)).toEqual([
+      {
+        name: 'validate-config',
+        data: {
+          installationId: INST,
+          owner: 'acme',
+          repo: '.github-private',
+          headSha: 'pr-head',
+          pullNumber: 9,
+        },
+      },
+    ]);
+  });
+
   test('other events are ignored', async () => {
-    const { deps, calls } = fakeDeps({ source: { found: true, source: VALID } });
+    const { deps, calls } = fakeDeps({ source: found(VALID) });
     await handleGitHubEvent(deps, 'pull_request', created);
     expect(await getInstallation(db, INST)).toBeNull();
     expect(calls.config).toEqual([]);
