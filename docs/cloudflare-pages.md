@@ -34,7 +34,7 @@ Under **Settings > Builds & deployments > Branch control**:
 
 ## Custom domain
 
-Under **Custom domains**, add `docs.standcast.app`. Then set `DOCS_URL=https://docs.standcast.app` on the api service on Railway, so the setup header and the `/docs` redirects point at it.
+Under **Custom domains**, add `docs.standcast.app`. Then set `DOCS_URL=https://docs.standcast.app` on the api service on Railway, so the OpenAPI document and the `/docs` redirects point at it.
 
 ## Headers and redirects
 

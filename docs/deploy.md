@@ -38,10 +38,10 @@ Set these on the api service. The worker needs `DATABASE_URL`, `STANDCAST_ENCRYP
 | `DATABASE_URL` | Reference the Postgres service |
 | `PORT` | Set by Railway |
 | `PUBLIC_URL` | Public address of the api, for example `https://api.standcast.app` |
-| `SUPPORT_EMAIL` | Shown in the setup and error pages and the OpenAPI document |
-| `DOCS_URL` | Address of the documentation site, `https` with no trailing slash, for example `https://docs.standcast.app`. Defaults to `https://docs.standcast.app`. The setup header links to it, and the api redirects `/docs` and `/docs/*` to it with a 301 |
+| `SUPPORT_EMAIL` | Shown on the web app Settings page, the API error pages, and the OpenAPI document |
+| `DOCS_URL` | Address of the documentation site, `https` with no trailing slash, for example `https://docs.standcast.app`. Defaults to `https://docs.standcast.app`. The OpenAPI document links to it, and the api redirects `/docs` and `/docs/*` to it with a 301 |
 | `LANDING_URL` | Address of the landing page, `https` with no trailing slash. Defaults to `https://standcast.app`. It is where the api sends the browser back when the beta request form is invalid |
-| `APP_URL` | **Required.** Origin of the web app: `https`, lowercase host, no path, query, trailing slash or default port (or `http://localhost` with an optional port for local development). The api fails to start without it. The api allows cross-origin requests with cookies from this origin only, for example `https://app.standcast.app` |
+| `APP_URL` | **Required.** Origin of the web app: `https`, lowercase host, no path, query, trailing slash or default port (or `http://localhost` with an optional port for local development). The api fails to start without it. `GET /setup` redirects to this origin. The api allows cross-origin requests with cookies from this origin only, for example `https://app.standcast.app` |
 | `TRUST_PROXY` | `true` behind Railway |
 | `TRUSTED_PROXY_HOPS` | `1` behind Railway |
 | `STANDCAST_ENCRYPTION_KEY` | 32 random bytes, base64: `openssl rand -base64 32`. Keep it identical on api and worker |
@@ -74,7 +74,7 @@ The landing page is a separate Cloudflare Worker, `standcast-landing`. See [clou
 
 ## Documentation site (Cloudflare Pages)
 
-The documentation site is a static VitePress build hosted on Cloudflare Pages, on its own domain. The api does not serve it: it keeps the API reference at `/reference`, `/openapi.json`, setup, OAuth, webhooks and `/install.sh`, and answers the old URLs with permanent redirects:
+The documentation site is a static VitePress build hosted on Cloudflare Pages, on its own domain. The api does not serve it: it keeps the API reference at `/reference`, `/openapi.json`, OAuth, webhooks and `/install.sh`, redirects `GET /setup` to `APP_URL`, and answers the old URLs with permanent redirects:
 
 | Old URL | Redirects to |
 | --- | --- |
