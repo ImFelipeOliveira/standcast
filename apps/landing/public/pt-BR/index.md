@@ -77,7 +77,7 @@ O que o GitHub App lê, do que você precisa, quem vê os impedimentos sugeridos
 
 ## Beta público
 
-Teste com o seu time. Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat. Ajudamos você a configurar. [Pigz](https://pigz.com.br) e [Usebill](https://usebill.com.br) estão no beta. [Pedir acesso ao beta](https://standcast.app/pt-BR/beta/)
+Teste com o seu time. Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat. Ajudamos você a configurar. [Pedir acesso ao beta](https://standcast.app/pt-BR/beta/)
 
 [Termos de uso](https://standcast.app/pt-BR/termos/index.md)
 

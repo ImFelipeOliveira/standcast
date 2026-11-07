@@ -10,10 +10,13 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- The landing and the README no longer name beta testers.
+
 ### 0.8.1 — 2026-11-07
 
 - Standcast reads `standcast.yml` from the private `.github-private` repository when it exists and has the file, and from `.github` otherwise, so organizations whose `.github` is public can keep the file private. Nothing changes when only `.github` has the file. The setup page links the file in the repository in use and offers to create `.github-private`. See [Where the file lives](/admin/configuration#where-the-file-lives).
 - The `Standcast config` check fails when `standcast.yml` is in a public repository and has identity overrides under `members` (`linear`, `slack`, `google_chat`, `jira`), because they publish work emails and the login to email mapping. The setup page shows the same warning. The configuration in use does not change. Move the file to `.github-private`, make the repository private, or remove the overrides and use the default linking by the GitHub verified email and the Google Chat direct message. See [Identity mapping](/admin/configuration#identity-mapping).
+- The landing and the README named Pigz and Usebill as the first beta testers.
 
 ### 0.8.0 — 2026-11-07
 
@@ -23,7 +26,11 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### 0.7.0 — 2026-11-06
 
+- The home page draws an animated field behind the hero.
+
 ### 0.6.0 — 2026-11-06
+
+- The landing banner shows Google Chat, the agents and the public beta.
 
 ### 0.5.0 — 2026-11-06
 

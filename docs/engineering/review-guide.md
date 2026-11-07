@@ -123,5 +123,8 @@ Patterns Standcast follows, code smells to flag and bugs that have actually happ
 ## Docs
 
 - **Language parity.** Behaviour or configuration changes update `docs/site` in both `en` and `pt-BR` (`bun run check-docs` checks parity).
-- **API changelog.** Public API changes go under `Unreleased` in `docs/api/CHANGELOG.md`. Versions there match the GitHub releases.
+- **Product changelog and API changelog are separate.** Write each change in the file that matches what changed. Do not put an API contract note in the product changelog, and do not put a product note in the API changelog. A pull request that changes both writes one bullet in each place. `docs`, `chore`, `ci` and `test` commits do not cut a release and need neither.
+- **Product.** A `feat`, `fix`, `perf` or `refactor` that a person can see (landing, app, CLI, digest, setup, configuration) adds one bullet under `Unreleased` in `docs/site/changelog.md` and the same news under `Não lançado` in `docs/site/pt-BR/changelog.md`, before the pull request merges. On release those bullets become the version notes. The release job moves them and does not write a product note, so a `fix` a person cannot see can release with that section empty.
+  - Smell: a change a person can see with no new product line, or a line in only one language.
+- **API.** A change to the public API contract (paths, fields, status codes, scopes, webhook payloads) adds one bullet under `Unreleased` in `docs/api/CHANGELOG.md` before the pull request merges. Versions there match the GitHub releases. If the release does not change the public API, that file gets "No public API changes." Internal routes stay out of this file.
 - **Internal routes** (`/v1/sessions`, `/v1/draft`, `/v1/dailies`, `/v1/today`, `/v1/manage/*`, `/v1/suggestions/*`) stay out of the public OpenAPI document.
