@@ -125,4 +125,6 @@ Ele falhou 20 entregas seguidas. Corrija o receptor, adicione o endpoint de novo
 
 ## O check `Standcast config` falhou
 
-Um push ou pull request no repositório `.github` alterou o `standcast.yml` e ele tem erros. Abra o check: cada erro é uma anotação na linha dele, e o resumo lista todos. Corrija e faça push de novo. Enquanto isso, a última versão válida continua valendo. Se o arquivo não existe, não há check.
+Um push ou pull request no repositório `.github-private` ou `.github` alterou o `standcast.yml` e ele tem erros. Abra o check: cada erro é uma anotação na linha dele, e o resumo lista todos. Corrija e faça push de novo. Enquanto isso, a última versão válida continua valendo. Se o arquivo não existe, não há check.
+
+Quando o título é "standcast.yml expõe dados pessoais", o arquivo é válido mas está em um repositório público com overrides de identidade em `members`. Mova o arquivo para o `.github-private` (ou torne o repositório privado), ou remova os overrides e deixe as pessoas se vincularem pelo e-mail verificado da conta do GitHub no `standcast login` e, no Google Chat, por uma mensagem direta para o app. Veja [Mapeamento de identidades](/pt-BR/admin/configuration#mapeamento-de-identidades).

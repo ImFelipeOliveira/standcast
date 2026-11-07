@@ -12,7 +12,7 @@ Nenhum LLM processa os seus dados nos servidores do Standcast. O rascunho é mon
 
 O Standcast usa as permissões do GitHub App dele: Metadata (read), Contents (read), Pull requests (read), Checks (write), Commit statuses (read), Members (read) e a permissão de conta Email addresses (read). Com elas, ele lê:
 
-- o `standcast.yml` do repositório `.github` do dono da instalação;
+- o `standcast.yml` do repositório `.github-private` do dono da instalação ou, quando ele não tem o arquivo, do repositório `.github`, e se esse repositório é privado;
 - os membros dos times do GitHub citados no `standcast.yml` (`@org/time`);
 - a participação e o papel na organização, para saber quem é membro e quem é admin;
 - para os impedimentos sugeridos e o encaminhamento de impedimentos, em pull requests da organização: título, url, estado de rascunho, o momento em que ficou pronto para revisão, o estado das revisões (só contadas), as conclusões dos check runs no commit head, os caminhos dos arquivos alterados (só para achar os donos do código) e o arquivo `CODEOWNERS`;

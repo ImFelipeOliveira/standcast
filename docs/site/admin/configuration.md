@@ -1,6 +1,17 @@
 # standcast.yml reference
 
-Standcast reads its whole configuration from one file: `standcast.yml` at the **root** of the `.github` repository of the organization (or personal account), on the default branch. There is no other place to configure teams.
+Standcast reads its whole configuration from one file: `standcast.yml` at the **root** of a configuration repository of the organization (or personal account), on the default branch. There is no other place to configure teams.
+
+## Where the file lives
+
+Standcast looks in two repositories, in this order:
+
+1. `.github-private`, when it exists **and** has `standcast.yml`. This is the private repository GitHub uses for the member-only organization profile.
+2. `.github`, otherwise. In most organizations this repository is **public**, because it holds the community health files and the public organization profile.
+
+Keep `standcast.yml` in `.github-private`, or in a `.github` you made private. The file names the people of your teams, and anything in a public repository can be read by anyone. When both repositories have the file, `.github-private` wins and the file in `.github` is ignored. When only `.github` has it, nothing changes for you: that is where Standcast always read it.
+
+To keep the file free of logins, list people through GitHub teams (`members: ["@org/team-slug"]`, see [GitHub teams](#github-teams)) and leave out the top-level `members` map: the default [identity mapping](#identity-mapping) needs no entry per person. `managers` still takes logins, because managers get read access to the team's dailies.
 
 Every `yaml` example on this page is checked against the real parser when the docs are built.
 
@@ -50,7 +61,7 @@ members:
 | Key | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `teams` | list of teams | yes | | At least one team. Team names must be unique. |
-| `members` | map of GitHub login to identities | no | `{}` | Manual identity mapping. See [Identity mapping](#identity-mapping). |
+| `members` | map of GitHub login to identities | no | `{}` | Manual identity mapping, only for exceptions. Rejected in a public repository. See [Identity mapping](#identity-mapping). |
 
 No other keys are accepted. An unknown key fails validation with `Unrecognized key`.
 
@@ -149,7 +160,7 @@ CI failing on a pull request's head commit counts after 24 hours, and is not con
 
 ## GitHub teams
 
-Use a GitHub team instead of listing people one by one. The app needs the Members (read) permission, which it asks for on install.
+Use a GitHub team instead of listing people one by one. This is the recommended way: the team changes on GitHub without editing the file, and the file lists no logins. The app needs the Members (read) permission, which it asks for on install.
 
 ```yaml
 teams:
@@ -194,7 +205,9 @@ teams:
 
 ## Identity mapping
 
-Standcast mentions people in Slack by matching the primary verified email of their GitHub account with the email of their Slack user. In Google Chat, people link themselves by sending the Standcast app a direct message, matched by the same email. When the emails differ, map the person by hand under the top-level `members` key, using their GitHub login:
+By default nobody needs an entry in the file. Standcast mentions people in Slack by matching the primary verified email of their GitHub account, captured when they sign in with `standcast login`, with the email of their Slack user. In Google Chat, people link themselves by sending the Standcast app a direct message, matched by the same email. Linear users are linked by the same GitHub email.
+
+Only when the emails differ, map the person by hand under the top-level `members` key, using their GitHub login. Each entry puts the person's login next to a work email or a chat user id, so it is personal data: the mapping is accepted only when `standcast.yml` is in a private repository. In a public repository, the `Standcast config` check fails with "standcast.yml exposes personal data", annotated on the `members` key, and the setup page shows a warning. Move the file to `.github-private` (or make `.github` private), or remove the entries and let people link through the default above.
 
 ```yaml
 teams:
@@ -244,6 +257,7 @@ These are the messages the setup page shows, as `path: message`. `teams.0` is th
 | `members.alice.slack: must be a Slack user id like U0123ABCD` | A name, an email, a channel id or `<!channel>` | Use the member id, which starts with `U` or `W` |
 | `members.alice.google_chat: must be a Google Chat user like users/123456789` | An email, a name or a bare number | Use `users/` followed by the digits of the user id |
 | `members.alice: Unrecognized key: "slak"` | A misspelled identity key | Use `slack`, `google_chat`, `linear` or `jira` |
+| `standcast.yml exposes personal data` (check run) | Identity overrides under `members` in a public repository | Move the file to `.github-private`, make the repository private, or remove the overrides |
 | `teams.1.name: duplicate team name "backend"` | Two teams with the same name | Rename one of them |
 | `teams.0.signals.pr_review_hours: Too small: expected number to be >0` | `0` or a negative number | Use a positive number |
 | `teams: Too small: expected array to have >=1 items` | `teams: []` | Add a team |

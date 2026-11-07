@@ -14,7 +14,7 @@ import {
   upsertInstallation,
   upsertMember,
 } from '@standcast/db';
-import type { CheckRunInput, PullRequestDetail } from '@standcast/github';
+import type { CheckRunInput, ConfigRepository, PullRequestDetail } from '@standcast/github';
 import type { LinearOrganization, LinearTokens } from '@standcast/linear';
 import { createMemoryQueue } from '@standcast/queue';
 import { db } from '../../../db/test/setup';
@@ -39,6 +39,14 @@ ${extra}`);
 
 type Source = Awaited<ReturnType<Deps['github']['fetchConfigSource']>>;
 
+export function found(source: string, repository: Partial<ConfigRepository> = {}): Source {
+  return {
+    found: true,
+    source,
+    repository: { name: '.github', defaultBranch: 'trunk', private: true, ...repository },
+  };
+}
+
 export type FakeOptions = {
   profileError?: unknown;
   findUserError?: Error;
@@ -46,7 +54,7 @@ export type FakeOptions = {
   installationIds?: number[];
   webCode?: (code: string) => Promise<string>;
   slackExchange?: Deps['slack']['exchangeCode'];
-  configRepo?: 'missing' | 'error';
+  sourceError?: unknown;
   pulls?: Record<string, PullRequestDetail | null>;
   files?: Record<string, string[]>;
   codeowners?: Record<string, string | null>;
@@ -153,6 +161,7 @@ export function fakeDeps(opts: FakeOptions = {}) {
     config: [] as string[],
     users: [] as number[],
     configRefs: [] as (string | undefined)[],
+    configRepos: [] as (string | undefined)[],
     getPullRequest: [] as string[],
     pullRequestMerged: [] as string[],
     listPullRequestFiles: [] as string[],
@@ -189,15 +198,6 @@ export function fakeDeps(opts: FakeOptions = {}) {
       const login = users.get(Number(params.account_id));
       if (!login) throw Object.assign(new Error('not found'), { status: 404 });
       return { status: 200, data: { id: Number(params.account_id), login } };
-    }
-    if (route === 'GET /repos/{owner}/{repo}') {
-      if (opts.configRepo === 'missing') {
-        throw Object.assign(new Error('not found'), { status: 404 });
-      }
-      if (opts.configRepo === 'error') {
-        throw Object.assign(new Error('boom'), { status: 500 });
-      }
-      return { status: 200, data: { default_branch: 'trunk' } };
     }
     throw new Error(route);
   };
@@ -241,7 +241,9 @@ export function fakeDeps(opts: FakeOptions = {}) {
       fetchConfigSource: async (_o, owner, options) => {
         calls.config.push(owner);
         calls.configRefs.push(options?.ref);
-        return opts.source ?? { found: false, reason: 'no_repo' };
+        calls.configRepos.push(options?.repo);
+        if (opts.sourceError) throw opts.sourceError;
+        return opts.source ?? { found: false, reason: 'no_repo', repository: null };
       },
       getPullRequest: async (_o, ref) => {
         const key = `${ref.owner}/${ref.repo}#${ref.number}`;

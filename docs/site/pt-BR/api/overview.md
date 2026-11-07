@@ -131,7 +131,7 @@ O `code` é o contrato estável: decida pelo `code`, não pela `message`. A `mes
 | `invalid_request` | 422 | A requisição está malformada. Confira `issues` e corrija os campos listados. |
 | `invalid_daily` | 422 | O payload da daily falhou na validação. Confira `issues` contra o schema. |
 | `org_not_found` | 404 | A organização não existe ou o app do Standcast não está instalado nela. Confira o nome e a instalação. |
-| `org_not_configured` | 409 | A organização não tem um `standcast.yml` válido. Adicione ou corrija o arquivo no repositório `.github` e tente de novo. |
+| `org_not_configured` | 409 | A organização não tem um `standcast.yml` válido. Adicione ou corrija o arquivo no repositório `.github-private` (ou `.github`) e tente de novo. |
 | `not_in_team` | 422 | A pessoa não está em nenhum time desta organização. Adicione a pessoa a um time no `standcast.yml`. |
 | `forbidden` | 403 | A credencial é válida, mas a pessoa ou a organização não pode fazer esta ação. |
 | `insufficient_scope` | 403 | Falta à API key o escopo de que esta operação precisa. O erro traz `required_scope`. Crie uma key com esse escopo. |

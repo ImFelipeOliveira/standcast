@@ -78,7 +78,7 @@ Standcast keeps the writing where people already work, inside their agent, and t
 - **Linear cards.** Connect one Linear workspace (read-only) and your own cards that started or finished appear in your draft. A blocker that links a card goes to the people who own the blocking card.
 - **Suggested blockers, only for you.** A pull request waiting too long for review, CI failing for a day or a card in progress for days shows up in your own draft. You confirm or ignore it; nobody else ever sees it.
 - **Several teams, one daily.** People in two teams write once and appear in both digests.
-- **Configuration as code.** A single `standcast.yml` in your `.github` repository. Every push and pull request that changes `standcast.yml` is validated by a `Standcast config` check run with the error on the right line, and an invalid push never breaks anything: the last valid version stays in effect.
+- **Configuration as code.** A single `standcast.yml` in your private `.github-private` repository (or in `.github`). Every push and pull request that changes `standcast.yml` is validated by a `Standcast config` check run with the error on the right line, and an invalid push never breaks anything: the last valid version stays in effect.
 - **Manager tools.** Managers read their team's dailies, digests and blockers from their own AI agent.
 - **Read-only API and webhooks.** API keys (`sck_…`), an OpenAPI reference, and signed outgoing webhooks such as `daily.submitted` and `blocker.opened`.
 - **Bilingual.** English and Brazilian Portuguese across the CLI, chat messages, web pages and documentation.
@@ -127,7 +127,7 @@ You need to own the GitHub organization (or personal account).
 
 1. [Install the Standcast GitHub App](https://github.com/apps/standcast/installations/new) on your organization.
 2. Open the setup page that GitHub sends you to, sign in, and click **Connect Slack**. For Google Chat, add the Standcast app to a space and paste the code it posts in the Google Chat step ([guide](https://docs.standcast.app/admin/google-chat)).
-3. Create `standcast.yml` at the root of your `.github` repository, from the template on the setup page.
+3. Create `standcast.yml` at the root of your private `.github-private` repository (or of `.github`), from the template on the setup page.
 
 Step by step: [Install](https://docs.standcast.app/admin/install).
 
@@ -152,7 +152,7 @@ Then pick how you write your daily:
 
 ## Configuration
 
-All configuration lives in `standcast.yml` at the root of the `.github` repository, on the default branch:
+All configuration lives in `standcast.yml` at the root of the `.github-private` repository or, when that one has no file, of the `.github` repository, on the default branch. Keep it in a private repository: it names the people of your teams. A minimal file:
 
 ```yaml
 teams:

@@ -24,6 +24,14 @@ teams:
 
 type Source = Awaited<ReturnType<Deps['github']['fetchConfigSource']>>;
 
+function found(source: string): Source {
+  return {
+    found: true,
+    source,
+    repository: { name: '.github', defaultBranch: 'main', private: true },
+  };
+}
+
 function harness(source: Source) {
   const calls: string[] = [];
   const queue = createMemoryQueue();
@@ -140,7 +148,7 @@ describe('github webhooks', () => {
   useCleanDb();
 
   test('rejects bad signature', async () => {
-    const h = harness({ found: true, source: VALID });
+    const h = harness(found(VALID));
     const res = await send(h, 'installation', created, 'sha256=deadbeef');
     expect(res.status).toBe(401);
     expect(await getInstallation(db, INST)).toBeNull();
@@ -148,7 +156,7 @@ describe('github webhooks', () => {
   });
 
   test('rejects missing signature', async () => {
-    const h = harness({ found: true, source: VALID });
+    const h = harness(found(VALID));
     const res = await h.app.request('/webhooks/github', {
       method: 'POST',
       headers: { 'x-github-event': 'installation' },
@@ -159,7 +167,7 @@ describe('github webhooks', () => {
   });
 
   test('a signed body that is not json is an invalid request', async () => {
-    const h = harness({ found: true, source: VALID });
+    const h = harness(found(VALID));
     const body = '{not json';
     const res = await h.app.request('/webhooks/github', {
       method: 'POST',
@@ -175,7 +183,7 @@ describe('github webhooks', () => {
   });
 
   test('a body over 1 MB is rejected before it is read', async () => {
-    const h = harness({ found: true, source: VALID });
+    const h = harness(found(VALID));
     const declared = await h.app.request('/webhooks/github', {
       method: 'POST',
       headers: { 'x-github-event': 'installation', 'content-length': String(1024 * 1024 + 1) },
@@ -206,7 +214,7 @@ describe('github webhooks', () => {
   });
 
   test('installation created only enqueues jobs and returns 202', async () => {
-    const h = harness({ found: true, source: VALID });
+    const h = harness(found(VALID));
     const res = await send(h, 'installation', created);
     expect(res.status).toBe(202);
     const row = await getInstallation(db, INST);
@@ -219,7 +227,7 @@ describe('github webhooks', () => {
   });
 
   test('installation created with valid config is configured by the job', async () => {
-    const h = harness({ found: true, source: VALID });
+    const h = harness(found(VALID));
     await send(h, 'installation', created);
     await h.worker();
     expect((await getInstallation(db, INST))?.status).toBe('configured');
@@ -227,7 +235,7 @@ describe('github webhooks', () => {
   });
 
   test('installation created without .github repo', async () => {
-    const h = harness({ found: false, reason: 'no_repo' });
+    const h = harness({ found: false, reason: 'no_repo', repository: null });
     await send(h, 'installation', created);
     await h.worker();
     const row = await getInstallation(db, INST);
@@ -236,7 +244,7 @@ describe('github webhooks', () => {
   });
 
   test('installation_repositories reloads config', async () => {
-    const h = harness({ found: true, source: VALID });
+    const h = harness(found(VALID));
     await send(h, 'installation_repositories', { ...created, action: 'added' });
     await h.worker();
     expect((await getInstallation(db, INST))?.status).toBe('configured');
@@ -247,7 +255,7 @@ describe('github webhooks', () => {
     if (!good.ok) throw new Error('bad fixture');
     await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
     await setInstallationConfig(db, INST, { status: 'configured', config: good.config });
-    const h = harness({ found: true, source: 'teams: nope' });
+    const h = harness(found('teams: nope'));
     const res = await send(
       h,
       'push',
@@ -266,7 +274,7 @@ describe('github webhooks', () => {
 
   test('push removing standcast.yml makes installation unconfigured', async () => {
     await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
-    const h = harness({ found: false, reason: 'no_file' });
+    const h = harness({ found: false, reason: 'no_file', repository: null });
     await send(h, 'push', push('.github', 'refs/heads/main', { removed: ['standcast.yml'] }));
     await h.worker();
     const row = await getInstallation(db, INST);
@@ -275,27 +283,27 @@ describe('github webhooks', () => {
   });
 
   test('push to other repo ignored', async () => {
-    const h = harness({ found: true, source: VALID });
+    const h = harness(found(VALID));
     await send(h, 'push', push('app', 'refs/heads/main', { modified: ['standcast.yml'] }));
     expect(h.calls).toEqual([]);
   });
 
   test('push to non default branch only enqueues a validation', async () => {
     await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
-    const h = harness({ found: true, source: VALID });
+    const h = harness(found(VALID));
     await send(h, 'push', push('.github', 'refs/heads/dev', { modified: ['standcast.yml'] }));
     expect(h.calls).toEqual([]);
     expect(h.queue.enqueued.map((j) => j.name)).toEqual(['validate-config']);
   });
 
   test('push not touching standcast.yml ignored', async () => {
-    const h = harness({ found: true, source: VALID });
+    const h = harness(found(VALID));
     await send(h, 'push', push('.github', 'refs/heads/main', { modified: ['README.md'] }));
     expect(h.calls).toEqual([]);
   });
 
   test('other events are accepted and ignored', async () => {
-    const h = harness({ found: true, source: VALID });
+    const h = harness(found(VALID));
     const res = await send(h, 'pull_request', { action: 'opened' });
     expect(res.status).toBe(202);
     expect(h.calls).toEqual([]);
@@ -303,7 +311,7 @@ describe('github webhooks', () => {
 
   test('installation deleted cascades', async () => {
     await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
-    const h = harness({ found: true, source: VALID });
+    const h = harness(found(VALID));
     const res = await send(h, 'installation', { ...created, action: 'deleted' });
     expect(res.status).toBe(202);
     expect(await getInstallation(db, INST)).toBeNull();

@@ -100,7 +100,7 @@ function harness(
         missingTeams: members.filter((m) => m.startsWith('@gone/')),
         truncatedTeams: members.filter((m) => m.startsWith('@huge/')),
       }),
-      fetchConfigSource: async () => ({ found: false, reason: 'no_repo' }),
+      fetchConfigSource: async () => ({ found: false, reason: 'no_repo', repository: null }),
       getPullRequest: async () => null,
       pullRequestMerged: async () => null,
       listPullRequestFiles: async () => [],

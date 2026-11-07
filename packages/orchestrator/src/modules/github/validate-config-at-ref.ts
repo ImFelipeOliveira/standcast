@@ -1,17 +1,30 @@
-import { type ConfigError, type Language, locateConfigPath, parseConfig, t } from '@standcast/core';
+import {
+  CONFIG_FILE,
+  type ConfigError,
+  type ConfigRepo,
+  hasIdentityOverrides,
+  type Language,
+  locateConfigKey,
+  locateConfigPath,
+  PREFERRED_CONFIG_REPO,
+  parseConfig,
+  type StandcastConfig,
+  t,
+} from '@standcast/core';
 import { getInstallation } from '@standcast/db';
-import type { CheckRunInput, Octokit } from '@standcast/github';
+import type { CheckRunInput, ConfigRepository, Octokit } from '@standcast/github';
 import type { WorkerDeps } from '../../deps';
 import { logError } from '../../log-error';
 
+export { CONFIG_REPOS, FALLBACK_CONFIG_REPO } from '@standcast/core';
+
 export const VALIDATE_CONFIG_JOB = 'validate-config';
-export const CONFIG_REPO = '.github';
-export const CONFIG_FILE = 'standcast.yml';
 const CHECK_RUN_NAME = 'Standcast config';
 
 export type ValidateConfigJob = {
   installationId: number;
   owner: string;
+  repo: ConfigRepo;
   headSha: string;
   pullNumber?: number;
 };
@@ -23,7 +36,7 @@ export async function enqueueValidateConfig(
   job: ValidateConfigJob,
 ): Promise<void> {
   await deps.queue.enqueue(VALIDATE_CONFIG_JOB, job, {
-    singletonKey: `validate:${job.installationId}:${job.headSha}`,
+    singletonKey: `validate:${job.installationId}:${job.repo}:${job.headSha}`,
   });
 }
 
@@ -44,23 +57,55 @@ async function touchesConfig(
   deps: WorkerDeps,
   octokit: Octokit,
   owner: string,
+  repo: ConfigRepo,
   pullNumber: number,
 ): Promise<boolean> {
   const files = await deps.github.listPullRequestFiles(octokit, {
     owner,
-    repo: CONFIG_REPO,
+    repo,
     number: pullNumber,
   });
   return files.includes(CONFIG_FILE);
 }
 
+type CheckRunBase = Pick<CheckRunInput, 'owner' | 'repo' | 'headSha' | 'name'>;
+
+function exposesIdentities(config: StandcastConfig, repository: ConfigRepository): boolean {
+  return !repository.private && hasIdentityOverrides(config);
+}
+
+function publicIdentityCheckRun(
+  source: string,
+  lang: Language,
+  repository: ConfigRepository,
+  base: CheckRunBase,
+): CheckRunInput {
+  const message = t(lang, 'checkRun.publicIdentity.message', {
+    repo: repository.name,
+    preferred: PREFERRED_CONFIG_REPO,
+  });
+  return {
+    ...base,
+    conclusion: 'failure',
+    title: t(lang, 'checkRun.publicIdentity.title'),
+    summary: message,
+    annotations: [
+      { path: CONFIG_FILE, line: locateConfigKey(source, 'members')?.line ?? 1, message },
+    ],
+  };
+}
+
 function checkRunFor(
   source: string,
-  base: Pick<CheckRunInput, 'owner' | 'repo' | 'headSha' | 'name'>,
+  repository: ConfigRepository,
+  base: CheckRunBase,
 ): CheckRunInput {
   const parsed = parseConfig(source);
   if (parsed.ok) {
     const lang: Language = parsed.config.teams[0]?.language ?? 'en';
+    if (exposesIdentities(parsed.config, repository)) {
+      return publicIdentityCheckRun(source, lang, repository, base);
+    }
     const title = t(lang, 'checkRun.success.title');
     return { ...base, conclusion: 'success', title, summary: title, annotations: [] };
   }
@@ -92,11 +137,14 @@ export async function validateConfigAtRef(
   const octokit = await deps.github.installationOctokit(installation.id);
   if (
     job.pullNumber !== undefined &&
-    !(await touchesConfig(deps, octokit, owner, job.pullNumber))
+    !(await touchesConfig(deps, octokit, owner, job.repo, job.pullNumber))
   ) {
     return 'skipped';
   }
-  const source = await deps.github.fetchConfigSource(octokit, owner, { ref: job.headSha });
+  const source = await deps.github.fetchConfigSource(octokit, owner, {
+    repo: job.repo,
+    ref: job.headSha,
+  });
   if (!source.found) {
     if (source.reason === 'no_access') {
       logError('config validation skipped', {
@@ -107,9 +155,9 @@ export async function validateConfigAtRef(
     }
     return 'skipped';
   }
-  const input = checkRunFor(source.source, {
+  const input = checkRunFor(source.source, source.repository, {
     owner,
-    repo: CONFIG_REPO,
+    repo: job.repo,
     headSha: job.headSha,
     name: CHECK_RUN_NAME,
   });

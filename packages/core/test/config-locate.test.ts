@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { locateConfigPath } from '../src/config-locate';
+import { locateConfigKey, locateConfigPath } from '../src/config-locate';
 
 const source = `teams:
   - name: backend
@@ -30,5 +30,22 @@ describe('locateConfigPath', () => {
 
   test('empty path points to the document start', () => {
     expect(locateConfigPath(source, '')).toEqual({ line: 1, column: 1 });
+  });
+});
+
+describe('locateConfigKey', () => {
+  test('locates the key of a block map on its own line', () => {
+    expect(locateConfigPath(source, 'members')).toEqual({ line: 10, column: 3 });
+    expect(locateConfigKey(source, 'members')).toEqual({ line: 9, column: 1 });
+  });
+
+  test('locates a nested key', () => {
+    expect(locateConfigKey(source, 'members.alice.slack')).toEqual({ line: 10, column: 12 });
+  });
+
+  test('returns null for the document, sequence items and unknown paths', () => {
+    expect(locateConfigKey(source, '')).toBeNull();
+    expect(locateConfigKey(source, 'teams.0')).toBeNull();
+    expect(locateConfigKey(source, 'nope')).toBeNull();
   });
 });

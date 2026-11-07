@@ -11,7 +11,7 @@ import {
 } from '@standcast/db';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { createMembershipCheck, getSetupStatus } from '../../src';
-import { config, fakeDeps, INST, seedMember, seedOrg } from './fakes';
+import { config, fakeDeps, found, INST, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -426,8 +426,34 @@ describe('getSetupStatus teams and config file', () => {
   });
 
   test('links the file on the default branch of the config repo', async () => {
-    const status = await load(config());
+    const status = await load(config(), { source: found('teams: []') });
     expect(status.configFileUrl).toBe('https://github.com/acme/.github/blob/trunk/standcast.yml');
+  });
+
+  test('links the file in .github-private when the config comes from there', async () => {
+    const status = await load(config(), {
+      source: found('teams: []', { name: '.github-private', defaultBranch: 'main' }),
+    });
+    expect(status.configRepo).toEqual({
+      exists: true,
+      name: '.github-private',
+      defaultBranch: 'main',
+    });
+    expect(status.configFileUrl).toBe(
+      'https://github.com/acme/.github-private/blob/main/standcast.yml',
+    );
+  });
+
+  test('points at the repository that exists when no repository has the file', async () => {
+    const status = await load(null, {
+      source: {
+        found: false,
+        reason: 'no_file',
+        repository: { name: '.github', defaultBranch: 'trunk', private: false },
+      },
+    });
+    expect(status.configRepo).toEqual({ exists: true, name: '.github', defaultBranch: 'trunk' });
+    expect(status.configFileUrl).toBeNull();
   });
 
   test('has no teams and no file link without a config', async () => {
@@ -437,7 +463,42 @@ describe('getSetupStatus teams and config file', () => {
   });
 
   test('has no file link when the config repo is missing', async () => {
-    const status = await load(config(), { configRepo: 'missing' });
+    const status = await load(config());
     expect(status.configFileUrl).toBeNull();
+  });
+});
+
+describe('getSetupStatus config notices', () => {
+  const overrides = `members:
+  alice:
+    linear: alice@acme.com
+`;
+
+  async function load(cfg: Parameters<typeof seedOrg>[0], repository: { private: boolean }) {
+    await seedOrg(cfg);
+    const member = await seedMember();
+    await setMemberInstallations(db, member.id, [INST]);
+    const fake = fakeDeps({ source: found('teams: []', repository) });
+    return getSetupStatus(fake.deps, createMembershipCheck(fake.deps), member, INST);
+  }
+
+  test('warns about identity overrides in a public config repository', async () => {
+    const status = await load(config('[alice, bob]', overrides), { private: false });
+    expect(status.configNotices).toEqual(['public_identity_overrides']);
+  });
+
+  test('says nothing when the config repository is private', async () => {
+    const status = await load(config('[alice, bob]', overrides), { private: true });
+    expect(status.configNotices).toEqual([]);
+  });
+
+  test('says nothing for a public repository without overrides', async () => {
+    const status = await load(config(), { private: false });
+    expect(status.configNotices).toEqual([]);
+  });
+
+  test('says nothing without an operational config', async () => {
+    const status = await load(null, { private: false });
+    expect(status.configNotices).toEqual([]);
   });
 });

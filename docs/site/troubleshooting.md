@@ -125,4 +125,6 @@ It failed 20 deliveries in a row. Fix the receiver, add the endpoint again on th
 
 ## The `Standcast config` check failed
 
-A push or pull request in the `.github` repository changed `standcast.yml` and it has errors. Open the check: each error is an annotation on its line, and the summary lists all of them. Fix them and push again. The last valid version stays in effect meanwhile. If the file does not exist, there is no check.
+A push or pull request in the `.github-private` or `.github` repository changed `standcast.yml` and it has errors. Open the check: each error is an annotation on its line, and the summary lists all of them. Fix them and push again. The last valid version stays in effect meanwhile. If the file does not exist, there is no check.
+
+When the title is "standcast.yml exposes personal data", the file is valid but sits in a public repository with identity overrides under `members`. Move the file to `.github-private` (or make the repository private), or remove the overrides and let people link through the verified email of their GitHub account at `standcast login` and, in Google Chat, a direct message to the app. See [Identity mapping](/admin/configuration#identity-mapping).
