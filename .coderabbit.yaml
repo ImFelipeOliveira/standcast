@@ -61,6 +61,8 @@ reviews:
       instructions: |
         Actions must be pinned to full commit SHAs and job permissions kept minimal. No YAML comments.
   pre_merge_checks:
+    docstrings:
+      mode: "off"
     custom_checks:
       - name: No comments in code
         mode: warning
