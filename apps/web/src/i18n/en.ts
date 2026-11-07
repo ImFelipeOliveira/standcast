@@ -110,6 +110,10 @@ export const en: Record<MessageKey, string> = {
   'signedOut.signIn': 'Sign in again',
   'signedOut.docs': 'Read the docs',
   'dialog.close': 'Close',
+  'setup.pending.title': 'This installation is still being processed',
+  'setup.pending.body':
+    'GitHub has not finished telling Standcast about this installation. Refresh this page in a moment.',
+  'setup.pending.refresh': 'Refresh the page',
   'setup.heading': 'Setup',
   'setup.subtitle': 'Connect Standcast to your team tools and check that everything is running.',
   'setup.progress': '{done} of {total} steps done',

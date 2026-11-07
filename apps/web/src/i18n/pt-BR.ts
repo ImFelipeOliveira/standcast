@@ -108,6 +108,10 @@ export const ptBR = {
   'signedOut.signIn': 'Entrar de novo',
   'signedOut.docs': 'Ler a documentação',
   'dialog.close': 'Fechar',
+  'setup.pending.title': 'Esta instalação ainda está sendo processada',
+  'setup.pending.body':
+    'O GitHub ainda não terminou de avisar o Standcast sobre esta instalação. Atualize esta página em instantes.',
+  'setup.pending.refresh': 'Atualizar a página',
   'setup.heading': 'Configuração',
   'setup.subtitle':
     'Conecte o Standcast às ferramentas do time e confira se tudo está funcionando.',
