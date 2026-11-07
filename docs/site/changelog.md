@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- Setup lives in the web app. The API `/setup` redirects there.
+
 ### 0.7.0 — 2026-11-06
 
 ### 0.6.0 — 2026-11-06

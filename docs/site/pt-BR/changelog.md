@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- A configuração fica no app web. O `/setup` da API redireciona para lá.
+
 ### 0.7.0 — 06/11/2026
 
 ### 0.6.0 — 06/11/2026

@@ -101,7 +101,7 @@ Add the custom domain `app-standcast.usefachada.dev` to the Worker in Cloudflare
 You can deploy before the final domain exists, with an interim domain of your own (for example `api-standcast.usefachada.dev`) or the address Railway generates (`*.up.railway.app`). The interim domain points at the api service, which also serves setup, OAuth, webhooks, the API reference at `/reference` and `/install.sh`. The documentation site has its own interim domain on Cloudflare Pages, `docs-standcast.usefachada.dev`. Set `PUBLIC_URL` to that address, for example `https://api-standcast.usefachada.dev`, and point everything below at it:
 
 - **GitHub App:** the callback URL, the webhook URL and the setup URL. See [github-app.md](github-app.md).
-- **GitHub App setup URL:** keep it pointing at the api `/setup` page for now. It changes to the web app only in the later switch-over PR.
+- **GitHub App setup URL:** `https://app.standcast.app/setup`. `https://api.standcast.app/setup` keeps redirecting there, so an install that still has the API address keeps working. Change the GitHub setting by hand after this deploy.
 - **Slack app:** the redirect URLs.
 - **Linear app:** the redirect URL. See [linear-app.md](linear-app.md).
 - **Google Chat app:** the HTTP endpoint URL. See [google-chat-app.md](google-chat-app.md).
@@ -117,7 +117,7 @@ These settings live outside the repository, so a domain change does not update t
 
 | App | Setting | Value | Symptom when wrong |
 | --- | --- | --- | --- |
-| GitHub App | Setup URL | `<PUBLIC_URL>/setup` | After installing the app, the browser lands on a 404 page of another site |
+| GitHub App | Setup URL | `https://app.standcast.app/setup` | After installing the app, the browser lands on a 404 page of another site. `https://api.standcast.app/setup` still redirects here until this GitHub setting is changed by hand |
 | GitHub App | Homepage URL | the landing address (`LANDING_URL`) | People who open the app from GitHub land on the old domain |
 | GitHub App | Callback URL | `<PUBLIC_URL>/auth/github/callback` | Signing in to the setup page fails with a redirect URI error on GitHub |
 | GitHub App | Webhook URL | `<PUBLIC_URL>/webhooks/github` | Installs and `standcast.yml` pushes are never seen; the setup page stays unconfigured |

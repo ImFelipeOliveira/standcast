@@ -732,23 +732,21 @@ describe('security headers', () => {
     expectSecure(login);
   });
 
-  test('the forms still post and redirect on the same origin', async () => {
+  test('POST /setup/api-keys is gone', async () => {
     const { app } = harness();
     const { cookie, token } = await seed();
-    const form = new URLSearchParams({
-      installation_id: String(INST),
-      name: 'ci',
-      scopes: 'teams:read',
-      csrf: csrfToken('sess', token),
-    });
     const res = await app.request('/setup/api-keys', {
       method: 'POST',
       headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' },
-      body: form.toString(),
+      body: new URLSearchParams({
+        installation_id: String(INST),
+        name: 'ci',
+        scopes: 'teams:read',
+        csrf: csrfToken('sess', token),
+      }).toString(),
     });
-    expect(res.status).toBe(303);
-    expect(location(res)).toBe(`/setup?installation_id=${INST}`);
-    expectSecure(res);
+    expect(res.status).toBe(404);
+    expect(location(res)).toBe('');
   });
 });
 

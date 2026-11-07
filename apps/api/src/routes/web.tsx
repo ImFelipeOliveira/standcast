@@ -1,21 +1,15 @@
 import { negotiateLanguage } from '@standcast/core';
-import { API_KEY_SCOPES, type MemberRow, resolveSession, WEBHOOK_EVENTS } from '@standcast/db';
+import { type MemberRow, resolveSession } from '@standcast/db';
 import {
   completeLinearConnect,
   completeSlackConnect,
   completeWebLogin,
-  createInstallationApiKey,
   createMembershipCheck,
-  createWebhookEndpoint,
   type Deps,
   DomainError,
-  disableWebhookEndpoint,
   getSetupStatus,
-  linkGoogleChatSpace,
   logError,
   logoutWebSession,
-  revokeInstallationApiKey,
-  sendTestEvent,
   startLinearConnect,
   startSlackConnect,
   startWebLogin,
@@ -24,18 +18,11 @@ import {
 import { type Context, Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { secureHeaders } from 'hono/secure-headers';
-import { z } from 'zod';
 import installScript from '../../../../scripts/install.sh' with { type: 'text' };
 import { STATUS } from '../http/errors';
-import {
-  type GetClientIp,
-  ipRateLimit,
-  linkCodeGuard,
-  linkCodeIpRateLimit,
-} from '../middleware/rate-limit';
+import { type GetClientIp, ipRateLimit } from '../middleware/rate-limit';
 import { WEB_COOKIE, WEB_COOKIE_PATH, WEB_SESSION_SECONDS } from '../middleware/web-session';
 import { ErrorPage } from '../web/error';
-import { FLASH_COOKIE, FLASH_PATH, FLASH_SECONDS, type FlashValue, sealFlash } from '../web/flash';
 import { PAGE_CSS } from '../web/layout';
 
 const LOGIN_COOKIE = 'sc_login';
@@ -62,30 +49,6 @@ const pageHeaders = secureHeaders({
 
 type Session = { token: string; member: MemberRow };
 
-const installationField = z.string().regex(/^\d+$/).transform(Number);
-
-const createKeyForm = z.object({
-  installation_id: installationField,
-  name: z.string(),
-  scopes: z
-    .union([z.enum(API_KEY_SCOPES), z.array(z.enum(API_KEY_SCOPES))])
-    .optional()
-    .transform((scopes) => (scopes === undefined ? [] : [scopes].flat())),
-});
-
-const installationForm = z.object({ installation_id: installationField });
-
-const linkSpaceForm = z.object({ installation_id: installationField, code: z.string() });
-
-const createWebhookForm = z.object({
-  installation_id: installationField,
-  url: z.string(),
-  events: z
-    .union([z.enum(WEBHOOK_EVENTS), z.array(z.enum(WEBHOOK_EVENTS))])
-    .optional()
-    .transform((events) => (events === undefined ? [] : [events].flat())),
-});
-
 export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Hono {
   const app = new Hono();
   const isMember = createMembershipCheck(deps);
@@ -110,36 +73,6 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       throw new DomainError('forbidden', 'invalid csrf token');
     }
     return form;
-  };
-
-  const parseForm = async <T extends z.ZodType>(c: Context, session: Session, schema: T) => {
-    const parsed = schema.safeParse(await readForm(c, session));
-    if (!parsed.success) {
-      throw new DomainError('invalid_request', 'invalid form', parsed.error.issues);
-    }
-    return parsed.data as z.output<T>;
-  };
-
-  const flashAndRedirect = (
-    c: Context,
-    session: Session,
-    installationId: number,
-    value: FlashValue,
-  ) => {
-    setCookie(
-      c,
-      FLASH_COOKIE,
-      sealFlash(deps.encryptionKey, session.token, installationId, value),
-      {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'Lax',
-        path: FLASH_PATH,
-        maxAge: FLASH_SECONDS,
-      },
-    );
-    c.header('Cache-Control', 'no-store');
-    return c.redirect(`/setup?installation_id=${installationId}`, 303);
   };
 
   const loginRedirect = (c: Context) => {
@@ -263,78 +196,6 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
     );
     if (result instanceof Response) return result;
     return appSetup(c);
-  });
-
-  app.post('/setup/api-keys', async (c) => {
-    const session = await requireSession(c);
-    const form = await parseForm(c, session, createKeyForm);
-    const { installation_id: installationId, name, scopes } = form;
-    const created = await createInstallationApiKey(deps, isMember, session.member, {
-      installationId,
-      name,
-      scopes,
-    });
-    return flashAndRedirect(c, session, installationId, {
-      kind: 'apiKey',
-      name: name.trim(),
-      key: created.key,
-    });
-  });
-
-  app.post('/setup/api-keys/:id/revoke', async (c) => {
-    const session = await requireSession(c);
-    const { installation_id: installationId } = await parseForm(c, session, installationForm);
-    await revokeInstallationApiKey(
-      deps,
-      isMember,
-      session.member,
-      installationId,
-      c.req.param('id'),
-    );
-    return c.redirect(`/setup?installation_id=${installationId}`, 303);
-  });
-
-  app.post('/setup/webhooks', async (c) => {
-    const session = await requireSession(c);
-    const form = await parseForm(c, session, createWebhookForm);
-    const { installation_id: installationId, url, events } = form;
-    const created = await createWebhookEndpoint(deps, isMember, session.member, {
-      installationId,
-      url,
-      events,
-    });
-    return flashAndRedirect(c, session, installationId, {
-      kind: 'webhook',
-      url: url.trim(),
-      secret: created.secret,
-    });
-  });
-
-  app.post('/setup/webhooks/:id/disable', async (c) => {
-    const session = await requireSession(c);
-    const { installation_id: installationId } = await parseForm(c, session, installationForm);
-    await disableWebhookEndpoint(deps, isMember, session.member, installationId, c.req.param('id'));
-    return c.redirect(`/setup?installation_id=${installationId}`, 303);
-  });
-
-  app.post('/setup/webhooks/:id/test', async (c) => {
-    const session = await requireSession(c);
-    const { installation_id: installationId } = await parseForm(c, session, installationForm);
-    await sendTestEvent(deps, isMember, session.member, installationId, c.req.param('id'));
-    return c.redirect(`/setup?installation_id=${installationId}`, 303);
-  });
-
-  app.post('/setup/google-chat', linkCodeIpRateLimit(deps, options.getClientIp), async (c) => {
-    const session = await requireSession(c);
-    const { installation_id: installationId, code } = await parseForm(c, session, linkSpaceForm);
-    await linkGoogleChatSpace(
-      deps,
-      isMember,
-      session.member,
-      { installationId, code },
-      linkCodeGuard(deps, c),
-    );
-    return c.redirect(`/setup?installation_id=${installationId}`, 303);
   });
 
   app.get('/connect/slack', async (c) => {
