@@ -6,10 +6,10 @@
 <title>Terms of use · Standcast</title>
 <meta name="description" content="Plain terms for Standcast, a free open source service in public beta: provided as is, acceptable use, your content, your data and how to leave.">
 <meta name="robots" content="max-image-preview:large">
-<link rel="canonical" href="https://standcast.usefachada.dev/terms/">
-<link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/terms/">
-<link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/termos/">
-<link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/terms/">
+<link rel="canonical" href="https://standcast.app/terms/">
+<link rel="alternate" hreflang="en" href="https://standcast.app/terms/">
+<link rel="alternate" hreflang="pt-BR" href="https://standcast.app/pt-BR/termos/">
+<link rel="alternate" hreflang="x-default" href="https://standcast.app/terms/">
 <link rel="alternate" type="text/markdown" href="/terms/index.md">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta name="theme-color" content="#F6F7FB" media="(prefers-color-scheme: light)">
@@ -19,21 +19,22 @@
 <meta property="og:site_name" content="Standcast">
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="pt_BR">
-<meta property="og:url" content="https://standcast.usefachada.dev/terms/">
+<meta property="og:url" content="https://standcast.app/terms/">
 <meta property="og:title" content="Terms of use · Standcast">
 <meta property="og:description" content="Plain terms for a free open source service in public beta: provided as is, acceptable use, your content and how to leave.">
-<meta property="og:image" content="https://standcast.usefachada.dev/og.png">
+<meta property="og:image" content="https://standcast.app/og.png">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="640">
 <meta property="og:image:alt" content="Standcast: your daily standup, written in your AI agent">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Terms of use · Standcast">
 <meta name="twitter:description" content="Plain terms for a free open source service in public beta: provided as is, acceptable use, your content and how to leave.">
-<meta name="twitter:image" content="https://standcast.usefachada.dev/og.png">
+<meta name="twitter:image" content="https://standcast.app/og.png">
 <link rel="preload" href="/fonts/inter-latin.c9407645.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/styles.css">
+<script src="/app.js" defer></script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Standcast","item":"https://standcast.usefachada.dev/"},{"@type":"ListItem","position":2,"name":"Terms of use","item":"https://standcast.usefachada.dev/terms/"}]}
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Standcast","item":"https://standcast.app/"},{"@type":"ListItem","position":2,"name":"Terms of use","item":"https://standcast.app/terms/"}]}
 </script>
 </head>
 <body>
@@ -45,7 +46,7 @@
       <li><a href="/privacy/">Privacy</a></li>
       <li><a href="/pricing/">Pricing</a></li>
       <li><a href="/faq/">FAQ</a></li>
-      <li><a href="https://docs-standcast.usefachada.dev/">Docs</a></li>
+      <li><a href="https://docs.standcast.app/">Docs</a></li>
       <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
     </ul></nav>
     <div class="nav-end">
@@ -56,7 +57,9 @@
 </header>
 
 <main id="top">
-<section class="hero intro">
+<div class="field-stage">
+<canvas class="hero-field" aria-hidden="true"></canvas>
+<section class="hero intro hero-home">
   <div class="wrap">
     <div class="hero-copy">
       <nav class="crumbs" aria-label="Breadcrumb"><ol>
@@ -69,6 +72,7 @@
     </div>
   </div>
 </section>
+</div>
 
 <section id="terms">
   <div class="wrap">
@@ -95,19 +99,19 @@
       <p>Your organization and its people own what they put in Standcast: dailies, blockers, support requests and configuration. You let Standcast store and process that content only to run the service, for example to build drafts, post digests, send reminders and route blockers. Standcast does not sell it.</p>
 
       <h2 id="your-data">Your data</h2>
-      <p>Standcast processes data as described in the <a href="/privacy/">Privacy</a> page and in the <a href="https://docs-standcast.usefachada.dev/privacy">privacy page of the documentation</a>: what it reads, what it stores, how long it keeps it and who sees what.</p>
+      <p>Standcast processes data as described in the <a href="/privacy/">Privacy</a> page and in the <a href="https://docs.standcast.app/privacy">privacy page of the documentation</a>: what it reads, what it stores, how long it keeps it and who sees what.</p>
 
       <h2 id="other-services">Other services</h2>
       <p>Standcast works with GitHub, Slack, Google Chat and Linear. Your use of those services is subject to their own terms and policies. Standcast is not affiliated with or endorsed by them.</p>
 
       <h2 id="leaving">Leaving Standcast</h2>
-      <p>You can stop at any time: uninstall the GitHub App, remove the Slack app or the Google Chat app, and run <code>standcast logout</code>. What is deleted, and when, is in the <a href="https://docs-standcast.usefachada.dev/privacy">privacy page of the documentation</a>, under removing your data.</p>
+      <p>You can stop at any time: uninstall the GitHub App, remove the Slack app or the Google Chat app, and run <code>standcast logout</code>. What is deleted, and when, is in the <a href="https://docs.standcast.app/privacy">privacy page of the documentation</a>, under removing your data.</p>
 
       <h2 id="changes">Changes to these terms</h2>
       <p>These terms may be updated. The date at the top shows the last change. If you keep using Standcast after a change, you accept the new terms.</p>
 
       <h2 id="contact">Contact</h2>
-      <p>Questions about these terms: <a href="mailto:support.standcast@usefachada.dev">support.standcast@usefachada.dev</a>.</p>
+      <p>Questions about these terms: <a href="mailto:support@standcast.app">support@standcast.app</a>.</p>
     </div>
   </div>
 </section>
@@ -123,12 +127,12 @@
       <li><a href="/pricing/">Pricing</a></li>
       <li><a href="/faq/">FAQ</a></li>
       <li><a href="/beta/">Join the beta</a></li>
-      <li><a href="https://docs-standcast.usefachada.dev/">Documentation</a></li>
+      <li><a href="https://docs.standcast.app/">Documentation</a></li>
       <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
       <li><a href="/llms.txt">llms.txt</a></li>
       <li><a href="/pt-BR/termos/" hreflang="pt-BR" lang="pt-BR">Português</a></li>
     </ul>
-    <p>MIT · support.standcast@usefachada.dev</p>
+    <p>MIT · support@standcast.app</p>
   </div>
 </footer>
 </body>

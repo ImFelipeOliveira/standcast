@@ -1,6 +1,6 @@
 # Como funciona
 
-> Do seu trabalho a um consolidado por time. O Standcast rascunha a sua daily a partir do GitHub e do Linear, você confirma no seu agente de IA ou no terminal, e cada time recebe um consolidado no Slack ou no Google Chat no horário que escolheu.
+> Do seu trabalho a um consolidado por time. O Standcast rascunha a sua daily a partir do GitHub e do Linear, você confirma no seu agente de IA ou no terminal, e cada time recebe um consolidado no Slack ou no Google Chat no horário que escolheu. [Jira, ClickUp e outros vêm a seguir.](https://standcast.app/pt-BR/#integrations)
 
 ## Um dia com o Standcast
 
@@ -48,7 +48,7 @@ teams:
     members: ["@acme/backend"]
 ```
 
-[Referência do standcast.yml](https://docs-standcast.usefachada.dev/pt-BR/admin/configuration)
+[Referência do standcast.yml](https://docs.standcast.app/pt-BR/admin/configuration)
 
 ## Três jeitos de escrever
 
@@ -67,7 +67,7 @@ A skill `/daily` rascunha, pergunta o plano de hoje e os impedimentos e confirma
 
 ### Qualquer cliente MCP
 
-Cursor, Codex, Claude Desktop e VS Code rodam o [servidor MCP](https://docs-standcast.usefachada.dev/pt-BR/members/mcp) local.
+Cursor, Codex, Claude Desktop e VS Code rodam o [servidor MCP](https://docs.standcast.app/pt-BR/members/mcp) local.
 
 ```json
 {
@@ -92,12 +92,12 @@ standcast submit
 
 ## Mais sobre o Standcast
 
-- [Início](https://standcast.usefachada.dev/pt-BR/index.md)
-- [Privacidade](https://standcast.usefachada.dev/pt-BR/privacidade/index.md)
-- [Preços](https://standcast.usefachada.dev/pt-BR/precos/index.md)
-- [Perguntas frequentes](https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/index.md)
-- [Entrar no beta](https://standcast.usefachada.dev/pt-BR/beta/index.md)
-- [Termos de uso](https://standcast.usefachada.dev/pt-BR/termos/index.md)
-- [English version](https://standcast.usefachada.dev/how-it-works/index.md)
+- [Início](https://standcast.app/pt-BR/index.md)
+- [Privacidade](https://standcast.app/pt-BR/privacidade/index.md)
+- [Preços](https://standcast.app/pt-BR/precos/index.md)
+- [Perguntas frequentes](https://standcast.app/pt-BR/perguntas-frequentes/index.md)
+- [Entrar no beta](https://standcast.app/pt-BR/beta/index.md)
+- [Termos de uso](https://standcast.app/pt-BR/termos/index.md)
+- [English version](https://standcast.app/how-it-works/index.md)
 
-Suporte: support.standcast@usefachada.dev
+Suporte: support@standcast.app

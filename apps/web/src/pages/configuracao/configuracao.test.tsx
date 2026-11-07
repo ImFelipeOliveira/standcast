@@ -57,7 +57,7 @@ function baseStatus(overrides: Partial<SetupStatus> = {}): SetupStatus {
     personFailures: [],
     apiKeys: { manage: false },
     webhooks: { manage: false },
-    supportEmail: 'support.standcast@usefachada.dev',
+    supportEmail: 'support@standcast.app',
     ...overrides,
   };
 }
@@ -112,10 +112,14 @@ function seeded(status: SetupStatus, context: OrgContext): QueryClient {
   return queryClient;
 }
 
-function renderPage(status: SetupStatus, context: OrgContext = memberContext): string {
+function renderPage(
+  status: SetupStatus,
+  context: OrgContext = memberContext,
+  connected?: 'slack' | 'linear',
+): string {
   return renderToStaticMarkup(
     <QueryClientProvider client={seeded(status, context)}>
-      <ConfiguracaoPage installationId={status.installationId} />
+      <ConfiguracaoPage installationId={status.installationId} connected={connected} />
     </QueryClientProvider>,
   );
 }
@@ -162,6 +166,34 @@ afterEach(() => {
 });
 
 describe('configuração', () => {
+  test('connected=slack shows a notice in both languages and no secret', () => {
+    applyLang('en');
+    const en = renderPage(baseStatus(), memberContext, 'slack');
+    expect(en).toContain('Slack is connected.');
+    expect(en).not.toContain('Linear is connected.');
+    expect(en).not.toContain('code=');
+    applyLang('pt-BR');
+    expect(renderPage(baseStatus(), memberContext, 'slack')).toContain('O Slack está conectado.');
+  });
+
+  test('connected=linear shows a notice in both languages and no secret', () => {
+    applyLang('en');
+    const en = renderPage(baseStatus(), memberContext, 'linear');
+    expect(en).toContain('Linear is connected.');
+    expect(en).not.toContain('Slack is connected.');
+    expect(en).not.toContain('code=');
+    applyLang('pt-BR');
+    expect(renderPage(baseStatus(), memberContext, 'linear')).toContain('O Linear está conectado.');
+  });
+
+  test('no connected param shows neither notice', () => {
+    const html = renderPage(baseStatus());
+    expect(html).not.toContain('Slack is connected.');
+    expect(html).not.toContain('O Slack está conectado.');
+    expect(html).not.toContain('Linear is connected.');
+    expect(html).not.toContain('O Linear está conectado.');
+  });
+
   test('member sees status but no keys or webhooks', () => {
     const html = renderPage(baseStatus());
     expect(html).toContain('Configuração');
@@ -178,7 +210,7 @@ describe('configuração', () => {
     expect(html).not.toContain('/connect/linear');
     expect(html).not.toContain('API keys');
     expect(html).not.toContain('Webhooks');
-    expect(html).toContain('href="mailto:support.standcast@usefachada.dev"');
+    expect(html).toContain('href="mailto:support@standcast.app"');
   });
 
   test('admin sees keys and webhooks', () => {

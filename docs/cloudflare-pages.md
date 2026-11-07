@@ -1,6 +1,6 @@
 # Documentation site on Cloudflare Pages
 
-The documentation site (`docs/site`, VitePress, en and pt-BR) is a static site hosted on Cloudflare Pages. It is served at the root of its own domain: `https://docs-standcast.usefachada.dev` for now, `https://docs.standcast.app` later. The api does not build or serve it; it only redirects the old `/docs` URLs to it (see [deploy.md](deploy.md)).
+The documentation site (`docs/site`, VitePress, en and pt-BR) is a static site hosted on Cloudflare Pages. It is served at the root of its own domain: `https://docs.standcast.app` for now, `https://docs.standcast.app` later. The api does not build or serve it; it only redirects the old `/docs` URLs to it (see [deploy.md](deploy.md)).
 
 ## Create the project
 
@@ -23,7 +23,7 @@ Set these for both **Production** and **Preview** under **Settings > Variables a
 | --- | --- |
 | `BUN_VERSION` | `1.4.4`, the same Bun as the Docker image |
 | `SUPPORT_EMAIL` | The support address shown on the privacy pages. The build fails without it |
-| `STANDCAST_PUBLIC_URL` | The api's public URL, for example `https://api-standcast.usefachada.dev`. It must use `https` and have no trailing slash, or the build fails. The docs examples (install command, base URL, `curl` calls) and the **API reference** link (`<STANDCAST_PUBLIC_URL>/reference`) use it. When it is not set, they show `https://api.standcast.app` |
+| `STANDCAST_PUBLIC_URL` | The api's public URL, for example `https://api.standcast.app`. It must use `https` and have no trailing slash, or the build fails. The docs examples (install command, base URL, `curl` calls) and the **API reference** link (`<STANDCAST_PUBLIC_URL>/reference`) use it. When it is not set, they show `https://api.standcast.app` |
 
 ## Branches
 
@@ -34,9 +34,7 @@ Under **Settings > Builds & deployments > Branch control**:
 
 ## Custom domain
 
-Under **Custom domains**, add `docs-standcast.usefachada.dev`. Then set `DOCS_URL=https://docs-standcast.usefachada.dev` on the api service on Railway, so the setup header and the `/docs` redirects point at it.
-
-When the final domain arrives, add `docs.standcast.app` as a second custom domain, set `DOCS_URL=https://docs.standcast.app` on the api and keep the interim domain attached.
+Under **Custom domains**, add `docs.standcast.app`. Then set `DOCS_URL=https://docs.standcast.app` on the api service on Railway, so the OpenAPI document and the `/docs` redirects point at it.
 
 ## Headers and redirects
 
@@ -48,10 +46,10 @@ The build writes two files Cloudflare Pages reads from the output directory:
 ## Check a build locally
 
 ```sh
-SUPPORT_EMAIL=x@y.z STANDCAST_PUBLIC_URL=https://api-standcast.usefachada.dev bun run docs:build
+SUPPORT_EMAIL=x@y.z STANDCAST_PUBLIC_URL=https://api.standcast.app bun run docs:build
 ```
 
-`docs/site/.vitepress/dist/index.html` must exist, asset URLs start with `/assets/`, and the API reference link points at `https://api-standcast.usefachada.dev/reference`.
+`docs/site/.vitepress/dist/index.html` must exist, asset URLs start with `/assets/`, and the API reference link points at `https://api.standcast.app/reference`.
 
 ## Keep Cloudflare script injection off
 
@@ -68,7 +66,7 @@ If the project was created through **Workers & Pages > Create > Worker > Import 
 
 ## Landing page Worker
 
-The landing page (`apps/landing`) is a second Worker, `standcast-landing`, served at `https://standcast.usefachada.dev`. It has no build step: `apps/landing/public` is published as static assets, with its own `_headers` already in that folder. The config is `apps/landing/wrangler.jsonc`. Agents find `llms.txt` at its root.
+The landing page (`apps/landing`) is a second Worker, `standcast-landing`, served at `https://standcast.app`. It has no build step: `apps/landing/public` is published as static assets, with its own `_headers` already in that folder. The config is `apps/landing/wrangler.jsonc`. Agents find `llms.txt` at its root.
 
 Create it through **Workers & Pages > Create > Worker > Import a repository** (Workers Builds) and pick the `standcast` repository.
 
@@ -80,4 +78,4 @@ Create it through **Workers & Pages > Create > Worker > Import a repository** (W
 | Deploy command | `npx wrangler deploy -c apps/landing/wrangler.jsonc` |
 | Root directory | `/` |
 
-Add the custom domain `standcast.usefachada.dev` under the Worker's **Settings > Domains & Routes**. The form posts to the api, which sends the browser back to `LANDING_URL` when the form is invalid (see [deploy.md](deploy.md)). The landing's `_headers` CSP `form-action` lists the api, docs and landing hosts, so update it if `DOCS_URL`, `LANDING_URL` or the api host change. When `standcast.app` arrives, add it as a second custom domain and keep the interim one.
+Add the custom domain `standcast.app` under the Worker's **Settings > Domains & Routes**. The form posts to the api, which sends the browser back to `LANDING_URL` when the form is invalid (see [deploy.md](deploy.md)). The landing's `_headers` CSP `form-action` lists the api, docs and landing hosts, so update it if `DOCS_URL`, `LANDING_URL` or the api host change.

@@ -4,6 +4,8 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 
 ## Unreleased
 
+- The hosted base URL is `https://api.standcast.app`. `https://api-standcast.usefachada.dev` still serves the same API, with no redirect, so an existing client keeps its base URL and its credential. A URL base hospedada é `https://api.standcast.app`. `https://api-standcast.usefachada.dev` continua servindo a mesma API, sem redirecionamento, então um cliente existente mantém a URL base e a credencial.
+
 ## 0.7.0 — 2026-11-06
 
 ## 0.6.0 — 2026-11-06

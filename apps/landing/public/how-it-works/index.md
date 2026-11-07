@@ -1,6 +1,6 @@
 # How it works
 
-> From your work to one team digest. Standcast drafts your daily from GitHub and Linear, you confirm it in your AI agent or the terminal, and each team gets one digest in Slack or Google Chat at the time it chose.
+> From your work to one team digest. Standcast drafts your daily from GitHub and Linear, you confirm it in your AI agent or the terminal, and each team gets one digest in Slack or Google Chat at the time it chose. [Jira, ClickUp and others are coming.](https://standcast.app/#integrations)
 
 ## A day with Standcast
 
@@ -48,7 +48,7 @@ teams:
     members: ["@acme/backend"]
 ```
 
-[standcast.yml reference](https://docs-standcast.usefachada.dev/admin/configuration)
+[standcast.yml reference](https://docs.standcast.app/admin/configuration)
 
 ## Three ways to write
 
@@ -67,7 +67,7 @@ The `/daily` skill drafts, asks for today and blockers, and confirms with you.
 
 ### Any MCP client
 
-Cursor, Codex, Claude Desktop and VS Code run the local [MCP server](https://docs-standcast.usefachada.dev/members/mcp).
+Cursor, Codex, Claude Desktop and VS Code run the local [MCP server](https://docs.standcast.app/members/mcp).
 
 ```json
 {
@@ -92,12 +92,12 @@ standcast submit
 
 ## More about Standcast
 
-- [Home](https://standcast.usefachada.dev/index.md)
-- [Privacy](https://standcast.usefachada.dev/privacy/index.md)
-- [Pricing](https://standcast.usefachada.dev/pricing/index.md)
-- [FAQ](https://standcast.usefachada.dev/faq/index.md)
-- [Join the beta](https://standcast.usefachada.dev/beta/index.md)
-- [Terms of use](https://standcast.usefachada.dev/terms/index.md)
-- [Versão em português](https://standcast.usefachada.dev/pt-BR/como-funciona/index.md)
+- [Home](https://standcast.app/index.md)
+- [Privacy](https://standcast.app/privacy/index.md)
+- [Pricing](https://standcast.app/pricing/index.md)
+- [FAQ](https://standcast.app/faq/index.md)
+- [Join the beta](https://standcast.app/beta/index.md)
+- [Terms of use](https://standcast.app/terms/index.md)
+- [Versão em português](https://standcast.app/pt-BR/como-funciona/index.md)
 
-Support: support.standcast@usefachada.dev
+Support: support@standcast.app

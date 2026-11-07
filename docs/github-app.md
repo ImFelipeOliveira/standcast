@@ -1,6 +1,6 @@
 # Register the GitHub App
 
-Standcast is hosted by one operator, who registers one public GitHub App. Organizations install that app. Replace `<PUBLIC_URL>` below with the public address of your API, for example `https://standcast.example.com`. It must be the same value as the `PUBLIC_URL` environment variable.
+Standcast is hosted by one operator, who registers one public GitHub App. Organizations install that app. Replace `<PUBLIC_URL>` below with the public address of your API, for example `https://standcast.example.com`. It must be the same value as the `PUBLIC_URL` environment variable. Replace `<APP_URL>` with the public address of the web app. It must be the same value as the `APP_URL` environment variable.
 
 ## Values you need
 
@@ -8,7 +8,7 @@ Standcast is hosted by one operator, who registers one public GitHub App. Organi
 | --- | --- |
 | Homepage URL | `<PUBLIC_URL>` |
 | Callback URL | `<PUBLIC_URL>/auth/github/callback` |
-| Setup URL | `<PUBLIC_URL>/setup` |
+| Setup URL | `<APP_URL>/setup` |
 | Webhook URL | `<PUBLIC_URL>/webhooks/github` |
 | Webhook secret | A random string. Keep it: it becomes `GITHUB_WEBHOOK_SECRET` |
 
@@ -17,7 +17,7 @@ Standcast is hosted by one operator, who registers one public GitHub App. Organi
 1. Open **Settings > Developer settings > GitHub Apps > New GitHub App** on the account that will own the app.
 2. Set **GitHub App name** and **Homepage URL**.
 3. Under **Identifying and authorizing users**, set **Callback URL** to `<PUBLIC_URL>/auth/github/callback`. Turn **Request user authorization (OAuth) during installation** off. Turn **Enable Device Flow** on. The CLI sign-in uses the device flow.
-4. Under **Post installation**, set **Setup URL** to `<PUBLIC_URL>/setup`. Turn **Redirect on update** on.
+4. Under **Post installation**, set **Setup URL** to `<APP_URL>/setup`. It must match `APP_URL`. Turn **Redirect on update** on. `<PUBLIC_URL>/setup` keeps redirecting there, so an install that still has the API address keeps working until this GitHub setting is changed.
 5. Under **Webhook**, keep **Active** on, set **Webhook URL** to `<PUBLIC_URL>/webhooks/github` and set the **Secret**.
 6. Under **Repository permissions**, set exactly:
 
@@ -39,7 +39,7 @@ Standcast is hosted by one operator, who registers one public GitHub App. Organi
 
 [`github-app-manifest.json`](github-app-manifest.json) holds the same configuration: webhook, setup URL, callback URL, `public: true`, permissions and events. The manifest flow creates the app in one click and returns the credentials.
 
-1. Copy the manifest and replace every `https://standcast.example.com` with your `<PUBLIC_URL>`. Keep `redirect_url` pointing at a page you can open: GitHub sends the browser there with a temporary `code` in the query string. The manifest keeps `<PUBLIC_URL>/docs/`: the api answers it with a permanent redirect to the documentation site (`DOCS_URL`), and the redirect keeps the query string, so the `code` is still in the address bar. Pointing it straight at `DOCS_URL` also works.
+1. Copy the manifest and replace every `https://standcast.example.com` with your `<PUBLIC_URL>`. Replace `https://app.standcast.example.com` with your `<APP_URL>`, so `setup_url` becomes `<APP_URL>/setup`. `<PUBLIC_URL>/setup` keeps redirecting there. Keep `redirect_url` pointing at a page you can open: GitHub sends the browser there with a temporary `code` in the query string. The manifest keeps `<PUBLIC_URL>/docs/`: the api answers it with a permanent redirect to the documentation site (`DOCS_URL`), and the redirect keeps the query string, so the `code` is still in the address bar. Pointing it straight at `DOCS_URL` also works.
 2. Save this page locally as `register.html`, pasting the edited manifest as the `value` of the hidden field (escape the double quotes as `&quot;`), and open it in your browser:
 
    ```html
@@ -75,7 +75,7 @@ Map the values to the environment variables of the api and worker services:
 
 For `GITHUB_APP_PRIVATE_KEY`, paste the whole PEM contents. In a single-line variable editor, replace the line breaks with `\n`.
 
-Then install the app on a test organization. GitHub redirects the installer to `<PUBLIC_URL>/setup?installation_id=<id>`.
+Then install the app on a test organization. GitHub redirects the installer to `<APP_URL>/setup?installation_id=<id>`.
 
 ## Slack
 

@@ -416,44 +416,18 @@ describe('google chat link routes', () => {
 });
 
 describe('POST /setup/google-chat', () => {
-  const submit = (h: Harness, user: User, fields: Record<string, string>) =>
-    h.app.request('/setup/google-chat', {
-      method: 'POST',
-      headers: { cookie: user.cookie, 'content-type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(fields).toString(),
-    });
-
-  test('setup form links a space', async () => {
+  test('the setup form is gone', async () => {
     const h = await harness();
-    const code = await issueCode(h);
-    const forged = await submit(h, h.alice, {
-      csrf: 'forged',
-      installation_id: String(INST),
-      code,
+    const res = await h.app.request('/setup/google-chat', {
+      method: 'POST',
+      headers: { cookie: h.alice.cookie, 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        csrf: h.alice.csrf,
+        installation_id: String(INST),
+        code: 'K7QF3MZP',
+      }).toString(),
     });
-    expect(forged.status).toBe(403);
-    const member = await submit(h, h.bob, {
-      csrf: h.bob.csrf,
-      installation_id: String(INST),
-      code,
-    });
-    expect(member.status).toBe(403);
-    const res = await submit(h, h.alice, {
-      csrf: h.alice.csrf,
-      installation_id: String(INST),
-      code,
-    });
-    expect(res.status).toBe(303);
-    expect(res.headers.get('location')).toBe(`/setup?installation_id=${INST}`);
-    expect(await listGoogleChatSpaces(db, INST)).toEqual([
-      { name: 'spaces/AAAA', displayName: 'Alpha room' },
-    ]);
-    const again = await submit(h, h.alice, {
-      csrf: h.alice.csrf,
-      installation_id: String(INST),
-      code,
-    });
-    expect(again.status).toBe(422);
-    expect(await again.text()).toContain('Invalid code');
+    expect(res.status).toBe(404);
+    expect(await listGoogleChatSpaces(db, INST)).toEqual([]);
   });
 });

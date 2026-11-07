@@ -6,10 +6,10 @@
 <title>Join the beta · Standcast</title>
 <meta name="description" content="Request access to the Standcast public beta. We're looking for teams of 3 to 15 people on GitHub and Slack or Google Chat, and we'll help you set it up.">
 <meta name="robots" content="max-image-preview:large">
-<link rel="canonical" href="https://standcast.usefachada.dev/beta/">
-<link rel="alternate" hreflang="en" href="https://standcast.usefachada.dev/beta/">
-<link rel="alternate" hreflang="pt-BR" href="https://standcast.usefachada.dev/pt-BR/beta/">
-<link rel="alternate" hreflang="x-default" href="https://standcast.usefachada.dev/beta/">
+<link rel="canonical" href="https://standcast.app/beta/">
+<link rel="alternate" hreflang="en" href="https://standcast.app/beta/">
+<link rel="alternate" hreflang="pt-BR" href="https://standcast.app/pt-BR/beta/">
+<link rel="alternate" hreflang="x-default" href="https://standcast.app/beta/">
 <link rel="alternate" type="text/markdown" href="/beta/index.md">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta name="theme-color" content="#F6F7FB" media="(prefers-color-scheme: light)">
@@ -19,21 +19,22 @@
 <meta property="og:site_name" content="Standcast">
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="pt_BR">
-<meta property="og:url" content="https://standcast.usefachada.dev/beta/">
+<meta property="og:url" content="https://standcast.app/beta/">
 <meta property="og:title" content="Join the beta · Standcast">
 <meta property="og:description" content="We're looking for teams of 3 to 15 people on GitHub and Slack or Google Chat. We'll help you set it up.">
-<meta property="og:image" content="https://standcast.usefachada.dev/og.png">
+<meta property="og:image" content="https://standcast.app/og.png">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="640">
 <meta property="og:image:alt" content="Standcast: your daily standup, written in your AI agent">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Join the beta · Standcast">
 <meta name="twitter:description" content="We're looking for teams of 3 to 15 people on GitHub and Slack or Google Chat. We'll help you set it up.">
-<meta name="twitter:image" content="https://standcast.usefachada.dev/og.png">
+<meta name="twitter:image" content="https://standcast.app/og.png">
 <link rel="preload" href="/fonts/inter-latin.c9407645.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/styles.css">
+<script src="/app.js" defer></script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Standcast","item":"https://standcast.usefachada.dev/"},{"@type":"ListItem","position":2,"name":"Join the beta","item":"https://standcast.usefachada.dev/beta/"}]}
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Standcast","item":"https://standcast.app/"},{"@type":"ListItem","position":2,"name":"Join the beta","item":"https://standcast.app/beta/"}]}
 </script>
 </head>
 <body>
@@ -45,7 +46,7 @@
       <li><a href="/privacy/">Privacy</a></li>
       <li><a href="/pricing/">Pricing</a></li>
       <li><a href="/faq/">FAQ</a></li>
-      <li><a href="https://docs-standcast.usefachada.dev/">Docs</a></li>
+      <li><a href="https://docs.standcast.app/">Docs</a></li>
       <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
     </ul></nav>
     <div class="nav-end">
@@ -56,7 +57,9 @@
 </header>
 
 <main id="top">
-<section class="hero intro">
+<div class="field-stage">
+<canvas class="hero-field" aria-hidden="true"></canvas>
+<section class="hero intro hero-home">
   <div class="wrap">
     <div class="hero-copy">
       <nav class="crumbs" aria-label="Breadcrumb"><ol>
@@ -69,6 +72,7 @@
     </div>
   </div>
 </section>
+</div>
 
 <section id="beta" class="flush">
   <div class="wrap">
@@ -76,9 +80,9 @@
       <div class="head tight">
         <h2>Request beta access</h2>
         <p class="lede">Tell us about your team. After you send the form, we take you to the install guide.</p>
-        <p class="fine">We keep your request for 12 months to contact your team. See <a href="https://docs-standcast.usefachada.dev/privacy#beta-requests">beta requests</a> in the privacy page.</p>
+        <p class="fine">We keep your request for 12 months to contact your team. See <a href="https://docs.standcast.app/privacy#beta-requests">beta requests</a> in the privacy page.</p>
       </div>
-      <form id="beta-form" action="https://api-standcast.usefachada.dev/beta" method="post">
+      <form id="beta-form" action="https://api.standcast.app/beta" method="post">
         <p class="invalid" id="beta-invalid" role="alert">We couldn't send your request. Check your name and work email, pick an option in each list and try again.</p>
         <input type="hidden" name="locale" value="en">
         <label for="f-name">Name<input id="f-name" name="name" type="text" autocomplete="name" required maxlength="120"></label>
@@ -120,12 +124,12 @@
       <li><a href="/pricing/">Pricing</a></li>
       <li><a href="/faq/">FAQ</a></li>
       <li><a href="/beta/" aria-current="page">Join the beta</a></li>
-      <li><a href="https://docs-standcast.usefachada.dev/">Documentation</a></li>
+      <li><a href="https://docs.standcast.app/">Documentation</a></li>
       <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
       <li><a href="/llms.txt">llms.txt</a></li>
       <li><a href="/pt-BR/beta/" hreflang="pt-BR" lang="pt-BR">Português</a></li>
     </ul>
-    <p>MIT · support.standcast@usefachada.dev</p>
+    <p>MIT · support@standcast.app</p>
   </div>
 </footer>
 </body>

@@ -1,15 +1,10 @@
 import { describe, expect, test } from 'bun:test';
 import { parseConfig, type StandcastConfig } from '@standcast/core';
 import {
-  claimDelivery,
   createSession,
-  failDelivery,
   getConnection,
   listMemberInstallations,
-  markConnectionInvalid,
   resolveSession,
-  saveConnection,
-  setInstallationAccessWarning,
   setInstallationConfig,
   setMemberInstallations,
   upsertInstallation,
@@ -201,13 +196,28 @@ const callback = (
 describe('web login', () => {
   useCleanDb();
 
-  test('setup requires login', async () => {
+  test('setup without a session redirects to the app and keeps the query', async () => {
     const { app } = harness();
-    const res = await app.request(`/setup?installation_id=${INST}`);
+    const res = await app.request('/setup?installation_id=42&from=github');
     expect(res.status).toBe(302);
-    expect(location(res)).toBe(
-      `/auth/github/login?next=${encodeURIComponent(`/setup?installation_id=${INST}`)}`,
-    );
+    expect(location(res)).toBe('https://app.test/setup?installation_id=42&from=github');
+    expect(res.headers.get('set-cookie')).toBeNull();
+  });
+
+  test('setup without a query redirects to the app setup root', async () => {
+    const { app } = harness();
+    const res = await app.request('/setup');
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe('https://app.test/setup');
+  });
+
+  test('setup with a session redirects to the app instead of rendering html', async () => {
+    const { app } = harness();
+    const { cookie } = await seed();
+    const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe(`https://app.test/setup?installation_id=${INST}`);
+    expect(await res.text()).not.toContain('<html');
   });
 
   test('login redirects to github with a signed state and sets the nonce cookie', async () => {
@@ -333,69 +343,28 @@ describe('setup header', () => {
       headers: { cookie, 'accept-language': lang },
     });
 
-  test('a member with one installation sees the owner as text and no select', async () => {
-    const { app } = harness();
-    const { cookie } = await seed();
-    const html = await (await get(app, cookie, INST)).text();
-    expect(html).toContain('<div class="page"><header class="topbar">');
-    expect(html).toContain('</header><main>');
-    expect(html).toContain('<nav class="topbar-actions" aria-label="Account">');
-    expect(html).toContain('acme');
-    expect(html).not.toContain('<select');
-  });
-
-  test('a member with two installations gets a switcher with the current one selected', async () => {
-    const { app, orgs } = harness();
-    orgs.add('other');
-    const { cookie, member } = await seed();
-    await setMemberInstallations(db, member.id, [INST, FOREIGN]);
-    const html = await (await get(app, cookie, INST)).text();
-    expect(html).toContain('<form method="get" action="/setup"');
-    expect(html).toContain('<select name="installation_id"');
-    expect(html).toMatch(new RegExp(`<option value="${INST}" selected(="")?>acme</option>`));
-    expect(html).toContain(`<option value="${FOREIGN}">other</option>`);
-    expect(html).toContain('<button type="submit"');
-    expect(html).toContain('>Go<');
-    const pt = await (await get(app, cookie, INST, 'pt-BR')).text();
-    expect(pt).toContain('>Ir<');
-  });
-
-  test('opening the other installation shows the other organization', async () => {
+  test('a linked installation redirects to the app setup', async () => {
     const { app, orgs } = harness();
     orgs.add('other');
     const { cookie, member } = await seed();
     await setMemberInstallations(db, member.id, [INST, FOREIGN]);
     const res = await get(app, cookie, FOREIGN);
-    expect(res.status).toBe(200);
-    expect(await res.text()).toMatch(
-      new RegExp(`<option value="${FOREIGN}" selected(="")?>other</option>`),
-    );
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe(`https://app.test/setup?installation_id=${FOREIGN}`);
   });
 
-  test('an installation the member is not linked to stays forbidden', async () => {
+  test('an installation the member is not linked to still redirects to the app', async () => {
     const { app } = harness();
     const { cookie } = await seed();
     const res = await get(app, cookie, FOREIGN);
     expect(res.status).toBe(302);
-  });
-
-  test('docs and sign out links appear in en and pt-BR', async () => {
-    const { app } = harness();
-    const { cookie } = await seed();
-    const en = await (await get(app, cookie, INST)).text();
-    expect(en).toContain('<a href="https://docs.sw.test/"');
-    expect(en).toContain('Docs');
-    expect(en).toContain('Sign out');
-    const pt = await (await get(app, cookie, INST, 'pt-BR')).text();
-    expect(pt).toContain('<a href="https://docs.sw.test/pt-BR/"');
-    expect(pt).toContain('Docs');
-    expect(pt).toContain('Sair');
+    expect(location(res)).toBe(`https://app.test/setup?installation_id=${FOREIGN}`);
   });
 
   test('error pages keep the simple header', async () => {
     const { app } = harness();
     const { cookie } = await seed();
-    const forbidden = await app.request(`/setup?installation_id=${FOREIGN}&resynced=1`, {
+    const forbidden = await app.request(`/connect/slack?installation_id=${FOREIGN}&resynced=1`, {
       headers: { cookie, 'accept-language': 'en' },
     });
     expect(forbidden.status).toBe(403);
@@ -411,7 +380,7 @@ describe('setup header', () => {
 describe('setup page', () => {
   useCleanDb();
 
-  test('a foreign installation and a missing one look the same', async () => {
+  test('a foreign installation and a missing one both redirect to the app', async () => {
     const { app } = harness();
     const { cookie } = await seed();
     const responses = async (id: number) => {
@@ -423,27 +392,32 @@ describe('setup page', () => {
         firstStatus: first.status,
         firstLocation: location(first).replace(String(id), 'ID'),
         afterStatus: after.status,
-        afterBody: await after.text(),
+        afterLocation: location(after).replace(String(id), 'ID'),
       };
     };
     const foreign = await responses(FOREIGN);
     const missing = await responses(777);
-    expect(foreign.firstStatus).toBe(302);
-    expect(foreign.afterStatus).toBe(403);
+    expect(foreign).toEqual({
+      firstStatus: 302,
+      firstLocation: 'https://app.test/setup?installation_id=ID',
+      afterStatus: 302,
+      afterLocation: 'https://app.test/setup?installation_id=ID&resynced=1',
+    });
     expect(missing).toEqual(foreign);
   });
 
-  test('setup forbids a member who left the organization', async () => {
+  test('a member who left the organization is still sent to the app', async () => {
     const { app, orgMembers } = harness();
     const { cookie } = await seed();
     orgMembers.delete('alice');
     const res = await app.request(`/setup?installation_id=${INST}&resynced=1`, {
       headers: { cookie },
     });
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe(`https://app.test/setup?installation_id=${INST}&resynced=1`);
   });
 
-  test('setup shows errors for invalid config', async () => {
+  test('a configured installation redirects to the app', async () => {
     const { app } = harness();
     const { cookie } = await seed(async (id) => {
       await setInstallationConfig(db, id, {
@@ -452,230 +426,9 @@ describe('setup page', () => {
       });
     });
     const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    const html = await res.text();
-    expect(res.status).toBe(200);
-    expect(html).toContain('teams.0.digest_at');
-    expect(html).toContain('must be HH:MM (24h)');
-  });
-
-  test('setup says the last valid config stays in use while invalid', async () => {
-    const { app } = harness();
-    const { cookie } = await seed(async (id) => {
-      await setInstallationConfig(db, id, {
-        status: 'invalid',
-        errors: [{ path: 'teams', message: 'bad' }],
-      });
-    });
-    const en = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    expect(await en.text()).toContain(
-      'Standcast keeps using the last valid version until you fix it.',
-    );
-    const pt = await app.request(`/setup?installation_id=${INST}`, {
-      headers: { cookie, 'accept-language': 'pt-BR' },
-    });
-    expect(await pt.text()).toContain(
-      'O Standcast continua usando a última versão válida até você corrigir.',
-    );
-  });
-
-  test('setup shows the unconfigured reason', async () => {
-    const { app } = harness();
-    const { cookie } = await seed(async (id) => {
-      await setInstallationConfig(db, id, { status: 'unconfigured', reason: 'no_file' });
-    });
-    const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    const html = await res.text();
-    expect(html).toContain('no_file');
-    expect(html).toContain('one Slack team and one Google Chat team');
-  });
-
-  test('setup prefilled link', async () => {
-    const { app } = harness();
-    const { cookie } = await seed(async (id) => {
-      await setInstallationConfig(db, id, { status: 'unconfigured', reason: 'no_file' });
-    });
-    const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    const html = (await res.text()).replaceAll('&amp;', '&');
-    expect(html).toContain(
-      'https://github.com/acme/.github/new/trunk?filename=standcast.yml&value=',
-    );
-    expect(html).toContain('help@sw.test');
-  });
-
-  test('setup links to repo creation when .github is missing', async () => {
-    const { app } = harness({ hasConfigRepo: false });
-    const { cookie } = await seed(async (id) => {
-      await setInstallationConfig(db, id, { status: 'unconfigured', reason: 'no_repo' });
-    });
-    const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    const html = await res.text();
-    expect(html).toContain('https://github.com/new?name=.github');
-    expect(html).not.toContain('filename=standcast.yml');
-  });
-
-  test('setup lists failed deliveries', async () => {
-    const { app } = harness();
-    const { cookie } = await seed(async (id) => {
-      const key = {
-        installationId: id,
-        teamName: 'Alpha',
-        date: '2026-10-28',
-        kind: 'digest' as const,
-      };
-      const claim = await claimDelivery(db, key);
-      if (claim.status !== 'claimed') throw new Error('not claimed');
-      await failDelivery(db, key, claim.token, 'not_in_channel');
-    });
-    const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    const html = await res.text();
-    expect(html).toContain('not_in_channel');
-    expect(html).toContain('Alpha');
-    expect(html).toContain('Digest');
-  });
-
-  test('setup groups person failures with translated kinds', async () => {
-    const { app } = harness();
-    const { cookie } = await seed(async (id) => {
-      for (const [kind, subject, error] of [
-        ['reminder', 'bob', 'no_chat_identity: bob'],
-        ['blocker_route', 'daily-9:abc:mgr', 'no_chat_identity: mgr'],
-        ['blocker_route', 'daily-8:def:mgr', 'no_chat_identity: mgr'],
-      ] as const) {
-        const key = { installationId: id, teamName: '', date: '2026-10-28', kind, subject };
-        const claim = await claimDelivery(db, key);
-        if (claim.status !== 'claimed') throw new Error('not claimed');
-        await failDelivery(db, key, claim.token, error);
-      }
-    });
-    const en = await (
-      await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } })
-    ).text();
-    expect(en).toContain('Reminder');
-    expect(en).toContain('Blocker routing');
-    expect(en).toContain('no_chat_identity: mgr');
-    expect(en).not.toContain('daily-9');
-    const pt = await (
-      await app.request(`/setup?installation_id=${INST}`, {
-        headers: { cookie, 'accept-language': 'pt-BR' },
-      })
-    ).text();
-    expect(pt).toContain('Lembrete');
-    expect(pt).toContain('Encaminhamento de impedimento');
-  });
-
-  test('setup renders in pt-BR by Accept-Language and english by default', async () => {
-    const { app } = harness();
-    const { cookie } = await seed();
-    const pt = await app.request(`/setup?installation_id=${INST}`, {
-      headers: { cookie, 'accept-language': 'pt-BR,pt;q=0.9' },
-    });
-    expect(await pt.text()).toContain('Conectar Slack');
-    const en = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    expect(await en.text()).toContain('Connect Slack');
-  });
-
-  test('setup shows the connected slack workspace', async () => {
-    const { app } = harness();
-    const { cookie } = await seed();
-    const state = await app.request(`/connect/slack?installation_id=${INST}`, {
-      headers: { cookie },
-    });
-    const value = new URL(location(state)).searchParams.get('state') ?? '';
-    await app.request(`/oauth/slack/callback?code=c&state=${encodeURIComponent(value)}`, {
-      headers: { cookie },
-    });
-    const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    expect(await res.text()).toContain('Acme Workspace');
-  });
-
-  test('a member who is not an admin sees slack read only', async () => {
-    const { app, admins } = harness();
-    const { cookie } = await seed();
-    admins.delete('alice');
-    const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    const html = await res.text();
-    expect(html).not.toContain('/connect/slack');
-    expect(html).toContain('Only an admin can connect or reconnect Slack.');
-  });
-
-  test('a member who is not an admin sees the admin note while slack is not connected', async () => {
-    const { app, admins } = harness();
-    admins.delete('alice');
-    const { cookie } = await seed();
-    const html = await (
-      await app.request(`/setup?installation_id=${INST}`, {
-        headers: { cookie, 'accept-language': 'pt-BR' },
-      })
-    ).text();
-    expect(html).not.toContain('/connect/slack');
-    expect(html).toContain('Só um admin pode conectar ou reconectar o Slack.');
-  });
-
-  test('a member who is not an admin sees no admin note once slack is connected', async () => {
-    const { app, admins } = harness();
-    admins.delete('alice');
-    const { cookie } = await seed(async (id) => {
-      await saveConnection(db, id, 'slack', 'T123', 'xoxb-secret', KEY, 'Acme Workspace');
-    });
-    const html = await (
-      await app.request(`/setup?installation_id=${INST}`, {
-        headers: { cookie, 'accept-language': 'pt-BR' },
-      })
-    ).text();
-    expect(html).toContain('Acme Workspace');
-    expect(html).not.toContain('/connect/slack');
-    expect(html).not.toContain('Só um admin pode conectar ou reconectar o Slack.');
-  });
-
-  test('setup shows the access warning while keeping the configuration', async () => {
-    const { app } = harness();
-    const { cookie } = await seed(async (id) => {
-      await setInstallationAccessWarning(db, id, 'no_access');
-    });
-    const html = await (
-      await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } })
-    ).text();
-    expect(html).toContain('>Configured<');
-    expect(html).toContain('Standcast has no access to the .github repository.');
-    expect(html).toContain('Standcast keeps using the current configuration.');
-  });
-
-  test('a configured install shows its teams, the edit link and the progress', async () => {
-    const { app } = harness();
-    const { cookie } = await seed();
-    const en = await (
-      await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } })
-    ).text();
-    expect(en).toContain('2 of 3 steps done');
-    expect(en).toContain('<h3>Alpha</h3>');
-    expect(en).toContain('#alpha');
-    expect(en).toContain('reminder 09:00 · digest 10:00');
-    expect(en).toContain('href="https://github.com/acme/.github/blob/trunk/standcast.yml"');
-    expect(en).toContain('Edit on GitHub');
-    expect(en).not.toContain('filename=standcast.yml');
-    const pt = await (
-      await app.request(`/setup?installation_id=${INST}`, {
-        headers: { cookie, 'accept-language': 'pt-BR' },
-      })
-    ).text();
-    expect(pt).toContain('2 de 3 etapas concluídas');
-    expect(pt).toContain('Editar no GitHub');
-  });
-
-  test('the admin sees reconnect when slack is connected', async () => {
-    const { app } = harness();
-    const { cookie } = await seed();
-    const state = await app.request(`/connect/slack?installation_id=${INST}`, {
-      headers: { cookie },
-    });
-    const value = new URL(location(state)).searchParams.get('state') ?? '';
-    await app.request(`/oauth/slack/callback?code=c&state=${encodeURIComponent(value)}`, {
-      headers: { cookie },
-    });
-    const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    const html = await res.text();
-    expect(html).toContain('Reconnect Slack');
-    expect(html).toContain(`/connect/slack?installation_id=${INST}`);
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe(`https://app.test/setup?installation_id=${INST}`);
+    expect(await res.text()).toBe('');
   });
 });
 
@@ -793,7 +546,7 @@ describe('slack connection', () => {
       },
     );
     expect(res.status).toBe(302);
-    expect(location(res)).toBe(`/setup?installation_id=${INST}`);
+    expect(location(res)).toBe(`https://app.test/orgs/${INST}/configuracao?connected=slack`);
     expect(slackCalls).toEqual([
       { code: 'c1', redirectUri: 'https://sw.test/oauth/slack/callback' },
     ]);
@@ -809,13 +562,6 @@ describe('slack connection', () => {
 
 describe('linear connection', () => {
   useCleanDb();
-
-  const tracker = (provider: string) => async (id: number) => {
-    await setInstallationConfig(db, id, {
-      status: 'configured',
-      config: config(`    tracker: { provider: ${provider}, team: ENG }`),
-    });
-  };
 
   async function startConnect(app: ReturnType<typeof createApp>, cookie: string) {
     const res = await app.request(`/connect/linear?installation_id=${INST}`, {
@@ -853,19 +599,13 @@ describe('linear connection', () => {
       { headers: { cookie } },
     );
     expect(res.status).toBe(302);
-    expect(location(res)).toBe(`/setup?installation_id=${INST}`);
+    expect(location(res)).toBe(`https://app.test/orgs/${INST}/configuracao?connected=linear`);
     expect(linear.calls.exchanges.map((e) => e.code)).toEqual(['c1']);
     expect(await getConnection(db, INST, 'linear', KEY)).toMatchObject({
       externalId: 'org-1',
       externalName: 'Acme Linear',
       externalKey: 'acme',
     });
-    const html = await (
-      await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } })
-    ).text();
-    expect(html).toContain('Connected to the Acme Linear workspace.');
-    expect(html).toContain('Reconnect Linear');
-    expect(html).toContain(`/connect/linear?installation_id=${INST}`);
   });
 
   test('callback rejects a state started by another session', async () => {
@@ -889,6 +629,7 @@ describe('linear connection', () => {
       headers: { cookie, 'accept-language': 'en' },
     });
     expect(res.status).toBe(403);
+    expect(location(res)).not.toStartWith('https://app.test');
     expect(await res.text()).toContain('Access was denied');
   });
 
@@ -902,128 +643,8 @@ describe('linear connection', () => {
       { headers: { cookie, 'accept-language': 'pt-BR' } },
     );
     expect(res.status).toBe(502);
+    expect(location(res)).not.toStartWith('https://app.test');
     expect(await res.text()).toContain('Falha ao conectar o Linear');
-  });
-
-  test('the admin sees connect linear when nothing is connected', async () => {
-    const { app } = harness();
-    const { cookie } = await seed();
-    const html = await (
-      await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } })
-    ).text();
-    expect(html).toContain('Connect Linear');
-    expect(html).toContain(`/connect/linear?installation_id=${INST}`);
-  });
-
-  test('a member who is not an admin cannot connect linear', async () => {
-    const { app, admins } = harness();
-    admins.delete('alice');
-    const { cookie } = await seed(async (id) => {
-      await saveConnection(db, id, 'linear', 'org-1', '{}', KEY, 'Acme Linear', 'acme');
-    });
-    const html = await (
-      await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } })
-    ).text();
-    expect(html).toContain('Acme Linear');
-    expect(html).not.toContain('/connect/linear');
-    expect(html).not.toContain('Only an admin can connect or reconnect Linear.');
-  });
-
-  test('a member who is not an admin sees the linear admin note until it works', async () => {
-    const { app, admins } = harness();
-    admins.delete('alice');
-    const { cookie } = await seed();
-    const todo = await (
-      await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } })
-    ).text();
-    expect(todo).not.toContain('/connect/linear');
-    expect(todo).toContain('Only an admin can connect or reconnect Linear.');
-    await saveConnection(db, INST, 'linear', 'org-1', '{}', KEY, 'Acme Linear', 'acme');
-    await markConnectionInvalid(db, INST, 'linear');
-    const broken = await (
-      await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } })
-    ).text();
-    expect(broken).toContain('Linear stopped working');
-    expect(broken).toContain('Only an admin can connect or reconnect Linear.');
-  });
-
-  test('an invalid connection asks to reconnect', async () => {
-    const { app } = harness();
-    const { cookie } = await seed(async (id) => {
-      await saveConnection(db, id, 'linear', 'org-1', '{}', KEY, 'Acme Linear', 'acme');
-      await markConnectionInvalid(db, id, 'linear');
-    });
-    const html = await (
-      await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } })
-    ).text();
-    expect(html).toContain('The connection to the Acme Linear workspace stopped working.');
-    expect(html).toContain('Reconnect Linear');
-  });
-
-  test('warns when a team uses linear and linear is not connected', async () => {
-    const { app } = harness();
-    const { cookie } = await seed(tracker('linear'));
-    const html = await (
-      await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } })
-    ).text();
-    expect(html).toContain(
-      'This team uses Linear, but Linear is not connected to this installation yet.',
-    );
-  });
-
-  test('says jira is coming soon when a team uses jira', async () => {
-    const { app } = harness();
-    const { cookie } = await seed(tracker('jira'));
-    const html = await (
-      await app.request(`/setup?installation_id=${INST}`, {
-        headers: { cookie, 'accept-language': 'pt-BR' },
-      })
-    ).text();
-    expect(html).toContain('A integração com o Jira ainda não está disponível.');
-    expect(html).not.toContain('Linear ainda não está conectado');
-  });
-});
-
-describe('setup github team notices', () => {
-  useCleanDb();
-
-  const withTeams = async (id: number) => {
-    await setInstallationConfig(db, id, {
-      status: 'configured',
-      config: config('', '[alice, "@gone/ops", "@huge/all"]'),
-    });
-  };
-
-  const page = async (setup: (id: number) => Promise<void>, lang?: string) => {
-    const { app } = harness();
-    const { cookie } = await seed(setup);
-    return (
-      await app.request(`/setup?installation_id=${INST}`, {
-        headers: lang ? { cookie, 'accept-language': lang } : { cookie },
-      })
-    ).text();
-  };
-
-  test('shows a notice for a missing and a truncated team in english', async () => {
-    const html = await page(withTeams);
-    expect(html).toContain(
-      'Team Alpha: the GitHub team @gone/ops was not found, or Standcast cannot see it.',
-    );
-    expect(html).toContain(
-      'Team Alpha: the GitHub team @huge/all is too large; only the first 5,000 members are used.',
-    );
-  });
-
-  test('shows the notices in pt-BR', async () => {
-    const html = await page(withTeams, 'pt-BR');
-    expect(html).toContain('Time Alpha: o time @gone/ops do GitHub não foi encontrado');
-    expect(html).toContain('Time Alpha: o time @huge/all do GitHub é grande demais');
-  });
-
-  test('shows no notice when every team resolves', async () => {
-    const html = await page(async () => {});
-    expect(html).not.toContain('was not found, or Standcast cannot see it');
-    expect(html).not.toContain('is too large');
   });
 });
 
@@ -1035,38 +656,25 @@ describe('setup right after install', () => {
     const { cookie, member } = await seed();
     await setMemberInstallations(db, member.id, []);
     const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    expect(res.status).toBe(200);
-    expect((await listMemberInstallations(db, member.id)).map((i) => i.installationId)).toEqual([
-      INST,
-    ]);
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe(`https://app.test/setup?installation_id=${INST}`);
+    expect(await listMemberInstallations(db, member.id)).toEqual([]);
   });
 
-  test('redirects once to a resync login when the installation row is missing', async () => {
+  test('a missing installation redirects to the app with the query', async () => {
     const { app } = harness();
     const { cookie } = await seed();
     const res = await app.request('/setup?installation_id=777', { headers: { cookie } });
     expect(res.status).toBe(302);
-    expect(location(res)).toBe(
-      `/auth/github/login?next=${encodeURIComponent('/setup?installation_id=777&resynced=1')}`,
-    );
+    expect(location(res)).toBe('https://app.test/setup?installation_id=777');
   });
 
-  test('renders a localized pending page instead of looping after the resync', async () => {
+  test('resynced=1 still redirects to the app', async () => {
     const { app } = harness({ githubInstallations: [INST, 777] });
     await seed();
-    const { state, loginCookie } = await beginLogin(app, '/setup?installation_id=777&resynced=1');
-    const login = await callback(app, state, loginCookie);
-    const cookie = /sc_web=[^;]+/.exec(login.headers.get('set-cookie') ?? '')?.[0] ?? '';
-    const en = await app.request('/setup?installation_id=777&resynced=1', {
-      headers: { cookie, 'accept-language': 'en' },
-    });
-    expect(en.status).toBe(409);
-    expect(await en.text()).toContain('still being processed');
-    const pt = await app.request('/setup?installation_id=777&resynced=1', {
-      headers: { cookie, 'accept-language': 'pt-BR' },
-    });
-    expect(pt.status).toBe(409);
-    expect(await pt.text()).toContain('ainda está sendo processada');
+    const res = await app.request('/setup?installation_id=777&resynced=1');
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe('https://app.test/setup?installation_id=777&resynced=1');
   });
 });
 
@@ -1086,29 +694,29 @@ describe('security headers', () => {
     return csp;
   }
 
-  test('the setup page sends the headers and its inline style matches the policy', async () => {
+  test('the setup redirect sends the security headers', async () => {
     const { app } = harness();
     const { cookie } = await seed();
     const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    expect(res.status).toBe(200);
-    const csp = expectSecure(res);
-    const html = await res.text();
-    const style = /<style>([\s\S]*?)<\/style>/.exec(html)?.[1] ?? '';
-    expect(style).toContain('font-family');
-    expect(style).toBe(PAGE_CSS);
-    const hash = new Bun.CryptoHasher('sha256').update(style).digest('base64');
-    expect(csp).toContain(`style-src 'sha256-${hash}'`);
-    expect(html).toContain('<form method="post" action="/setup/api-keys">');
+    expect(res.status).toBe(302);
+    expectSecure(res);
   });
 
-  test('error pages send the headers', async () => {
+  test('error pages send the headers and an inline style that matches the policy', async () => {
     const { app } = harness();
     const { cookie } = await seed();
-    const forbidden = await app.request(`/setup?installation_id=${FOREIGN}&resynced=1`, {
+    const forbidden = await app.request(`/connect/slack?installation_id=${FOREIGN}&resynced=1`, {
       headers: { cookie },
     });
     expect(forbidden.status).toBe(403);
-    expectSecure(forbidden);
+    const csp = expectSecure(forbidden);
+    const html = await forbidden.text();
+    const style = /<style>([\s\S]*?)<\/style>/.exec(html)?.[1] ?? '';
+    expect(style).toBe(PAGE_CSS);
+    expect(style).toContain('-apple-system');
+    expect(html).not.toContain('fonts.googleapis.com');
+    const hash = new Bun.CryptoHasher('sha256').update(style).digest('base64');
+    expect(csp).toContain(`style-src 'sha256-${hash}'`);
     const unauthorized = await app.request('/oauth/slack/callback?code=c&state=x');
     expect(unauthorized.status).toBe(401);
     expectSecure(unauthorized);
@@ -1116,23 +724,21 @@ describe('security headers', () => {
     expectSecure(login);
   });
 
-  test('the forms still post and redirect on the same origin', async () => {
+  test('POST /setup/api-keys is gone', async () => {
     const { app } = harness();
     const { cookie, token } = await seed();
-    const form = new URLSearchParams({
-      installation_id: String(INST),
-      name: 'ci',
-      scopes: 'teams:read',
-      csrf: csrfToken('sess', token),
-    });
     const res = await app.request('/setup/api-keys', {
       method: 'POST',
       headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' },
-      body: form.toString(),
+      body: new URLSearchParams({
+        installation_id: String(INST),
+        name: 'ci',
+        scopes: 'teams:read',
+        csrf: csrfToken('sess', token),
+      }).toString(),
     });
-    expect(res.status).toBe(303);
-    expect(location(res)).toBe(`/setup?installation_id=${INST}`);
-    expectSecure(res);
+    expect(res.status).toBe(404);
+    expect(location(res)).toBe('');
   });
 });
 
@@ -1158,7 +764,8 @@ describe('web logout', () => {
     expect(setCookie.toLowerCase()).toContain('max-age=0');
     const after = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
     expect(after.status).toBe(302);
-    expect(location(after)).toContain('/auth/github/login');
+    expect(location(after)).toBe(`https://app.test/setup?installation_id=${INST}`);
+    expect(after.headers.get('set-cookie')).toBeNull();
   });
 
   test('rejects a post without a valid csrf token and keeps the session', async () => {
@@ -1166,8 +773,11 @@ describe('web logout', () => {
     const { cookie } = await seed();
     const res = await post(app, cookie, new URLSearchParams({ csrf: 'forged' }));
     expect(res.status).toBe(403);
-    const after = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    expect(after.status).toBe(200);
+    const after = await app.request(`/connect/slack?installation_id=${INST}`, {
+      headers: { cookie },
+    });
+    expect(after.status).toBe(302);
+    expect(location(after)).toStartWith('https://slack.com/');
   });
 
   test('without a session or with a revoked one it still clears and redirects', async () => {
@@ -1205,8 +815,11 @@ describe('web logout', () => {
     });
     expect(res.status).toBe(403);
     expect(res.headers.get('set-cookie') ?? '').not.toContain('sc_web=;');
-    const after = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    expect(after.status).toBe(200);
+    const after = await app.request(`/connect/slack?installation_id=${INST}`, {
+      headers: { cookie },
+    });
+    expect(after.status).toBe(302);
+    expect(location(after)).toStartWith('https://slack.com/');
   });
 
   test('a same-origin post with a valid token still signs out', async () => {
@@ -1223,21 +836,6 @@ describe('web logout', () => {
     });
     expect(res.status).toBe(303);
     expect(res.headers.get('set-cookie') ?? '').toContain('sc_web=;');
-  });
-
-  test('the setup page shows a sign out button in en and pt-BR', async () => {
-    const { app } = harness();
-    const { cookie } = await seed();
-    const en = await app.request(`/setup?installation_id=${INST}`, {
-      headers: { cookie, 'accept-language': 'en' },
-    });
-    const enHtml = await en.text();
-    expect(enHtml).toContain('<form method="post" action="/logout">');
-    expect(enHtml).toContain('Sign out');
-    const pt = await app.request(`/setup?installation_id=${INST}`, {
-      headers: { cookie, 'accept-language': 'pt-BR' },
-    });
-    expect(await pt.text()).toContain('Sair');
   });
 
   test('page responses carry hsts with includeSubDomains', async () => {
@@ -1284,7 +882,7 @@ describe('browser error pages', () => {
   test('forbidden renders the danger card with the sign in button and the support line', async () => {
     const { app } = harness();
     const { cookie } = await seed();
-    const res = await app.request(`/setup?installation_id=${FOREIGN}&resynced=1`, {
+    const res = await app.request(`/connect/slack?installation_id=${FOREIGN}&resynced=1`, {
       headers: { cookie, 'accept-language': 'en' },
     });
     expect(res.status).toBe(403);
@@ -1302,14 +900,14 @@ describe('browser error pages', () => {
     const { state, loginCookie } = await beginLogin(app, '/setup?installation_id=777&resynced=1');
     const login = await callback(app, state, loginCookie);
     const cookie = /sc_web=[^;]+/.exec(login.headers.get('set-cookie') ?? '')?.[0] ?? '';
-    const res = await app.request('/setup?installation_id=777&resynced=1', {
+    const res = await app.request('/connect/slack?installation_id=777&resynced=1', {
       headers: { cookie, 'accept-language': 'en' },
     });
     expect(res.status).toBe(409);
     const html = (await res.text()).replaceAll('&amp;', '&');
     expect(html).toContain('class="status-icon status-icon-warning"');
     expect(html).toContain(
-      '<a class="btn btn-primary" href="/setup?installation_id=777&resynced=1">Refresh the page</a>',
+      '<a class="btn btn-primary" href="/connect/slack?installation_id=777&resynced=1">Refresh the page</a>',
     );
   });
 
@@ -1329,7 +927,7 @@ describe('browser error pages', () => {
   test('forbidden renders a localized html page in english and pt-BR', async () => {
     const { app } = harness();
     const { cookie } = await seed();
-    const en = await app.request(`/setup?installation_id=${FOREIGN}&resynced=1`, {
+    const en = await app.request(`/connect/slack?installation_id=${FOREIGN}&resynced=1`, {
       headers: { cookie, 'accept-language': 'en' },
     });
     expect(en.status).toBe(403);
@@ -1337,7 +935,7 @@ describe('browser error pages', () => {
     const enHtml = await en.text();
     expect(enHtml).toContain('<html lang="en"');
     expect(enHtml).toContain('You do not have access');
-    const pt = await app.request(`/setup?installation_id=${FOREIGN}&resynced=1`, {
+    const pt = await app.request(`/connect/slack?installation_id=${FOREIGN}&resynced=1`, {
       headers: { cookie, 'accept-language': 'pt-BR' },
     });
     expect(pt.status).toBe(403);
@@ -1353,6 +951,7 @@ describe('browser error pages', () => {
       headers: { cookie, 'accept-language': 'en' },
     });
     expect(res.status).toBe(403);
+    expect(location(res)).not.toStartWith('https://app.test');
     expect(await res.text()).toContain('Access was denied');
   });
 
@@ -1377,6 +976,7 @@ describe('browser error pages', () => {
       },
     );
     expect(res.status).toBe(502);
+    expect(location(res)).not.toStartWith('https://app.test');
     expect(await res.text()).toContain('Slack');
     expect(await getConnection(db, INST, 'slack', KEY)).toBeNull();
   });
@@ -1386,36 +986,6 @@ describe('browser error pages', () => {
     const res = await app.request('/v1/draft');
     expect(res.status).toBe(401);
     expect((await res.json()).error.code).toBe('unauthorized');
-  });
-});
-
-describe('escaping', () => {
-  useCleanDb();
-
-  test('config errors are html escaped', async () => {
-    const { app } = harness();
-    const { cookie } = await seed(async (id) => {
-      await setInstallationConfig(db, id, {
-        status: 'invalid',
-        errors: [{ path: '"><img src=x>', message: '<script>alert(1)</script>' }],
-      });
-    });
-    const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
-    const html = await res.text();
-    expect(html).not.toContain('<script>alert(1)</script>');
-    expect(html).not.toContain('<img src=x>');
-    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
-    expect(html).toContain('&quot;&gt;&lt;img src=x&gt;');
-  });
-
-  test('the page uses a system font stack and no external font host', async () => {
-    const { app } = harness();
-    const { cookie } = await seed();
-    const html = await (
-      await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } })
-    ).text();
-    expect(html).not.toContain('fonts.googleapis.com');
-    expect(html).toContain('-apple-system');
   });
 });
 

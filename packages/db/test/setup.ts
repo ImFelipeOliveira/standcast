@@ -2,8 +2,8 @@ import { beforeEach } from 'bun:test';
 import { sql } from 'drizzle-orm';
 import { createDb, type Db, migrate } from '../src';
 
-export const TEST_DATABASE_URL =
-  process.env.TEST_DATABASE_URL ?? 'postgres://standcast:standcast@localhost:5433/standcast_test';
+export const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
+if (!TEST_DATABASE_URL) throw new Error('test database was not provisioned');
 
 await migrate(TEST_DATABASE_URL);
 

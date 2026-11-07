@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://standcast.usefachada.dev"><img src="apps/landing/public/og.png" alt="Standcast: your daily standup, written in your AI agent" width="100%"></a>
+  <a href="https://standcast.app"><img src="apps/landing/public/og.png" alt="Standcast: your daily standup, written in your AI agent" width="100%"></a>
 </p>
 
 <h1 align="center">Standcast</h1>
@@ -24,17 +24,17 @@
 
 <p align="center">
   <a href="#quick-start">Quick start</a> ·
-  <a href="https://standcast.usefachada.dev">Landing</a> ·
-  <a href="https://app-standcast.usefachada.dev">App</a> ·
-  <a href="https://docs-standcast.usefachada.dev/">Documentation</a> ·
-  <a href="https://docs-standcast.usefachada.dev/admin/configuration">Configuration</a> ·
+  <a href="https://standcast.app">Landing</a> ·
+  <a href="https://app.standcast.app">App</a> ·
+  <a href="https://docs.standcast.app/">Documentation</a> ·
+  <a href="https://docs.standcast.app/admin/configuration">Configuration</a> ·
   <a href="#roadmap">Roadmap</a>
 </p>
 
 ---
 
 > [!WARNING]
-> **Public beta.** Standcast is being tested with its first teams. Expect rough edges and changes to behaviour, configuration and the API before 1.0. Report problems in [GitHub issues](https://github.com/ImFelipeOliveira/standcast/issues) or at support.standcast@usefachada.dev.
+> **Public beta.** Standcast is being tested with its first teams. Expect rough edges and changes to behaviour, configuration and the API before 1.0. Report problems in [GitHub issues](https://github.com/ImFelipeOliveira/standcast/issues) or at support@standcast.app.
 
 Each person runs `/daily` in their AI agent (Claude Code, Cursor, Codex, Claude Desktop, VS Code). Standcast drafts the daily from what they did on GitHub; the person edits it, adds today's plan and blockers, and **confirms before anything is sent**. At the time set in `standcast.yml`, Standcast posts one digest per team to Slack or Google Chat.
 
@@ -115,28 +115,28 @@ A day with `remind_at: "09:30"` and `digest_at: "10:00"`:
 | 10:00 | Standcast posts the team digest to `#daily-backend`: blockers first, then each person's yesterday and today, then who did not send.                                                                           |
 | 10:40 | Bob sends a late daily. It is posted as a reply in the digest thread.                                                                                                                                         |
 
-The full walkthrough is in [How it works](https://docs-standcast.usefachada.dev/how-it-works).
+The full walkthrough is in [How it works](https://docs.standcast.app/how-it-works).
 
 ## Quick start
 
-New here? The [landing page](https://standcast.usefachada.dev) has the overview and the beta request form. Agents can read [llms.txt](https://standcast.usefachada.dev/llms.txt).
+New here? The [landing page](https://standcast.app) has the overview and the beta request form. Agents can read [llms.txt](https://standcast.app/llms.txt).
 
 ### For admins
 
 You need to own the GitHub organization (or personal account).
 
 1. [Install the Standcast GitHub App](https://github.com/apps/standcast/installations/new) on your organization.
-2. Open the setup page that GitHub sends you to, sign in, and click **Connect Slack**. For Google Chat, add the Standcast app to a space and paste the code it posts in the Google Chat step ([guide](https://docs-standcast.usefachada.dev/admin/google-chat)).
+2. Open the setup page that GitHub sends you to, sign in, and click **Connect Slack**. For Google Chat, add the Standcast app to a space and paste the code it posts in the Google Chat step ([guide](https://docs.standcast.app/admin/google-chat)).
 3. Create `standcast.yml` at the root of your `.github` repository, from the template on the setup page.
 
-Step by step: [Install](https://docs-standcast.usefachada.dev/admin/install).
+Step by step: [Install](https://docs.standcast.app/admin/install).
 
 ### For members
 
 Install the CLI (macOS and Linux) and sign in:
 
 ```sh
-curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh
+curl -fsSL https://api.standcast.app/install.sh | sh
 standcast login
 ```
 
@@ -147,8 +147,8 @@ Then pick how you write your daily:
 | Client                                     | Setup                                                                                                               |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | **Claude Code**                            | `/plugin marketplace add ImFelipeOliveira/standcast`, then `/plugin install standcast@standcast`, then run `/daily` |
-| **Cursor, Codex, Claude Desktop, VS Code** | Add the MCP server (`standcast mcp`): [MCP guide](https://docs-standcast.usefachada.dev/members/mcp)                |
-| **Terminal**                               | `standcast draft` and `standcast submit`: [CLI reference](https://docs-standcast.usefachada.dev/members/cli)        |
+| **Cursor, Codex, Claude Desktop, VS Code** | Add the MCP server (`standcast mcp`): [MCP guide](https://docs.standcast.app/members/mcp)                           |
+| **Terminal**                               | `standcast draft` and `standcast submit`: [CLI reference](https://docs.standcast.app/members/cli)                   |
 
 ## Configuration
 
@@ -167,7 +167,7 @@ teams:
       channel: "#daily-backend"
 ```
 
-Every key is documented in the [configuration reference](https://docs-standcast.usefachada.dev/admin/configuration).
+Every key is documented in the [configuration reference](https://docs.standcast.app/admin/configuration).
 
 ## Privacy principles
 
@@ -177,7 +177,7 @@ Every key is documented in the [configuration reference](https://docs-standcast.
 - **No AI model processes your data on the Standcast servers.** The writing happens in your own agent.
 - **Secrets are encrypted at rest** with AES-256-GCM.
 
-Details: [Privacy](https://docs-standcast.usefachada.dev/privacy).
+Details: [Privacy](https://docs.standcast.app/privacy).
 
 ## Architecture
 
@@ -223,15 +223,15 @@ docker build --build-arg APP=worker -t standcast-worker .
 ## Development
 
 ```sh
-cp .env.example .env
-docker compose up -d        # Postgres for development and tests
 bun install
-bun test                    # full suite, no network needed
+bun test                    # starts one disposable Postgres for the full suite
 bun run lint                # Biome, CI-enforced
 bun run typecheck           # tsc, CI-enforced
 ```
 
-Documentation site, served at the root of its own domain (`https://docs-standcast.usefachada.dev` for now). `STANDCAST_PUBLIC_URL` sets the api address shown in the examples and the API reference link:
+Tests require Docker, but no database setup: Testcontainers starts PostgreSQL 17 once, shares it across the whole run and removes it after the last test. Set `TEST_DATABASE_URL` to reuse an existing database instead. To run the api or worker locally, copy `.env.example` to `.env` and run `docker compose up -d`.
+
+Documentation site, served at the root of its own domain (`https://docs.standcast.app`). `STANDCAST_PUBLIC_URL` sets the api address shown in the examples and the API reference link:
 
 ```sh
 SUPPORT_EMAIL=you@example.com bun run docs:dev
@@ -260,11 +260,12 @@ Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for commit co
 - [x] `standcast.yml` validation as a GitHub check run
 - [x] Linear integration: cards in the draft, card blocker routing and stale card suggestions
 - [x] Google Chat: digests, threads and direct messages through the Standcast app
-- [ ] Jira
+- [ ] Jira, then ClickUp, Asana and GitHub Projects
+- [ ] Microsoft Teams and Discord
 
 ## Support
 
-Questions and problems: [support.standcast@usefachada.dev](mailto:support.standcast@usefachada.dev).
+Questions and problems: [support@standcast.app](mailto:support@standcast.app).
 
 ## License
 

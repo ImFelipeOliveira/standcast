@@ -36,9 +36,9 @@ Não. Nenhum LLM processa os seus dados nos servidores do Standcast. O seu agent
 
 Não. Não há ranking, nota, contagem de commits por pessoa nem agregados por pessoa em lugar nenhum.
 
-## Funciona com Google Chat, Linear ou Jira?
+## Quais integrações funcionam hoje?
 
-O Google Chat funciona hoje: cada time publica no Slack ou no Google Chat. Veja [Google Chat](/pt-BR/admin/google-chat). O Linear também funciona: os seus cards aparecem no rascunho, os impedimentos de card são encaminhados e cards parados viram sugestões. Veja [Instalar](/pt-BR/admin/install#_5-conecte-o-linear-opcional). O Jira vem em breve.
+GitHub, Linear, Slack e Google Chat funcionam hoje. Jira, ClickUp, Asana, GitHub Projects, Microsoft Teams e Discord vêm a seguir e ainda não estão conectados, então o Standcast não lê nada deles. Veja [Integrações](/pt-BR/integrations).
 
 ## Tem lembrete para quem não mandou a daily?
 
@@ -58,7 +58,7 @@ Não. A configuração mora só no `standcast.yml` da raiz do repositório `.git
 
 ## Posso rodar o Standcast nos meus servidores?
 
-Sim. O Standcast tem código aberto, com licença MIT, e a [seção de self-hosting do README](https://github.com/ImFelipeOliveira/standcast#self-hosting) explica a API, o worker e o Postgres. Durante o beta, o suporte é para o serviço hospedado em `api-standcast.usefachada.dev`.
+Sim. O Standcast tem código aberto, com licença MIT, e a [seção de self-hosting do README](https://github.com/ImFelipeOliveira/standcast#self-hosting) explica a API, o worker e o Postgres. Durante o beta, o suporte é para o serviço hospedado em `api.standcast.app`.
 
 ## Como falo com o suporte?
 

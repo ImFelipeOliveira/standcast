@@ -135,7 +135,7 @@ tracker:
 ```
 
 - `provider: linear`: o Standcast lê os cards do workspace do Linear que um admin conectou na página de setup. `team` é a chave do time no Linear, como `BE`, e limita a atividade e os sinais a esse time do Linear. Veja [Instalar](/pt-BR/admin/install#_5-conecte-o-linear-opcional).
-- `provider: jira` é aceito pelo parser, mas o Jira ainda vem em breve. A página de setup mostra um aviso e mais nada acontece.
+- `provider: jira` é aceito pelo parser, mas o Jira ainda vem em breve. A página de setup mostra um aviso e mais nada acontece. ClickUp, Asana, GitHub Projects, Microsoft Teams e Discord ainda não são aceitos. Veja [Integrações](/pt-BR/integrations).
 - Se um time usa o Linear e o Linear não está conectado, a página de setup avisa. Nada quebra: o rascunho só fica sem cards.
 
 ### `signals`

@@ -70,7 +70,7 @@ describe('parseEnv', () => {
   });
 
   test('accepts an https DOCS_URL without a trailing slash', () => {
-    const DOCS_URL = 'https://docs-standcast.usefachada.dev';
+    const DOCS_URL = 'https://docs.standcast.app';
     expect(parseEnv({ ...base, DOCS_URL }).DOCS_URL).toBe(DOCS_URL);
   });
 
@@ -86,7 +86,7 @@ describe('parseEnv', () => {
   });
 
   test('defaults LANDING_URL and rejects http or a trailing slash', () => {
-    expect(parseEnv(base).LANDING_URL).toBe('https://standcast.usefachada.dev');
+    expect(parseEnv(base).LANDING_URL).toBe('https://standcast.app');
     for (const LANDING_URL of ['http://x.dev', 'https://x.dev/', 'x.dev']) {
       expect(() => parseEnv({ ...base, LANDING_URL }), LANDING_URL).toThrow();
     }
