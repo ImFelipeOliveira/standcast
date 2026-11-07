@@ -34,7 +34,7 @@
 ---
 
 > [!WARNING]
-> **Public beta.** Standcast is being tested with its first teams, [Pigz](https://pigz.com.br) and [Usebill](https://usebill.com.br). Expect rough edges and changes to behaviour, configuration and the API before 1.0. Report problems in [GitHub issues](https://github.com/ImFelipeOliveira/standcast/issues) or at support@standcast.app.
+> **Public beta.** Standcast is being tested with its first teams. Expect rough edges and changes to behaviour, configuration and the API before 1.0. Report problems in [GitHub issues](https://github.com/ImFelipeOliveira/standcast/issues) or at support@standcast.app.
 
 Each person runs `/daily` in their AI agent (Claude Code, Cursor, Codex, Claude Desktop, VS Code). Standcast drafts the daily from what they did on GitHub; the person edits it, adds today's plan and blockers, and **confirms before anything is sent**. At the time set in `standcast.yml`, Standcast posts one digest per team to Slack or Google Chat.
 

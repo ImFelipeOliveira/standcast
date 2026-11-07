@@ -77,7 +77,7 @@ What the GitHub App reads, what you need, who sees suggested blockers and whethe
 
 ## Public beta
 
-Try it with your team. We're looking for teams of 3 to 15 people on GitHub and Slack or Google Chat. We'll help you set it up. [Pigz](https://pigz.com.br) and [Usebill](https://usebill.com.br) are in the beta. [Request beta access](https://standcast.app/beta/)
+Try it with your team. We're looking for teams of 3 to 15 people on GitHub and Slack or Google Chat. We'll help you set it up. [Request beta access](https://standcast.app/beta/)
 
 [Terms of use](https://standcast.app/terms/index.md)
 

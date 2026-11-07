@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { changelogVersionProblems } from './check-docs';
-import { CHANGELOGS, releaseChangelogs } from './release-changelogs';
+import { CHANGELOGS, releaseChangelog, releaseChangelogs } from './release-changelogs';
 
 const SOURCES: Record<string, string> = {
   'docs/site/changelog.md':
@@ -36,6 +36,34 @@ describe('release changelogs', () => {
     expect(en).toContain('### Unreleased\n\n### 0.5.0 — 2026-11-06\n\n- New thing.');
     const pt = await readFile(join(root, 'docs/site/pt-BR/changelog.md'), 'utf8');
     expect(pt).toContain('### Não lançado\n\n### 0.5.0 — 06/11/2026\n\n- Novidade.');
+  });
+
+  test('an empty product changelog fails and an empty API changelog says so', () => {
+    const product =
+      '# Changelog\n\n## Product\n\n### Unreleased\n\n### 0.4.1 — 2026-11-02\n\n- Old.\n';
+    expect(() => releaseChangelog(CHANGELOGS[0], product, '0.5.0', '2026-11-06')).toThrow(
+      'has no notes under ### Unreleased',
+    );
+    const api = CHANGELOGS[2];
+    const text = releaseChangelog(
+      api,
+      '# API changelog\n\n## Unreleased\n\n## 0.4.1 — 2026-11-02\n',
+      '0.5.0',
+      '2026-11-06',
+    );
+    expect(text).toContain('## 0.5.0 — 2026-11-06\n\n- No public API changes.\n');
+  });
+
+  test('a star or plus bullet is a note, not an empty section', () => {
+    const star =
+      '# Changelog\n\n## Product\n\n### Unreleased\n\n* New thing.\n\n### 0.4.1 — 2026-11-02\n\n- Old.\n';
+    const released = releaseChangelog(CHANGELOGS[0], star, '0.5.0', '2026-11-06');
+    expect(released).toContain('### 0.5.0 — 2026-11-06\n\n* New thing.');
+
+    const plus = '# API changelog\n\n## Unreleased\n\n+ Endpoint added.\n\n## 0.4.1 — 2026-11-02\n';
+    const api = releaseChangelog(CHANGELOGS[2], plus, '0.5.0', '2026-11-06');
+    expect(api).toContain('## 0.5.0 — 2026-11-06\n\n+ Endpoint added.');
+    expect(api).not.toContain('No public API changes.');
   });
 
   test('running twice changes nothing', async () => {

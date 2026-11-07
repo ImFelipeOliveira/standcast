@@ -16,4 +16,4 @@
 
 - [README](README.md): what the project is and how to run it
 - [Contributing](CONTRIBUTING.md): how to work on the repository
-- [Review guide](docs/engineering/review-guide.md): what reviewers check before merging
+- [Review guide](docs/engineering/review-guide.md): what reviewers check before merging. Product changes and public API changes are written separately, before the pull request merges. Product: one bullet under `Unreleased` in `docs/site/changelog.md` and the same news under `Não lançado` in `docs/site/pt-BR/changelog.md`. A release with no product note fails. API contract: one bullet under `Unreleased` in `docs/api/CHANGELOG.md`. An empty API section is published as no public API change.

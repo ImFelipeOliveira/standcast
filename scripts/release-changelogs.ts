@@ -6,6 +6,7 @@ type Changelog = {
   unreleased: string;
   prefix: string;
   date: (iso: string) => string;
+  emptyNote?: string;
 };
 
 const toBr = (iso: string) => iso.split('-').reverse().join('/');
@@ -23,7 +24,13 @@ export const CHANGELOGS: Changelog[] = [
     prefix: '### ',
     date: toBr,
   },
-  { file: 'docs/api/CHANGELOG.md', unreleased: '## Unreleased', prefix: '## ', date: (iso) => iso },
+  {
+    file: 'docs/api/CHANGELOG.md',
+    unreleased: '## Unreleased',
+    prefix: '## ',
+    date: (iso) => iso,
+    emptyNote: '- No public API changes.',
+  },
 ];
 
 export function releaseChangelog(
@@ -37,7 +44,26 @@ export function releaseChangelog(
   const index = lines.findIndex((line) => line.trim() === changelog.unreleased);
   if (index === -1) throw new Error(`${changelog.file}: "${changelog.unreleased}" not found`);
   const heading = `${changelog.prefix}${version} — ${changelog.date(isoDate)}`;
-  return [...lines.slice(0, index + 1), '', heading, ...lines.slice(index + 1)].join('\n');
+  const next = [...lines.slice(0, index + 1), '', heading, ...lines.slice(index + 1)];
+  const headingAt = index + 2;
+  if (versionSectionEmpty(next, headingAt, changelog.prefix)) {
+    if (!changelog.emptyNote) {
+      throw new Error(
+        `${changelog.file}: ${version} has no notes under ${changelog.unreleased}. A release comes from a change, so write that change before cutting the version.`,
+      );
+    }
+    next.splice(headingAt + 1, 0, '', changelog.emptyNote, '');
+  }
+  return next.join('\n');
+}
+
+function versionSectionEmpty(lines: string[], headingAt: number, prefix: string): boolean {
+  for (let i = headingAt + 1; i < lines.length; i++) {
+    const line = lines[i] ?? '';
+    if (line.startsWith('- ') || line.startsWith('* ') || line.startsWith('+ ')) return false;
+    if (line.startsWith(prefix) && line.includes(' — ')) return true;
+  }
+  return true;
 }
 
 export async function releaseChangelogs(

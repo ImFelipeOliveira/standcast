@@ -436,16 +436,6 @@ describe('landing', () => {
     expect(css).toMatch(/(\.invalid|#beta-invalid):target \{[^}]*display: block/);
   });
 
-  test('the home pages name the beta testers', () => {
-    for (const page of pagesOf('home')) {
-      for (const file of [page.file, `${page.path.slice(1)}index.md`]) {
-        const text = read(file);
-        expect(text).toContain('https://pigz.com.br');
-        expect(text).toContain('https://usebill.com.br');
-      }
-    }
-  });
-
   test('pt-BR pages link the pt-BR docs', () => {
     for (const page of PAGES.filter((candidate) => candidate.locale === 'pt-BR')) {
       const docsLinks = [
