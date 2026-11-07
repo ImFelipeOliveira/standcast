@@ -1,2 +1,2 @@
 [test]
-preload = ["./scripts/test-postgres-preload.ts", "./scripts/web-jsx-plugin.ts"]
+preload = ["./scripts/quiet-console-preload.ts", "./scripts/test-postgres-preload.ts", "./scripts/web-jsx-plugin.ts"]

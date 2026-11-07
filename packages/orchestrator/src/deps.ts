@@ -18,7 +18,7 @@ import type { exchangeLinearCode, LinearFetch, refreshLinearToken } from '@stand
 import type { JobQueue } from '@standcast/queue';
 import type { EmailMessage } from '@standcast/resend';
 import type { exchangeSlackCode } from '@standcast/slack';
-import type { TrackerFor } from './linear-tracker';
+import type { TrackerFor } from './modules/linear/linear-tracker';
 import type { SafeFetchOptions } from './safe-fetch';
 
 export type Deps = {

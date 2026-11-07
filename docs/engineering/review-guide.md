@@ -4,7 +4,7 @@ Patterns Standcast follows, code smells to flag and bugs that have actually happ
 
 ## Architecture
 
-- **Business rules live in use cases** (`packages/orchestrator/src/use-cases`). They take `deps` and throw `DomainError` with a stable `code`.
+- **Business rules live in use cases.** They take `deps` and throw `DomainError` with a stable `code`. Each module lives in `packages/orchestrator/src/modules/<name>` and owns its use cases: `access`, `beta`, `chat`, `daily`, `delivery`, `github`, `linear`, `org`, `retention`, `session` and `setup`. Shared helpers (`deps`, logging, tokens, teams, membership) stay at the package root.
 - **Routes, jobs, the CLI and the MCP server stay thin.** They parse input, call one use case and map the result.
   - Smell: a branch on business state, a database query or a GitHub/Slack/Linear call inside a route, a job or the CLI.
 - **Pure rules live in `@standcast/core`:** config parsing, calendar, fingerprints, URL parsing, CODEOWNERS, message builders.
@@ -12,6 +12,13 @@ Patterns Standcast follows, code smells to flag and bugs that have actually happ
 - **Adapters** (`packages/adapters/*`) translate external APIs into small typed functions. They do not decide product behaviour.
 - **Dependencies.** A package may import only what it declares in its own `package.json` (`bun run check-deps` enforces this).
   - Smell: an app importing `drizzle-orm` or `postgres` directly. Use a function from `@standcast/db` instead.
+- **Layer direction.** `bun run check-layers` fails when `src` imports a package its layer must not see, or a relative path into another workspace package. Docs, scripts and the root `package.json` are not other packages. Tests are not scanned.
+  - `@standcast/core` sees no other `@standcast` package.
+  - `@standcast/db` sees only `@standcast/core` among workspace packages, and is the only package that may import `drizzle-orm` or `postgres`.
+  - `@standcast/queue` sees only `@standcast/core`, and is the only package that may import `pg-boss`.
+  - Adapters see only `@standcast/core`. They do not see each other, the database, the queue or the orchestrator.
+  - `@standcast/orchestrator` sees core, the database, the queue and the adapters it composes. It does not see `@standcast/google-chat` (that stays behind `ChatChannel`) or any app.
+  - The API and the worker may wire adapters. The web app sees only the orchestrator. The CLI sees only core. Apps do not import one another.
 
 ## Multi-tenant
 

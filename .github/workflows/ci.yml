@@ -48,6 +48,7 @@ jobs:
       - run: bun run lint
       - run: bun run check-pins
       - run: bun run check-deps
+      - run: bun run check-layers
       - run: bun run typecheck
       - run: bun test
       - run: bun run web:build

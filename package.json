@@ -20,6 +20,7 @@
     "check-docs": "bun scripts/check-docs.ts",
     "check-pins": "bun scripts/check-pins.ts",
     "check-deps": "bun scripts/check-deps.ts",
+    "check-layers": "bun scripts/check-layers.ts",
     "web:dev": "bun run --cwd apps/web dev",
     "web:build": "bun run --cwd apps/web build"
   },
