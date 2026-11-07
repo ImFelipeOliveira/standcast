@@ -121,11 +121,11 @@ Cada item é:
 
 Dá para misturar os dois, como em `[felipeoliveira, "@acme/leads"]`. Mantenha pelo menos um item. Qualquer outro valor que começa com `@`, como `@alice` ou `@acme/`, é rejeitado.
 
-O acesso de gestor segue o time do GitHub. O Standcast guarda os membros de cada time do GitHub por até 5 minutos, então quem entra ou sai do time ganha ou perde o acesso de gestor em até 5 minutos, ou antes, quando o app recebe o evento de membership do GitHub. Um time que o Standcast não consegue ler não dá acesso de gestor a ninguém:
+O acesso de gestor segue o time do GitHub. O Standcast guarda os membros de cada time do GitHub por até 5 minutos, então quem entra ou sai do time ganha ou perde o acesso de gestor em até 5 minutos. Isso inclui os bloqueios encaminhados aos gestores. Quando o app recebe o evento de membership do GitHub, o processo da API que o recebe descarta a cópia dele na hora, mas o worker e os outros processos da API mantêm a deles até passarem os 5 minutos, então conte com 5 minutos. Um time que o Standcast não consegue ler não dá acesso de gestor a ninguém:
 
 - um time de outra organização, um time que não existe ou um time que o app não enxerga (confira a permissão Members) mostra um aviso na página Configuração;
 - um time com 5.000 membros ou mais mostra um aviso e não é usado;
-- quando o GitHub falha, o time fica de fora até o GitHub responder de novo.
+- quando o GitHub falha ou leva mais de 3 segundos para responder ao pedido de um gestor, o time fica de fora e um aviso aparece na página Configuração. O Standcast pergunta ao GitHub de novo depois de um minuto.
 
 Logins listados diretamente continuam funcionando em todos esses casos.
 
@@ -138,7 +138,7 @@ Quem escreve dailies neste time. Cada item é:
 - um login do GitHub, como `alice`; ou
 - um time do GitHub, escrito `"@org/slug-do-time"`, como `"@acme/backend"`. Use aspas, porque o YAML não aceita valor começando com `@`.
 
-Os times do GitHub são resolvidos toda vez que o Standcast precisa do time, então as mudanças no GitHub valem sem editar o arquivo. O Standcast lê os 100 primeiros membros de cada time do GitHub. Os logins são comparados sem diferenciar maiúsculas e minúsculas.
+Os times do GitHub são lidos do GitHub, então as mudanças no GitHub valem sem editar o arquivo, nos mesmos 5 minutos de [`managers`](#managers). Um time do GitHub listado em `members` e em `managers`, ou em vários times, é lido uma vez só. O Standcast lê até 5.000 membros de cada time do GitHub. Qualquer outro valor que começa com `@`, como `@alice` ou `"@acme/back end"`, é rejeitado. Os logins são comparados sem diferenciar maiúsculas e minúsculas.
 
 Uma pessoa pode estar em vários times. A daily dela aparece no consolidado de cada time, e a data da daily usa o fuso e os dias úteis do **primeiro** time que a lista.
 
@@ -269,6 +269,7 @@ Estas são as mensagens que a página de setup mostra, no formato `caminho: mens
 | `teams.0.chat.provider: Invalid option: expected one of "slack"\|"google-chat"` | `teams`, `Slack`, `google_chat`, `gchat` | Use `slack` ou `google-chat` |
 | `teams.0.members: Too small: expected array to have >=1 items` | `members: []` (o mesmo vale para `managers`) | Liste pelo menos uma pessoa |
 | `teams.0.managers.0: managers must be GitHub logins or GitHub teams written as @org/team-slug` | `managers: ["@leads"]` | Escreva um login, como `alice`, ou um time, como `"@acme/leads"` |
+| `teams.0.members.0: members must be GitHub logins or GitHub teams written as @org/team-slug` | `members: ["@alice"]`, `members: ["@acme/back end"]` | Escreva um login, como `alice`, ou um time pelo slug, como `"@acme/back-end"` |
 | `teams.0: Unrecognized key: "reminder"` | Uma chave escrita errado ou desconhecida | Confira a chave nas tabelas acima |
 | `members.alice.slack: must be a Slack user id like U0123ABCD` | Um nome, um e-mail, um id de canal ou `<!channel>` | Use o id de membro, que começa com `U` ou `W` |
 | `members.alice.google_chat: must be a Google Chat user like users/123456789` | Um e-mail, um nome ou só um número | Use `users/` seguido dos dígitos do id de usuário |

@@ -120,11 +120,11 @@ Each entry is either:
 
 You can mix both, as in `[felipeoliveira, "@acme/leads"]`. Keep at least one entry. Any other value starting with `@`, such as `@alice` or `@acme/`, is rejected.
 
-Manager access follows the GitHub team. Standcast keeps the members of each GitHub team for up to 5 minutes, so someone added to or removed from the team gains or loses manager access within 5 minutes, or sooner when the app receives the GitHub membership event. A team that Standcast cannot read gives manager access to nobody:
+Manager access follows the GitHub team. Standcast keeps the members of each GitHub team for up to 5 minutes, so someone added to or removed from the team gains or loses manager access within 5 minutes. That includes the blockers routed to managers. When the app receives the GitHub membership event, the API process that receives it drops its copy at once, but the worker and any other API process keep theirs until the 5 minutes are up, so count on 5 minutes. A team that Standcast cannot read gives manager access to nobody:
 
 - a team of another organization, a team that does not exist, or a team the app cannot see (check the Members permission) shows a notice on the Configuration page;
 - a team with 5,000 members or more shows a notice and is not used;
-- when GitHub fails, the team is skipped until GitHub answers again.
+- when GitHub fails or takes more than 3 seconds to answer a manager's request, the team is skipped and a notice shows on the Configuration page. Standcast asks GitHub again after a minute.
 
 Logins listed directly keep working in all these cases.
 
@@ -137,7 +137,7 @@ Who writes dailies in this team. Each entry is either:
 - a GitHub login, such as `alice`; or
 - a GitHub team, written `"@org/team-slug"`, such as `"@acme/backend"`. Quote it, because YAML does not allow a value to start with `@`.
 
-GitHub teams are resolved every time Standcast needs the team, so changes on GitHub apply without editing the file. Standcast reads the first 100 members of each GitHub team. Logins are matched without case.
+GitHub teams are read from GitHub, so changes on GitHub apply without editing the file, within the same 5 minutes as for [`managers`](#managers). A GitHub team listed in `members` and in `managers`, or in several teams, is read once. Standcast reads up to 5,000 members of each GitHub team. Any other value starting with `@`, such as `@alice` or `"@acme/back end"`, is rejected. Logins are matched without case.
 
 A person can be in several teams. Their daily appears in every team's digest, and their standup date uses the time zone and workdays of the **first** team that lists them.
 
@@ -268,6 +268,7 @@ These are the messages the setup page shows, as `path: message`. `teams.0` is th
 | `teams.0.chat.provider: Invalid option: expected one of "slack"\|"google-chat"` | `teams`, `Slack`, `google_chat`, `gchat` | Use `slack` or `google-chat` |
 | `teams.0.members: Too small: expected array to have >=1 items` | `members: []` (same for `managers`) | List at least one person |
 | `teams.0.managers.0: managers must be GitHub logins or GitHub teams written as @org/team-slug` | `managers: ["@leads"]` | Write a login, such as `alice`, or a team, such as `"@acme/leads"` |
+| `teams.0.members.0: members must be GitHub logins or GitHub teams written as @org/team-slug` | `members: ["@alice"]`, `members: ["@acme/back end"]` | Write a login, such as `alice`, or a team by its slug, such as `"@acme/back-end"` |
 | `teams.0: Unrecognized key: "reminder"` | A misspelled or unknown key | Check the key against the tables above |
 | `members.alice.slack: must be a Slack user id like U0123ABCD` | A name, an email, a channel id or `<!channel>` | Use the member id, which starts with `U` or `W` |
 | `members.alice.google_chat: must be a Google Chat user like users/123456789` | An email, a name or a bare number | Use `users/` followed by the digits of the user id |

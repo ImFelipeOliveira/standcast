@@ -31,7 +31,7 @@ Standcast is hosted by one operator, who registers one public GitHub App. Organi
 
 7. Under **Organization permissions**, set **Members** to Read-only.
 8. Under **Account permissions**, set **Email addresses** to Read-only.
-9. Under **Subscribe to events**, select exactly: `Installation`, `Installation repositories`, `Push`, `Pull request`, `Pull request review`, `Check suite`, `Check run`, `Membership`, `Team`, `Organization`. The event boxes appear once the matching permissions are set. The last three let Standcast drop its cached GitHub team members as soon as someone joins or leaves a team; without them the cache expires after 5 minutes.
+9. Under **Subscribe to events**, select exactly: `Installation`, `Installation repositories`, `Push`, `Pull request`, `Pull request review`, `Check suite`, `Check run`, `Membership`, `Team`, `Organization`. The event boxes appear once the matching permissions are set. The last three let the API process that receives them drop its cached GitHub team members as soon as someone joins or leaves a team. The worker and other API processes keep their copy until it expires after 5 minutes, which is also the limit without these events.
 10. Under **Where can this GitHub App be installed?**, choose **Any account**.
 11. Click **Create GitHub App**.
 
