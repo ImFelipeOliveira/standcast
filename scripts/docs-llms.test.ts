@@ -58,12 +58,10 @@ describe('docs llms files', () => {
   test('robots.txt and sitemap.xml are published', async () => {
     const robots = await read('robots.txt');
     expect(robots).toContain('User-agent: *\nAllow: /');
-    expect(robots).toContain('Sitemap: https://docs-standcast.usefachada.dev/sitemap.xml');
+    expect(robots).toContain('Sitemap: https://docs.standcast.app/sitemap.xml');
     const sitemap = await read('sitemap.xml');
-    expect(sitemap).toContain('<loc>https://docs-standcast.usefachada.dev/admin/install</loc>');
-    expect(sitemap).toContain(
-      '<loc>https://docs-standcast.usefachada.dev/pt-BR/admin/install</loc>',
-    );
+    expect(sitemap).toContain('<loc>https://docs.standcast.app/admin/install</loc>');
+    expect(sitemap).toContain('<loc>https://docs.standcast.app/pt-BR/admin/install</loc>');
     expect(sitemap).not.toContain('.html</loc>');
   });
 });

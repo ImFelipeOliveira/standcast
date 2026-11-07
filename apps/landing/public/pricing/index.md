@@ -10,12 +10,12 @@
 
 ## More about Standcast
 
-- [Home](https://standcast.usefachada.dev/index.md)
-- [How it works](https://standcast.usefachada.dev/how-it-works/index.md)
-- [Privacy](https://standcast.usefachada.dev/privacy/index.md)
-- [FAQ](https://standcast.usefachada.dev/faq/index.md)
-- [Join the beta](https://standcast.usefachada.dev/beta/index.md)
-- [Terms of use](https://standcast.usefachada.dev/terms/index.md)
-- [Versão em português](https://standcast.usefachada.dev/pt-BR/precos/index.md)
+- [Home](https://standcast.app/index.md)
+- [How it works](https://standcast.app/how-it-works/index.md)
+- [Privacy](https://standcast.app/privacy/index.md)
+- [FAQ](https://standcast.app/faq/index.md)
+- [Join the beta](https://standcast.app/beta/index.md)
+- [Terms of use](https://standcast.app/terms/index.md)
+- [Versão em português](https://standcast.app/pt-BR/precos/index.md)
 
-Support: support.standcast@usefachada.dev
+Support: support@standcast.app

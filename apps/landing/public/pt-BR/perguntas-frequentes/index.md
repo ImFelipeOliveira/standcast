@@ -36,16 +36,16 @@ Sim. O Standcast tem licença MIT. A [seção de self-hosting do README](https:/
 
 ## Ainda tem alguma dúvida?
 
-Escreva para support.standcast@usefachada.dev ou leia a [documentação](https://docs-standcast.usefachada.dev/pt-BR/).
+Escreva para support@standcast.app ou leia a [documentação](https://docs.standcast.app/pt-BR/).
 
 ## Mais sobre o Standcast
 
-- [Início](https://standcast.usefachada.dev/pt-BR/index.md)
-- [Como funciona](https://standcast.usefachada.dev/pt-BR/como-funciona/index.md)
-- [Privacidade](https://standcast.usefachada.dev/pt-BR/privacidade/index.md)
-- [Preços](https://standcast.usefachada.dev/pt-BR/precos/index.md)
-- [Entrar no beta](https://standcast.usefachada.dev/pt-BR/beta/index.md)
-- [Termos de uso](https://standcast.usefachada.dev/pt-BR/termos/index.md)
-- [English version](https://standcast.usefachada.dev/faq/index.md)
+- [Início](https://standcast.app/pt-BR/index.md)
+- [Como funciona](https://standcast.app/pt-BR/como-funciona/index.md)
+- [Privacidade](https://standcast.app/pt-BR/privacidade/index.md)
+- [Preços](https://standcast.app/pt-BR/precos/index.md)
+- [Entrar no beta](https://standcast.app/pt-BR/beta/index.md)
+- [Termos de uso](https://standcast.app/pt-BR/termos/index.md)
+- [English version](https://standcast.app/faq/index.md)
 
-Suporte: support.standcast@usefachada.dev
+Suporte: support@standcast.app

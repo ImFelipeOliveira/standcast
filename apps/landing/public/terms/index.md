@@ -31,7 +31,7 @@ Your organization and its people own what they put in Standcast: dailies, blocke
 
 ## Your data
 
-Standcast processes data as described in the [Privacy](https://standcast.usefachada.dev/privacy/index.md) page and in the [privacy page of the documentation](https://docs-standcast.usefachada.dev/privacy): what it reads, what it stores, how long it keeps it and who sees what.
+Standcast processes data as described in the [Privacy](https://standcast.app/privacy/index.md) page and in the [privacy page of the documentation](https://docs.standcast.app/privacy): what it reads, what it stores, how long it keeps it and who sees what.
 
 ## Other services
 
@@ -39,7 +39,7 @@ Standcast works with GitHub, Slack, Google Chat and Linear. Your use of those se
 
 ## Leaving Standcast
 
-You can stop at any time: uninstall the GitHub App, remove the Slack app or the Google Chat app, and run `standcast logout`. What is deleted, and when, is in the [privacy page of the documentation](https://docs-standcast.usefachada.dev/privacy), under removing your data.
+You can stop at any time: uninstall the GitHub App, remove the Slack app or the Google Chat app, and run `standcast logout`. What is deleted, and when, is in the [privacy page of the documentation](https://docs.standcast.app/privacy), under removing your data.
 
 ## Changes to these terms
 
@@ -47,16 +47,16 @@ These terms may be updated. The date at the top shows the last change. If you ke
 
 ## Contact
 
-Questions about these terms: support.standcast@usefachada.dev
+Questions about these terms: support@standcast.app
 
 ## More about Standcast
 
-- [Home](https://standcast.usefachada.dev/index.md)
-- [How it works](https://standcast.usefachada.dev/how-it-works/index.md)
-- [Privacy](https://standcast.usefachada.dev/privacy/index.md)
-- [Pricing](https://standcast.usefachada.dev/pricing/index.md)
-- [FAQ](https://standcast.usefachada.dev/faq/index.md)
-- [Join the beta](https://standcast.usefachada.dev/beta/index.md)
-- [Versão em português](https://standcast.usefachada.dev/pt-BR/termos/index.md)
+- [Home](https://standcast.app/index.md)
+- [How it works](https://standcast.app/how-it-works/index.md)
+- [Privacy](https://standcast.app/privacy/index.md)
+- [Pricing](https://standcast.app/pricing/index.md)
+- [FAQ](https://standcast.app/faq/index.md)
+- [Join the beta](https://standcast.app/beta/index.md)
+- [Versão em português](https://standcast.app/pt-BR/termos/index.md)
 
-Support: support.standcast@usefachada.dev
+Support: support@standcast.app

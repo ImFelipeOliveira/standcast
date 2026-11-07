@@ -13,7 +13,7 @@ const publicUrl = resolvePublicUrl(process.env.STANDCAST_PUBLIC_URL?.trim());
 
 type ThemeConfig = DefaultTheme.Config & { supportEmail: string };
 
-const DOCS_DOMAIN = 'https://docs-standcast.usefachada.dev';
+const DOCS_DOMAIN = 'https://docs.standcast.app';
 
 const OG_IMAGE = `${DOCS_DOMAIN}/og.png`;
 

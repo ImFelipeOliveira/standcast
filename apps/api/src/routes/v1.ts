@@ -72,7 +72,7 @@ const meta = createRoute({
           schema: MetaSchema,
           example: {
             githubClientId: 'Iv1.0123456789abcdef',
-            supportEmail: 'support.standcast@usefachada.dev',
+            supportEmail: 'support@standcast.app',
           },
         },
       },

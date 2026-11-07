@@ -4,9 +4,9 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const PUBLIC = join(import.meta.dir, '../public');
-const SITE = 'https://standcast.usefachada.dev';
-const API = 'https://api-standcast.usefachada.dev';
-const DOCS = 'https://docs-standcast.usefachada.dev';
+const SITE = 'https://standcast.app';
+const API = 'https://api.standcast.app';
+const DOCS = 'https://docs.standcast.app';
 
 const PAIRS = [
   { key: 'home', en: '/', 'pt-BR': '/pt-BR/' },
@@ -304,13 +304,13 @@ describe('landing', () => {
       const privacy = pagesOf('privacy').find((candidate) => candidate.locale === page.locale);
       expect(main).toContain('<time datetime="2026-11-06">');
       expect(hrefs(main)).toContain(privacy?.path ?? '');
-      expect(hrefs(main)).toContain('mailto:support.standcast@usefachada.dev');
+      expect(hrefs(main)).toContain('mailto:support@standcast.app');
       expect(markdown).toContain(`${privacy?.url}index.md`);
       for (const text of [decode(main), markdown]) {
         expect(text).toContain('Felipe Oliveira');
         expect(text).toContain('MIT');
         expect(text).toContain('Google Chat');
-        expect(text).toContain('support.standcast@usefachada.dev');
+        expect(text).toContain('support@standcast.app');
       }
     }
   });
@@ -329,9 +329,7 @@ describe('landing', () => {
   test('home keeps the hero, the install command and the old anchors', () => {
     for (const page of pagesOf('home')) {
       const html = read(page.file);
-      expect(html).toContain(
-        'data-copy="curl -fsSL https://api-standcast.usefachada.dev/install.sh | sh"',
-      );
+      expect(html).toContain('data-copy="curl -fsSL https://api.standcast.app/install.sh | sh"');
       expect(html).toContain('<script src="/app.js" defer></script>');
       for (const id of ['top', 'how', 'privacy', 'pricing', 'faq', 'beta', 'beta-invalid']) {
         expect(html, `${page.file} #${id}`).toContain(` id="${id}"`);
@@ -441,7 +439,7 @@ describe('landing', () => {
   test('pt-BR pages link the pt-BR docs', () => {
     for (const page of PAGES.filter((candidate) => candidate.locale === 'pt-BR')) {
       const docsLinks = [
-        ...read(page.file).matchAll(/href="(https:\/\/docs-standcast\.usefachada\.dev[^"]*)"/g),
+        ...read(page.file).matchAll(/href="(https:\/\/docs\.standcast\.app[^"]*)"/g),
       ].map((match) => match[1] ?? '');
       expect(docsLinks.length).toBeGreaterThan(0);
       for (const link of docsLinks) expect(link).toStartWith(`${DOCS}/pt-BR/`);
@@ -667,9 +665,7 @@ describe('landing', () => {
   test('markdown links to the site resolve', () => {
     const files = [...PAGES.map((page) => `${page.path.slice(1)}index.md`), 'llms.txt'];
     for (const file of files) {
-      for (const match of read(file).matchAll(
-        /\]\((https:\/\/standcast\.usefachada\.dev[^)]*)\)/g,
-      )) {
+      for (const match of read(file).matchAll(/\]\((https:\/\/standcast\.app[^)]*)\)/g)) {
         const path = (match[1] ?? '').slice(SITE.length).split('#')[0] ?? '';
         const target = join(PUBLIC, path.endsWith('/') ? `${path}index.html` : path);
         expect(existsSync(target), `${file} -> ${match[1]}`).toBe(true);

@@ -1,6 +1,6 @@
 # Web app
 
-The web app at [app-standcast.usefachada.dev](https://app-standcast.usefachada.dev) shows your organization in two screens: **Settings** and **Today**. Sign in with GitHub. The app lists the organizations where Standcast is installed and you are a member.
+The web app at [app.standcast.app](https://app.standcast.app) shows your organization in two screens: **Settings** and **Today**. Sign in with GitHub. The app lists the organizations where Standcast is installed and you are a member.
 
 The app is in Portuguese and English, with a light and a dark theme.
 

@@ -31,7 +31,7 @@ A sua organização e as pessoas dela são donas do que colocam no Standcast: da
 
 ## Os seus dados
 
-O Standcast trata dados como descrito na página de [Privacidade](https://standcast.usefachada.dev/pt-BR/privacidade/index.md) e na [página de privacidade da documentação](https://docs-standcast.usefachada.dev/pt-BR/privacy): o que ele lê, o que guarda, por quanto tempo e quem vê o quê.
+O Standcast trata dados como descrito na página de [Privacidade](https://standcast.app/pt-BR/privacidade/index.md) e na [página de privacidade da documentação](https://docs.standcast.app/pt-BR/privacy): o que ele lê, o que guarda, por quanto tempo e quem vê o quê.
 
 ## Outros serviços
 
@@ -39,7 +39,7 @@ O Standcast funciona com GitHub, Slack, Google Chat e Linear. O uso desses servi
 
 ## Como sair
 
-Você pode parar quando quiser: desinstale o GitHub App, remova o app do Slack ou o app do Google Chat e rode `standcast logout`. O que é apagado, e quando, está na [página de privacidade da documentação](https://docs-standcast.usefachada.dev/pt-BR/privacy), em remoção dos dados.
+Você pode parar quando quiser: desinstale o GitHub App, remova o app do Slack ou o app do Google Chat e rode `standcast logout`. O que é apagado, e quando, está na [página de privacidade da documentação](https://docs.standcast.app/pt-BR/privacy), em remoção dos dados.
 
 ## Mudanças nestes termos
 
@@ -47,16 +47,16 @@ Estes termos podem ser atualizados. A data no topo mostra a última mudança. Se
 
 ## Contato
 
-Dúvidas sobre estes termos: support.standcast@usefachada.dev
+Dúvidas sobre estes termos: support@standcast.app
 
 ## Mais sobre o Standcast
 
-- [Início](https://standcast.usefachada.dev/pt-BR/index.md)
-- [Como funciona](https://standcast.usefachada.dev/pt-BR/como-funciona/index.md)
-- [Privacidade](https://standcast.usefachada.dev/pt-BR/privacidade/index.md)
-- [Preços](https://standcast.usefachada.dev/pt-BR/precos/index.md)
-- [Perguntas frequentes](https://standcast.usefachada.dev/pt-BR/perguntas-frequentes/index.md)
-- [Entrar no beta](https://standcast.usefachada.dev/pt-BR/beta/index.md)
-- [English version](https://standcast.usefachada.dev/terms/index.md)
+- [Início](https://standcast.app/pt-BR/index.md)
+- [Como funciona](https://standcast.app/pt-BR/como-funciona/index.md)
+- [Privacidade](https://standcast.app/pt-BR/privacidade/index.md)
+- [Preços](https://standcast.app/pt-BR/precos/index.md)
+- [Perguntas frequentes](https://standcast.app/pt-BR/perguntas-frequentes/index.md)
+- [Entrar no beta](https://standcast.app/pt-BR/beta/index.md)
+- [English version](https://standcast.app/terms/index.md)
 
-Suporte: support.standcast@usefachada.dev
+Suporte: support@standcast.app
