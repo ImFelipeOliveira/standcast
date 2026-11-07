@@ -67,6 +67,12 @@ describe('redact', () => {
     expect(redact('ssh://git@host')).toBe('ssh://git@host');
   });
 
+  test('credential label matching stays linear on repeated separators', () => {
+    const started = performance.now();
+    redact('a-'.repeat(20000));
+    expect(performance.now() - started).toBeLessThan(100);
+  });
+
   test('redacts the whole password when it contains @', () => {
     expect(redact('db postgres://user:p@ss@db.host/app now')).toBe(
       'db postgres://[redacted]@db.host/app now',
@@ -168,6 +174,9 @@ describe('redact', () => {
     expect(redact('Authorization: Bearer abc.def.ghi1234')).toBe(
       'Authorization: Bearer [redacted]',
     );
+    expect(redact('Authorization: Basic dXNlcjpwYXNzd29yZA==')).toBe(
+      'Authorization: Basic [redacted]',
+    );
   });
 
   test('keeps plain words and unlabeled ids after label-like words', () => {
@@ -191,6 +200,9 @@ describe('redact', () => {
     expect(redact('password="abc\\"defSECRET"')).toBe('password="[redacted]"');
     expect(redact("token='ab\\'cdSECRET'")).toBe("token='[redacted]'");
     expect(redact('api_key=plainSECRET')).toBe('api_key=[redacted]');
+    expect(redact(String.raw`password=\\host\share`)).toBe('password=[redacted]');
+    expect(redact('before password="abc defSECRET after')).toBe('before password="[redacted]');
+    expect(redact('before password="" after')).toBe('before password="" after');
   });
 
   test('redacts credentials whose JSON quotes are escaped', () => {

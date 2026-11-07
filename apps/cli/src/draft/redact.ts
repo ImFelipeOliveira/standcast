@@ -17,10 +17,11 @@ const STRONG_LABELS =
   'password|passwd|pwd|secret|token|api_key|api-key|apikey|client_secret|access_key';
 const WEAK_LABELS = 'authorization|auth|bearer|key';
 const CREDENTIAL_LABEL = new RegExp(
-  `(?<![A-Za-z0-9])((?:[A-Za-z0-9]+[_-])*(?:${STRONG_LABELS}|${WEAK_LABELS}))(?![A-Za-z0-9])((?:\\\\?["'])?[ \\t]*[:=][ \\t]*|[ \\t]+)(\\\\?["']?)`,
+  `(?<![A-Za-z0-9])((?:[A-Za-z0-9]+[_-]){0,8}(?:${STRONG_LABELS}|${WEAK_LABELS}))(?![A-Za-z0-9])((?:\\\\?["'])?[ \\t]*[:=][ \\t]*|[ \\t]+)(\\\\?["']|)`,
   'gi',
 );
 const STRONG_LABEL = new RegExp(`(?:^|[_-])(?:${STRONG_LABELS})$`, 'i');
+const AUTH_SCHEME = /^(?:Bearer|Basic)[ \t]+/i;
 const ASSIGNMENT = /[:=]/;
 const TRAILING_PUNCTUATION = /[.,;:!?)\]}]+$/;
 const MIN_LABELED_VALUE = 16;
@@ -156,23 +157,27 @@ function redactLabeled(text: string): string {
     const quote = opener.at(-1);
     const escapedDelimiter = opener.startsWith('\\');
     const closeAt = quote ? closingQuoteAt(text, valueStart, quote, escapedDelimiter) : -1;
+    const scheme = quote ? '' : (text.slice(valueStart).match(AUTH_SCHEME)?.[0] ?? '');
+    const rawStart = valueStart + scheme.length;
     const raw =
       closeAt >= 0
         ? text.slice(valueStart, closeAt)
-        : (text.slice(valueStart).match(/^[^\s"']+/)?.[0] ?? '');
+        : quote
+          ? text.slice(valueStart)
+          : (text.slice(rawStart).match(/^[^\s"']+/)?.[0] ?? '');
     const value = closeAt >= 0 ? raw : raw.replace(TRAILING_PUNCTUATION, '');
-    const explicit = ASSIGNMENT.test(gap) && STRONG_LABEL.test(label);
+    const explicit = scheme.length > 0 || (ASSIGNMENT.test(gap) && STRONG_LABEL.test(label));
     const shaped = value.length >= 8 && (/\d/.test(value) || value.length >= MIN_LABELED_VALUE);
     if (value.length === 0 || (!explicit && !shaped)) continue;
 
-    output += text.slice(cursor, match.index) + prefix + MARK;
+    output += text.slice(cursor, match.index) + prefix + scheme + MARK;
     if (closeAt >= 0) {
       const closingLength = escapedDelimiter ? 2 : 1;
       output += text.slice(closeAt, closeAt + closingLength);
       cursor = closeAt + closingLength;
     } else {
       output += raw.slice(value.length);
-      cursor = valueStart + raw.length;
+      cursor = rawStart + raw.length;
     }
     CREDENTIAL_LABEL.lastIndex = cursor;
   }
