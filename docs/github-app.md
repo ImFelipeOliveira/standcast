@@ -39,7 +39,7 @@ Standcast is hosted by one operator, who registers one public GitHub App. Organi
 
 [`github-app-manifest.json`](github-app-manifest.json) holds the same configuration: webhook, setup URL, callback URL, `public: true`, permissions and events. The manifest flow creates the app in one click and returns the credentials.
 
-1. Copy the manifest and replace every `https://standcast.example.com` with your `<PUBLIC_URL>`. Keep `redirect_url` pointing at a page you can open: GitHub sends the browser there with a temporary `code` in the query string. The manifest keeps `<PUBLIC_URL>/docs/`: the api answers it with a permanent redirect to the documentation site (`DOCS_URL`), and the redirect keeps the query string, so the `code` is still in the address bar. Pointing it straight at `DOCS_URL` also works.
+1. Copy the manifest and replace every `https://standcast.example.com` with your `<PUBLIC_URL>`. Replace `https://app.standcast.example.com` with your `<APP_URL>`, so `setup_url` becomes `<APP_URL>/setup`. `<PUBLIC_URL>/setup` keeps redirecting there. Keep `redirect_url` pointing at a page you can open: GitHub sends the browser there with a temporary `code` in the query string. The manifest keeps `<PUBLIC_URL>/docs/`: the api answers it with a permanent redirect to the documentation site (`DOCS_URL`), and the redirect keeps the query string, so the `code` is still in the address bar. Pointing it straight at `DOCS_URL` also works.
 2. Save this page locally as `register.html`, pasting the edited manifest as the `value` of the hidden field (escape the double quotes as `&quot;`), and open it in your browser:
 
    ```html
