@@ -176,27 +176,29 @@ export const ptBR = {
   'setup.tracker.jiraComingSoon': 'A integração com o Jira ainda não está disponível.',
   'setup.config.title': 'Arquivo standcast.yml',
   'setup.config.description':
-    'Times, horários e canais vêm do standcast.yml no repositório .github.',
+    'Times, horários e canais vêm do standcast.yml no repositório {repo}.',
   'setup.config.invalid': 'O standcast.yml é inválido. Corrija os erros abaixo e faça o commit.',
   'setup.config.keepsLastValid':
     'O Standcast continua usando a última versão válida até você corrigir.',
   'setup.config.missing': 'Ainda não configurado.',
   'setup.config.reason': 'Motivo',
-  'setup.config.reason.no_repo': 'O repositório .github não existe.',
+  'setup.config.reason.no_repo': 'Nem o repositório .github-private nem o .github existem.',
   'setup.config.reason.no_file':
-    'O arquivo standcast.yml não existe na raiz do repositório .github.',
-  'setup.config.reason.no_access': 'O Standcast não tem acesso ao repositório .github.',
+    'O arquivo standcast.yml não existe na raiz do repositório .github-private nem do .github.',
+  'setup.config.reason.no_access': 'O Standcast não tem acesso ao repositório de configuração.',
   'setup.config.instruction':
-    'Crie o arquivo standcast.yml na raiz do repositório .github da organização, na branch padrão.',
+    'Crie o arquivo standcast.yml na raiz do repositório privado .github-private da organização, na branch padrão. O Standcast lê o .github-private primeiro e, sem ele, o .github.',
   'setup.config.templateHint':
     'O modelo tem um time no Slack e um time no Google Chat. Mantenha o que você usa, ajuste o canal dele e apague o outro antes do commit.',
   'setup.config.createFile': 'Criar standcast.yml com o modelo',
-  'setup.config.createRepo': 'Criar o repositório .github',
+  'setup.config.createRepo': 'Criar o repositório {repo}',
   'setup.config.template': 'Modelo do standcast.yml',
   'setup.config.templateTeam': 'Time',
   'setup.config.editOnGithub': 'Editar no GitHub',
   'setup.config.path': 'Caminho',
   'setup.config.error': 'Erro',
+  'setup.config.notice.publicIdentityOverrides':
+    'O standcast.yml está em um repositório público e o mapa members tem overrides de identidade, que expõem dados pessoais como e-mails de trabalho. Mova o arquivo para o .github-private (ou torne o repositório privado), ou remova os overrides e deixe as pessoas se vincularem pelo e-mail verificado do GitHub no standcast login e pela mensagem direta do Google Chat.',
   'setup.teams.title': 'Times',
   'setup.teams.times': 'lembrete {remindAt} · consolidado {digestAt}',
   'setup.teams.tracker.linear': 'Linear',

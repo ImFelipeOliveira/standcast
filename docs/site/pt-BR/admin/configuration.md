@@ -1,6 +1,17 @@
 # Referência do standcast.yml
 
-O Standcast lê toda a configuração de um arquivo só: o `standcast.yml` na **raiz** do repositório `.github` da organização (ou da conta pessoal), na branch padrão. Não existe outro lugar para configurar os times.
+O Standcast lê toda a configuração de um arquivo só: o `standcast.yml` na **raiz** de um repositório de configuração da organização (ou da conta pessoal), na branch padrão. Não existe outro lugar para configurar os times.
+
+## Onde fica o arquivo
+
+O Standcast procura em dois repositórios, nesta ordem:
+
+1. `.github-private`, quando ele existe **e** tem o `standcast.yml`. É o repositório privado que o GitHub usa para o perfil da organização visível só para membros.
+2. `.github`, nos outros casos. Na maioria das organizações esse repositório é **público**, porque guarda os arquivos de comunidade e o perfil público da organização.
+
+Mantenha o `standcast.yml` no `.github-private`, ou em um `.github` que você tornou privado. O arquivo cita as pessoas dos seus times, e qualquer um lê o que está em um repositório público. Quando os dois repositórios têm o arquivo, vale o do `.github-private` e o do `.github` é ignorado. Quando só o `.github` tem o arquivo, nada muda para você: é onde o Standcast sempre leu.
+
+Para o arquivo não listar logins, inclua as pessoas por times do GitHub (`members: ["@org/team-slug"]`, veja [Times do GitHub](#times-do-github)) e deixe de fora o mapa `members` do nível de cima: o [mapeamento de identidades](#mapeamento-de-identidades) padrão não precisa de item por pessoa. O `managers` continua recebendo logins, porque gestores ganham acesso de leitura às dailies do time.
 
 Todo exemplo `yaml` desta página passa pelo parser de verdade quando a documentação é gerada.
 
@@ -51,7 +62,7 @@ members:
 | Chave | Tipo | Obrigatória | Padrão | Descrição |
 | --- | --- | --- | --- | --- |
 | `teams` | lista de times | sim | | Pelo menos um time. Os nomes dos times têm que ser únicos. |
-| `members` | mapa de login do GitHub para identidades | não | `{}` | Mapeamento manual de identidades. Veja [Mapeamento de identidades](#mapeamento-de-identidades). |
+| `members` | mapa de login do GitHub para identidades | não | `{}` | Mapeamento manual de identidades, só para exceções. Rejeitado em repositório público. Veja [Mapeamento de identidades](#mapeamento-de-identidades). |
 
 Nenhuma outra chave é aceita. Uma chave desconhecida falha na validação com `Unrecognized key`.
 
@@ -150,7 +161,7 @@ O CI falhando no commit head de um pull request conta depois de 24 horas, e não
 
 ## Times do GitHub
 
-Use um time do GitHub em vez de listar as pessoas uma a uma. O app precisa da permissão Members (read), que ele pede na instalação.
+Use um time do GitHub em vez de listar as pessoas uma a uma. É o jeito recomendado: o time muda no GitHub sem editar o arquivo, e o arquivo não lista logins. O app precisa da permissão Members (read), que ele pede na instalação.
 
 ```yaml
 teams:
@@ -195,7 +206,9 @@ teams:
 
 ## Mapeamento de identidades
 
-O Standcast menciona as pessoas no Slack comparando o e-mail principal verificado da conta do GitHub com o e-mail do usuário no Slack. No Google Chat, cada pessoa se vincula mandando uma mensagem direta para o app do Standcast, comparada pelo mesmo e-mail. Quando os e-mails são diferentes, mapeie a pessoa à mão na chave `members` do nível de cima, pelo login do GitHub:
+Por padrão, ninguém precisa de item no arquivo. O Standcast menciona as pessoas no Slack comparando o e-mail principal verificado da conta do GitHub, capturado quando a pessoa entra com `standcast login`, com o e-mail do usuário no Slack. No Google Chat, cada pessoa se vincula mandando uma mensagem direta para o app do Standcast, comparada pelo mesmo e-mail. O usuário do Linear é vinculado pelo mesmo e-mail do GitHub.
+
+Só quando os e-mails são diferentes, mapeie a pessoa à mão na chave `members` do nível de cima, pelo login do GitHub. Cada item põe o login da pessoa ao lado de um e-mail de trabalho ou de um id de usuário do chat, então é dado pessoal: o mapeamento só é aceito quando o `standcast.yml` está em um repositório privado. Em repositório público, o check `Standcast config` falha com "standcast.yml expõe dados pessoais", com anotação na chave `members`, e a página de configuração mostra um aviso. Mova o arquivo para o `.github-private` (ou torne o `.github` privado), ou remova os itens e deixe as pessoas se vincularem pelo padrão acima.
 
 ```yaml
 teams:
@@ -245,6 +258,7 @@ Estas são as mensagens que a página de setup mostra, no formato `caminho: mens
 | `members.alice.slack: must be a Slack user id like U0123ABCD` | Um nome, um e-mail, um id de canal ou `<!channel>` | Use o id de membro, que começa com `U` ou `W` |
 | `members.alice.google_chat: must be a Google Chat user like users/123456789` | Um e-mail, um nome ou só um número | Use `users/` seguido dos dígitos do id de usuário |
 | `members.alice: Unrecognized key: "slak"` | Uma chave de identidade escrita errado | Use `slack`, `google_chat`, `linear` ou `jira` |
+| `standcast.yml expõe dados pessoais` (check run) | Overrides de identidade em `members` em um repositório público | Mova o arquivo para o `.github-private`, torne o repositório privado ou remova os overrides |
 | `teams.1.name: duplicate team name "backend"` | Dois times com o mesmo nome | Renomeie um deles |
 | `teams.0.signals.pr_review_hours: Too small: expected number to be >0` | `0` ou um número negativo | Use um número positivo |
 | `teams: Too small: expected array to have >=1 items` | `teams: []` | Adicione um time |

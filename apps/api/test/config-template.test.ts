@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'bun:test';
 import { parseConfig } from '@standcast/core';
-import { standcastYmlTemplate } from '../src/web/config-template';
+import {
+  newConfigFileUrl,
+  newConfigRepoUrl,
+  standcastYmlTemplate,
+} from '../src/web/config-template';
 
 describe('standcastYmlTemplate', () => {
   test('sets the team language from the page language', () => {
@@ -21,5 +25,22 @@ describe('standcastYmlTemplate', () => {
       { provider: 'slack', channel: '#daily' },
       { provider: 'google-chat', channel: 'spaces/AAAAAAAAAAA' },
     ]);
+  });
+});
+
+describe('config repository urls', () => {
+  test('creates the file in the given repository and branch', () => {
+    expect(newConfigFileUrl('acme', '.github-private', 'main', 'teams: []')).toBe(
+      'https://github.com/acme/.github-private/new/main?filename=standcast.yml&value=teams%3A%20%5B%5D',
+    );
+    expect(newConfigFileUrl('acme', '.github', 'trunk', '')).toBe(
+      'https://github.com/acme/.github/new/trunk?filename=standcast.yml&value=',
+    );
+  });
+
+  test('suggests a private .github-private repository', () => {
+    expect(newConfigRepoUrl()).toBe(
+      'https://github.com/new?name=.github-private&visibility=private',
+    );
   });
 });

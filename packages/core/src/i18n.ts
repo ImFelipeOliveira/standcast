@@ -251,6 +251,9 @@ const ptBR = {
   'checkRun.success.title': 'standcast.yml válido',
   'checkRun.failure.title': 'standcast.yml inválido',
   'checkRun.summary': '{count} erro(s) encontrado(s):\n{errors}',
+  'checkRun.publicIdentity.title': 'standcast.yml expõe dados pessoais',
+  'checkRun.publicIdentity.message':
+    'O repositório {repo} é público e o mapa members tem overrides de identidade (linear, slack, google_chat, jira). Eles publicam o e-mail de trabalho e o vínculo entre login e e-mail de cada pessoa. Mova o standcast.yml para o repositório {preferred} (ou torne o {repo} privado), ou remova os overrides e use a vinculação padrão: o e-mail verificado do GitHub no standcast login e a mensagem direta do Google Chat.',
   'googleChat.linkCode':
     'O Standcast está neste espaço. Para receber os consolidados aqui, um admin da sua organização no GitHub cola este código no Standcast, em Configuração → Google Chat: {code}. O código vale por 24 horas.',
   'googleChat.spaceLinked':
@@ -517,6 +520,9 @@ const en = {
   'checkRun.success.title': 'standcast.yml is valid',
   'checkRun.failure.title': 'standcast.yml is invalid',
   'checkRun.summary': '{count} error(s) found:\n{errors}',
+  'checkRun.publicIdentity.title': 'standcast.yml exposes personal data',
+  'checkRun.publicIdentity.message':
+    "The {repo} repository is public and the members map has identity overrides (linear, slack, google_chat, jira). They publish each person's work e-mail and the login to e-mail mapping. Move standcast.yml to the {preferred} repository (or make {repo} private), or remove the overrides and use the default linking: the GitHub verified e-mail at standcast login and the Google Chat direct message.",
   'googleChat.linkCode':
     'Standcast is in this space. To get digests here, an admin of your GitHub organization pastes this code in Standcast, Configuration → Google Chat: {code}. The code is valid for 24 hours.',
   'googleChat.spaceLinked':

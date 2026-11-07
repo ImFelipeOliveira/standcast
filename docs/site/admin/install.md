@@ -6,7 +6,9 @@ Set up Standcast for your organization in four steps. You need to be an owner of
 
 On the [Standcast GitHub App page](https://github.com/apps/standcast/installations/new), click **Install** and pick your organization or personal account.
 
-Choose **All repositories**, or **Only select repositories** and include the `.github` repository. Standcast reads its configuration from that repository. If it does not exist yet, you can create it in step 4 and add it to the app afterwards.
+Choose **All repositories**, or **Only select repositories** and include the `.github-private` repository (recommended) and the `.github` repository. Standcast reads its configuration from `.github-private` when it has `standcast.yml`, and from `.github` otherwise. If neither exists yet, you can create `.github-private` in step 4 and add it to the app afterwards.
+
+Keep the file in a **private** repository: `.github-private`, or a `.github` you made private. In most organizations `.github` is public, and `standcast.yml` names the people of your teams. See [Where the file lives](/admin/configuration#where-the-file-lives).
 
 The app asks for these permissions:
 
@@ -28,11 +30,11 @@ Any member of the organization who signs in can open the setup page. Only admins
 
 The page is a checklist. A badge at the top counts the steps, for example **2 of 3 steps done**, and turns green when every step is done. Each step has a status icon (a check when done, its number while to do, an x when it needs attention) and a badge:
 
-- **GitHub App**: installed on your organization, with a warning when Standcast lost access to `.github`;
+- **GitHub App**: installed on your organization, with a warning when Standcast lost access to the configuration repository;
 - **Slack**: **Connect Slack**, or **Reconnect Slack** once connected, for admins;
 - **Linear**: **Connect Linear**, or **Reconnect Linear** once connected, for admins. It counts as a step only when a team uses Linear, and then comes before the standcast.yml file. Otherwise it shows **Optional** and comes after the standcast.yml file;
 - **Google Chat**: the linked spaces and, for admins, a **Link code** field with **Link space**. It shows **Optional** until a space is linked, and **Unavailable** when the server has no Google Chat app. It comes last. The badge at the top counts Slack and Google Chat as one chat step, done when Slack is connected or a space is linked;
-- **standcast.yml file**: the state of the file. When it does not exist, a button to create it from a template, and the template itself. When it exists, **Edit on GitHub**, even while the file is invalid. A valid file adds one card per team, with its channel and times, and an invalid one adds a table of its errors.
+- **standcast.yml file**: the state of the file and the repository it comes from. When it does not exist, a button to create it from a template, and the template itself. When it exists, **Edit on GitHub**, even while the file is invalid. A valid file adds one card per team, with its channel and times, and an invalid one adds a table of its errors. When the file is in a public repository and has identity overrides under `members`, a warning asks you to move it to `.github-private` or remove the overrides.
 
 The side column shows the latest failed deliveries and, for admins, API keys and webhooks, then the support address.
 
@@ -46,7 +48,7 @@ Each team posts to Slack or Google Chat, set per team in `standcast.yml`. Connec
 
 ## 4. Create `standcast.yml`
 
-In the **standcast.yml file** step, click **Create standcast.yml from the template**. GitHub opens its editor on the default branch of your `.github` repository, with the file already filled in. The template has one team on Slack and one on Google Chat, and uses your login as manager and member:
+In the **standcast.yml file** step, click **Create standcast.yml from the template**. GitHub opens its editor on the default branch of your `.github-private` repository, or of `.github` when only that one exists, with the file already filled in. The template has one team on Slack and one on Google Chat, and uses your login as manager and member:
 
 ```text
 teams:
@@ -72,11 +74,13 @@ teams:
       channel: spaces/AAAAAAAAAAA
 ```
 
-Delete the team for the chat you do not use. Change the team name, time zone, times, people and channel, then commit. For Google Chat, the channel is the space name from the Google Chat card. The file must be at the **root** of the `.github` repository, on the default branch. If the `.github` repository does not exist, the page shows **Create the .github repository** instead, which opens GitHub's new repository form with the name filled in.
+Delete the team for the chat you do not use. Change the team name, time zone, times, people and channel, then commit. For Google Chat, the channel is the space name from the Google Chat card. The file must be at the **root** of the repository, on the default branch. If neither `.github-private` nor `.github` exists, the page shows **Create the .github-private repository** instead, which opens GitHub's new repository form with the name filled in and the visibility set to private.
+
+The template lists your login. For a larger team, prefer a GitHub team (`members: ["@org/team-slug"]`), so the file lists no logins, and leave out the top-level `members` map: people are linked by the verified email of their GitHub account when they run `standcast login`, and in Google Chat by a direct message to the app. `members.<login>` overrides are only for exceptions, and they are rejected in a public repository. See [Identity mapping](/admin/configuration#identity-mapping).
 
 Full reference: [standcast.yml](/admin/configuration).
 
-Standcast reloads the file on every push to the default branch of `.github` that changes `standcast.yml`, and when the repositories of the installation change. Reload the setup page to see the new state. Once the file exists, the step shows **Edit on GitHub**, which opens `standcast.yml` on GitHub, even while the file is invalid.
+Standcast reloads the file on every push to the default branch of `.github-private` or `.github`, and when the repositories of the installation change. Reload the setup page to see the new state. Once the file exists, the step shows **Edit on GitHub**, which opens `standcast.yml` on GitHub, even while the file is invalid.
 
 ## 5. Connect Linear (optional)
 
@@ -100,15 +104,15 @@ The **Configured** badge. Standcast is running: people can send dailies and the 
 
 ### Not configured
 
-The **To do** badge and "Not configured yet." Standcast could not find the file. Deleting the file, or deleting the `.github` repository, switches Standcast off for the organization: the previous configuration is dropped, so a later invalid file does not bring it back. The page shows the reason:
+The **To do** badge and "Not configured yet." Standcast found the file in neither `.github-private` nor `.github`. Deleting the file, or deleting the repository that has it, switches Standcast off for the organization: the previous configuration is dropped, so a later invalid file does not bring it back. If the other repository also has a `standcast.yml`, Standcast reads that one instead. The page shows the reason:
 
 | Reason | Meaning | Fix |
 | --- | --- | --- |
-| `no_repo` | The `.github` repository does not exist. | Create it, add `standcast.yml`, and make sure the app can access it. |
-| `no_file` | `standcast.yml` is not at the root of `.github`, on the default branch. | Create the file there. A file in a subfolder or on another branch is not read. |
-| `no_access` | Standcast cannot access the `.github` repository, and there was no configuration yet. | In the app installation settings on GitHub, add `.github` to the selected repositories, or choose all repositories. |
+| `no_repo` | Neither the `.github-private` nor the `.github` repository exists. | Create `.github-private`, add `standcast.yml`, and make sure the app can access it. |
+| `no_file` | `standcast.yml` is not at the root of `.github-private` nor of `.github`, on the default branch. | Create the file there. A file in a subfolder or on another branch is not read. |
+| `no_access` | Standcast cannot access the configuration repository, and there was no configuration yet. | In the app installation settings on GitHub, add `.github-private` and `.github` to the selected repositories, or choose all repositories. |
 
-`no_access` is a warning when a configuration is already in use. GitHub can deny access for a moment, for example under a rate limit, or because `.github` was removed from the selected repositories. Standcast then keeps the current configuration and state, and the setup page shows "Standcast has no access to the .github repository. Standcast keeps using the current configuration." next to any state. The warning goes away on the next successful read of `standcast.yml`, valid or invalid. Give the app access to `.github` again to clear it.
+`no_access` is a warning when a configuration is already in use. GitHub can deny access for a moment, for example under a rate limit, or because the repository was removed from the selected repositories. When `.github-private` denies access, Standcast does not fall back to `.github`, so it never switches to another file by accident. Standcast then keeps the current configuration and state, and the setup page shows "Standcast has no access to the configuration repository. Standcast keeps using the current configuration." next to any state. The warning goes away on the next successful read of `standcast.yml`, valid or invalid. Give the app access to the repository again to clear it.
 
 ### Invalid
 
@@ -116,7 +120,7 @@ The **Needs attention** badge and "standcast.yml is invalid. Fix the errors belo
 
 If the file was valid right before the invalid push, the page also says "Standcast keeps using the last valid version until you fix it." Digests still go out and drafts and submissions still work, with the last valid version. Fix the file and commit to apply your changes. If there is no valid version in use (the file was never valid, or it was deleted before the invalid push), Standcast does not run for the organization: no digests are posted, and drafts and submissions fail with `org_not_configured`.
 
-When a push to any branch of the `.github` repository touches `standcast.yml`, and on pull requests in `.github` that change it, Standcast creates the check run `Standcast config`, with success or failure. On failure there is one annotation per error, on its line, and the summary lists every error. If the file does not exist, there is no check. Any push to the default branch reloads the configuration, force pushes included.
+When a push to any branch of the `.github-private` or `.github` repository touches `standcast.yml`, and on pull requests in those repositories that change it, Standcast creates the check run `Standcast config` in that repository, with success or failure. On failure there is one annotation per error, on its line, and the summary lists every error. A valid file in a public repository also fails when the top-level `members` map has identity overrides: the check is titled "standcast.yml exposes personal data", with one annotation on the `members` key. The same file in a private repository passes, and the configuration in use is never changed by this check. If the file does not exist, there is no check. Any push to the default branch reloads the configuration, force pushes included.
 
 ## Next steps
 

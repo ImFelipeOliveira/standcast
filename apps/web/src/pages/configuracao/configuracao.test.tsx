@@ -30,12 +30,13 @@ function baseStatus(overrides: Partial<SetupStatus> = {}): SetupStatus {
     admin: false,
     config: { status: 'configured' },
     accessWarning: null,
-    configRepo: { exists: true, defaultBranch: 'main' },
+    configRepo: { exists: true, name: '.github', defaultBranch: 'main' },
     slack: { connected: true, workspace: 'acme-hq' },
     googleChat: { available: false, spaces: [] },
     linear: { connected: false },
     trackerNotices: [],
     teamNotices: [],
+    configNotices: [],
     teams: [
       {
         name: 'backend',
@@ -257,16 +258,57 @@ describe('configuração', () => {
     const html = renderPage(
       baseStatus({
         config: { status: 'unconfigured', reason: 'no_repo' },
-        configRepo: { exists: false },
+        configRepo: { exists: false, name: '.github-private' },
         configFileUrl: null,
         teams: [],
       }),
     );
     expect(html).toContain('Ainda não configurado.');
-    expect(html).toContain('O repositório .github não existe.');
-    expect(html).toContain('href="https://github.com/new?name=.github&amp;visibility=private"');
-    expect(html).toContain('Criar o repositório .github');
+    expect(html).toContain('Nem o repositório .github-private nem o .github existem.');
+    expect(html).toContain(
+      'href="https://github.com/new?name=.github-private&amp;visibility=private"',
+    );
+    expect(html).toContain('Criar o repositório .github-private');
     expect(html).not.toContain('Editar no GitHub');
+  });
+
+  test('unconfigured config with a repository links to create the file there', () => {
+    const html = renderPage(
+      baseStatus({
+        config: { status: 'unconfigured', reason: 'no_file' },
+        configRepo: { exists: true, name: '.github-private', defaultBranch: 'trunk' },
+        configFileUrl: null,
+        teams: [],
+      }),
+    );
+    expect(html).toContain(
+      'href="https://github.com/acme/.github-private/new/trunk?filename=standcast.yml',
+    );
+    expect(html).toContain('Criar standcast.yml com o modelo');
+  });
+
+  test('the configured repository is named and linked', () => {
+    const html = renderPage(
+      baseStatus({
+        configRepo: { exists: true, name: '.github-private', defaultBranch: 'main' },
+        configFileUrl: 'https://github.com/acme/.github-private/blob/main/standcast.yml',
+      }),
+    );
+    expect(html).toContain('no repositório .github-private.');
+    expect(html).toContain(
+      'href="https://github.com/acme/.github-private/blob/main/standcast.yml"',
+    );
+  });
+
+  test('identity overrides in a public repository show a notice in both languages', () => {
+    const status = baseStatus({ configNotices: ['public_identity_overrides'] });
+    const html = renderPage(status);
+    expect(html).toContain('O standcast.yml está em um repositório público');
+    applyLang('en');
+    const english = renderPage(status);
+    applyLang('pt-BR');
+    expect(english).toContain('standcast.yml is in a public repository');
+    expect(renderPage(baseStatus())).not.toContain('repositório público');
   });
 
   test('channel notice renders on its team', () => {

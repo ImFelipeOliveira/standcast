@@ -1,9 +1,15 @@
-import { validateConfigAtRef, type WorkerDeps } from '@standcast/orchestrator';
+import {
+  CONFIG_REPOS,
+  FALLBACK_CONFIG_REPO,
+  validateConfigAtRef,
+  type WorkerDeps,
+} from '@standcast/orchestrator';
 import { z } from 'zod';
 
 const schema = z.object({
   installationId: z.number().int(),
   owner: z.string().min(1),
+  repo: z.enum(CONFIG_REPOS).default(FALLBACK_CONFIG_REPO),
   headSha: z.string().min(1),
   pullNumber: z.number().int().positive().optional(),
 });

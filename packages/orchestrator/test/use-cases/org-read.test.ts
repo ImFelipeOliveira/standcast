@@ -20,7 +20,7 @@ import {
   listOrgTeams,
   loadInstallationConfig,
 } from '../../src';
-import { fakeDeps, INST, seedOrg } from './fakes';
+import { fakeDeps, found, INST, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -533,7 +533,7 @@ describe('org read caching', () => {
 
   test('loading the config invalidates the resolved teams', async () => {
     await seedOrg(twoTeams());
-    const fake = fakeDeps({ source: { found: true, source: 'teams: nope' } });
+    const fake = fakeDeps({ source: found('teams: nope') });
     const resolutions = counted(fake);
     await listOrgTeams(fake.deps, INST);
     await loadInstallationConfig(fake.deps, INST, 'acme');

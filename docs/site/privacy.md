@@ -12,7 +12,7 @@ No LLM processes your data on the Standcast servers. The draft is built with pla
 
 Standcast uses the permissions of its GitHub App: Metadata (read), Contents (read), Pull requests (read), Checks (write), Commit statuses (read), Members (read) and the account permission Email addresses (read). With them it reads:
 
-- `standcast.yml` from the `.github` repository of the installation owner;
+- `standcast.yml` from the `.github-private` repository of the installation owner or, when that one has no file, from the `.github` repository, and whether that repository is private;
 - the members of the GitHub teams you reference in `standcast.yml` (`@org/team`);
 - organization membership and role, to check who belongs to the organization and who is an admin;
 - for the person asking for a draft: titles, links, repositories and dates of the pull requests they opened, merged and reviewed, and of the commits they authored, in the organization;

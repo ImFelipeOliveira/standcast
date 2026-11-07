@@ -1,3 +1,4 @@
+import { CONFIG_FILE, isConfigRepo } from '@standcast/core';
 import {
   deleteInstallation,
   getInstallation,
@@ -13,7 +14,7 @@ import {
   type ResolveCheckSuiteJob,
 } from './resolve-check-suite';
 import { enqueueMemberScan } from './scan-member-signals';
-import { CONFIG_FILE, CONFIG_REPO, enqueueValidateConfig } from './validate-config-at-ref';
+import { enqueueValidateConfig } from './validate-config-at-ref';
 
 type Account = { id?: number; login?: string; type?: string };
 
@@ -94,7 +95,8 @@ async function onPush(deps: Deps, payload: GitHubEventPayload): Promise<void> {
   const installationId = payload.installation?.id;
   const repository = payload.repository;
   if (installationId === undefined || !repository || !payload.after) return;
-  if (repository.name !== CONFIG_REPO || payload.deleted || !repository.owner?.login) return;
+  const repo = repository.name;
+  if (!isConfigRepo(repo) || payload.deleted || !repository.owner?.login) return;
   const onDefaultBranch = payload.ref === `refs/heads/${repository.default_branch}`;
   const validate =
     payload.forced === true || (payload.commits ?? []).length === 0 || touchesConfig(payload);
@@ -103,7 +105,7 @@ async function onPush(deps: Deps, payload: GitHubEventPayload): Promise<void> {
   if (!installation || !sameLogin(repository.owner.login, installation.accountLogin)) return;
   const owner = installation.accountLogin;
   if (validate)
-    await enqueueValidateConfig(deps, { installationId, owner, headSha: payload.after });
+    await enqueueValidateConfig(deps, { installationId, owner, repo, headSha: payload.after });
   if (onDefaultBranch) await enqueueLoadConfig(deps, { installationId, owner });
 }
 
@@ -112,7 +114,8 @@ async function onConfigPullRequest(deps: Deps, payload: GitHubEventPayload): Pro
   const repository = payload.repository;
   const pullNumber = payload.pull_request?.number;
   const headSha = payload.pull_request?.head?.sha;
-  if (installationId === undefined || repository?.name !== CONFIG_REPO) return;
+  const repo = repository?.name;
+  if (installationId === undefined || !repository || !isConfigRepo(repo)) return;
   if (!CONFIG_PR_ACTIONS.includes(payload.action ?? '')) return;
   if (typeof pullNumber !== 'number' || !headSha || !repository.owner?.login) return;
   const installation = await getInstallation(deps.db, installationId);
@@ -120,6 +123,7 @@ async function onConfigPullRequest(deps: Deps, payload: GitHubEventPayload): Pro
   await enqueueValidateConfig(deps, {
     installationId,
     owner: installation.accountLogin,
+    repo,
     headSha,
     pullNumber,
   });

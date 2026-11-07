@@ -1,4 +1,5 @@
 import type { SetupStatus } from '@standcast/orchestrator';
+import { Alert, AlertTitle } from '../../components/ui/alert';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
@@ -11,7 +12,7 @@ import {
   TableRow,
 } from '../../components/ui/table';
 import { type Lang, useLang, useT } from '../../i18n';
-import { reasonText } from './labels';
+import { CONFIG_NOTICES, reasonText } from './labels';
 import { LooseNotices, Teams } from './Teams';
 
 export function standcastYmlTemplate(login: string, teamName: string, lang: Lang): string {
@@ -39,11 +40,18 @@ export function standcastYmlTemplate(login: string, teamName: string, lang: Lang
 `;
 }
 
-export function newConfigFileUrl(owner: string, branch: string, template: string): string {
-  return `https://github.com/${encodeURIComponent(owner)}/.github/new/${encodeURIComponent(branch)}?filename=standcast.yml&value=${encodeURIComponent(template)}`;
+export function newConfigFileUrl(
+  owner: string,
+  repo: string,
+  branch: string,
+  template: string,
+): string {
+  return `https://github.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/new/${encodeURIComponent(branch)}?filename=standcast.yml&value=${encodeURIComponent(template)}`;
 }
 
-export const NEW_CONFIG_REPO_URL = 'https://github.com/new?name=.github&visibility=private';
+export function newConfigRepoUrl(repo: string): string {
+  return `https://github.com/new?name=${encodeURIComponent(repo)}&visibility=private`;
+}
 
 function LinkButton({ href, primary, label }: { href: string; primary?: boolean; label: string }) {
   return (
@@ -66,11 +74,20 @@ export function ConfigFile({ status }: { status: SetupStatus }) {
       status.configRepo.exists ? (
         <LinkButton
           primary
-          href={newConfigFileUrl(status.owner, status.configRepo.defaultBranch, template)}
+          href={newConfigFileUrl(
+            status.owner,
+            status.configRepo.name,
+            status.configRepo.defaultBranch,
+            template,
+          )}
           label={t('setup.config.createFile')}
         />
       ) : (
-        <LinkButton primary href={NEW_CONFIG_REPO_URL} label={t('setup.config.createRepo')} />
+        <LinkButton
+          primary
+          href={newConfigRepoUrl(status.configRepo.name)}
+          label={t('setup.config.createRepo', { repo: status.configRepo.name })}
+        />
       )
     ) : status.configFileUrl ? (
       <LinkButton href={status.configFileUrl} label={t('setup.config.editOnGithub')} />
@@ -82,7 +99,7 @@ export function ConfigFile({ status }: { status: SetupStatus }) {
           <CardTitle id="setup-config">{t('setup.config.title')}</CardTitle>
           <CardDescription>
             {configured
-              ? t('setup.config.description')
+              ? t('setup.config.description', { repo: status.configRepo.name })
               : config.status === 'invalid'
                 ? t('setup.config.invalid')
                 : t('setup.config.missing')}
@@ -99,6 +116,11 @@ export function ConfigFile({ status }: { status: SetupStatus }) {
           {action}
         </span>
       </CardHeader>
+      {status.configNotices.map((notice) => (
+        <Alert key={notice} variant="warn" role="status">
+          <AlertTitle>{t(CONFIG_NOTICES[notice])}</AlertTitle>
+        </Alert>
+      ))}
       <LooseNotices notices={looseNotices} />
       {configured ? <Teams teams={status.teams} notices={status.teamNotices} /> : null}
       {config.status === 'invalid' ? (
