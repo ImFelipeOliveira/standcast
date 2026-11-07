@@ -782,13 +782,19 @@ body::before {
   margin-top: 8px;
 }
 
-.agents {
+.agents,
+.testers {
   border-block: 1px solid var(--line);
   background: var(--surface);
   padding-block: 22px;
 }
 
-.agents .wrap {
+.testers {
+  border-top: 0;
+}
+
+.agents .wrap,
+.testers .wrap {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -796,12 +802,14 @@ body::before {
   justify-content: space-between;
 }
 
-.agents p {
+.agents p,
+.testers p {
   font-size: 14px;
   color: var(--muted);
 }
 
-.agents ul {
+.agents ul,
+.testers ul {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 26px;
@@ -810,6 +818,14 @@ body::before {
   padding: 0;
   font-weight: 600;
   font-size: 15px;
+}
+
+.testers a {
+  text-decoration: none;
+}
+
+.testers a:hover {
+  color: var(--accent);
 }
 
 .head {
