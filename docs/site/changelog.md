@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+### 0.8.1 — 2026-11-07
+
 ### 0.8.0 — 2026-11-07
 
 - The landing page and the docs list what is connected today (GitHub, Linear, Slack, Google Chat) and what is still to come (Jira, ClickUp, Asana, GitHub Projects, Microsoft Teams, Discord). See [Integrations](/integrations).
