@@ -1,7 +1,7 @@
 import { describe, expect, spyOn, test } from 'bun:test';
 import { getInstallation, upsertInstallation } from '@standcast/db';
 import { db, useCleanDb } from '../../../db/test/setup';
-import { handleGitHubEvent, loadConfig, scanMemberSignals } from '../../src';
+import { handleGitHubEvent, loadConfig, resolveTeams, scanMemberSignals } from '../../src';
 import { config, fakeDeps, found, seedOrg } from './fakes';
 
 const INST = 21;
@@ -305,6 +305,26 @@ describe('handleGitHubEvent', () => {
         },
       },
     ]);
+  });
+
+  test('membership, team and organization events drop the cached team members of that installation', async () => {
+    for (const event of ['membership', 'team', 'organization']) {
+      const { deps } = fakeDeps({ teams: { '@acme/leads': ['carol'] } });
+      const lists: string[][] = [];
+      const resolve = deps.github.resolveTeamMembers;
+      deps.github.resolveTeamMembers = async (octokit, owner, members) => {
+        lists.push(members);
+        return resolve(octokit, owner, members);
+      };
+      const cfg = config('[alice]', '', '["@acme/leads"]');
+      await resolveTeams(deps, INST, 'acme', cfg);
+      await handleGitHubEvent(deps, event, { action: 'removed', installation: { id: 999 } });
+      await resolveTeams(deps, INST, 'acme', cfg);
+      expect(lists).toHaveLength(2);
+      await handleGitHubEvent(deps, event, { action: 'removed', installation: { id: INST } });
+      await resolveTeams(deps, INST, 'acme', cfg);
+      expect(lists).toHaveLength(4);
+    }
   });
 
   test('other events are ignored', async () => {
