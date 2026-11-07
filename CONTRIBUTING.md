@@ -19,11 +19,11 @@ The repository setting "Allow GitHub Actions to create and approve pull requests
 ## Running tests locally
 
 ```sh
-cp .env.example .env
-docker compose up -d
 bun install
 bun test
 ```
+
+Keep Docker. Testcontainers starts one disposable PostgreSQL 17 for the complete test run and removes it after the last test. Set `TEST_DATABASE_URL` when you want to use an existing database instead.
 
 Also run `bun run lint` and `bun run typecheck` before opening a PR.
 

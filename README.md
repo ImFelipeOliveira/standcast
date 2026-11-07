@@ -223,13 +223,13 @@ docker build --build-arg APP=worker -t standcast-worker .
 ## Development
 
 ```sh
-cp .env.example .env
-docker compose up -d        # Postgres for development and tests
 bun install
-bun test                    # full suite, no network needed
+bun test                    # starts one disposable Postgres for the full suite
 bun run lint                # Biome, CI-enforced
 bun run typecheck           # tsc, CI-enforced
 ```
+
+Tests require Docker, but no database setup: Testcontainers starts PostgreSQL 17 once, shares it across the whole run and removes it after the last test. Set `TEST_DATABASE_URL` to reuse an existing database instead. To run the api or worker locally, copy `.env.example` to `.env` and run `docker compose up -d`.
 
 Documentation site, served at the root of its own domain (`https://docs-standcast.usefachada.dev` for now). `STANDCAST_PUBLIC_URL` sets the api address shown in the examples and the API reference link:
 

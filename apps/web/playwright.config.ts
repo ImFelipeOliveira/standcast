@@ -1,8 +1,8 @@
 import { resolve } from 'node:path';
 import { defineConfig } from '@playwright/test';
 
-const databaseUrl =
-  process.env.TEST_DATABASE_URL ?? 'postgres://standcast:standcast@localhost:5433/standcast_test';
+const databaseUrl = process.env.TEST_DATABASE_URL;
+if (!databaseUrl) throw new Error('test database was not provisioned');
 const apiPort = process.env.E2E_API_PORT ?? '3000';
 const tokenFile = resolve(import.meta.dirname, 'test-results/session-token');
 

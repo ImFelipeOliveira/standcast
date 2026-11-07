@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test:e2e": "playwright test"
+    "test:e2e": "bun ../../scripts/run-with-test-postgres.ts playwright test"
   },
   "dependencies": {
     "@standcast/orchestrator": "workspace:*",
