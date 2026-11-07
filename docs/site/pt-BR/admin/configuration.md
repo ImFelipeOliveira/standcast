@@ -11,7 +11,7 @@ O Standcast procura em dois repositórios, nesta ordem:
 
 Mantenha o `standcast.yml` no `.github-private`, ou em um `.github` que você tornou privado. O arquivo cita as pessoas dos seus times, e qualquer um lê o que está em um repositório público. Quando os dois repositórios têm o arquivo, vale o do `.github-private` e o do `.github` é ignorado. Quando só o `.github` tem o arquivo, nada muda para você: é onde o Standcast sempre leu.
 
-Para o arquivo não listar logins, inclua as pessoas por times do GitHub (`members: ["@org/team-slug"]`, veja [Times do GitHub](#times-do-github)) e deixe de fora o mapa `members` do nível de cima: o [mapeamento de identidades](#mapeamento-de-identidades) padrão não precisa de item por pessoa. O `managers` continua recebendo logins, porque gestores ganham acesso de leitura às dailies do time.
+Para o arquivo não listar logins, inclua as pessoas por times do GitHub (`members: ["@org/team-slug"]` e `managers: ["@org/team-slug"]`, veja [Times do GitHub](#times-do-github)) e deixe de fora o mapa `members` do nível de cima: o [mapeamento de identidades](#mapeamento-de-identidades) padrão não precisa de item por pessoa.
 
 Todo exemplo `yaml` desta página passa pelo parser de verdade quando a documentação é gerada.
 

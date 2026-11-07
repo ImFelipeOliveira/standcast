@@ -11,7 +11,7 @@ Standcast looks in two repositories, in this order:
 
 Keep `standcast.yml` in `.github-private`, or in a `.github` you made private. The file names the people of your teams, and anything in a public repository can be read by anyone. When both repositories have the file, `.github-private` wins and the file in `.github` is ignored. When only `.github` has it, nothing changes for you: that is where Standcast always read it.
 
-To keep the file free of logins, list people through GitHub teams (`members: ["@org/team-slug"]`, see [GitHub teams](#github-teams)) and leave out the top-level `members` map: the default [identity mapping](#identity-mapping) needs no entry per person. `managers` still takes logins, because managers get read access to the team's dailies.
+To keep the file free of logins, list people through GitHub teams (`members: ["@org/team-slug"]` and `managers: ["@org/team-slug"]`, see [GitHub teams](#github-teams)) and leave out the top-level `members` map: the default [identity mapping](#identity-mapping) needs no entry per person.
 
 Every `yaml` example on this page is checked against the real parser when the docs are built.
 
