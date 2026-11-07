@@ -61,10 +61,10 @@ export function parseTeamReference(value: string): GitHubTeamReference | null {
   return { org: match[1] as string, slug: match[2] as string };
 }
 
-const manager = login.refine(
-  (value) => !value.startsWith('@') || parseTeamReference(value) !== null,
-  { message: 'managers must be GitHub logins or GitHub teams written as @org/team-slug' },
-);
+const loginOrTeam = (field: string) =>
+  login.refine((value) => !value.startsWith('@') || parseTeamReference(value) !== null, {
+    message: `${field} must be GitHub logins or GitHub teams written as @org/team-slug`,
+  });
 
 const teamSchema = z.strictObject({
   name: z.string().min(1),
@@ -73,8 +73,8 @@ const teamSchema = z.strictObject({
   remind_at: time,
   digest_at: time,
   language: z.enum(['pt-BR', 'en']).default('en'),
-  managers: z.array(manager).min(1),
-  members: z.array(login).min(1),
+  managers: z.array(loginOrTeam('managers')).min(1),
+  members: z.array(loginOrTeam('members')).min(1),
   chat: z.strictObject({
     provider: z.enum(CHAT_PROVIDERS),
     channel: z.string().min(1),

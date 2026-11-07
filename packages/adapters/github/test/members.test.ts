@@ -20,6 +20,14 @@ describe('resolveTeamMembers', () => {
     expect(calls).toHaveLength(0);
   });
 
+  test('reads only valid @org/team-slug references as teams', async () => {
+    const { octokit, calls } = octokitWith({});
+    expect((await resolveTeamMembers(octokit, 'acme', ['@acme/team name'])).logins).toEqual([
+      '@acme/team name',
+    ]);
+    expect(calls).toHaveLength(0);
+  });
+
   test('follows pages of team members past 100', async () => {
     const first = Array.from({ length: 100 }, (_, i) => ({ login: `User${i}` }));
     const { octokit, calls } = octokitWith({

@@ -5,6 +5,7 @@ import {
   type MessageRef,
   type PullRequestSnapshot,
   parseConfig,
+  parseTeamReference,
   type StandcastConfig,
 } from '@standcast/core';
 import {
@@ -233,7 +234,7 @@ export function fakeDeps(opts: FakeOptions = {}) {
         for (const m of members) {
           const known = opts.teams?.[m];
           if (known) logins.push(...known);
-          else if (/^@[^/]+\/.+$/.test(m)) missingTeams.push(m);
+          else if (parseTeamReference(m)) missingTeams.push(m);
           else logins.push(m.toLowerCase());
         }
         return {

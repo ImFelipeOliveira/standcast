@@ -6,6 +6,7 @@ import {
   ownersForFiles,
   parseCodeowners,
   parsePullRequestUrl,
+  parseTeamReference,
   type Ref,
   type ResolvedTeam,
   type StandcastConfig,
@@ -80,9 +81,9 @@ async function expandOwners(
 ): Promise<string[]> {
   const logins: string[] = [];
   for (const entry of entries) {
-    const team = /^@([^/]+)\/(.+)$/.exec(entry);
+    const team = parseTeamReference(entry);
     if (!team) logins.push(entry.replace(/^@/, ''));
-    else if ((team[1] as string).toLowerCase() === owner.toLowerCase()) {
+    else if (team.org.toLowerCase() === owner.toLowerCase()) {
       logins.push(...(await deps.github.resolveTeamMembers(octokit, owner, [entry])).logins);
     }
   }

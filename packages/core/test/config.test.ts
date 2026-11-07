@@ -169,6 +169,20 @@ describe('parseConfig', () => {
     }
   });
 
+  test('members follow the same team reference rule as managers', () => {
+    const ok = parseConfig(toYaml([team({ members: ['alice', '@acme/eng-leads'] })]));
+    expect(ok.ok).toBe(true);
+    for (const value of ['@alice', '@acme/team name', '@acme/']) {
+      const r = parseConfig(toYaml([team({ members: [value] })]));
+      expect(r.ok).toBe(false);
+      if (r.ok) return;
+      const error = r.errors.find((e) => e.path === 'teams.0.members.0');
+      expect(error?.message).toBe(
+        'members must be GitHub logins or GitHub teams written as @org/team-slug',
+      );
+    }
+  });
+
   test('still requires at least one manager', () => {
     const r = parseConfig(toYaml([team({ managers: [] })]));
     expect(r.ok).toBe(false);
@@ -185,6 +199,7 @@ describe('parseConfig', () => {
     expect(parseTeamReference('alice')).toBeNull();
     expect(parseTeamReference('@acme')).toBeNull();
     expect(parseTeamReference('@acme/leads/x')).toBeNull();
+    expect(parseTeamReference('@acme/team name')).toBeNull();
   });
 
   test('rejects unknown timezone', () => {
