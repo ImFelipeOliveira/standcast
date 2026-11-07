@@ -2,7 +2,7 @@
 
 Standcast is hosted by one operator, who creates one Google Chat app. Organizations then add that app to their Google Chat spaces and link each space with a code. There is no per-organization secret. Replace `<PUBLIC_URL>` below with the public address of your API. It must be the same value as the `PUBLIC_URL` environment variable, for example `https://api.standcast.app`.
 
-Google Chat is optional. Without `GOOGLE_CHAT_SERVICE_ACCOUNT`, the api and the worker start normally, `POST /webhooks/google-chat` answers 404, the Google Chat card in the web app and the setup page shows "Google Chat is not available on this server.", and deliveries for `google-chat` teams fail with `no_chat_connection`.
+Google Chat is optional. Without `GOOGLE_CHAT_SERVICE_ACCOUNT`, the api and the worker start normally, `POST /webhooks/google-chat` answers 404, the Google Chat card in the web app shows "Google Chat is not available on this server.", and deliveries for `google-chat` teams fail with `no_chat_connection`.
 
 ## Values you need
 
@@ -55,7 +55,7 @@ For local development, put `GOOGLE_CHAT_SERVICE_ACCOUNT` and `GOOGLE_CHAT_PROJEC
 
 ## Check it works
 
-1. Open the web app Settings, or the setup page. The Google Chat card no longer says "Google Chat is not available on this server.".
+1. Open Settings in the web app. The Google Chat card no longer says "Google Chat is not available on this server.".
 2. Add the app to a test space. It posts a message with a link code. If it says the app is not responding, check that the HTTP endpoint URL is `<PUBLIC_URL>/webhooks/google-chat`, that the authentication audience is **Project number**, and that `GOOGLE_CHAT_PROJECT_NUMBER` is the project number of the same Google Cloud project.
 3. Paste the code in the Google Chat card, set a test team with `provider: google-chat` and the space name, and send the app a direct message to link yourself.
 4. Let a digest post, and check that links, mentions and text with `<` show as expected in Google Chat.

@@ -31,7 +31,7 @@ O código tem 8 caracteres, vale por 24 horas e só funciona uma vez. Para receb
 
 Só um admin da organização pode vincular um espaço: um admin da organização no GitHub, ou o dono da conta, numa conta pessoal.
 
-No [app web](/pt-BR/admin/web-app), abra **Configuração**. No card **Google Chat**, cole o código em **Código de vínculo** e clique em **Vincular espaço**. Você também pode usar a etapa **Google Chat** no fim da página de setup renderizada pelo servidor.
+No [app web](/pt-BR/admin/web-app), abra **Configuração**. No card **Google Chat**, cole o código em **Código de vínculo** e clique em **Vincular espaço**.
 
 O card passa a listar os espaços vinculados, com o nome de exibição do espaço e o nome dele, como `spaces/AAAAbbbbCCC`. Use **Copiar** para copiar o nome para o `standcast.yml`. Os outros membros veem a lista só para leitura.
 
@@ -60,7 +60,7 @@ chat:
 
 O nome do espaço começa com `spaces/`. Copie do card do Google Chat, ou pegue a última parte do endereço do espaço no Google Chat e coloque `spaces/` antes. Veja a [referência do standcast.yml](/pt-BR/admin/configuration#chat).
 
-A página de setup e o app web avisam no card do time quando o espaço não está vinculado à sua organização, não foi encontrado ou não tem o app.
+O app web avisa no card do time quando o espaço não está vinculado à sua organização, não foi encontrado ou não tem o app.
 
 ## Desvincular um espaço
 
@@ -108,7 +108,7 @@ O consolidado menciona cada pessoa vinculada com o usuário dela no Google Chat,
 
 ## Erros de entrega
 
-Quando uma publicação falha, a página de setup e o app web mostram a falha em "Últimas entregas com falha". O Standcast tenta cada mensagem até 3 vezes no total, com os mesmos limites de tempo do Slack: um consolidado só é tentado de novo até 120 minutos depois do `digest_at`, e um lembrete nunca sai no `digest_at` ou depois dele.
+Quando uma publicação falha, o app web mostra a falha em "Últimas entregas com falha". O Standcast tenta cada mensagem até 3 vezes no total, com os mesmos limites de tempo do Slack: um consolidado só é tentado de novo até 120 minutos depois do `digest_at`, e um lembrete nunca sai no `digest_at` ou depois dele.
 
 | Código do erro | Significado | Como resolver |
 | --- | --- | --- |
@@ -120,7 +120,7 @@ Quando uma publicação falha, a página de setup e o app web mostram a falha em
 | `invalid_auth` | O Google Chat recusou as credenciais do app do Standcast. | Fale com o suporte. |
 | `ratelimited` | O Google Chat pediu para o Standcast ir mais devagar. | Nada a fazer; há nova tentativa. |
 | `timeout`, `request_failed`, `http_error`, `invalid_response` | O Google Chat não respondeu a tempo, não pôde ser acessado, ou respondeu com erro. | Nada a fazer; há nova tentativa. Fale com o suporte se repetir. |
-| `no_chat_connection` | Nenhum espaço está vinculado a esta organização, ou o servidor não tem app do Google Chat. | Vincule um espaço. Se a página de setup diz que o Google Chat não está disponível neste servidor, fale com quem opera o servidor para configurar o Google Chat. |
+| `no_chat_connection` | Nenhum espaço está vinculado a esta organização, ou o servidor não tem app do Google Chat. | Vincule um espaço. Se a Configuração diz que o Google Chat não está disponível neste servidor, fale com quem opera o servidor para configurar o Google Chat. |
 | `no_chat_identity` | A pessoa, ou o gestor para quem um impedimento foi, não tem vínculo com o Google Chat, ou o usuário em `members.<login>.google_chat` não está em nenhum dos seus espaços vinculados. | Peça para a pessoa mandar mensagem para o app, ou adicione a pessoa a um espaço vinculado. |
 | `no_route_target` | Um impedimento não tinha destinatário nenhum, por exemplo porque quem escreveu é o único gestor do time. | Adicione outro gestor ao time. |
 | `worker_died` | O worker parou três vezes durante o envio. | Fale com o suporte se repetir. |

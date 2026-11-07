@@ -7,7 +7,6 @@ import {
   createMembershipCheck,
   type Deps,
   DomainError,
-  getSetupStatus,
   logError,
   logoutWebSession,
   startLinearConnect,
@@ -188,15 +187,7 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
     return c.redirect('/', 303);
   });
 
-  app.get('/setup', async (c) => {
-    const session = await readSession(c);
-    if (!session) return appSetup(c);
-    const result = await resyncOnPending(c, () =>
-      getSetupStatus(deps, isMember, session.member, installationId(c)),
-    );
-    if (result instanceof Response) return result;
-    return appSetup(c);
-  });
+  app.get('/setup', (c) => appSetup(c));
 
   app.get('/connect/slack', async (c) => {
     const session = await readSession(c);

@@ -98,7 +98,7 @@ Add the custom domain `app.standcast.app` to the Worker in Cloudflare, then set 
 
 ## Deploying without the final domain
 
-The hosted api is `https://api.standcast.app`. It also serves setup, OAuth, webhooks, the API reference at `/reference` and `/install.sh`. The documentation site is `https://docs.standcast.app`. Set `PUBLIC_URL` to `https://api.standcast.app` and point everything below at it:
+The hosted api is `https://api.standcast.app`. It serves OAuth, webhooks, the API reference at `/reference` and `/install.sh`. `GET /setup` redirects to the web app, which serves setup. The documentation site is `https://docs.standcast.app`. Set `PUBLIC_URL` to `https://api.standcast.app` and point everything below at it:
 
 - **GitHub App:** the callback URL, the webhook URL and the setup URL. See [github-app.md](github-app.md).
 - **GitHub App setup URL:** `https://app.standcast.app/setup`. `https://api.standcast.app/setup` keeps redirecting there, so an install that still has the API address keeps working. Change the GitHub setting by hand after this deploy.
@@ -119,8 +119,8 @@ These settings live outside the repository, so a domain change does not update t
 | --- | --- | --- | --- |
 | GitHub App | Setup URL | `https://app.standcast.app/setup` | After installing the app, the browser lands on a 404 page of another site. `https://api.standcast.app/setup` still redirects here until this GitHub setting is changed by hand |
 | GitHub App | Homepage URL | the landing address (`LANDING_URL`) | People who open the app from GitHub land on the old domain |
-| GitHub App | Callback URL | `<PUBLIC_URL>/auth/github/callback` | Signing in to the setup page fails with a redirect URI error on GitHub |
-| GitHub App | Webhook URL | `<PUBLIC_URL>/webhooks/github` | Installs and `standcast.yml` pushes are never seen; the setup page stays unconfigured |
+| GitHub App | Callback URL | `<PUBLIC_URL>/auth/github/callback` | Signing in to the web app fails with a redirect URI error on GitHub |
+| GitHub App | Webhook URL | `<PUBLIC_URL>/webhooks/github` | Installs and `standcast.yml` pushes are never seen; Configuração stays unconfigured |
 | GitHub App | Enable Device Flow | on | `standcast login` fails with `device_flow_disabled` |
 | Slack app | Redirect URL | `<PUBLIC_URL>/oauth/slack/callback` | Connecting Slack fails with `redirect_uri did not match any configured URIs` |
 | Linear app | Callback URL | `<PUBLIC_URL>/oauth/linear/callback` | Connecting Linear fails with a redirect URI error on Linear |

@@ -31,7 +31,7 @@ The code has 8 characters, is valid for 24 hours and works once. To get a new co
 
 Only an organization admin can link a space: a GitHub organization admin, or the account owner for a personal account.
 
-In the [web app](/admin/web-app), open **Settings**. In the **Google Chat** card, paste the code in **Link code** and click **Link space**. You can also use the **Google Chat** step at the end of the server-rendered setup page.
+In the [web app](/admin/web-app), open **Settings**. In the **Google Chat** card, paste the code in **Link code** and click **Link space**.
 
 The card then lists the linked spaces, with the space's display name and its name, such as `spaces/AAAAbbbbCCC`. Use **Copy** to copy the name for `standcast.yml`. Other members see the list read-only.
 
@@ -60,7 +60,7 @@ chat:
 
 The space name starts with `spaces/`. Copy it from the Google Chat card, or take the last part of the space's address in Google Chat and add `spaces/` before it. See the [standcast.yml reference](/admin/configuration#chat).
 
-The setup page and the web app warn on the team's card when the space is not linked to your organization, was not found, or does not have the app.
+The web app warns on the team's card when the space is not linked to your organization, was not found, or does not have the app.
 
 ## Unlink a space
 
@@ -108,7 +108,7 @@ The digest mentions each linked person with their Google Chat user, and shows `@
 
 ## Delivery errors
 
-When a post fails, the setup page and the web app list it under "Latest failed deliveries". Standcast tries each message up to 3 times in total, with the same time limits as Slack: a digest is retried only within 120 minutes after `digest_at`, and a reminder is never sent at or after `digest_at`.
+When a post fails, the web app lists it under "Latest failed deliveries". Standcast tries each message up to 3 times in total, with the same time limits as Slack: a digest is retried only within 120 minutes after `digest_at`, and a reminder is never sent at or after `digest_at`.
 
 | Error code | Meaning | Fix |
 | --- | --- | --- |
@@ -120,7 +120,7 @@ When a post fails, the setup page and the web app list it under "Latest failed d
 | `invalid_auth` | Google Chat rejected the credentials of the Standcast app. | Contact support. |
 | `ratelimited` | Google Chat asked Standcast to slow down. | Nothing to do; it is retried. |
 | `timeout`, `request_failed`, `http_error`, `invalid_response` | Google Chat did not answer in time, could not be reached, or answered with an error. | Nothing to do; it is retried. Contact support if it repeats. |
-| `no_chat_connection` | No space is linked to this organization, or the server has no Google Chat app. | Link a space. If the setup page says Google Chat is not available on this server, contact the server operator to configure Google Chat. |
+| `no_chat_connection` | No space is linked to this organization, or the server has no Google Chat app. | Link a space. If Settings says Google Chat is not available on this server, contact the server operator to configure Google Chat. |
 | `no_chat_identity` | The person, or the manager a blocker fell back to, has no Google Chat link, or their `members.<login>.google_chat` user is in none of your linked spaces. | Ask the person to message the app, or add them to a linked space. |
 | `no_route_target` | A blocker had no recipient at all, for example because the author is the team's only manager. | Add another manager to the team. |
 | `worker_died` | The worker stopped three times while sending. | Contact support if it repeats. |

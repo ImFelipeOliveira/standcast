@@ -353,17 +353,18 @@ describe('setup header', () => {
     expect(location(res)).toBe(`https://app.test/setup?installation_id=${FOREIGN}`);
   });
 
-  test('an installation the member is not linked to stays forbidden', async () => {
+  test('an installation the member is not linked to still redirects to the app', async () => {
     const { app } = harness();
     const { cookie } = await seed();
     const res = await get(app, cookie, FOREIGN);
     expect(res.status).toBe(302);
+    expect(location(res)).toBe(`https://app.test/setup?installation_id=${FOREIGN}`);
   });
 
   test('error pages keep the simple header', async () => {
     const { app } = harness();
     const { cookie } = await seed();
-    const forbidden = await app.request(`/setup?installation_id=${FOREIGN}&resynced=1`, {
+    const forbidden = await app.request(`/connect/slack?installation_id=${FOREIGN}&resynced=1`, {
       headers: { cookie, 'accept-language': 'en' },
     });
     expect(forbidden.status).toBe(403);
@@ -379,7 +380,7 @@ describe('setup header', () => {
 describe('setup page', () => {
   useCleanDb();
 
-  test('a foreign installation and a missing one look the same', async () => {
+  test('a foreign installation and a missing one both redirect to the app', async () => {
     const { app } = harness();
     const { cookie } = await seed();
     const responses = async (id: number) => {
@@ -391,24 +392,29 @@ describe('setup page', () => {
         firstStatus: first.status,
         firstLocation: location(first).replace(String(id), 'ID'),
         afterStatus: after.status,
-        afterBody: await after.text(),
+        afterLocation: location(after).replace(String(id), 'ID'),
       };
     };
     const foreign = await responses(FOREIGN);
     const missing = await responses(777);
-    expect(foreign.firstStatus).toBe(302);
-    expect(foreign.afterStatus).toBe(403);
+    expect(foreign).toEqual({
+      firstStatus: 302,
+      firstLocation: 'https://app.test/setup?installation_id=ID',
+      afterStatus: 302,
+      afterLocation: 'https://app.test/setup?installation_id=ID&resynced=1',
+    });
     expect(missing).toEqual(foreign);
   });
 
-  test('setup forbids a member who left the organization', async () => {
+  test('a member who left the organization is still sent to the app', async () => {
     const { app, orgMembers } = harness();
     const { cookie } = await seed();
     orgMembers.delete('alice');
     const res = await app.request(`/setup?installation_id=${INST}&resynced=1`, {
       headers: { cookie },
     });
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe(`https://app.test/setup?installation_id=${INST}&resynced=1`);
   });
 
   test('a configured installation redirects to the app', async () => {
@@ -652,37 +658,23 @@ describe('setup right after install', () => {
     const res = await app.request(`/setup?installation_id=${INST}`, { headers: { cookie } });
     expect(res.status).toBe(302);
     expect(location(res)).toBe(`https://app.test/setup?installation_id=${INST}`);
-    expect((await listMemberInstallations(db, member.id)).map((i) => i.installationId)).toEqual([
-      INST,
-    ]);
+    expect(await listMemberInstallations(db, member.id)).toEqual([]);
   });
 
-  test('redirects once to a resync login when the installation row is missing', async () => {
+  test('a missing installation redirects to the app with the query', async () => {
     const { app } = harness();
     const { cookie } = await seed();
     const res = await app.request('/setup?installation_id=777', { headers: { cookie } });
     expect(res.status).toBe(302);
-    expect(location(res)).toBe(
-      `/auth/github/login?next=${encodeURIComponent('/setup?installation_id=777&resynced=1')}`,
-    );
+    expect(location(res)).toBe('https://app.test/setup?installation_id=777');
   });
 
-  test('renders a localized pending page instead of looping after the resync', async () => {
+  test('resynced=1 still redirects to the app', async () => {
     const { app } = harness({ githubInstallations: [INST, 777] });
     await seed();
-    const { state, loginCookie } = await beginLogin(app, '/setup?installation_id=777&resynced=1');
-    const login = await callback(app, state, loginCookie);
-    const cookie = /sc_web=[^;]+/.exec(login.headers.get('set-cookie') ?? '')?.[0] ?? '';
-    const en = await app.request('/setup?installation_id=777&resynced=1', {
-      headers: { cookie, 'accept-language': 'en' },
-    });
-    expect(en.status).toBe(409);
-    expect(await en.text()).toContain('still being processed');
-    const pt = await app.request('/setup?installation_id=777&resynced=1', {
-      headers: { cookie, 'accept-language': 'pt-BR' },
-    });
-    expect(pt.status).toBe(409);
-    expect(await pt.text()).toContain('ainda está sendo processada');
+    const res = await app.request('/setup?installation_id=777&resynced=1');
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe('https://app.test/setup?installation_id=777&resynced=1');
   });
 });
 
@@ -713,7 +705,7 @@ describe('security headers', () => {
   test('error pages send the headers and an inline style that matches the policy', async () => {
     const { app } = harness();
     const { cookie } = await seed();
-    const forbidden = await app.request(`/setup?installation_id=${FOREIGN}&resynced=1`, {
+    const forbidden = await app.request(`/connect/slack?installation_id=${FOREIGN}&resynced=1`, {
       headers: { cookie },
     });
     expect(forbidden.status).toBe(403);
@@ -890,7 +882,7 @@ describe('browser error pages', () => {
   test('forbidden renders the danger card with the sign in button and the support line', async () => {
     const { app } = harness();
     const { cookie } = await seed();
-    const res = await app.request(`/setup?installation_id=${FOREIGN}&resynced=1`, {
+    const res = await app.request(`/connect/slack?installation_id=${FOREIGN}&resynced=1`, {
       headers: { cookie, 'accept-language': 'en' },
     });
     expect(res.status).toBe(403);
@@ -908,14 +900,14 @@ describe('browser error pages', () => {
     const { state, loginCookie } = await beginLogin(app, '/setup?installation_id=777&resynced=1');
     const login = await callback(app, state, loginCookie);
     const cookie = /sc_web=[^;]+/.exec(login.headers.get('set-cookie') ?? '')?.[0] ?? '';
-    const res = await app.request('/setup?installation_id=777&resynced=1', {
+    const res = await app.request('/connect/slack?installation_id=777&resynced=1', {
       headers: { cookie, 'accept-language': 'en' },
     });
     expect(res.status).toBe(409);
     const html = (await res.text()).replaceAll('&amp;', '&');
     expect(html).toContain('class="status-icon status-icon-warning"');
     expect(html).toContain(
-      '<a class="btn btn-primary" href="/setup?installation_id=777&resynced=1">Refresh the page</a>',
+      '<a class="btn btn-primary" href="/connect/slack?installation_id=777&resynced=1">Refresh the page</a>',
     );
   });
 
@@ -935,7 +927,7 @@ describe('browser error pages', () => {
   test('forbidden renders a localized html page in english and pt-BR', async () => {
     const { app } = harness();
     const { cookie } = await seed();
-    const en = await app.request(`/setup?installation_id=${FOREIGN}&resynced=1`, {
+    const en = await app.request(`/connect/slack?installation_id=${FOREIGN}&resynced=1`, {
       headers: { cookie, 'accept-language': 'en' },
     });
     expect(en.status).toBe(403);
@@ -943,7 +935,7 @@ describe('browser error pages', () => {
     const enHtml = await en.text();
     expect(enHtml).toContain('<html lang="en"');
     expect(enHtml).toContain('You do not have access');
-    const pt = await app.request(`/setup?installation_id=${FOREIGN}&resynced=1`, {
+    const pt = await app.request(`/connect/slack?installation_id=${FOREIGN}&resynced=1`, {
       headers: { cookie, 'accept-language': 'pt-BR' },
     });
     expect(pt.status).toBe(403);

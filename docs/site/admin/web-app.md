@@ -15,8 +15,6 @@ Settings shows everything Standcast knows about the organization:
 - each team, with its reminder and digest times, its channel and any GitHub team, Slack channel or Google Chat space Standcast cannot find or is not linked;
 - the latest failed deliveries, so you can see when a digest, a reminder or a routed blocker did not arrive.
 
-The server-rendered setup page still works.
-
 ## Today
 
 Today shows one team on the current day, in the team's timezone. Pick the team in the sidebar. On a day that is not one of the team's workdays, Today shows the next workday.
