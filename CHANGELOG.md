@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.8.0...standcast-v0.8.1) (2026-11-07)
+
+
+### Bug Fixes
+
+* keep standcast.yml private and name the beta testers ([#103](https://github.com/ImFelipeOliveira/standcast/issues/103)) ([54f8bad](https://github.com/ImFelipeOliveira/standcast/commit/54f8bad65dee438efe8784925af604e3edd620df))
+
 ## [0.8.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.7.0...standcast-v0.8.0) (2026-11-07)
 
 

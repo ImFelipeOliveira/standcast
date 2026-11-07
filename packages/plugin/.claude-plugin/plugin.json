@@ -1,6 +1,6 @@
 {
   "name": "standcast",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Standcast daily standup for Claude Code: drafts yesterday from your GitHub and Linear activity and local AI sessions, collects today, blockers and support requests, and submits after your explicit confirmation.",
   "author": {
     "name": "Felipe Oliveira"
