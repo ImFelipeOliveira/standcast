@@ -166,9 +166,20 @@ const historicoRoute = createRoute({
 const configuracaoRoute = createRoute({
   getParentRoute: () => orgRoute,
   path: 'configuracao',
+  validateSearch: (search: Record<string, unknown>): { connected?: 'slack' | 'linear' } =>
+    search.connected === 'slack' || search.connected === 'linear'
+      ? { connected: search.connected }
+      : {},
   component: function Configuracao() {
     const { installationId } = orgRoute.useParams();
-    return <ConfiguracaoPage key={installationId} installationId={installationId} />;
+    const { connected } = configuracaoRoute.useSearch();
+    return (
+      <ConfiguracaoPage
+        key={installationId}
+        installationId={installationId}
+        connected={connected}
+      />
+    );
   },
 });
 

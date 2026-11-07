@@ -129,6 +129,8 @@ export const en: Record<MessageKey, string> = {
   'setup.github.title': 'GitHub App',
   'setup.github.installed': 'Installed on {owner}',
   'setup.accessWarning': 'Standcast keeps using the current configuration.',
+  'setup.connected.slack': 'Slack is connected.',
+  'setup.connected.linear': 'Linear is connected.',
   'setup.slack.title': 'Slack',
   'setup.slack.connectedTo': 'Connected to {workspace}',
   'setup.slack.description': 'Reminders and digests are posted in Slack.',

@@ -357,7 +357,7 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       state: c.req.query('state'),
       error: c.req.query('error'),
     });
-    return c.redirect(`/setup?installation_id=${id}`);
+    return c.redirect(`${deps.env.appUrl}/orgs/${id}/configuracao?connected=slack`);
   });
 
   app.get('/connect/linear', async (c) => {
@@ -380,7 +380,7 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       state: c.req.query('state'),
       error: c.req.query('error'),
     });
-    return c.redirect(`/setup?installation_id=${id}`);
+    return c.redirect(`${deps.env.appUrl}/orgs/${id}/configuracao?connected=linear`);
   });
 
   return app;

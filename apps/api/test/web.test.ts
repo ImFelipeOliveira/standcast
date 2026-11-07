@@ -540,7 +540,7 @@ describe('slack connection', () => {
       },
     );
     expect(res.status).toBe(302);
-    expect(location(res)).toBe(`/setup?installation_id=${INST}`);
+    expect(location(res)).toBe(`https://app.test/orgs/${INST}/configuracao?connected=slack`);
     expect(slackCalls).toEqual([
       { code: 'c1', redirectUri: 'https://sw.test/oauth/slack/callback' },
     ]);
@@ -593,7 +593,7 @@ describe('linear connection', () => {
       { headers: { cookie } },
     );
     expect(res.status).toBe(302);
-    expect(location(res)).toBe(`/setup?installation_id=${INST}`);
+    expect(location(res)).toBe(`https://app.test/orgs/${INST}/configuracao?connected=linear`);
     expect(linear.calls.exchanges.map((e) => e.code)).toEqual(['c1']);
     expect(await getConnection(db, INST, 'linear', KEY)).toMatchObject({
       externalId: 'org-1',
@@ -623,6 +623,7 @@ describe('linear connection', () => {
       headers: { cookie, 'accept-language': 'en' },
     });
     expect(res.status).toBe(403);
+    expect(location(res)).not.toStartWith('https://app.test');
     expect(await res.text()).toContain('Access was denied');
   });
 
@@ -636,6 +637,7 @@ describe('linear connection', () => {
       { headers: { cookie, 'accept-language': 'pt-BR' } },
     );
     expect(res.status).toBe(502);
+    expect(location(res)).not.toStartWith('https://app.test');
     expect(await res.text()).toContain('Falha ao conectar o Linear');
   });
 });
@@ -959,6 +961,7 @@ describe('browser error pages', () => {
       headers: { cookie, 'accept-language': 'en' },
     });
     expect(res.status).toBe(403);
+    expect(location(res)).not.toStartWith('https://app.test');
     expect(await res.text()).toContain('Access was denied');
   });
 
@@ -983,6 +986,7 @@ describe('browser error pages', () => {
       },
     );
     expect(res.status).toBe(502);
+    expect(location(res)).not.toStartWith('https://app.test');
     expect(await res.text()).toContain('Slack');
     expect(await getConnection(db, INST, 'slack', KEY)).toBeNull();
   });

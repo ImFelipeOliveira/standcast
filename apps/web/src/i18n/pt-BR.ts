@@ -128,6 +128,8 @@ export const ptBR = {
   'setup.github.title': 'GitHub App',
   'setup.github.installed': 'Instalado em {owner}',
   'setup.accessWarning': 'O Standcast continua usando a configuração atual.',
+  'setup.connected.slack': 'O Slack está conectado.',
+  'setup.connected.linear': 'O Linear está conectado.',
   'setup.slack.title': 'Slack',
   'setup.slack.connectedTo': 'Conectado a {workspace}',
   'setup.slack.description': 'Lembretes e consolidados são publicados no Slack.',

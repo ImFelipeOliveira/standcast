@@ -27,7 +27,13 @@ function LoadError({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-export function ConfiguracaoPage({ installationId }: { installationId: number }) {
+export function ConfiguracaoPage({
+  installationId,
+  connected,
+}: {
+  installationId: number;
+  connected?: 'slack' | 'linear';
+}) {
   const t = useT();
   const lang = useLang();
   const setup = useSetupStatus(installationId);
@@ -52,6 +58,16 @@ export function ConfiguracaoPage({ installationId }: { installationId: number })
             {t('setup.heading')}
           </h1>
           <p className="m-0 text-text2">{t('setup.subtitle')}</p>
+          {connected === 'slack' ? (
+            <p role="status" className="m-0 text-text2">
+              {t('setup.connected.slack')}
+            </p>
+          ) : null}
+          {connected === 'linear' ? (
+            <p role="status" className="m-0 text-text2">
+              {t('setup.connected.linear')}
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
           <Badge variant={progress.done === progress.total ? 'ok' : 'neutral'}>
