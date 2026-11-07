@@ -12,13 +12,14 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### 0.8.1 — 07/11/2026
 
+- O Standcast lê o `standcast.yml` do repositório privado `.github-private` quando ele existe e tem o arquivo, e do `.github` nos outros casos, para organizações com `.github` público manterem o arquivo privado. Nada muda quando só o `.github` tem o arquivo. A página de configuração aponta para o arquivo no repositório em uso e oferece criar o `.github-private`. Veja [Onde fica o arquivo](/pt-BR/admin/configuration#onde-fica-o-arquivo).
+- O check `Standcast config` falha quando o `standcast.yml` está em um repositório público e tem overrides de identidade em `members` (`linear`, `slack`, `google_chat`, `jira`), porque eles publicam e-mails de trabalho e o vínculo entre login e e-mail. A página de configuração mostra o mesmo aviso. A configuração em uso não muda. Mova o arquivo para o `.github-private`, torne o repositório privado ou remova os overrides e use a vinculação padrão pelo e-mail verificado do GitHub e pela mensagem direta do Google Chat. Veja [Mapeamento de identidades](/pt-BR/admin/configuration#mapeamento-de-identidades).
+
 ### 0.8.0 — 07/11/2026
 
 - A landing e a documentação listam o que está conectado hoje (GitHub, Linear, Slack, Google Chat) e o que ainda vem (Jira, ClickUp, Asana, GitHub Projects, Microsoft Teams, Discord). Veja [Integrações](/pt-BR/integrations).
 - O serviço hospedado está em [standcast.app](https://standcast.app), com o app em [app.standcast.app](https://app.standcast.app), a documentação em [docs.standcast.app](https://docs.standcast.app) e a API em [api.standcast.app](https://api.standcast.app). O suporte é support@standcast.app. O hostname antigo da API, `https://api-standcast.usefachada.dev`, continua servindo a API, sem redirecionamento, então uma integração existente mantém a URL base.
 - A configuração fica no app web. O `/setup` da API redireciona para lá.
-- O Standcast lê o `standcast.yml` do repositório privado `.github-private` quando ele existe e tem o arquivo, e do `.github` nos outros casos, para organizações com `.github` público manterem o arquivo privado. Nada muda quando só o `.github` tem o arquivo. A página de configuração aponta para o arquivo no repositório em uso e oferece criar o `.github-private`. Veja [Onde fica o arquivo](/pt-BR/admin/configuration#onde-fica-o-arquivo).
-- O check `Standcast config` falha quando o `standcast.yml` está em um repositório público e tem overrides de identidade em `members` (`linear`, `slack`, `google_chat`, `jira`), porque eles publicam e-mails de trabalho e o vínculo entre login e e-mail. A página de configuração mostra o mesmo aviso. A configuração em uso não muda. Mova o arquivo para o `.github-private`, torne o repositório privado ou remova os overrides e use a vinculação padrão pelo e-mail verificado do GitHub e pela mensagem direta do Google Chat. Veja [Mapeamento de identidades](/pt-BR/admin/configuration#mapeamento-de-identidades).
 
 ### 0.7.0 — 06/11/2026
 
