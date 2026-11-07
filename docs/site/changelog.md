@@ -10,7 +10,11 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- The landing and the README no longer name beta testers.
+
 ### 0.8.1 — 2026-11-07
+
+- The landing and the README named Pigz and Usebill as the first beta testers.
 
 ### 0.8.0 — 2026-11-07
 
@@ -22,7 +26,11 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### 0.7.0 — 2026-11-06
 
+- The home page draws an animated field behind the hero.
+
 ### 0.6.0 — 2026-11-06
+
+- The landing banner shows Google Chat, the agents and the public beta.
 
 ### 0.5.0 — 2026-11-06
 

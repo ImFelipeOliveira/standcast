@@ -10,7 +10,11 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- A landing e o README não nomeiam mais times do beta.
+
 ### 0.8.1 — 07/11/2026
+
+- A landing e o README nomearam a Pigz e a Usebill como os primeiros times do beta.
 
 ### 0.8.0 — 07/11/2026
 
@@ -22,7 +26,11 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### 0.7.0 — 06/11/2026
 
+- A página inicial desenha um campo animado atrás do hero.
+
 ### 0.6.0 — 06/11/2026
+
+- O banner da landing mostra o Google Chat, os agentes e o beta público.
 
 ### 0.5.0 — 06/11/2026
 
