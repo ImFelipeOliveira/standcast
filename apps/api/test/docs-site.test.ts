@@ -116,8 +116,12 @@ describe('site build', () => {
   test('the portuguese changelog renders the api base url move', async () => {
     const html = await readFile(join(outDir, 'pt-BR/changelog.html'), 'utf8');
     expect(html).toContain('A URL base hospedada é');
+    expect(html).toContain('sem redirecionamento');
     expect(html).toContain('https://api-standcast.usefachada.dev');
     expect(html).toContain(PUBLIC_URL);
+    const english = await readFile(join(outDir, 'changelog.html'), 'utf8');
+    expect(english).toContain('with no redirect');
+    expect(english).toContain('https://api-standcast.usefachada.dev');
   });
 
   test('the api reference points at the public api url in both languages', async () => {
