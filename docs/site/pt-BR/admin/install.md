@@ -24,7 +24,7 @@ O app pede estas permissões:
 
 ## 2. Abra a página de setup
 
-Depois da instalação, o GitHub leva você para a página de setup do Standcast. Entre com o GitHub quando pedir. O endereço da página é `/setup?installation_id=<id>` na API do Standcast.
+Depois da instalação, o GitHub leva você para `https://app.standcast.app/setup?installation_id=<id>`. Entre com o GitHub quando pedir. Uma instalação que ainda abre `https://api.standcast.app/setup` é redirecionada para lá, e o `installation_id` é mantido.
 
 Qualquer membro da organização que entrar pode abrir a página de setup. Só admins podem conectar ou reconectar o Slack e o Linear e vincular espaços do Google Chat, e só admins veem as seções **API keys** e **Webhooks**. Admin é quem é admin da organização no GitHub, ou o dono da conta, numa conta pessoal.
 
