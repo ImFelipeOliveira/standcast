@@ -105,7 +105,7 @@ Pelo terminal, `standcast suggestion ignore <id>` e `standcast suggestion confir
 
 ## Tools de gestor
 
-As quatro últimas tools são para os gestores listados em `managers` de um time no `standcast.yml` e para os admins da organização, que leem todos os times. Qualquer outra pessoa recebe `forbidden`. Times desconhecidos recebem a mesma resposta, para os nomes dos times não vazarem.
+As quatro últimas tools são para os gestores listados em `managers` de um time no `standcast.yml`, incluindo os membros de um time do GitHub listado ali, e para os admins da organização, que leem todos os times. Qualquer outra pessoa recebe `forbidden`. Times desconhecidos recebem a mesma resposta, para os nomes dos times não vazarem.
 
 - O histórico cobre os últimos 90 dias, incluindo hoje, no fuso do time. Um `from` ou `to` fora dessa janela recebe `invalid_request`.
 - Elas devolvem só o que as pessoas confirmaram: sem sugestões e sem agregados por pessoa.

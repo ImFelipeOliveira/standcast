@@ -1,4 +1,4 @@
-import { dailyDateFor } from '@standcast/core';
+import { dailyDateFor, managesTeam } from '@standcast/core';
 import { listDailies, type MemberRow, operationalConfig } from '@standcast/db';
 import type { Deps } from '../../deps';
 import { guarded } from '../../guarded';
@@ -28,7 +28,7 @@ export async function getTeamsSummary(
   const login = current.login.toLowerCase();
   const teams = await resolveTeams(deps, installation.id, installation.accountLogin, config);
   const own = (team: (typeof teams)[number]) =>
-    team.memberLogins.includes(login) || team.managers.some((m) => m.toLowerCase() === login);
+    team.memberLogins.includes(login) || managesTeam(login, team);
   const admin =
     !teams.every(own) &&
     (await guarded(

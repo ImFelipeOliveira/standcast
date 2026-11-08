@@ -1,8 +1,8 @@
-import { teamsForMember } from '@standcast/core';
+import { managesTeam, teamsForMember } from '@standcast/core';
 import { type MemberRow, operationalConfig } from '@standcast/db';
 import type { Deps } from '../../deps';
 import { guarded } from '../../guarded';
-import { resolveTeams } from '../../teams';
+import { resolveManagerTeams, resolveMemberTeams } from '../../teams';
 import { authorizeInstallation } from '../access/authorize-installation';
 import { isInstallationAdmin } from '../access/is-installation-admin';
 import type { MembershipCheck } from '../access/org-context';
@@ -26,7 +26,7 @@ export async function getOrgContext(
   );
   const config = operationalConfig(installation);
   const login = current.login.toLowerCase();
-  const [admin, resolved] = await Promise.all([
+  const [admin, managed, members] = await Promise.all([
     guarded(
       isInstallationAdmin(deps, installation.id, current),
       false,
@@ -35,8 +35,17 @@ export async function getOrgContext(
       { installationId: String(installation.id) },
     ),
     config
+      ? resolveManagerTeams(
+          deps,
+          installation.id,
+          installation.accountLogin,
+          config,
+          TEAM_RESOLUTION_TIMEOUT_MS,
+        )
+      : [],
+    config
       ? guarded(
-          resolveTeams(deps, installation.id, installation.accountLogin, config),
+          resolveMemberTeams(deps, installation.id, installation.accountLogin, config),
           [],
           TEAM_RESOLUTION_TIMEOUT_MS,
           'org context team resolution failed',
@@ -46,9 +55,7 @@ export async function getOrgContext(
   ]);
   return {
     admin,
-    managerOf: (config?.teams ?? [])
-      .filter((team) => team.managers.some((m) => m.toLowerCase() === login))
-      .map((team) => team.name),
-    memberOf: teamsForMember(login, resolved).map((team) => team.name),
+    managerOf: managed.filter((team) => managesTeam(login, team)).map((team) => team.name),
+    memberOf: teamsForMember(login, members).map((team) => team.name),
   };
 }

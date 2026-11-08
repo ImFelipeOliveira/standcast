@@ -1,10 +1,10 @@
-import { type ResolvedTeam, teamsForMember } from '@standcast/core';
+import { type MemberTeam, teamsForMember } from '@standcast/core';
 import { getInstallation, operationalConfig } from '@standcast/db';
 import type { Deps } from '../../deps';
-import { resolveTeams } from '../../teams';
+import { resolveMemberTeams } from '../../teams';
 import { DomainError } from './errors';
 
-export type OrgTeams = { owner: string; teams: ResolvedTeam[] };
+export type OrgTeams = { owner: string; teams: MemberTeam[] };
 
 export async function loadOrgTeams(deps: Deps, installationId: number): Promise<OrgTeams> {
   const installation = await getInstallation(deps.db, installationId);
@@ -13,16 +13,16 @@ export async function loadOrgTeams(deps: Deps, installationId: number): Promise<
   if (!config) {
     throw new DomainError('org_not_configured', 'organization has no valid standcast.yml');
   }
-  const teams = await resolveTeams(deps, installation.id, installation.accountLogin, config);
+  const teams = await resolveMemberTeams(deps, installation.id, installation.accountLogin, config);
   return { owner: installation.accountLogin, teams };
 }
 
-export function requireTeam(teams: ResolvedTeam[], name: string | undefined) {
+export function requireTeam(teams: MemberTeam[], name: string | undefined) {
   if (name === undefined) return undefined;
   const team = teams.find((t) => t.name === name);
   if (!team) throw new DomainError('invalid_request', `unknown team ${name}`);
   return team;
 }
 
-export const teamNames = (login: string, teams: ResolvedTeam[]): string[] =>
+export const teamNames = (login: string, teams: MemberTeam[]): string[] =>
   teamsForMember(login, teams).map((t) => t.name);

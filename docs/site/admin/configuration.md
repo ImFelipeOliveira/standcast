@@ -11,7 +11,7 @@ Standcast looks in two repositories, in this order:
 
 Keep `standcast.yml` in `.github-private`, or in a `.github` you made private. The file names the people of your teams, and anything in a public repository can be read by anyone. When both repositories have the file, `.github-private` wins and the file in `.github` is ignored. When only `.github` has it, nothing changes for you: that is where Standcast always read it.
 
-To keep the file free of logins, list people through GitHub teams (`members: ["@org/team-slug"]`, see [GitHub teams](#github-teams)) and leave out the top-level `members` map: the default [identity mapping](#identity-mapping) needs no entry per person. `managers` still takes logins, because managers get read access to the team's dailies.
+To keep the file free of logins, list people through GitHub teams (`members: ["@org/team-slug"]` and `managers: ["@org/team-slug"]`, see [GitHub teams](#github-teams)) and leave out the top-level `members` map: the default [identity mapping](#identity-mapping) needs no entry per person.
 
 Every `yaml` example on this page is checked against the real parser when the docs are built.
 
@@ -75,7 +75,7 @@ No other keys are accepted. An unknown key fails validation with `Unrecognized k
 | `remind_at` | `HH:MM`, 24 hours | yes | | `"09:30"` |
 | `digest_at` | `HH:MM`, 24 hours | yes | | `"10:00"` |
 | `language` | `en` or `pt-BR` | no | `en` | `pt-BR` |
-| `managers` | list of GitHub logins, at least one | yes | | `[felipeoliveira]` |
+| `managers` | list of GitHub logins or GitHub teams, at least one | yes | | `[felipeoliveira, "@acme/leads"]` |
 | `members` | list of GitHub logins or GitHub teams, at least one | yes | | `[alice, "@acme/backend"]` |
 | `chat.provider` | `slack` or `google-chat` | yes | | `slack` |
 | `chat.channel` | text, not empty | yes | | `"#daily-backend"` or `spaces/AAAAbbbbCCC` |
@@ -111,9 +111,27 @@ The language of the digest and of the late dailies posted in its thread: `en` or
 
 ### `managers`
 
-GitHub logins of the team managers. Managers can read the team's digests, dailies and blockers through the [MCP manager tools](/members/mcp#manager-tools). Organization admins can read every team without being listed. Blockers with no one else to route to go to the managers.
+Who manages the team. Managers can read the team's digests, dailies and blockers through the [MCP manager tools](/members/mcp#manager-tools) and the web app, mark its blockers as resolved or open again, and send the reminder now. Organization admins can do the same in every team without being listed. Blockers with no one else to route to go to the managers.
 
-Each entry must be a plain login. Names starting with `@`, such as `@acme/leads`, are not accepted: Standcast does not expand GitHub teams, so list the logins one by one. A team entry is rejected with an error.
+Each entry is either:
+
+- a GitHub login, such as `felipeoliveira`; or
+- a GitHub team of your organization, written `"@org/team-slug"`, such as `"@acme/leads"`. Quote it, because YAML does not allow a value to start with `@`.
+
+You can mix both, as in `[felipeoliveira, "@acme/leads"]`. Keep at least one entry. Any other value starting with `@`, such as `@alice` or `@acme/`, is rejected.
+
+On GitHub, the members of a team include the members of its child teams, so a parent team in `managers` makes everyone in its child teams a manager too. List the child team when that is too broad.
+
+Manager access follows the GitHub team. Standcast keeps the members of each GitHub team for up to 5 minutes, so someone added to or removed from the team gains or loses manager access within 5 minutes. That includes the blockers routed to managers. When the app receives the GitHub membership event, the API process that receives it drops its copy at once, but the worker and any other API process keep theirs until the 5 minutes are up, so count on 5 minutes. A team that Standcast cannot read gives manager access to nobody:
+
+- a team of another organization, a team that does not exist, or a team the app cannot see (check the Members permission) shows a notice on the Configuration page;
+- a team with 5,000 members or more shows a notice and is not used;
+- when GitHub fails or does not answer within 5 seconds, the team is skipped and a notice shows on the Configuration page. Standcast asks GitHub again after a minute. A blocker routed to the managers in the meantime goes to the managers listed by login; when none of them can get it, it is sent again a few minutes later;
+- when GitHub takes more than 3 seconds, the manager tools, `/v1/manage` and the list of teams you manage in the web app skip the team without waiting. The read goes on, and the requests that come after it use its answer.
+
+Logins listed directly keep working in all these cases.
+
+If your configuration repository is public, list managers as a GitHub team instead of logins: the file then shows only the team name, and who manages each team stays on GitHub, where team visibility and membership are controlled by your organization.
 
 ### `members`
 
@@ -122,7 +140,7 @@ Who writes dailies in this team. Each entry is either:
 - a GitHub login, such as `alice`; or
 - a GitHub team, written `"@org/team-slug"`, such as `"@acme/backend"`. Quote it, because YAML does not allow a value to start with `@`.
 
-GitHub teams are resolved every time Standcast needs the team, so changes on GitHub apply without editing the file. Standcast reads the first 100 members of each GitHub team. Logins are matched without case.
+GitHub teams are read from GitHub, so changes on GitHub apply without editing the file, within the same 5 minutes as for [`managers`](#managers). A GitHub team listed in `members` and in `managers`, or in several teams, is read once. Standcast reads up to 5,000 members of each GitHub team. Any other value starting with `@`, such as `@alice` or `"@acme/back end"`, is rejected. Logins are matched without case.
 
 A person can be in several teams. Their daily appears in every team's digest, and their standup date uses the time zone and workdays of the **first** team that lists them.
 
@@ -160,7 +178,7 @@ CI failing on a pull request's head commit counts after 24 hours, and is not con
 
 ## GitHub teams
 
-Use a GitHub team instead of listing people one by one. This is the recommended way: the team changes on GitHub without editing the file, and the file lists no logins. The app needs the Members (read) permission, which it asks for on install.
+Use a GitHub team instead of listing people one by one, in `members` and in `managers`. This is the recommended way: the team changes on GitHub without editing the file, and the file lists no logins. The app needs the Members (read) permission, which it asks for on install.
 
 ```yaml
 teams:
@@ -168,7 +186,7 @@ teams:
     timezone: Europe/Lisbon
     remind_at: "09:00"
     digest_at: "09:30"
-    managers: [carol]
+    managers: [carol, "@acme/platform-leads"]
     members: ["@acme/platform", dave]
     chat:
       provider: slack
@@ -252,7 +270,8 @@ These are the messages the setup page shows, as `path: message`. `teams.0` is th
 | `teams.0.language: Invalid option: expected one of "pt-BR"\|"en"` | `pt`, `pt_BR`, `english` | Use `pt-BR` or `en` |
 | `teams.0.chat.provider: Invalid option: expected one of "slack"\|"google-chat"` | `teams`, `Slack`, `google_chat`, `gchat` | Use `slack` or `google-chat` |
 | `teams.0.members: Too small: expected array to have >=1 items` | `members: []` (same for `managers`) | List at least one person |
-| `teams.0.managers.0: managers must be GitHub logins, not teams or @-prefixed names` | `managers: ["@acme/leads"]` | List the logins, such as `[alice, bob]` |
+| `teams.0.managers.0: managers must be GitHub logins or GitHub teams written as @org/team-slug` | `managers: ["@leads"]` | Write a login, such as `alice`, or a team, such as `"@acme/leads"` |
+| `teams.0.members.0: members must be GitHub logins or GitHub teams written as @org/team-slug` | `members: ["@alice"]`, `members: ["@acme/back end"]` | Write a login, such as `alice`, or a team by its slug, such as `"@acme/back-end"` |
 | `teams.0: Unrecognized key: "reminder"` | A misspelled or unknown key | Check the key against the tables above |
 | `members.alice.slack: must be a Slack user id like U0123ABCD` | A name, an email, a channel id or `<!channel>` | Use the member id, which starts with `U` or `W` |
 | `members.alice.google_chat: must be a Google Chat user like users/123456789` | An email, a name or a bare number | Use `users/` followed by the digits of the user id |

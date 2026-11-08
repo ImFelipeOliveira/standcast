@@ -23,11 +23,12 @@ async function setup(
   login: string,
   githubUserId: number,
   cfg: Parameters<typeof seedOrg>[0] = config('[alice, bob]', BETA),
+  opts: Parameters<typeof fakeDeps>[0] = {},
 ) {
   await seedOrg(cfg);
   const member = await seedMember(login, githubUserId);
   await setMemberInstallations(db, member.id, [INST]);
-  const fake = fakeDeps();
+  const fake = fakeDeps(opts);
   fake.users.set(githubUserId, login);
   fake.orgMembers.add(login.toLowerCase());
   return { ...fake, member, isMember: createMembershipCheck(fake.deps) };
@@ -51,6 +52,24 @@ describe('getOrgContext', () => {
       managerOf: ['Beta'],
       memberOf: [],
     });
+  });
+
+  test('managers listed through a GitHub team follow its members', async () => {
+    const cfg = config('[alice, bob]', BETA.replace('[Carol]', '["@acme/leads"]'));
+    const lead = await setup('carol', 3, cfg, { teams: { '@acme/leads': ['carol'] } });
+    expect(await getOrgContext(lead.deps, lead.isMember, lead.member, INST)).toMatchObject({
+      managerOf: ['Beta'],
+    });
+    const outsider = await setup('erin', 5, cfg, { teams: { '@acme/leads': ['carol'] } });
+    expect(
+      await getOrgContext(outsider.deps, outsider.isMember, outsider.member, INST),
+    ).toMatchObject({ managerOf: [] });
+  });
+
+  test('a manager team that cannot be resolved makes nobody its manager', async () => {
+    const cfg = config('[alice, bob]', BETA.replace('[Carol]', '["@acme/leads"]'));
+    const { deps, isMember, member } = await setup('carol', 3, cfg);
+    expect(await getOrgContext(deps, isMember, member, INST)).toMatchObject({ managerOf: [] });
   });
 
   test('a plain member', async () => {
@@ -78,7 +97,11 @@ describe('getOrgContext', () => {
     expect(await codeOf(getOrgContext(deps, isMember, member, 99))).toBe('forbidden');
   });
   test('context survives a failing github', async () => {
-    const { deps, isMember, member, roles } = await setup('Carol', 3);
+    const { deps, isMember, member, roles } = await setup(
+      'Carol',
+      3,
+      config('[alice, "@acme/backend"]', BETA),
+    );
     roles.set('carol', { role: 'admin', state: 'active' });
     deps.github.resolveTeamMembers = async () => {
       throw new Error('github down');
@@ -92,12 +115,37 @@ describe('getOrgContext', () => {
   });
 
   test('context gives up after the timeout', async () => {
-    const { deps, isMember, member } = await setup('carol', 3);
+    const { deps, isMember, member } = await setup(
+      'carol',
+      3,
+      config('[alice, "@acme/backend"]', BETA),
+    );
     deps.github.resolveTeamMembers = () => new Promise(() => {});
     const started = Date.now();
     const context = await getOrgContext(deps, isMember, member, INST);
     expect(context).toEqual({ admin: false, managerOf: ['Beta'], memberOf: [] });
     expect(Date.now() - started).toBeLessThan(4500);
+  }, 10000);
+
+  test('a manager team that does not answer keeps the teams the person belongs to', async () => {
+    const { deps, isMember, member } = await setup(
+      'bob',
+      2,
+      config('[alice, "@acme/backend"]', BETA, '["@acme/leads"]'),
+      { teams: { '@acme/backend': ['bob'] } },
+    );
+    const resolve = deps.github.resolveTeamMembers;
+    deps.github.resolveTeamMembers = (octokit, owner, members) =>
+      members.includes('@acme/leads') ? new Promise(() => {}) : resolve(octokit, owner, members);
+    const spy = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const started = Date.now();
+      const context = await getOrgContext(deps, isMember, member, INST);
+      expect(context).toEqual({ admin: false, managerOf: [], memberOf: ['Alpha'] });
+      expect(Date.now() - started).toBeLessThan(4500);
+    } finally {
+      spy.mockRestore();
+    }
   }, 10000);
 
   test('a failing admin check logs and falls back to not admin', async () => {

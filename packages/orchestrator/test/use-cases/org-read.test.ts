@@ -20,7 +20,7 @@ import {
   listOrgTeams,
   loadInstallationConfig,
 } from '../../src';
-import { fakeDeps, found, INST, seedOrg } from './fakes';
+import { config, fakeDeps, found, INST, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -523,21 +523,24 @@ describe('org read caching', () => {
   }
 
   test('two org reads resolve the teams once', async () => {
-    await seedOrg(twoTeams());
-    const fake = fakeDeps();
+    await seedOrg(config('["@acme/backend"]'));
+    const fake = fakeDeps({ teams: { '@acme/backend': ['alice'] } });
     const resolutions = counted(fake);
     await listOrgTeams(fake.deps, INST);
     await listOrgTeams(fake.deps, INST);
-    expect(resolutions()).toBe(2);
+    expect(resolutions()).toBe(1);
   });
 
   test('loading the config invalidates the resolved teams', async () => {
-    await seedOrg(twoTeams());
-    const fake = fakeDeps({ source: found('teams: nope') });
+    await seedOrg(config('["@acme/backend"]'));
+    const fake = fakeDeps({
+      source: found('teams: nope'),
+      teams: { '@acme/backend': ['alice'] },
+    });
     const resolutions = counted(fake);
     await listOrgTeams(fake.deps, INST);
     await loadInstallationConfig(fake.deps, INST, 'acme');
     await listOrgTeams(fake.deps, INST);
-    expect(resolutions()).toBe(4);
+    expect(resolutions()).toBe(2);
   });
 });

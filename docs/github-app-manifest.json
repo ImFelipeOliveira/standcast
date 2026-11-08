@@ -29,6 +29,9 @@
     "pull_request",
     "pull_request_review",
     "check_suite",
-    "check_run"
+    "check_run",
+    "membership",
+    "team",
+    "organization"
   ]
 }

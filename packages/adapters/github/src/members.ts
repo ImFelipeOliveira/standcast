@@ -1,9 +1,10 @@
 import type { Octokit } from '@octokit/core';
+import { parseTeamReference } from '@standcast/core';
 import { httpStatus, isRateLimited } from './errors';
 
 const PER_PAGE = 100;
 const MAX_PAGES = 50;
-const TEAM_REFERENCE = /^@([^/]+)\/(.+)$/;
+const TEAM_PAGE_TIMEOUT_MS = 5000;
 
 export type TeamResolution = {
   logins: string[];
@@ -23,6 +24,7 @@ async function listTeamMembers(octokit: Octokit, org: string, slug: string): Pro
         team_slug: slug,
         per_page: PER_PAGE,
         page,
+        request: { signal: AbortSignal.timeout(TEAM_PAGE_TIMEOUT_MS) },
       });
       users = response.data as { login: string }[];
     } catch (error) {
@@ -40,21 +42,19 @@ async function listTeamMembers(octokit: Octokit, org: string, slug: string): Pro
 
 export async function resolveTeamMembers(
   octokit: Octokit,
-  owner: string,
+  _owner: string,
   members: string[],
 ): Promise<TeamResolution> {
   const logins = new Set<string>();
   const missingTeams: string[] = [];
   const truncatedTeams: string[] = [];
   for (const member of members) {
-    const team = TEAM_REFERENCE.exec(member);
+    const team = parseTeamReference(member);
     if (!team) {
       logins.add(member.toLowerCase());
       continue;
     }
-    const org = team[1] ?? owner;
-    const slug = team[2] ?? '';
-    const listing = await listTeamMembers(octokit, org, slug);
+    const listing = await listTeamMembers(octokit, team.org, team.slug);
     for (const login of listing.logins) logins.add(login);
     if (listing.missing) missingTeams.push(member);
     if (listing.truncated) truncatedTeams.push(member);

@@ -98,7 +98,7 @@ From a terminal, `standcast suggestion ignore <id>` and `standcast suggestion co
 
 ### Manager tools
 
-The last four tools are for the managers listed under `managers` of a team in `standcast.yml`, and for organization admins, who can read every team. Anyone else gets `forbidden`. Unknown teams get the same answer, so team names don't leak.
+The last four tools are for the managers listed under `managers` of a team in `standcast.yml`, including the members of a GitHub team listed there, and for organization admins, who can read every team. Anyone else gets `forbidden`. Unknown teams get the same answer, so team names don't leak.
 
 - History covers the last 90 days, today included, in the team's time zone. A `from` or `to` outside that window gets `invalid_request`.
 - They return only what people confirmed: no suggestions and no per-person aggregates.
