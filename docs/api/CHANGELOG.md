@@ -4,6 +4,8 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 
 ## Unreleased
 
+## 0.9.1 — 2026-11-08
+
 - `GET /install.sh` responds `301` to `{LANDING_URL}/install.sh` instead of `200` with the script. On the hosted service that destination is `https://standcast.app/install.sh`.
 
 ## 0.9.0 — 2026-11-08

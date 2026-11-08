@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+### 0.9.1 — 08/11/2026
+
 - O guia de instalação leva você para `https://app.standcast.app/setup` depois de instalar o GitHub App. `https://api.standcast.app/setup` só redireciona para lá.
 - O comando de instalação é `curl -fsSL https://standcast.app/install.sh | sh`. O mesmo caminho na API redireciona para lá.
 - O script de instalação mostra uma barra de progresso enquanto baixa a CLI.
