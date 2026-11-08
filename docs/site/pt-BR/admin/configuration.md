@@ -121,11 +121,13 @@ Cada item é:
 
 Dá para misturar os dois, como em `[felipeoliveira, "@acme/leads"]`. Mantenha pelo menos um item. Qualquer outro valor que começa com `@`, como `@alice` ou `@acme/`, é rejeitado.
 
+No GitHub, os membros de um time incluem os membros dos times filhos, então um time pai em `managers` torna gestor também quem está nos times filhos. Liste o time filho quando isso for amplo demais.
+
 O acesso de gestor segue o time do GitHub. O Standcast guarda os membros de cada time do GitHub por até 5 minutos, então quem entra ou sai do time ganha ou perde o acesso de gestor em até 5 minutos. Isso inclui os impedimentos encaminhados aos gestores. Quando o app recebe o evento de membership do GitHub, o processo da API que o recebe descarta a cópia dele na hora, mas o worker e os outros processos da API mantêm a deles até passarem os 5 minutos, então conte com 5 minutos. Um time que o Standcast não consegue ler não dá acesso de gestor a ninguém:
 
 - um time de outra organização, um time que não existe ou um time que o app não enxerga (confira a permissão Members) mostra um aviso na página Configuração;
 - um time com 5.000 membros ou mais mostra um aviso e não é usado;
-- quando o GitHub falha ou não responde em 5 segundos, o time fica de fora e um aviso aparece na página Configuração. O Standcast pergunta ao GitHub de novo depois de um minuto;
+- quando o GitHub falha ou não responde em 5 segundos, o time fica de fora e um aviso aparece na página Configuração. O Standcast pergunta ao GitHub de novo depois de um minuto. Um impedimento encaminhado aos gestores nesse meio-tempo é enviado de novo alguns minutos depois;
 - quando o GitHub leva mais de 3 segundos, o pedido de um gestor deixa o time de fora sem esperar. A leitura continua, e os pedidos que vêm depois usam a resposta dela.
 
 Logins listados diretamente continuam funcionando em todos esses casos.
