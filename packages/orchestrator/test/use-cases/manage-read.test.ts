@@ -189,6 +189,14 @@ describe('readableTeams', () => {
     expect(calls.roles).toEqual([]);
   });
 
+  test('the owner of a personal account reads every team even when their login is unknown', async () => {
+    await seedOrg(teams(), { accountType: 'User', accountLogin: 'acme' });
+    const { deps } = harness();
+    const owner = await upsertMember(db, { githubUserId: 998, login: 'acme', email: null });
+    const readable = await readableTeams(deps, INST, owner);
+    expect(readable.map((t) => t.name)).toEqual(['backend', 'platform']);
+  });
+
   test('a manager of every team reads them without the admin check', async () => {
     await seedOrg(teams('[dave]'));
     const { deps, calls } = harness();

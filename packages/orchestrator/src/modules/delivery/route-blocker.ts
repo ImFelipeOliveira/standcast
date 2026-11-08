@@ -24,7 +24,7 @@ import {
 } from '@standcast/db';
 import type { WorkerDeps } from '../../deps';
 import { logError } from '../../log-error';
-import { resolveTeamsWithNotices } from '../../teams';
+import { isOwnTeam, resolveTeamsWithNotices } from '../../teams';
 import {
   directMessageIdsFor,
   forgetStaleChatIdentity,
@@ -36,6 +36,7 @@ import { blockerRouteId } from './events';
 
 export const ROUTE_BLOCKER_JOB = 'route-blocker';
 const MAX_ROUTE_TARGETS = 5;
+const MAX_MANAGER_CANDIDATES = 50;
 const MAX_ROUTED_BLOCKERS_PER_DAILY = 10;
 
 export type RouteBlockerJob = {
@@ -72,7 +73,7 @@ function cleanLogins(logins: string[], excluded: string[], limit = MAX_ROUTE_TAR
 function managerTarget(ctx: RouteContext): RouteTarget {
   return {
     reason: 'manager',
-    logins: cleanLogins(ctx.firstTeam.managerLogins, [ctx.author], Number.POSITIVE_INFINITY),
+    logins: cleanLogins(ctx.firstTeam.managerLogins, [ctx.author], MAX_MANAGER_CANDIDATES),
   };
 }
 
@@ -89,10 +90,9 @@ async function expandOwners(
 ): Promise<string[]> {
   const logins: string[] = [];
   for (const entry of entries) {
-    const team = parseTeamReference(entry);
-    if (!team) {
+    if (parseTeamReference(entry) === null) {
       if (!entry.includes('/')) logins.push(entry.replace(/^@/, ''));
-    } else if (team.org.toLowerCase() === owner.toLowerCase()) {
+    } else if (isOwnTeam(entry, owner)) {
       logins.push(...(await deps.github.resolveTeamMembers(octokit, owner, [entry])).logins);
     }
   }
@@ -253,16 +253,16 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
   );
   const reachable = (login: string) => ids.has(login) || timedOut.has(login);
   if (target.reason !== 'manager' && !target.logins.some(reachable)) target = fallback;
-  if (target.reason === 'manager') {
-    if (managersUnavailable && !target.logins.some(reachable)) {
-      throw new Error('blocker_route_managers_unavailable');
-    }
-    target = { ...target, logins: reachableFirst(target.logins, reachable) };
+  if (target.reason === 'manager' && managersUnavailable && !target.logins.some(reachable)) {
+    throw new Error('blocker_route_managers_unavailable');
   }
   const previous = reservation.recipients;
   if (previous) {
     target = { ...target, logins: target.logins.filter((l) => previous.has(l)) };
     if (target.logins.length === 0) return;
+  }
+  if (target.reason === 'manager') {
+    target = { ...target, logins: reachableFirst(target.logins, reachable) };
   }
 
   const keyFor = (suffix: string): DeliveryKey => ({

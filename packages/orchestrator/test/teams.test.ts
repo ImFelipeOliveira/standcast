@@ -1,4 +1,4 @@
-import { describe, expect, spyOn, test } from 'bun:test';
+import { describe, expect, jest, spyOn, test } from 'bun:test';
 import { parseConfig, type StandcastConfig } from '@standcast/core';
 import type { Deps } from '../src';
 import {
@@ -7,6 +7,7 @@ import {
   resolveMemberTeams,
   resolveTeams,
   TEAM_FAILURE_TTL_MS,
+  TEAM_READ_TIMEOUT_MS,
   TEAMS_CACHE_TTL_MS,
   teamResolutionNotices,
 } from '../src';
@@ -449,6 +450,55 @@ describe('resolveTeams managers', () => {
       errors.mockRestore();
     }
   });
+
+  test('a read that never settles fails after the read timeout and is asked again', async () => {
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    jest.useFakeTimers();
+    try {
+      const listings: Record<string, Listing> = { '@acme/backend': 'hang' };
+      const { deps, calls } = managerDeps(listings);
+      const config = managerConfig('[boss]');
+      const [alpha] = config.teams;
+      if (!alpha) throw new Error('team');
+      const hanging = { ...config, teams: [{ ...alpha, members: ['@acme/backend'] }] };
+      const first = resolveTeams(deps, 7, 'acme', hanging);
+      jest.advanceTimersByTime(TEAM_READ_TIMEOUT_MS + 1);
+      await expect(first).rejects.toThrow('timed out');
+      listings['@acme/backend'] = { logins: ['Bob'] };
+      const teams = await resolveTeams(deps, 7, 'acme', hanging);
+      expect(teams[0]?.memberLogins).toEqual(['bob']);
+      expect(calls).toHaveLength(2);
+    } finally {
+      jest.useRealTimers();
+      errors.mockRestore();
+    }
+  });
+
+  test('notices keep the member notices when a manager team does not answer', async () => {
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const { deps } = managerDeps({
+        '@acme/leads': 'hang',
+        '@acme/gone': { logins: [], missing: true },
+      });
+      const config = managerConfig('[boss, "@acme/leads"]');
+      const [alpha, beta] = config.teams;
+      if (!alpha || !beta) throw new Error('teams');
+      const started = Date.now();
+      const notices = await teamResolutionNotices(deps, 7, 'acme', {
+        ...config,
+        teams: [{ ...alpha, members: ['@acme/gone'] }, beta],
+      });
+      expect(Date.now() - started).toBeLessThan(3000);
+      expect(notices).toEqual([
+        { team: 'Alpha', reference: '@acme/gone', kind: 'missing' },
+        { team: 'Alpha', reference: '@acme/leads', kind: 'managers_unavailable' },
+        { team: 'Beta', reference: '@acme/leads', kind: 'managers_unavailable' },
+      ]);
+    } finally {
+      errors.mockRestore();
+    }
+  }, 10000);
 
   test('resolveMemberTeams reads only member teams', async () => {
     const { deps, calls } = managerDeps({

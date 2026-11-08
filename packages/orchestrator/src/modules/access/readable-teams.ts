@@ -19,16 +19,19 @@ export async function readableTeams(
   if (!installation || !config || config.teams.length === 0) return [];
   const octokit = await deps.github.installationOctokit(installationId);
   const login = (await currentLogin(deps, octokit, member.githubUserId))?.toLowerCase();
-  if (login === undefined) return [];
-  const teams = await resolveManagerTeams(
-    deps,
-    installationId,
-    installation.accountLogin,
-    config,
-    MANAGER_TEAMS_TIMEOUT_MS,
-  );
-  const managed = teams.filter((team) => managesTeam(login, team));
-  if (managed.length === teams.length) return config.teams;
+  const managed =
+    login === undefined
+      ? []
+      : (
+          await resolveManagerTeams(
+            deps,
+            installationId,
+            installation.accountLogin,
+            config,
+            MANAGER_TEAMS_TIMEOUT_MS,
+          )
+        ).filter((team) => managesTeam(login, team));
+  if (managed.length === config.teams.length) return config.teams;
   const admin = await guarded(
     isInstallationAdmin(deps, installationId, member),
     false,

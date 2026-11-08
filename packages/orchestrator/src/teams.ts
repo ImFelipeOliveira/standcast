@@ -10,9 +10,12 @@ import type { Deps } from './deps';
 import { guarded } from './guarded';
 import { logError } from './log-error';
 import { scopedTtlCache } from './ttl-cache';
+import { withDeadline } from './with-deadline';
 
 export const TEAMS_CACHE_TTL_MS = 5 * 60 * 1000;
 export const TEAM_FAILURE_TTL_MS = 60 * 1000;
+export const TEAM_READ_TIMEOUT_MS = 60 * 1000;
+const MANAGER_NOTICES_TIMEOUT_MS = 2000;
 const TEAM_LOOKUP_CONCURRENCY = 4;
 
 export type TeamNotice = {
@@ -89,7 +92,7 @@ function isFailure(lookup: TeamLookup): lookup is TeamFailure {
   return 'error' in lookup;
 }
 
-function isOwnTeam(entry: string, owner: string): boolean {
+export function isOwnTeam(entry: string, owner: string): boolean {
   return parseTeamReference(entry)?.org.toLowerCase() === owner.toLowerCase();
 }
 
@@ -113,9 +116,10 @@ async function readTeam(
   reference: string,
 ): Promise<TeamLookup> {
   try {
-    const resolved = await deps.github.resolveTeamMembers(await octokit(), scope.owner, [
-      reference,
-    ]);
+    const resolved = await withDeadline(
+      (async () => deps.github.resolveTeamMembers(await octokit(), scope.owner, [reference]))(),
+      TEAM_READ_TIMEOUT_MS,
+    );
     return {
       logins: [...new Set(resolved.logins.map((login) => login.toLowerCase()))],
       missing: resolved.missingTeams.length > 0,
@@ -165,7 +169,11 @@ async function lookupAll(
   lookup: (reference: string) => Promise<TeamLookup>,
   found: Lookups = new Map(),
 ): Promise<Lookups> {
-  const pending = [...new Map(references.map((r) => [r.toLowerCase(), r])).values()];
+  const unique = new Map<string, string>();
+  for (const reference of references) {
+    if (!unique.has(reference.toLowerCase())) unique.set(reference.toLowerCase(), reference);
+  }
+  const pending = [...unique.values()];
   const lane = async () => {
     while (pending.length > 0) {
       const reference = pending.shift() as string;
@@ -238,16 +246,28 @@ async function lookupTeams(
   owner: string,
   config: StandcastConfig,
   withManagers: boolean,
+  managersTimeoutMs?: number,
 ): Promise<Lookups> {
   const members = config.teams.flatMap(memberReferences);
-  const managers = withManagers
-    ? config.teams.flatMap((team) => managerReferences(team, owner))
-    : [];
   const memberKeys = new Set(members.map((reference) => reference.toLowerCase()));
+  const managers = withManagers
+    ? config.teams
+        .flatMap((team) => managerReferences(team, owner))
+        .filter((reference) => !memberKeys.has(reference.toLowerCase()))
+    : [];
   const lookup = teamLookup(deps, { installationId, owner });
-  return lookupAll([...members, ...managers], (reference) =>
-    lookup(reference, !memberKeys.has(reference.toLowerCase())),
-  );
+  const found: Lookups = new Map();
+  const memberLookups = lookupAll(members, (reference) => lookup(reference, false), found);
+  const managerLookups = lookupAll(managers, (reference) => lookup(reference, true), found);
+  await Promise.all([
+    memberLookups,
+    managersTimeoutMs === undefined
+      ? managerLookups
+      : guarded(managerLookups, found, managersTimeoutMs, 'manager team resolution timed out', {
+          installationId: String(installationId),
+        }),
+  ]);
+  return new Map(found);
 }
 
 function resolveTeam(team: TeamConfig, owner: string, lookups: Lookups) {
@@ -336,6 +356,13 @@ export async function teamResolutionNotices(
   owner: string,
   config: StandcastConfig,
 ): Promise<TeamNotice[]> {
-  const lookups = await lookupTeams(deps, installationId, owner, config, true);
+  const lookups = await lookupTeams(
+    deps,
+    installationId,
+    owner,
+    config,
+    true,
+    MANAGER_NOTICES_TIMEOUT_MS,
+  );
   return config.teams.flatMap((team) => resolveTeam(team, owner, lookups).notices);
 }

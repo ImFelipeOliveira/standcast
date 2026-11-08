@@ -1,4 +1,4 @@
-import { dailyDateFor, type ResolvedTeam, teamsForMember } from '@standcast/core';
+import { dailyDateFor, type MemberTeam, teamsForMember } from '@standcast/core';
 import {
   getInstallation,
   listMemberInstallations,
@@ -8,7 +8,7 @@ import {
 } from '@standcast/db';
 import type { Deps } from '../../deps';
 import type { createMembershipCheck } from '../../membership';
-import { resolveTeams } from '../../teams';
+import { resolveMemberTeams } from '../../teams';
 import { DomainError } from './errors';
 
 export type OrgContext = {
@@ -16,7 +16,7 @@ export type OrgContext = {
   installationId: number;
   owner: string;
   config: NonNullable<ReturnType<typeof operationalConfig>>;
-  mine: [ResolvedTeam, ...ResolvedTeam[]];
+  mine: [MemberTeam, ...MemberTeam[]];
   date: string;
 };
 
@@ -47,7 +47,7 @@ export async function resolveOrgContext(
       `organization ${entry.accountLogin} is not configured`,
     );
   }
-  const teams = await resolveTeams(deps, installation.id, installation.accountLogin, config);
+  const teams = await resolveMemberTeams(deps, installation.id, installation.accountLogin, config);
   const [first, ...rest] = teamsForMember(current.login, teams);
   if (!first) {
     throw new DomainError('not_in_team', 'you are not in any team of this organization');
