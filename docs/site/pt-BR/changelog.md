@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- O guia de instalação leva você para `https://app.standcast.app/setup` depois de instalar o GitHub App. `https://api.standcast.app/setup` só redireciona para lá.
+
 ### 0.9.0 — 08/11/2026
 
 - `managers` no `standcast.yml` aceita times do GitHub escritos `"@org/slug-do-time"`, sozinhos ou junto com logins, então um repositório de configuração público não precisa listar quem gere cada time. O acesso de gestor segue o time no GitHub em até 5 minutos. Um time de gestores que não existe, é de outra organização ou é grande demais não dá acesso de gestor a ninguém e mostra um aviso na página Configuração. Quando o GitHub falha, o time não dá acesso de gestor a ninguém por um minuto e a página Configuração mostra um aviso. Um impedimento encaminhado aos gestores vai para até cinco gestores que podem recebê-lo no chat, e quando um time de gestores não pode ser lido e nenhum gestor listado pode recebê-lo, ele é enviado de novo alguns minutos depois. Quem opera o próprio GitHub App pode assinar os eventos `Membership`, `Team` e `Organization` para o processo da API que os recebe aplicar as mudanças antes. Um valor em `members` que começa com `@` agora também precisa ser um time do GitHub escrito `"@org/slug-do-time"`, como em `managers`; qualquer outro, como `@alice`, é rejeitado em vez de não corresponder a ninguém. Veja [Configuração](/pt-BR/admin/configuration#managers).
