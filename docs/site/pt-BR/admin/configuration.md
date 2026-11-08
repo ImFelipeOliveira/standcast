@@ -127,7 +127,7 @@ O acesso de gestor segue o time do GitHub. O Standcast guarda os membros de cada
 
 - um time de outra organização, um time que não existe ou um time que o app não enxerga (confira a permissão Members) mostra um aviso na página Configuração;
 - um time com 5.000 membros ou mais mostra um aviso e não é usado;
-- quando o GitHub falha ou não responde em 5 segundos, o time fica de fora e um aviso aparece na página Configuração. O Standcast pergunta ao GitHub de novo depois de um minuto. Um impedimento encaminhado aos gestores nesse meio-tempo é enviado de novo alguns minutos depois;
+- quando o GitHub falha ou não responde em 5 segundos, o time fica de fora e um aviso aparece na página Configuração. O Standcast pergunta ao GitHub de novo depois de um minuto. Um impedimento encaminhado aos gestores nesse meio-tempo vai para os gestores listados por login; quando nenhum deles pode recebê-lo, ele é enviado de novo alguns minutos depois;
 - quando o GitHub leva mais de 3 segundos, as tools de gestor, o `/v1/manage` e a lista de times que você gere no app web deixam o time de fora sem esperar. A leitura continua, e os pedidos que vêm depois usam a resposta dela.
 
 Logins listados diretamente continuam funcionando em todos esses casos.

@@ -4,7 +4,7 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 
 ## Unreleased
 
-- `managers` in `standcast.yml` accepts GitHub teams written `"@org/team-slug"`, alone or mixed with logins. Until now an entry had to be a GitHub login and `@org/team` was a validation error. The members of a manager team can read the team through the manager routes (`/v1/manage/*`) and the manager MCP tools, resolve and reopen its blockers, send the reminder now, and receive the blockers routed to managers. A manager team that Standcast cannot read gives manager access to nobody; logins listed directly keep it.
+- `managers` in `standcast.yml` accepts GitHub teams written `"@org/team-slug"`, alone or mixed with logins. Until now an entry had to be a GitHub login and `@org/team` was a validation error.
 - A value in `members` that starts with `@` must be a GitHub team written `"@org/team-slug"`. Any other, such as `@alice`, is a validation error instead of matching nobody.
 
 ## 0.8.2 — 2026-11-07
