@@ -174,10 +174,9 @@ describe('readableTeams', () => {
     }
   }, 10000);
 
-  test('admins and unknown github users read without resolving manager teams', async () => {
+  test('an unknown github user reads nothing without resolving manager teams', async () => {
     await seedOrg(teams('["@acme/leads"]'));
-    const { deps, roles } = harness({ teams: { '@acme/leads': ['carol'] } });
-    roles.set('frank', { role: 'admin', state: 'active' });
+    const { deps, calls } = harness({ teams: { '@acme/leads': ['carol'] } });
     let resolutions = 0;
     const resolve = deps.github.resolveTeamMembers;
     deps.github.resolveTeamMembers = async (...args) => {
@@ -185,10 +184,32 @@ describe('readableTeams', () => {
       return resolve(...args);
     };
     const stranger = await upsertMember(db, { githubUserId: 999, login: 'ghost', email: null });
-    const readable = await readableTeams(deps, INST, who('frank'));
-    expect(readable.map((t) => t.name)).toEqual(['backend', 'platform']);
     expect(await readableTeams(deps, INST, stranger)).toEqual([]);
     expect(resolutions).toBe(0);
+    expect(calls.roles).toEqual([]);
+  });
+
+  test('a manager of every team reads them without the admin check', async () => {
+    await seedOrg(teams('[dave]'));
+    const { deps, calls } = harness();
+    const readable = await readableTeams(deps, INST, who('dave'));
+    expect(readable.map((t) => t.name)).toEqual(['backend', 'platform']);
+    expect(calls.roles).toEqual([]);
+  });
+
+  test('a failing admin check keeps the managed teams', async () => {
+    await seedOrg(teams());
+    const { deps, roles, failRoles } = harness();
+    roles.set('carol', { role: 'admin', state: 'active' });
+    failRoles(Object.assign(new Error('boom'), { status: 502 }));
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const readable = await readableTeams(deps, INST, who('carol'));
+      expect(readable.map((t) => t.name)).toEqual(['backend']);
+      expect(await readableTeams(deps, INST, who('erin'))).toEqual([]);
+    } finally {
+      errors.mockRestore();
+    }
   });
 
   test('the manager is matched by the current login of the github id', async () => {

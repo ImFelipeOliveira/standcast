@@ -1,11 +1,13 @@
 import { managesTeam, type TeamConfig } from '@standcast/core';
 import { getInstallation, type MemberRow, operationalConfig } from '@standcast/db';
 import type { Deps } from '../../deps';
+import { guarded } from '../../guarded';
 import { currentLogin } from '../../membership';
 import { resolveManagerTeams } from '../../teams';
 import { isInstallationAdmin } from './is-installation-admin';
 
 const MANAGER_TEAMS_TIMEOUT_MS = 3000;
+const ADMIN_CHECK_TIMEOUT_MS = 3000;
 
 export async function readableTeams(
   deps: Deps,
@@ -15,7 +17,6 @@ export async function readableTeams(
   const installation = await getInstallation(deps.db, installationId);
   const config = operationalConfig(installation);
   if (!installation || !config || config.teams.length === 0) return [];
-  if (await isInstallationAdmin(deps, installationId, member)) return config.teams;
   const octokit = await deps.github.installationOctokit(installationId);
   const login = (await currentLogin(deps, octokit, member.githubUserId))?.toLowerCase();
   if (login === undefined) return [];
@@ -26,5 +27,14 @@ export async function readableTeams(
     config,
     MANAGER_TEAMS_TIMEOUT_MS,
   );
-  return teams.filter((team) => managesTeam(login, team));
+  const managed = teams.filter((team) => managesTeam(login, team));
+  if (managed.length === teams.length) return config.teams;
+  const admin = await guarded(
+    isInstallationAdmin(deps, installationId, member),
+    false,
+    ADMIN_CHECK_TIMEOUT_MS,
+    'readable teams admin check failed',
+    { installationId: String(installationId) },
+  );
+  return admin ? config.teams : managed;
 }
