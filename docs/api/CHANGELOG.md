@@ -4,6 +4,8 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 
 ## Unreleased
 
+## 0.9.0 — 2026-11-08
+
 - `managers` in `standcast.yml` accepts GitHub teams written `"@org/team-slug"`, alone or mixed with logins. Until now an entry had to be a GitHub login and `@org/team` was a validation error.
 - A value in `members` that starts with `@` must be a GitHub team written `"@org/team-slug"`. Any other, such as `@alice`, is a validation error instead of matching nobody.
 
