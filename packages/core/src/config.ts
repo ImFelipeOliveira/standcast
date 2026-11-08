@@ -58,7 +58,9 @@ export type GitHubTeamReference = { org: string; slug: string };
 export function parseTeamReference(value: string): GitHubTeamReference | null {
   const match = GITHUB_TEAM_REFERENCE.exec(value);
   if (!match) return null;
-  return { org: match[1] as string, slug: match[2] as string };
+  const slug = match[2] as string;
+  if (slug === '.' || slug === '..') return null;
+  return { org: match[1] as string, slug };
 }
 
 const loginOrTeam = (field: string) =>

@@ -202,6 +202,25 @@ describe('parseConfig', () => {
     expect(parseTeamReference('@acme/team name')).toBeNull();
   });
 
+  test('a team slug of only "." or ".." is rejected, other dotted slugs are kept', () => {
+    expect(parseTeamReference('@acme/.')).toBeNull();
+    expect(parseTeamReference('@acme/..')).toBeNull();
+    expect(parseTeamReference('@acme/.leads')).toEqual({ org: 'acme', slug: '.leads' });
+    expect(parseTeamReference('@acme/...')).toEqual({ org: 'acme', slug: '...' });
+    for (const field of ['managers', 'members'] as const) {
+      for (const value of ['@acme/.', '@acme/..']) {
+        const r = parseConfig(toYaml([team({ [field]: [value] })]));
+        expect(r.ok).toBe(false);
+        if (r.ok) return;
+        const error = r.errors.find((e) => e.path === `teams.0.${field}.0`);
+        expect(error?.message).toContain('@org/team-slug');
+      }
+      expect(parseConfig(toYaml([team({ [field]: ['@acme/.leads', '@acme/eng.leads'] })])).ok).toBe(
+        true,
+      );
+    }
+  });
+
   test('rejects unknown timezone', () => {
     const r = parseConfig(toYaml([team({ timezone: 'Mars/Base' })]));
     expect(r.ok).toBe(false);

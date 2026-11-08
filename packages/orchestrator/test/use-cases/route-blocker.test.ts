@@ -229,6 +229,22 @@ describe('resolveRouteTarget', () => {
     expect(seen.flat()).not.toContain('@other/team');
   });
 
+  test('CODEOWNERS entries "@org/." and "@org/.." are neither teams nor logins', async () => {
+    const seen: string[][] = [];
+    const fake = await setup({
+      pulls: { 'acme/api#7': pull() },
+      files: { 'acme/api#7': ['src/a.ts'] },
+      codeowners: { 'acme/api': '* @acme/.. @acme/. @Erin' },
+    });
+    const resolve = fake.deps.github.resolveTeamMembers;
+    fake.deps.github.resolveTeamMembers = async (o, owner, members) => {
+      seen.push(members);
+      return resolve(o, owner, members);
+    };
+    expect(await target(fake, prBlocker())).toEqual({ reason: 'codeowners', logins: ['erin'] });
+    expect(seen).toEqual([]);
+  });
+
   test('the PR author and the daily author are never included', async () => {
     const fake = await setup({
       pulls: {
