@@ -126,7 +126,7 @@ New here? The [landing page](https://standcast.app) has the overview and the bet
 You need to own the GitHub organization (or personal account).
 
 1. [Install the Standcast GitHub App](https://github.com/apps/standcast/installations/new) on your organization.
-2. Open the setup page that GitHub sends you to, sign in, and click **Connect Slack**. For Google Chat, add the Standcast app to a space and paste the code it posts in the Google Chat step ([guide](https://docs.standcast.app/admin/google-chat)).
+2. GitHub sends you to [https://app.standcast.app/setup](https://app.standcast.app/setup). Sign in and click **Connect Slack**. For Google Chat, add the Standcast app to a space and paste the code it posts in the Google Chat step ([guide](https://docs.standcast.app/admin/google-chat)).
 3. Create `standcast.yml` at the root of your private `.github-private` repository (or of `.github`), from the template on the setup page.
 
 Step by step: [Install](https://docs.standcast.app/admin/install).
@@ -185,7 +185,7 @@ A Bun + TypeScript monorepo. Business rules live in use cases; HTTP routes, jobs
 
 ```text
 apps/
-├── api/            Hono HTTP API, GitHub, Slack and Google Chat webhooks, setup pages, /reference
+├── api/            Hono HTTP API, OAuth, GitHub, Slack and Google Chat webhooks, /reference
 ├── worker/         pg-boss jobs: tick, digests, late dailies, webhook delivery
 └── cli/            standcast CLI and MCP server (compiled to a single binary)
 packages/
