@@ -9,6 +9,7 @@ import {
 import { deleteIdentityByLogin, getIdentities, listGoogleChatSpaces } from '@standcast/db';
 import type { Deps } from '../../deps';
 import { logError } from '../../log-error';
+import { withDeadline } from '../../with-deadline';
 
 export function chatOverrideFor(
   overrides: MemberOverrides,
@@ -65,19 +66,7 @@ export function membershipTimeout(): ChatDeliveryError {
 }
 
 function withRequestDeadline(check: Promise<boolean>): Promise<boolean> {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(membershipTimeout()), MEMBERSHIP_REQUEST_TIMEOUT_MS);
-    check.then(
-      (member) => {
-        clearTimeout(timer);
-        resolve(member);
-      },
-      (error: unknown) => {
-        clearTimeout(timer);
-        reject(error);
-      },
-    );
-  });
+  return withDeadline(check, MEMBERSHIP_REQUEST_TIMEOUT_MS, membershipTimeout);
 }
 
 function firstMembership(
