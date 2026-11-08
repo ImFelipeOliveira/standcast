@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.2](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.9.1...standcast-v0.9.2) (2026-11-08)
+
+
+### Bug Fixes
+
+* show a progress bar while the install script downloads ([#131](https://github.com/ImFelipeOliveira/standcast/issues/131)) ([30c299e](https://github.com/ImFelipeOliveira/standcast/commit/30c299e7c4824a6e145b398f9bad7a791fe12137))
+
 ## [0.9.1](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.9.0...standcast-v0.9.1) (2026-11-08)
 
 
