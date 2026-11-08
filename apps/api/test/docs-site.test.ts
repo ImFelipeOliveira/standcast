@@ -101,7 +101,7 @@ describe('site build', () => {
     expect(html).toContain('<html lang="en"');
     expect(html).toMatch(/(?:src|href)="\/assets\//);
     expect(html).not.toContain('/docs/');
-    expect(html).toContain('href="/favicon.svg"');
+    expect(html).toContain('href="/favicon.png"');
     const pt = await readFile(join(outDir, 'pt-BR/index.html'), 'utf8');
     expect(pt).toContain('<html lang="pt-BR"');
   });

@@ -181,7 +181,10 @@ describe('landing', () => {
       expect(metaContent(html, 'og:image:alt')?.length, page.file).toBeGreaterThan(0);
       expect(metaContent(html, 'robots'), page.file).toBe('max-image-preview:large');
       expect(metaContent(html, 'theme-color')).toBeDefined();
-      expect(links.some((link) => attr(link, 'rel') === 'icon')).toBe(true);
+      const icon = links.find((link) => attr(link, 'rel') === 'icon');
+      expect(icon && attr(icon, 'type'), page.file).toBe('image/png');
+      expect(icon && attr(icon, 'href'), page.file).toBe('/favicon.png');
+      expect(icon && attr(icon, 'sizes'), page.file).toBe('96x96');
       expect(links.some((link) => attr(link, 'rel') === 'stylesheet')).toBe(true);
     }
   });
@@ -216,6 +219,9 @@ describe('landing', () => {
   test('home keeps its title and site json-ld', () => {
     expect(read('index.html')).toContain(
       '<title>Standcast: your daily standup, written in your AI agent</title>',
+    );
+    expect(read('pt-BR/index.html')).toContain(
+      '<title>Standcast: a daily do seu time, escrita no seu agente de IA</title>',
     );
     for (const page of pagesOf('home')) {
       const entries = jsonLd(read(page.file));
@@ -322,6 +328,15 @@ describe('landing', () => {
       expect(bytes.readUInt32BE(16), image.file).toBe(image.width);
       expect(bytes.readUInt32BE(20), image.file).toBe(image.height);
       expect(bytes.length, image.file).toBeLessThan(40_000);
+    }
+    const favicon = readFileSync(join(PUBLIC, 'favicon.png'));
+    expect(favicon.subarray(1, 4).toString('ascii')).toBe('PNG');
+    expect(favicon.readUInt32BE(16)).toBe(96);
+    expect(favicon.readUInt32BE(20)).toBe(96);
+    expect(favicon.equals(readFileSync(join(PUBLIC, 'brand/logo-96.png')))).toBe(true);
+    for (const file of htmlFiles()) {
+      const icon = tags(read(file), 'link').find((link) => attr(link, 'rel') === 'icon');
+      expect(icon && attr(icon, 'href'), file).toBe('/favicon.png');
     }
     expect(read('_headers')).toContain("img-src 'self' data:;");
   });
