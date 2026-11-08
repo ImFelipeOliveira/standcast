@@ -66,7 +66,7 @@ If the project was created through **Workers & Pages > Create > Worker > Import 
 
 ## Landing page Worker
 
-The landing page (`apps/landing`) is a second Worker, `standcast-landing`, served at `https://standcast.app`. It has no build step: `apps/landing/public` is published as static assets, with its own `_headers` already in that folder. The config is `apps/landing/wrangler.jsonc`. Agents find `llms.txt` at its root.
+The landing page (`apps/landing`) is a second Worker, `standcast-landing`, served at `https://standcast.app`. It has no build step: `apps/landing/public` is published as static assets, with its own `_headers` already in that folder. The config is `apps/landing/wrangler.jsonc`. Agents find `llms.txt` at its root. `https://standcast.app/install.sh` is `scripts/install.sh`, linked at `apps/landing/public/install.sh`, so the landing serves the same script the repository keeps.
 
 Create it through **Workers & Pages > Create > Worker > Import a repository** (Workers Builds) and pick the `standcast` repository.
 

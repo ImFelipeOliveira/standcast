@@ -6,7 +6,7 @@ import {
   PUBLISHED_INSTALL_URL,
 } from '../../../scripts/check-docs';
 
-const CANONICAL = 'curl -fsSL https://api.standcast.app/install.sh | sh';
+const CANONICAL = 'curl -fsSL https://standcast.app/install.sh | sh';
 
 describe('install url check', () => {
   test('accepts the canonical url', () => {
@@ -14,7 +14,7 @@ describe('install url check', () => {
   });
 
   test('rejects other hosts and the placeholder', () => {
-    expect(installUrlProblems('a.md', 'https://standcast.app/install.sh')).toHaveLength(1);
+    expect(installUrlProblems('a.md', 'https://api.standcast.app/install.sh')).toHaveLength(1);
     expect(
       installUrlProblems('a.md', 'https://<standcast-host>/install.sh').length,
     ).toBeGreaterThan(0);
@@ -22,7 +22,7 @@ describe('install url check', () => {
 
   test('files read outside the docs build use the published url', () => {
     const published = `curl -fsSL ${PUBLISHED_INSTALL_URL} | sh`;
-    expect(PUBLISHED_INSTALL_URL).toBe('https://api.standcast.app/install.sh');
+    expect(PUBLISHED_INSTALL_URL).toBe('https://standcast.app/install.sh');
     expect(installUrlProblems('README.md', published, PUBLISHED_INSTALL_URL)).toEqual([]);
     expect(installUrlProblems('a.md', published)).toEqual([]);
     expect(

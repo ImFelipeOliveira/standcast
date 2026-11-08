@@ -341,10 +341,17 @@ describe('landing', () => {
     expect(read('_headers')).toContain("img-src 'self' data:;");
   });
 
+  test('install.sh is the repository install script', () => {
+    const script = readFileSync(join(PUBLIC, 'install.sh'), 'utf8');
+    expect(script).toBe(readFileSync(join(PUBLIC, '../../../scripts/install.sh'), 'utf8'));
+    expect(script.startsWith('#!/bin/sh\n')).toBe(true);
+    expect(read('_headers')).toContain('Content-Type: text/x-shellscript; charset=utf-8');
+  });
+
   test('home keeps the hero, the install command and the old anchors', () => {
     for (const page of pagesOf('home')) {
       const html = read(page.file);
-      expect(html).toContain('data-copy="curl -fsSL https://api.standcast.app/install.sh | sh"');
+      expect(html).toContain('data-copy="curl -fsSL https://standcast.app/install.sh | sh"');
       expect(html).toContain('<script src="/app.js" defer></script>');
       for (const id of ['top', 'how', 'privacy', 'pricing', 'faq', 'beta', 'beta-invalid']) {
         expect(html, `${page.file} #${id}`).toContain(` id="${id}"`);

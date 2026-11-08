@@ -5,7 +5,7 @@
 Standcast is an open source daily standup tool for software teams. Run `/daily` in Claude Code, Cursor or the terminal. Standcast drafts yesterday from your GitHub and Linear activity, you confirm, and your team gets one digest in Slack or Google Chat.
 
 ```sh
-curl -fsSL https://api.standcast.app/install.sh | sh
+curl -fsSL https://standcast.app/install.sh | sh
 ```
 
 - [Join the beta](https://standcast.app/beta/)

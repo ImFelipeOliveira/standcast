@@ -136,7 +136,7 @@ Step by step: [Install](https://docs.standcast.app/admin/install).
 Install the CLI (macOS and Linux) and sign in:
 
 ```sh
-curl -fsSL https://api.standcast.app/install.sh | sh
+curl -fsSL https://standcast.app/install.sh | sh
 standcast login
 ```
 
