@@ -11,6 +11,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 ### Unreleased
 
 - The install command is `curl -fsSL https://standcast.app/install.sh | sh`. The same path on the API redirects there.
+- The install script shows a progress bar while it downloads the CLI.
 
 ### 0.9.0 — 2026-11-08
 

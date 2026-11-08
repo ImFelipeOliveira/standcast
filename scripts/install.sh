@@ -26,7 +26,7 @@ esac
 asset="standcast-bun-${os}-${arch}"
 
 if command -v curl >/dev/null 2>&1; then
-  download() { curl --proto '=https' --tlsv1.2 -fsSL -o "$2" "$1"; }
+  download() { curl --proto '=https' --tlsv1.2 -fL --progress-bar -o "$2" "$1"; }
 elif command -v wget >/dev/null 2>&1; then
   download() { wget -q -O "$2" "$1"; }
 else
