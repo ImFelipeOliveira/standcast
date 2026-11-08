@@ -1,5 +1,54 @@
 # Changelog
 
+## [0.8.2](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.8.1...standcast-v0.8.2) (2026-11-07)
+
+
+### Bug Fixes
+
+* accept an empty product release and a real funding link ([729b639](https://github.com/ImFelipeOliveira/standcast/commit/729b63956fa04b4c232aeb80910be8fbd8e8d325))
+* accept an empty product release and a real funding link ([#113](https://github.com/ImFelipeOliveira/standcast/issues/113)) ([2e1d653](https://github.com/ImFelipeOliveira/standcast/commit/2e1d653d8321514b89fd10bc7975195ad1f07e5e))
+* **test:** retry a deadlocked truncate of the shared test database ([17c9520](https://github.com/ImFelipeOliveira/standcast/commit/17c9520f6bdbb2c38071823a409895af783a3e65))
+* **test:** retry a deadlocked truncate of the shared test database ([#112](https://github.com/ImFelipeOliveira/standcast/issues/112)) ([4f977d5](https://github.com/ImFelipeOliveira/standcast/commit/4f977d5431051a2174b3606584d523a4dd0f48b5))
+* treat star and plus changelog bullets as notes ([7e40186](https://github.com/ImFelipeOliveira/standcast/commit/7e40186d9ef1832cf4d701acbc6cbde1c4d70074))
+
+## [0.8.1](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.8.0...standcast-v0.8.1) (2026-11-07)
+
+
+### Bug Fixes
+
+* keep standcast.yml private and name the beta testers ([#103](https://github.com/ImFelipeOliveira/standcast/issues/103)) ([54f8bad](https://github.com/ImFelipeOliveira/standcast/commit/54f8bad65dee438efe8784925af604e3edd620df))
+
+## [0.8.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.7.0...standcast-v0.8.0) (2026-11-07)
+
+
+### Features
+
+* **api:** redirect /setup to the web app ([b2c4b0d](https://github.com/ImFelipeOliveira/standcast/commit/b2c4b0d78a5d3dbad781147cdd3583c0f7c744a7))
+* **api:** remove the server-rendered setup page ([aeecfcc](https://github.com/ImFelipeOliveira/standcast/commit/aeecfcc3205c3aabb2092c80193fd26ec1c4baef))
+* move setup from the API to the web app ([#92](https://github.com/ImFelipeOliveira/standcast/issues/92)) ([73c5445](https://github.com/ImFelipeOliveira/standcast/commit/73c5445830f8ec7f3025f5388ac701d5c5fd9473))
+* send Slack and Linear connect back to Configuração ([1c5e99f](https://github.com/ImFelipeOliveira/standcast/commit/1c5e99f61929930a83f9d0a8078f321943bfe521))
+* **web:** hold a new installation on /setup instead of the home page ([471eede](https://github.com/ImFelipeOliveira/standcast/commit/471eede778c06197bd01526e7d3d4c6cf44540ac))
+
+
+### Bug Fixes
+
+* **api:** redirect every /setup request to the web app ([0450103](https://github.com/ImFelipeOliveira/standcast/commit/0450103e4940f911297c5f9cc8b85ae417b0413b))
+* bake the hosted API origin into the web build ([b4fe2a0](https://github.com/ImFelipeOliveira/standcast/commit/b4fe2a035d81b109ccf5ebf216320a991b004a21))
+* **cli:** harden labeled credential redaction ([c663496](https://github.com/ImFelipeOliveira/standcast/commit/c663496cfd084f9e7970188c290de57e3665c38c))
+* **cli:** redact escaped quoted secrets ([aaab800](https://github.com/ImFelipeOliveira/standcast/commit/aaab8007dc51eb0aa19c988c09cabfd3c1d408ee))
+* **cli:** redact escaped quoted secrets ([#86](https://github.com/ImFelipeOliveira/standcast/issues/86)) ([3de1750](https://github.com/ImFelipeOliveira/standcast/commit/3de1750222a8b2e26c21aa6d3c6f50ac93cdccb3))
+* **cli:** redact escaped unquoted credentials ([05f086b](https://github.com/ImFelipeOliveira/standcast/commit/05f086bf08eac067bf00c072782f4c933f6c549d))
+* **cli:** redact text after encoded internal quotes ([c822dd7](https://github.com/ImFelipeOliveira/standcast/commit/c822dd7618b714f8f76bb7f5b1a29cf8ef9ee972))
+* show standcast.app on the social banner ([3b73705](https://github.com/ImFelipeOliveira/standcast/commit/3b73705d1bb0c73d95faf6e208ce779a247fda48))
+* show standcast.app on the social banner ([#95](https://github.com/ImFelipeOliveira/standcast/issues/95)) ([0adb642](https://github.com/ImFelipeOliveira/standcast/commit/0adb642978f95a43a75272909ef6ebd52cc54e3e))
+
+
+### Refactoring
+
+* **orchestrator:** group use cases into modules ([06c53e6](https://github.com/ImFelipeOliveira/standcast/commit/06c53e669d84092e22528e103074c1b12bed3489))
+* **orchestrator:** group use cases into modules ([#89](https://github.com/ImFelipeOliveira/standcast/issues/89)) ([9f82aef](https://github.com/ImFelipeOliveira/standcast/commit/9f82aefa9b789db8ee70fbe70c147f44c774bd05))
+* **orchestrator:** keep GitHub installation memory in the github module ([ae29f7c](https://github.com/ImFelipeOliveira/standcast/commit/ae29f7cb1c184856b0685504672f672ef7ad4d96))
+
 ## [0.7.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.6.0...standcast-v0.7.0) (2026-11-06)
 
 

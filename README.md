@@ -263,6 +263,10 @@ Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for commit co
 - [ ] Jira, then ClickUp, Asana and GitHub Projects
 - [ ] Microsoft Teams and Discord
 
+## Sponsors
+
+[Orange Labs](https://orangelabs.com.br) supports Standcast. Financial support for the project goes through [GitHub Sponsors](https://github.com/sponsors/ImFelipeOliveira).
+
 ## Support
 
 Questions and problems: [support@standcast.app](mailto:support@standcast.app).

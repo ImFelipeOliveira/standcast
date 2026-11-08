@@ -10,16 +10,31 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- `managers` no `standcast.yml` aceita times do GitHub escritos `"@org/slug-do-time"`, sozinhos ou junto com logins, então um repositório de configuração público não precisa listar quem gere cada time. O acesso de gestor segue o time no GitHub em até 5 minutos. Um time de gestores que não existe, é de outra organização ou é grande demais não dá acesso de gestor a ninguém e mostra um aviso na página Configuração. Quando o GitHub falha, o time não dá acesso de gestor a ninguém por um minuto e a página Configuração mostra um aviso. Quem opera o próprio GitHub App pode assinar os eventos `Membership`, `Team` e `Organization` para o processo da API que os recebe aplicar as mudanças antes. Um valor em `members` que começa com `@` agora também precisa ser um time do GitHub escrito `"@org/slug-do-time"`, como em `managers`; qualquer outro, como `@alice`, é rejeitado em vez de não corresponder a ninguém. Veja [Configuração](/pt-BR/admin/configuration#managers).
+
+### 0.8.2 — 07/11/2026
+
+- A landing e o README não nomeiam mais times do beta.
+
+### 0.8.1 — 07/11/2026
+
+- O Standcast lê o `standcast.yml` do repositório privado `.github-private` quando ele existe e tem o arquivo, e do `.github` nos outros casos, para organizações com `.github` público manterem o arquivo privado. Nada muda quando só o `.github` tem o arquivo. A página de configuração aponta para o arquivo no repositório em uso e oferece criar o `.github-private`. Veja [Onde fica o arquivo](/pt-BR/admin/configuration#onde-fica-o-arquivo).
+- O check `Standcast config` falha quando o `standcast.yml` está em um repositório público e tem overrides de identidade em `members` (`linear`, `slack`, `google_chat`, `jira`), porque eles publicam e-mails de trabalho e o vínculo entre login e e-mail. A página de configuração mostra o mesmo aviso. A configuração em uso não muda. Mova o arquivo para o `.github-private`, torne o repositório privado ou remova os overrides e use a vinculação padrão pelo e-mail verificado do GitHub e pela mensagem direta do Google Chat. Veja [Mapeamento de identidades](/pt-BR/admin/configuration#mapeamento-de-identidades).
+- A landing e o README nomearam a Pigz e a Usebill como os primeiros times do beta.
+
+### 0.8.0 — 07/11/2026
+
 - A landing e a documentação listam o que está conectado hoje (GitHub, Linear, Slack, Google Chat) e o que ainda vem (Jira, ClickUp, Asana, GitHub Projects, Microsoft Teams, Discord). Veja [Integrações](/pt-BR/integrations).
 - O serviço hospedado está em [standcast.app](https://standcast.app), com o app em [app.standcast.app](https://app.standcast.app), a documentação em [docs.standcast.app](https://docs.standcast.app) e a API em [api.standcast.app](https://api.standcast.app). O suporte é support@standcast.app. O hostname antigo da API, `https://api-standcast.usefachada.dev`, continua servindo a API, sem redirecionamento, então uma integração existente mantém a URL base.
 - A configuração fica no app web. O `/setup` da API redireciona para lá.
-- O Standcast lê o `standcast.yml` do repositório privado `.github-private` quando ele existe e tem o arquivo, e do `.github` nos outros casos, para organizações com `.github` público manterem o arquivo privado. Nada muda quando só o `.github` tem o arquivo. A página de configuração aponta para o arquivo no repositório em uso e oferece criar o `.github-private`. Veja [Onde fica o arquivo](/pt-BR/admin/configuration#onde-fica-o-arquivo).
-- O check `Standcast config` falha quando o `standcast.yml` está em um repositório público e tem overrides de identidade em `members` (`linear`, `slack`, `google_chat`, `jira`), porque eles publicam e-mails de trabalho e o vínculo entre login e e-mail. A página de configuração mostra o mesmo aviso. A configuração em uso não muda. Mova o arquivo para o `.github-private`, torne o repositório privado ou remova os overrides e use a vinculação padrão pelo e-mail verificado do GitHub e pela mensagem direta do Google Chat. Veja [Mapeamento de identidades](/pt-BR/admin/configuration#mapeamento-de-identidades).
-- `managers` no `standcast.yml` aceita times do GitHub escritos `"@org/slug-do-time"`, sozinhos ou junto com logins, então um repositório de configuração público não precisa listar quem gere cada time. O acesso de gestor segue o time no GitHub em até 5 minutos. Um time de gestores que não existe, é de outra organização ou é grande demais não dá acesso de gestor a ninguém e mostra um aviso na página Configuração. Quando o GitHub falha, o time não dá acesso de gestor a ninguém por um minuto e a página Configuração mostra um aviso. Quem opera o próprio GitHub App pode assinar os eventos `Membership`, `Team` e `Organization` para o processo da API que os recebe aplicar as mudanças antes. Um valor em `members` que começa com `@` agora também precisa ser um time do GitHub escrito `"@org/slug-do-time"`, como em `managers`; qualquer outro, como `@alice`, é rejeitado em vez de não corresponder a ninguém. Veja [Configuração](/pt-BR/admin/configuration#managers).
 
 ### 0.7.0 — 06/11/2026
 
+- A página inicial desenha um campo animado atrás do hero.
+
 ### 0.6.0 — 06/11/2026
+
+- O banner da landing mostra o Google Chat, os agentes e o beta público.
 
 ### 0.5.0 — 06/11/2026
 
