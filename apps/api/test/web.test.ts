@@ -864,7 +864,7 @@ describe('web rate limit', () => {
     expect(await limited.text()).toContain('Too many requests');
     expect((await app.request('/connect/slack')).status).toBe(429);
     expect((await app.request('/oauth/slack/callback')).status).toBe(429);
-    expect((await app.request('/install.sh')).status).toBe(200);
+    expect((await app.request('/install.sh')).status).toBe(301);
   });
 
   test('each setup request counts once', async () => {
@@ -990,14 +990,11 @@ describe('browser error pages', () => {
 });
 
 describe('install script', () => {
-  test('is served as a shell script', async () => {
+  test('redirects to the landing script', async () => {
     const { app } = harness();
     const res = await app.request('/install.sh');
-    expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toContain('text/x-shellscript');
-    const body = await res.text();
-    expect(body).toBe(await Bun.file(`${import.meta.dir}/../../../scripts/install.sh`).text());
-    expect(body.startsWith('#!/bin/sh\n')).toBe(true);
+    expect(res.status).toBe(301);
+    expect(res.headers.get('location')).toBe('https://landing.sw.test/install.sh');
   });
 
   test('downloads only over https with curl and with wget', async () => {

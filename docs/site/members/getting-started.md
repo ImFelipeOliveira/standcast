@@ -29,7 +29,7 @@ standcast --version
 Each release also has a `SHA256SUMS` file to check the download. Or use the install script, which downloads the right binary, checks it against `SHA256SUMS` and installs it to `~/.local/bin/standcast`:
 
 ```bash
-curl -fsSL https://api.standcast.app/install.sh | sh
+curl -fsSL https://standcast.app/install.sh | sh
 ```
 
 ## 2. Sign in

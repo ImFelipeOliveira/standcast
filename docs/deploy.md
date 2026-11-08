@@ -74,7 +74,7 @@ The landing page is a separate Cloudflare Worker, `standcast-landing`. See [clou
 
 ## Documentation site (Cloudflare Pages)
 
-The documentation site is a static VitePress build hosted on Cloudflare Pages, on its own domain. The api does not serve it: it keeps the API reference at `/reference`, `/openapi.json`, OAuth, webhooks and `/install.sh`, redirects `GET /setup` to `APP_URL`, and answers the old URLs with permanent redirects:
+The documentation site is a static VitePress build hosted on Cloudflare Pages, on its own domain. The api does not serve it: it keeps the API reference at `/reference`, `/openapi.json`, OAuth and webhooks, redirects `GET /setup` to `APP_URL` and `GET /install.sh` to `LANDING_URL`, and answers the old URLs with permanent redirects:
 
 | Old URL | Redirects to |
 | --- | --- |
@@ -98,7 +98,7 @@ Add the custom domain `app.standcast.app` to the Worker in Cloudflare, then set 
 
 ## Deploying without the final domain
 
-The hosted api is `https://api.standcast.app`. It serves OAuth, webhooks, the API reference at `/reference` and `/install.sh`. `GET /setup` redirects to the web app, which serves setup. The documentation site is `https://docs.standcast.app`. Set `PUBLIC_URL` to `https://api.standcast.app` and point everything below at it:
+The hosted api is `https://api.standcast.app`. It serves OAuth, webhooks and the API reference at `/reference`. `GET /setup` redirects to the web app, which serves setup. `GET /install.sh` redirects to `LANDING_URL/install.sh`. The landing serves that script at `https://standcast.app/install.sh`. The documentation site is `https://docs.standcast.app`. Set `PUBLIC_URL` to `https://api.standcast.app` and point everything below at it:
 
 - **GitHub App:** the callback URL, the webhook URL and the setup URL. See [github-app.md](github-app.md).
 - **GitHub App setup URL:** `https://app.standcast.app/setup`. `https://api.standcast.app/setup` keeps redirecting there, so an install that still has the API address keeps working. Change the GitHub setting by hand after this deploy.
@@ -136,7 +136,7 @@ Change every place that names the interim address:
 4. Change `STANDCAST_DEFAULT_API_URL` in `.github/workflows/release-please.yml` and publish a new release, so new installs use the final domain.
 5. Update the GitHub App callback, webhook and setup URLs, and its homepage URL, to the final domain.
 6. Update the Slack and Linear redirect URLs and the Google Chat app HTTP endpoint URL to the final domain.
-7. Update the install command and API URLs in `README.md` and `packages/plugin/skills/daily/SKILL.md`. Change `PUBLISHED_INSTALL_URL` in `scripts/check-docs.ts` to match, or `check-docs` fails.
+7. Update API URLs in `README.md` and `packages/plugin/skills/daily/SKILL.md` when those files name the api. The install command in both files, and `PUBLISHED_INSTALL_URL` in `scripts/check-docs.ts`, is the landing URL (`https://standcast.app/install.sh`). Leave them alone when only the api domain changes. Change them when the landing domain changes. `check-docs` fails if `PUBLISHED_INSTALL_URL` and those install commands disagree.
 8. Add `docs.standcast.app` as a custom domain of the docs Worker, set `DOCS_URL` on the api to `https://docs.standcast.app` and update the docs links in `README.md`. Keep the old docs hostname only as a redirect.
 9. Move the web app in the same step: the app and the api must stay on the same site (the same registrable domain), because the session cookie is `SameSite=Lax` and browsers drop it on cross-site requests. Add `app.standcast.app` as the custom domain of the `standcast-web` Worker, set `APP_URL=https://app.standcast.app` on the api, and keep the old app hostname only as a redirect. Never run the app on a different registrable domain from the api.
 10. If the api domain changes, update `connect-src` in `apps/web/public/_headers` together with `VITE_API_URL` (in `apps/web/.env.production` and the build command above), then rebuild and redeploy the web app. The header names the api origin, so the app cannot reach a new api address until both change.

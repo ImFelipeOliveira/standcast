@@ -11,6 +11,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 ### Unreleased
 
 - The install guide sends you to `https://app.standcast.app/setup` after you install the GitHub App. `https://api.standcast.app/setup` only redirects there.
+- The install command is `curl -fsSL https://standcast.app/install.sh | sh`. The same path on the API redirects there.
 
 ### 0.9.0 — 2026-11-08
 
