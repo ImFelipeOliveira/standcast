@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
+import { Octokit } from '@octokit/core';
 import { resolveTeamMembers } from '../src/members';
-import { fixture, octokitWith } from './helpers';
+import { fakeFetch, fixture, octokitWith } from './helpers';
 
 describe('resolveTeamMembers', () => {
   test('resolveTeamMembers expands teams', async () => {
@@ -49,6 +50,27 @@ describe('resolveTeamMembers', () => {
       ['100', '1'],
       ['100', '2'],
     ]);
+  });
+
+  test('every page request carries a timeout signal', async () => {
+    const first = Array.from({ length: 100 }, (_, i) => ({ login: `u${i}` }));
+    const signals: (AbortSignal | undefined)[] = [];
+    const fake = fakeFetch({
+      'GET /orgs/acme/teams/big/members': (url) => ({
+        body: JSON.stringify(url.searchParams.get('page') === '2' ? [] : first),
+      }),
+    });
+    const recording = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      signals.push(init?.signal ?? (input instanceof Request ? input.signal : undefined));
+      return fake.fetch(input, init);
+    }) as typeof fetch;
+    const octokit = new Octokit({ request: { fetch: recording } });
+    await resolveTeamMembers(octokit, 'acme', ['@acme/big']);
+    expect(signals).toHaveLength(2);
+    for (const signal of signals) {
+      expect(signal).toBeInstanceOf(AbortSignal);
+      expect(signal?.aborted).toBe(false);
+    }
   });
 
   test('stops after 50 pages', async () => {

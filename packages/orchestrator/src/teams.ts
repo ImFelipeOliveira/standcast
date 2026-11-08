@@ -51,6 +51,16 @@ const listingsCache = scopedTtlCache<TeamListing>(TEAMS_CACHE_TTL_MS);
 
 const failuresCache = scopedTtlCache<TeamFailure>(TEAM_FAILURE_TTL_MS);
 
+const pendingLookups = new WeakMap<object, Map<string, Promise<TeamLookup>>>();
+
+function pendingFor(scope: object): Map<string, Promise<TeamLookup>> {
+  const existing = pendingLookups.get(scope);
+  if (existing) return existing;
+  const created = new Map<string, Promise<TeamLookup>>();
+  pendingLookups.set(scope, created);
+  return created;
+}
+
 const keyPrefix = (installationId: number) => `${installationId}:`;
 
 export function invalidateResolvedTeams(deps: Pick<Deps, 'github'>, installationId: number): void {
@@ -58,6 +68,8 @@ export function invalidateResolvedTeams(deps: Pick<Deps, 'github'>, installation
   const matches = (key: string) => key.startsWith(prefix);
   listingsCache(deps.github).deleteWhere(matches);
   failuresCache(deps.github).deleteWhere(matches);
+  const pending = pendingFor(deps.github);
+  for (const key of pending.keys()) if (matches(key)) pending.delete(key);
 }
 
 function referenceKey(scope: Scope, reference: string): string {
@@ -85,38 +97,54 @@ function explicitManagerLogins(team: TeamConfig): string[] {
   return [...new Set(explicit.map((entry) => entry.toLowerCase()))];
 }
 
+async function readTeam(
+  deps: ResolveDeps,
+  scope: Scope,
+  octokit: () => Promise<Octokit>,
+  reference: string,
+): Promise<TeamLookup> {
+  try {
+    const resolved = await deps.github.resolveTeamMembers(await octokit(), scope.owner, [
+      reference,
+    ]);
+    return {
+      logins: [...new Set(resolved.logins.map((login) => login.toLowerCase()))],
+      missing: resolved.missingTeams.length > 0,
+      truncated: resolved.truncatedTeams.length > 0,
+    };
+  } catch (error) {
+    logError('github team resolution failed', error, {
+      installationId: String(scope.installationId),
+    });
+    return { error };
+  }
+}
+
 function teamLookup(deps: ResolveDeps, scope: Scope): (reference: string) => Promise<TeamLookup> {
   let client: Promise<Octokit> | undefined;
   const octokit = () => {
     client ??= deps.github.installationOctokit(scope.installationId);
     return client;
   };
-  return async (reference) => {
+  return (reference) => {
     const listings = listingsCache(deps.github);
     const failures = failuresCache(deps.github);
+    const pending = pendingFor(deps.github);
     const key = referenceKey(scope, reference);
     const now = deps.now().getTime();
     const cached = listings.get(key, now) ?? failures.get(key, now);
-    if (cached) return cached;
-    try {
-      const resolved = await deps.github.resolveTeamMembers(await octokit(), scope.owner, [
-        reference,
-      ]);
-      const listing: TeamListing = {
-        logins: [...new Set(resolved.logins.map((login) => login.toLowerCase()))],
-        missing: resolved.missingTeams.length > 0,
-        truncated: resolved.truncatedTeams.length > 0,
-      };
-      listings.set(key, listing, deps.now().getTime());
-      return listing;
-    } catch (error) {
-      logError('github team resolution failed', error, {
-        installationId: String(scope.installationId),
-      });
-      const failure: TeamFailure = { error };
-      failures.set(key, failure, deps.now().getTime());
-      return failure;
-    }
+    if (cached) return Promise.resolve(cached);
+    const inFlight = pending.get(key);
+    if (inFlight) return inFlight;
+    const read: Promise<TeamLookup> = readTeam(deps, scope, octokit, reference).then((lookup) => {
+      if (pending.get(key) !== read) return lookup;
+      pending.delete(key);
+      if (isFailure(lookup)) failures.set(key, lookup, deps.now().getTime());
+      else listings.set(key, lookup, deps.now().getTime());
+      return lookup;
+    });
+    pending.set(key, read);
+    return read;
   };
 }
 

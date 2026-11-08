@@ -4,6 +4,7 @@ import { httpStatus, isRateLimited } from './errors';
 
 const PER_PAGE = 100;
 const MAX_PAGES = 50;
+const TEAM_PAGE_TIMEOUT_MS = 5000;
 
 export type TeamResolution = {
   logins: string[];
@@ -23,6 +24,7 @@ async function listTeamMembers(octokit: Octokit, org: string, slug: string): Pro
         team_slug: slug,
         per_page: PER_PAGE,
         page,
+        request: { signal: AbortSignal.timeout(TEAM_PAGE_TIMEOUT_MS) },
       });
       users = response.data as { login: string }[];
     } catch (error) {

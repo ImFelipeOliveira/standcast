@@ -124,7 +124,8 @@ Manager access follows the GitHub team. Standcast keeps the members of each GitH
 
 - a team of another organization, a team that does not exist, or a team the app cannot see (check the Members permission) shows a notice on the Configuration page;
 - a team with 5,000 members or more shows a notice and is not used;
-- when GitHub fails or takes more than 3 seconds to answer a manager's request, the team is skipped and a notice shows on the Configuration page. Standcast asks GitHub again after a minute.
+- when GitHub fails or does not answer within 5 seconds, the team is skipped and a notice shows on the Configuration page. Standcast asks GitHub again after a minute;
+- when GitHub takes more than 3 seconds, a manager's request skips the team without waiting. The read goes on, and the requests that come after it use its answer.
 
 Logins listed directly keep working in all these cases.
 

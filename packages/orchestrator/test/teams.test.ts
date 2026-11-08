@@ -166,7 +166,63 @@ describe('resolveTeams', () => {
     await resolveTeams(deps, 8, 'acme', parsed());
     expect(resolved).toHaveLength(3);
   });
+
+  test('concurrent resolutions share one read of a team', async () => {
+    const { deps, calls, release } = gatedDeps([{ logins: ['Bob'], gated: true }]);
+    const first = resolveTeams(deps, 7, 'acme', parsed());
+    const second = resolveTeams(deps, 7, 'acme', parsed());
+    await tick();
+    expect(calls).toEqual([['@acme/backend']]);
+    release();
+    const results = await Promise.all([first, second]);
+    expect(results.map((teams) => teams[0]?.memberLogins)).toEqual([
+      ['alice', 'bob'],
+      ['alice', 'bob'],
+    ]);
+    await resolveTeams(deps, 7, 'acme', parsed());
+    expect(calls).toHaveLength(1);
+  });
+
+  test('a read invalidated while in flight is not cached', async () => {
+    const { deps, calls, release } = gatedDeps([
+      { logins: ['Old'], gated: true },
+      { logins: ['New'], gated: false },
+    ]);
+    const stale = resolveTeams(deps, 7, 'acme', parsed());
+    await tick();
+    invalidateResolvedTeams(deps, 7);
+    const fresh = await resolveTeams(deps, 7, 'acme', parsed());
+    expect(fresh[0]?.memberLogins).toEqual(['alice', 'new']);
+    release();
+    expect((await stale)[0]?.memberLogins).toEqual(['alice', 'old']);
+    const cached = await resolveTeams(deps, 7, 'acme', parsed());
+    expect(cached[0]?.memberLogins).toEqual(['alice', 'new']);
+    expect(calls).toHaveLength(2);
+  });
 });
+
+const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+function gatedDeps(answers: { logins: string[]; gated: boolean }[]) {
+  const calls: string[][] = [];
+  const gates: (() => void)[] = [];
+  const deps = {
+    now: () => new Date('2026-10-28T15:00:00Z'),
+    github: {
+      installationOctokit: async () => ({}),
+      resolveTeamMembers: async (_o: unknown, _owner: string, members: string[]) => {
+        const answer = answers[calls.length] ?? { logins: [], gated: false };
+        calls.push(members);
+        if (answer.gated) await new Promise<void>((resolve) => gates.push(resolve));
+        return { logins: answer.logins, missingTeams: [], truncatedTeams: [] };
+      },
+    },
+  } as unknown as Deps;
+  const release = () => {
+    for (const open of gates.splice(0)) open();
+  };
+  return { deps, calls, release };
+}
 
 const managerSource = (managers: string) => `
 teams:
@@ -397,6 +453,22 @@ describe('resolveTeams managers', () => {
       expect(Date.now() - started).toBeLessThan(1000);
       expect(teams.map((t) => t.managerLogins)).toEqual([['boss'], ['dave']]);
       expect(String(errors.mock.calls[0]?.[0])).toBe('manager team resolution timed out');
+    } finally {
+      errors.mockRestore();
+    }
+  });
+
+  test('a manager request that gives up leaves the read for the next request', async () => {
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const { deps, calls, release } = gatedDeps([{ logins: ['Dave'], gated: true }]);
+      const config = managerConfig('[boss, "@acme/leads"]');
+      const first = await resolveManagerTeams(deps, 7, 'acme', config, 20);
+      expect(first.map((t) => t.managerLogins)).toEqual([['boss'], []]);
+      const second = resolveManagerTeams(deps, 7, 'acme', config, 1000);
+      release();
+      expect((await second).map((t) => t.managerLogins)).toEqual([['boss', 'dave'], ['dave']]);
+      expect(calls).toEqual([['@acme/leads']]);
     } finally {
       errors.mockRestore();
     }
