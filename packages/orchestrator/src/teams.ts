@@ -1,4 +1,6 @@
 import {
+  type ManagerTeam,
+  type MemberTeam,
   parseTeamReference,
   type ResolvedTeam,
   type StandcastConfig,
@@ -37,9 +39,16 @@ type TeamLookup = TeamListing | TeamFailure;
 
 type Lookups = Map<string, TeamLookup>;
 
-type ResolvedMembers = { logins: string[]; missing: string[]; truncated: string[] };
+type ResolvedMembers = {
+  logins: string[];
+  missing: string[];
+  truncated: string[];
+  failure?: TeamFailure;
+};
 
-type ResolvedManagers = ResolvedMembers & { unavailable: string[] };
+type ResolvedManagers = Omit<ResolvedMembers, 'failure'> & { unavailable: string[] };
+
+export type TeamResolution = { teams: ResolvedTeam[]; notices: TeamNotice[] };
 
 type ResolveDeps = Pick<Deps, 'github' | 'now'>;
 
@@ -120,19 +129,22 @@ async function readTeam(
   }
 }
 
-function teamLookup(deps: ResolveDeps, scope: Scope): (reference: string) => Promise<TeamLookup> {
+function teamLookup(
+  deps: ResolveDeps,
+  scope: Scope,
+): (reference: string, reuseFailure: boolean) => Promise<TeamLookup> {
   let client: Promise<Octokit> | undefined;
   const octokit = () => {
     client ??= deps.github.installationOctokit(scope.installationId);
     return client;
   };
-  return (reference) => {
+  return (reference, reuseFailure) => {
     const listings = listingsCache(deps.github);
     const failures = failuresCache(deps.github);
     const pending = pendingFor(deps.github);
     const key = referenceKey(scope, reference);
     const now = deps.now().getTime();
-    const cached = listings.get(key, now) ?? failures.get(key, now);
+    const cached = listings.get(key, now) ?? (reuseFailure ? failures.get(key, now) : undefined);
     if (cached) return Promise.resolve(cached);
     const inFlight = pending.get(key);
     if (inFlight) return inFlight;
@@ -169,18 +181,28 @@ function resolveMembers(team: TeamConfig, lookups: Lookups): ResolvedMembers {
   const logins = new Set<string>();
   const missing: string[] = [];
   const truncated: string[] = [];
+  let failure: TeamFailure | undefined;
   for (const entry of team.members) {
     const lookup = parseTeamReference(entry) ? lookups.get(entry.toLowerCase()) : undefined;
     if (!lookup) {
       logins.add(entry.toLowerCase());
       continue;
     }
-    if (isFailure(lookup)) throw lookup.error;
+    if (isFailure(lookup)) {
+      failure ??= lookup;
+      continue;
+    }
     for (const login of lookup.logins) logins.add(login);
     if (lookup.missing) missing.push(entry);
     if (lookup.truncated) truncated.push(entry);
   }
-  return { logins: [...logins].sort(), missing, truncated };
+  return { logins: [...logins].sort(), missing, truncated, ...(failure ? { failure } : {}) };
+}
+
+function memberLogins(team: TeamConfig, lookups: Lookups): string[] {
+  const members = resolveMembers(team, lookups);
+  if (members.failure) throw members.failure.error;
+  return members.logins;
 }
 
 function resolveManagers(team: TeamConfig, owner: string, lookups: Lookups): ResolvedManagers {
@@ -210,41 +232,59 @@ function resolveManagers(team: TeamConfig, owner: string, lookups: Lookups): Res
   return { logins, missing, truncated, unavailable };
 }
 
-async function resolveTeamsWithNotices(
+async function lookupTeams(
   deps: ResolveDeps,
   installationId: number,
   owner: string,
   config: StandcastConfig,
-): Promise<{ teams: ResolvedTeam[]; notices: TeamNotice[] }> {
-  const references = config.teams.flatMap((team) => [
-    ...memberReferences(team),
-    ...managerReferences(team, owner),
-  ]);
-  const lookups = await lookupAll(references, teamLookup(deps, { installationId, owner }));
+  withManagers: boolean,
+): Promise<Lookups> {
+  const members = config.teams.flatMap(memberReferences);
+  const managers = withManagers
+    ? config.teams.flatMap((team) => managerReferences(team, owner))
+    : [];
+  const memberKeys = new Set(members.map((reference) => reference.toLowerCase()));
+  const lookup = teamLookup(deps, { installationId, owner });
+  return lookupAll([...members, ...managers], (reference) =>
+    lookup(reference, !memberKeys.has(reference.toLowerCase())),
+  );
+}
+
+function resolveTeam(team: TeamConfig, owner: string, lookups: Lookups) {
+  const members = resolveMembers(team, lookups);
+  const managers = resolveManagers(team, owner, lookups);
+  const notices: TeamNotice[] = [];
+  const add = (references: string[], kind: TeamNotice['kind']) => {
+    for (const reference of references) notices.push({ team: team.name, reference, kind });
+  };
+  add(members.missing, 'missing');
+  add(members.truncated, 'truncated');
+  add(managers.missing, 'managers_missing');
+  add(managers.truncated, 'managers_truncated');
+  add(managers.unavailable, 'managers_unavailable');
+  return { members, managers, notices };
+}
+
+export async function resolveTeamsWithNotices(
+  deps: ResolveDeps,
+  installationId: number,
+  owner: string,
+  config: StandcastConfig,
+): Promise<TeamResolution> {
+  const lookups = await lookupTeams(deps, installationId, owner, config, true);
   const teams: ResolvedTeam[] = [];
   const notices: TeamNotice[] = [];
   for (const team of config.teams) {
-    const members = resolveMembers(team, lookups);
-    const managers = resolveManagers(team, owner, lookups);
-    teams.push({ ...team, memberLogins: members.logins, managerLogins: managers.logins });
-    const add = (references: string[], kind: TeamNotice['kind']) => {
-      for (const reference of references) notices.push({ team: team.name, reference, kind });
-    };
-    add(members.missing, 'missing');
-    add(members.truncated, 'truncated');
-    add(managers.missing, 'managers_missing');
-    add(managers.truncated, 'managers_truncated');
-    add(managers.unavailable, 'managers_unavailable');
+    const resolved = resolveTeam(team, owner, lookups);
+    if (resolved.members.failure) throw resolved.members.failure.error;
+    teams.push({
+      ...team,
+      memberLogins: resolved.members.logins,
+      managerLogins: resolved.managers.logins,
+    });
+    notices.push(...resolved.notices);
   }
   return { teams, notices };
-}
-
-export function explicitManagerTeams(config: StandcastConfig): ResolvedTeam[] {
-  return config.teams.map((team) => ({
-    ...team,
-    memberLogins: [],
-    managerLogins: explicitManagerLogins(team),
-  }));
 }
 
 export async function resolveManagerTeams(
@@ -253,11 +293,12 @@ export async function resolveManagerTeams(
   owner: string,
   config: StandcastConfig,
   timeoutMs: number,
-): Promise<ResolvedTeam[]> {
+): Promise<ManagerTeam[]> {
   const references = config.teams.flatMap((team) => managerReferences(team, owner));
+  const lookup = teamLookup(deps, { installationId, owner });
   const found: Lookups = new Map();
   await guarded(
-    lookupAll(references, teamLookup(deps, { installationId, owner }), found),
+    lookupAll(references, (reference) => lookup(reference, true), found),
     found,
     timeoutMs,
     'manager team resolution timed out',
@@ -266,9 +307,18 @@ export async function resolveManagerTeams(
   const lookups = new Map(found);
   return config.teams.map((team) => ({
     ...team,
-    memberLogins: [],
     managerLogins: resolveManagers(team, owner, lookups).logins,
   }));
+}
+
+export async function resolveMemberTeams(
+  deps: ResolveDeps,
+  installationId: number,
+  owner: string,
+  config: StandcastConfig,
+): Promise<MemberTeam[]> {
+  const lookups = await lookupTeams(deps, installationId, owner, config, false);
+  return config.teams.map((team) => ({ ...team, memberLogins: memberLogins(team, lookups) }));
 }
 
 export async function resolveTeams(
@@ -286,5 +336,6 @@ export async function teamResolutionNotices(
   owner: string,
   config: StandcastConfig,
 ): Promise<TeamNotice[]> {
-  return (await resolveTeamsWithNotices(deps, installationId, owner, config)).notices;
+  const lookups = await lookupTeams(deps, installationId, owner, config, true);
+  return config.teams.flatMap((team) => resolveTeam(team, owner, lookups).notices);
 }

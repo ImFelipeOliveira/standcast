@@ -10,7 +10,7 @@ import {
   operationalConfig,
 } from '@standcast/db';
 import type { WorkerDeps } from '../../deps';
-import { resolveTeams } from '../../teams';
+import { resolveMemberTeams } from '../../teams';
 import { directMessageIdFor, forgetStaleChatIdentity } from '../chat/chat-identity';
 import { describeDeliveryError, isTerminalDeliveryError } from './delivery-error';
 
@@ -29,7 +29,7 @@ export async function sendReminder(deps: WorkerDeps, job: SendReminderJob): Prom
 
   const mine = teamsForMember(
     login,
-    await resolveTeams(deps, installation.id, installation.accountLogin, config),
+    await resolveMemberTeams(deps, installation.id, installation.accountLogin, config),
   );
   const teams = job.team === undefined ? mine : mine.filter((team) => team.name === job.team);
   const first = teams[0];

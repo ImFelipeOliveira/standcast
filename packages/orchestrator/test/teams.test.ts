@@ -2,9 +2,9 @@ import { describe, expect, spyOn, test } from 'bun:test';
 import { parseConfig, type StandcastConfig } from '@standcast/core';
 import type { Deps } from '../src';
 import {
-  explicitManagerTeams,
   invalidateResolvedTeams,
   resolveManagerTeams,
+  resolveMemberTeams,
   resolveTeams,
   TEAM_FAILURE_TTL_MS,
   TEAMS_CACHE_TTL_MS,
@@ -411,6 +411,87 @@ describe('resolveTeams managers', () => {
     }
   });
 
+  test('a failed member team is asked again on the next resolution', async () => {
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const listings: Record<string, Listing> = { '@acme/backend': 'error' };
+      const { deps, calls } = managerDeps(listings);
+      const config = managerConfig('[boss]');
+      const [alpha] = config.teams;
+      if (!alpha) throw new Error('team');
+      const failing = { ...config, teams: [{ ...alpha, members: ['@acme/backend'] }] };
+      await expect(resolveTeams(deps, 7, 'acme', failing)).rejects.toThrow('boom');
+      listings['@acme/backend'] = { logins: ['Bob'] };
+      const teams = await resolveTeams(deps, 7, 'acme', failing);
+      expect(teams[0]?.memberLogins).toEqual(['bob']);
+      expect(calls).toEqual([['@acme/backend'], ['@acme/backend']]);
+    } finally {
+      errors.mockRestore();
+    }
+  });
+
+  test('a team in members and managers that failed is asked again for its members', async () => {
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const listings: Record<string, Listing> = { '@acme/leads': 'error' };
+      const { deps, calls } = managerDeps(listings);
+      const config = managerConfig('["@acme/leads"]');
+      await resolveManagerTeams(deps, 7, 'acme', config, 1000);
+      listings['@acme/leads'] = { logins: ['Dave'] };
+      const [alpha] = config.teams;
+      if (!alpha) throw new Error('team');
+      const both = { ...config, teams: [{ ...alpha, members: ['@acme/leads'] }] };
+      const teams = await resolveTeams(deps, 7, 'acme', both);
+      expect(teams[0]?.memberLogins).toEqual(['dave']);
+      expect(teams[0]?.managerLogins).toEqual(['dave']);
+      expect(calls).toEqual([['@acme/leads'], ['@acme/leads']]);
+    } finally {
+      errors.mockRestore();
+    }
+  });
+
+  test('resolveMemberTeams reads only member teams', async () => {
+    const { deps, calls } = managerDeps({
+      '@acme/leads': 'hang',
+      '@acme/backend': { logins: ['Bob'] },
+    });
+    const config = managerConfig('[boss, "@acme/leads"]');
+    const [alpha, beta] = config.teams;
+    if (!alpha || !beta) throw new Error('teams');
+    const teams = await resolveMemberTeams(deps, 7, 'acme', {
+      ...config,
+      teams: [{ ...alpha, members: ['alice', '@acme/backend'] }, beta],
+    });
+    expect(teams.map((t) => t.memberLogins)).toEqual([['alice', 'bob'], ['carol']]);
+    expect(teams.some((t) => 'managerLogins' in t)).toBe(false);
+    expect(calls).toEqual([['@acme/backend']]);
+  });
+
+  test('notices still show an unavailable manager team when a member team also fails', async () => {
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const { deps } = managerDeps({
+        '@acme/leads': 'error',
+        '@acme/backend': 'error',
+        '@acme/gone': { logins: [], missing: true },
+      });
+      const config = managerConfig('[boss, "@acme/leads"]');
+      const [alpha, beta] = config.teams;
+      if (!alpha || !beta) throw new Error('teams');
+      const notices = await teamResolutionNotices(deps, 7, 'acme', {
+        ...config,
+        teams: [{ ...alpha, members: ['@acme/backend', '@acme/gone'] }, beta],
+      });
+      expect(notices).toEqual([
+        { team: 'Alpha', reference: '@acme/gone', kind: 'missing' },
+        { team: 'Alpha', reference: '@acme/leads', kind: 'managers_unavailable' },
+        { team: 'Beta', reference: '@acme/leads', kind: 'managers_unavailable' },
+      ]);
+    } finally {
+      errors.mockRestore();
+    }
+  });
+
   test('a manager team of another organization is never queried and grants nothing', async () => {
     const { deps, calls } = managerDeps({ '@other/leads': { logins: ['mallory'] } });
     const config = managerConfig('[boss, "@other/leads"]');
@@ -472,11 +553,5 @@ describe('resolveTeams managers', () => {
     } finally {
       errors.mockRestore();
     }
-  });
-
-  test('explicitManagerTeams keeps only explicit manager logins', () => {
-    const teams = explicitManagerTeams(managerConfig('[Boss, "@acme/leads"]'));
-    expect(teams.map((t) => t.managerLogins)).toEqual([['boss'], []]);
-    expect(teams.map((t) => t.memberLogins)).toEqual([[], []]);
   });
 });

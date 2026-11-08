@@ -3,9 +3,9 @@ import {
   CHAT_PROVIDERS,
   ChatDeliveryError,
   type DigestEntry,
+  type MemberTeam,
   type MessageRef,
   type Person,
-  type ResolvedTeam,
 } from '@standcast/core';
 import {
   claimDelivery,
@@ -18,7 +18,7 @@ import {
   operationalConfig,
 } from '@standcast/db';
 import type { WorkerDeps } from '../../deps';
-import { resolveTeams } from '../../teams';
+import { resolveMemberTeams } from '../../teams';
 import { isChannelLinked } from '../chat/chat';
 import { chatUserIdsFor } from '../chat/chat-identity';
 import { describeDeliveryError, spaceNotLinked } from './delivery-error';
@@ -30,14 +30,14 @@ export type SendDigestJob = { installationId: number; teamName: string; date: st
 
 type Daily = Awaited<ReturnType<typeof listDailies>>[number];
 
-function teamDailies(team: ResolvedTeam, dailies: Daily[]): Daily[] {
+function teamDailies(team: MemberTeam, dailies: Daily[]): Daily[] {
   return dailies.filter((d) => team.memberLogins.includes(d.login.toLowerCase()));
 }
 
 async function enqueueLateDailies(
   deps: WorkerDeps,
   job: SendDigestJob,
-  team: ResolvedTeam,
+  team: MemberTeam,
   snapshot: Daily[],
 ): Promise<void> {
   const current = teamDailies(team, await listDailies(deps.db, job.installationId, job.date));
@@ -70,7 +70,7 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
     return;
   }
 
-  let team: ResolvedTeam;
+  let team: MemberTeam;
   let snapshot: Daily[];
   let ref: MessageRef;
   let entries: DigestEntry[];
@@ -90,7 +90,7 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
       );
       return;
     }
-    const [resolved] = await resolveTeams(deps, installation.id, installation.accountLogin, {
+    const [resolved] = await resolveMemberTeams(deps, installation.id, installation.accountLogin, {
       ...config,
       teams: [teamConfig],
     });

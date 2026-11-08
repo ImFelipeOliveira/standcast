@@ -485,12 +485,7 @@ describe('scanMemberSignals', () => {
       };
       await s.scan();
       expect(seen).toEqual([
-        [
-          INST,
-          'acme',
-          s.cfg,
-          { ...s.cfg.teams[0], memberLogins: ['alice', 'bob'], managerLogins: ['bob'] },
-        ],
+        [INST, 'acme', s.cfg, { ...s.cfg.teams[0], memberLogins: ['alice', 'bob'] }],
       ]);
     });
 

@@ -127,6 +127,27 @@ describe('getOrgContext', () => {
     expect(Date.now() - started).toBeLessThan(4500);
   }, 10000);
 
+  test('a manager team that does not answer keeps the teams the person belongs to', async () => {
+    const { deps, isMember, member } = await setup(
+      'bob',
+      2,
+      config('[alice, "@acme/backend"]', BETA, '["@acme/leads"]'),
+      { teams: { '@acme/backend': ['bob'] } },
+    );
+    const resolve = deps.github.resolveTeamMembers;
+    deps.github.resolveTeamMembers = (octokit, owner, members) =>
+      members.includes('@acme/leads') ? new Promise(() => {}) : resolve(octokit, owner, members);
+    const spy = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const started = Date.now();
+      const context = await getOrgContext(deps, isMember, member, INST);
+      expect(context).toEqual({ admin: false, managerOf: [], memberOf: ['Alpha'] });
+      expect(Date.now() - started).toBeLessThan(4500);
+    } finally {
+      spy.mockRestore();
+    }
+  }, 10000);
+
   test('a failing admin check logs and falls back to not admin', async () => {
     const { deps, isMember, member, failRoles } = await setup('carol', 3);
     failRoles(Object.assign(new Error('github down'), { status: 500 }));

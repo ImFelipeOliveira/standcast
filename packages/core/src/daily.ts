@@ -60,13 +60,17 @@ export type DailyConfirmation = 'agent' | 'human';
 export type DailyContent = Omit<DailySubmission, 'support'> & { support?: Item[] };
 export type StoredDaily = DailyContent & { confirmation?: DailyConfirmation };
 
-export type ResolvedTeam = TeamConfig & { memberLogins: string[]; managerLogins: string[] };
+export type MemberTeam = TeamConfig & { memberLogins: string[] };
 
-export function teamsForMember(login: string, teams: ResolvedTeam[]): ResolvedTeam[] {
+export type ManagerTeam = TeamConfig & { managerLogins: string[] };
+
+export type ResolvedTeam = MemberTeam & ManagerTeam;
+
+export function teamsForMember<T extends MemberTeam>(login: string, teams: T[]): T[] {
   const wanted = login.toLowerCase();
   return teams.filter((t) => t.memberLogins.includes(wanted));
 }
 
-export function managesTeam(login: string, team: ResolvedTeam): boolean {
+export function managesTeam(login: string, team: ManagerTeam): boolean {
   return team.managerLogins.includes(login.toLowerCase());
 }

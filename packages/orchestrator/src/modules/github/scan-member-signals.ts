@@ -18,7 +18,7 @@ import {
 import { GitHubRateLimitError } from '@standcast/github';
 import type { WorkerDeps } from '../../deps';
 import { logError } from '../../log-error';
-import { resolveTeams } from '../../teams';
+import { resolveMemberTeams } from '../../teams';
 import { CI_FAILING_HOURS, notifySuggestions } from '../delivery/notify-suggestions';
 import type { StaleCards } from '../linear/project-tracker';
 
@@ -90,7 +90,7 @@ export async function scanMemberSignals(
 
   const teams = teamsForMember(
     login,
-    await resolveTeams(deps, installation.id, installation.accountLogin, config),
+    await resolveMemberTeams(deps, installation.id, installation.accountLogin, config),
   );
   const first = teams[0];
   if (!first) return;
