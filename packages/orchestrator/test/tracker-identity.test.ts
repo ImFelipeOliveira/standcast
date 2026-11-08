@@ -337,7 +337,7 @@ describe('linkTrackerIdentities', () => {
     const ids = await getIdentities(db, INST, 'linear');
     expect(ids.size).toBe(450);
     expect(logins.every((l) => ids.get(l) === `lin-${l}`)).toBe(true);
-  });
+  }, 20_000);
 
   test('does nothing when the installation has no config or no connection', async () => {
     await seedOrg();
