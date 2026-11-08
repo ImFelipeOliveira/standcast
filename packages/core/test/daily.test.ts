@@ -1,8 +1,13 @@
 import { describe, expect, test } from 'bun:test';
 import { activitySince } from '../src/activity';
 import type { Calendar } from '../src/calendar';
-import type { TeamConfig } from '../src/config';
-import { clampTitle, DailySubmissionSchema, type ResolvedTeam, teamsForMember } from '../src/daily';
+import {
+  clampTitle,
+  DailySubmissionSchema,
+  managesTeam,
+  type ResolvedTeam,
+  teamsForMember,
+} from '../src/daily';
 
 const valid = {
   org: 'acme',
@@ -17,7 +22,7 @@ const cal: Calendar = {
 };
 
 function team(name: string, memberLogins: string[]): ResolvedTeam {
-  return { name, memberLogins } as unknown as TeamConfig & { memberLogins: string[] };
+  return { name, memberLogins, managerLogins: [] } as unknown as ResolvedTeam;
 }
 
 describe('DailySubmissionSchema', () => {
@@ -138,6 +143,19 @@ describe('teamsForMember', () => {
   test('teamsForMember order and case', () => {
     const teams = [team('backend', ['alice']), team('web', ['bob']), team('platform', ['alice'])];
     expect(teamsForMember('Alice', teams).map((t) => t.name)).toEqual(['backend', 'platform']);
+  });
+});
+
+describe('managesTeam', () => {
+  test('matches only resolved manager logins, ignoring case', () => {
+    const backend = {
+      ...team('backend', ['alice']),
+      managers: ['@acme/leads'],
+      managerLogins: ['carol'],
+    } as ResolvedTeam;
+    expect(managesTeam('Carol', backend)).toBe(true);
+    expect(managesTeam('alice', backend)).toBe(false);
+    expect(managesTeam('@acme/leads', backend)).toBe(false);
   });
 });
 

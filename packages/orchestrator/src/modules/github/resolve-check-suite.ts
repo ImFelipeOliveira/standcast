@@ -1,7 +1,7 @@
 import { getInstallation, operationalConfig } from '@standcast/db';
 import type { WorkerDeps } from '../../deps';
 import { logError } from '../../log-error';
-import { resolveTeams } from '../../teams';
+import { resolveMemberTeams } from '../../teams';
 import { enqueueMemberScan } from './scan-member-signals';
 
 export const RESOLVE_CHECK_SUITE_JOB = 'resolve-check-suite';
@@ -25,7 +25,7 @@ export async function resolveCheckSuite(
   const numbers = job.numbers.slice(0, MAX_CHECK_SUITE_LOOKUPS);
   if (numbers.length === 0) return;
 
-  const teams = await resolveTeams(deps, installation.id, installation.accountLogin, config);
+  const teams = await resolveMemberTeams(deps, installation.id, installation.accountLogin, config);
   const members = new Set(teams.flatMap((team) => team.memberLogins));
   const octokit = await deps.github.installationOctokit(installation.id);
   const enqueued = new Set<string>();

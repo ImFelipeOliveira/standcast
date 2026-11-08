@@ -1,4 +1,10 @@
-import { dailyDateFor, localDate, localInstant, type ResolvedTeam } from '@standcast/core';
+import {
+  dailyDateFor,
+  localDate,
+  localInstant,
+  managesTeam,
+  type ResolvedTeam,
+} from '@standcast/core';
 import {
   getDelivery,
   type InstallationRow,
@@ -46,7 +52,7 @@ export async function loadTeamAccess(
   });
   if (!team) throw new DomainError('not_found', 'team not found');
   const login = current.login.toLowerCase();
-  const manager = team.managers.some((m) => m.toLowerCase() === login);
+  const manager = managesTeam(login, team);
   const elevated =
     manager ||
     (await guarded(

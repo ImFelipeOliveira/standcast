@@ -68,9 +68,9 @@ const ERRORS = {
 };
 
 const RULES =
-  'Only what people confirmed is returned: no suggestions and no per-person aggregates. Readable by the managers of the team listed in `standcast.yml` and by organization admins. History is limited to the last 90 days, today included, in the team time zone.';
+  'Only what people confirmed is returned: no suggestions and no per-person aggregates. Readable by the managers of the team listed in `standcast.yml`, including the members of GitHub teams listed as managers, and by organization admins. History is limited to the last 90 days, today included, in the team time zone.';
 const RULES_PT =
-  'Só o que as pessoas confirmaram é devolvido: sem sugestões e sem agregados por pessoa. Podem ler os gestores do time listados no `standcast.yml` e os admins da organização. O histórico vai até 90 dias atrás, contando hoje, no fuso do time.';
+  'Só o que as pessoas confirmaram é devolvido: sem sugestões e sem agregados por pessoa. Podem ler os gestores do time listados no `standcast.yml`, incluindo os membros de times do GitHub listados como gestores, e os admins da organização. O histórico vai até 90 dias atrás, contando hoje, no fuso do time.';
 
 const listRoute = <S extends z.ZodType>(
   resource: 'digests' | 'dailies' | 'blockers',

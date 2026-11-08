@@ -17,7 +17,7 @@ import {
   operationalConfig,
 } from '@standcast/db';
 import type { WorkerDeps } from '../../deps';
-import { resolveTeams } from '../../teams';
+import { resolveMemberTeams } from '../../teams';
 import { isChannelLinked } from '../chat/chat';
 import { chatUserIdFor } from '../chat/chat-identity';
 import { describeDeliveryError, spaceNotLinked } from './delivery-error';
@@ -36,7 +36,7 @@ export async function sendLateDaily(deps: WorkerDeps, job: SendLateDailyJob): Pr
     (d) => d.memberId === job.memberId,
   );
   if (!found) return;
-  const teams = await resolveTeams(deps, installation.id, installation.accountLogin, config);
+  const teams = await resolveMemberTeams(deps, installation.id, installation.accountLogin, config);
   const chats = new Map<ChatProvider, ChatChannel | null>();
   const entries = new Map<ChatProvider, LateDailyEntry>();
   const lateDailyFor = async (provider: ChatProvider) => {

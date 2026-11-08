@@ -2,6 +2,7 @@ import {
   dailyDateFor,
   type Item,
   localDate,
+  managesTeam,
   type ResolvedTeam,
   teamsForMember,
 } from '@standcast/core';
@@ -90,7 +91,7 @@ export async function setBlockerResolved(
   const me = current.login.toLowerCase();
   const allowed =
     state.authorMemberId === current.id ||
-    teams.some((team) => team.managers.some((m) => m.toLowerCase() === me)) ||
+    teams.some((team) => managesTeam(me, team)) ||
     (await guarded(
       isInstallationAdmin(deps, installation.id, current),
       false,

@@ -15,15 +15,18 @@ const beta = `  - name: Beta
     members: [carol, dave]
     chat: { provider: slack, channel: "#beta" }`;
 
-async function setup() {
-  await seedOrg(config('[alice, bob, carol]', beta));
+async function setup(
+  cfg = config('[alice, bob, carol]', beta),
+  opts: Parameters<typeof fakeDeps>[0] = {},
+) {
+  await seedOrg(cfg);
   const alice = await seedMember();
   const bob = await upsertMember(db, { githubUserId: 2, login: 'bob', email: null });
   const carol = await upsertMember(db, { githubUserId: 3, login: 'carol', email: null });
   const dave = await upsertMember(db, { githubUserId: 4, login: 'dave', email: null });
   const erin = await upsertMember(db, { githubUserId: 5, login: 'erin', email: null });
   for (const m of [alice, bob, carol, dave, erin]) await setMemberInstallations(db, m.id, [INST]);
-  const fake = fakeDeps();
+  const fake = fakeDeps(opts);
   for (const [id, login] of [
     [2, 'bob'],
     [3, 'carol'],
@@ -76,6 +79,16 @@ describe('getTeamsSummary', () => {
       { team: 'Alpha', sent: 0, total: 3 },
       { team: 'Beta', sent: 0, total: 2 },
     ]);
+  });
+
+  test('a member of a manager team reads that team, a missing manager team grants nothing', async () => {
+    const cfg = config('[alice, bob, carol]', beta.replace('[carol]', '["@acme/leads"]'));
+    const resolved = await setup(cfg, { teams: { '@acme/leads': ['erin'] } });
+    expect(await getTeamsSummary(resolved.deps, resolved.isMember, resolved.erin, INST)).toEqual([
+      { team: 'Beta', sent: 0, total: 2 },
+    ]);
+    const missing = await setup(cfg);
+    expect(await getTeamsSummary(missing.deps, missing.isMember, missing.erin, INST)).toEqual([]);
   });
 
   test('a person outside every team reads nothing', async () => {

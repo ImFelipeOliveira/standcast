@@ -20,7 +20,7 @@ Uma pessoa listada em `members` de um time, pelo login do GitHub ou por um time 
 
 ## Gestor
 
-Um login do GitHub listado em `managers` de um time. Gestores leem os consolidados, as dailies e os impedimentos do time pelas [tools de gestor](/pt-BR/members/mcp#tools-de-gestor) do servidor MCP. Impedimentos sem outra pessoa para encaminhar vão para os gestores.
+Um login do GitHub listado em `managers` de um time, ou um membro de um time do GitHub listado ali. Gestores leem os consolidados, as dailies e os impedimentos do time pelas [tools de gestor](/pt-BR/members/mcp#tools-de-gestor) do servidor MCP. Impedimentos sem outra pessoa para encaminhar vão para os gestores.
 
 ## Admin
 

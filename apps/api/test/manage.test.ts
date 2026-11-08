@@ -8,6 +8,7 @@ import {
   upsertInstallation,
   upsertMember,
 } from '@standcast/db';
+import { resolveTeamMembers } from '@standcast/github';
 import { db, useCleanDb } from '../../../packages/db/test/setup';
 import { createTestApp, type FakeRequest } from './support';
 
@@ -17,14 +18,14 @@ const INST = 11;
 const LOGINS = ['alice', 'bob', 'carol', 'frank'];
 const ADMINS = new Set(['frank']);
 
-function config() {
+function config(backendManagers = '[carol]') {
   const parsed = parseConfig(`
 teams:
   - name: backend
     timezone: America/Sao_Paulo
     remind_at: "09:00"
     digest_at: "10:00"
-    managers: [carol]
+    managers: ${backendManagers}
     members: [alice, bob]
     chat: { provider: slack, channel: "#backend" }
   - name: platform
@@ -42,6 +43,10 @@ teams:
 const notFound = () => Object.assign(new Error('not found'), { status: 404 });
 
 const request: FakeRequest = async (route, params) => {
+  if (route === 'GET /orgs/{org}/teams/{team_slug}/members') {
+    if (params.org !== 'acme' || params.team_slug !== 'leads') throw notFound();
+    return { status: 200, data: [{ login: 'Alice' }] };
+  }
   if (route === 'GET /user/{account_id}') {
     const login = LOGINS[Number(params.account_id) - 1];
     if (!login) throw notFound();
@@ -55,9 +60,12 @@ const request: FakeRequest = async (route, params) => {
   throw new Error(route);
 };
 
-async function setup() {
+async function setup(backendManagers?: string) {
   await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
-  await setInstallationConfig(db, INST, { status: 'configured', config: config() });
+  await setInstallationConfig(db, INST, {
+    status: 'configured',
+    config: config(backendManagers),
+  });
   const tokens: Record<string, string> = {};
   const ids: Record<string, string> = {};
   for (const [i, login] of LOGINS.entries()) {
@@ -66,7 +74,8 @@ async function setup() {
     tokens[login] = await createSession(db, member.id, 'cli');
     ids[login] = member.id;
   }
-  const { app } = createTestApp({ request });
+  const { app, deps } = createTestApp({ request });
+  deps.github.resolveTeamMembers = resolveTeamMembers;
   const get = async (login: string | null, path: string) => {
     const token = login ? tokens[login] : undefined;
     const res = await app.request(path, {
@@ -126,6 +135,19 @@ describe('manage routes', () => {
         error: { code: 'forbidden', message: 'you cannot read this team' },
       });
     }
+  });
+
+  test('managers given as a GitHub team read through its members only', async () => {
+    const { get } = await setup('["@acme/leads"]');
+    expect((await get('alice', '/v1/manage/dailies?org=acme&team=backend')).res.status).toBe(200);
+    expect((await get('carol', '/v1/manage/dailies?org=acme&team=backend')).res.status).toBe(403);
+    expect((await get('alice', '/v1/manage/dailies?org=acme&team=platform')).res.status).toBe(403);
+  });
+
+  test('a manager team that GitHub does not return grants nothing', async () => {
+    const { get } = await setup('[carol, "@acme/ghosts"]');
+    expect((await get('carol', '/v1/manage/dailies?org=acme&team=backend')).res.status).toBe(200);
+    expect((await get('alice', '/v1/manage/dailies?org=acme&team=backend')).res.status).toBe(403);
   });
 
   test('an admin reads both teams and a plain member is forbidden', async () => {

@@ -154,7 +154,7 @@ async function openBlockers(deps: Deps, access: TeamAccess): Promise<TodayBlocke
       },
     ),
   ]);
-  const managers = new Set(access.team.managers.map((m) => m.toLowerCase()));
+  const managers = new Set(access.team.managerLogins);
   return states
     .map((state) => {
       const logins = routes.get(`${state.authorMemberId}:${state.blockerId}`);

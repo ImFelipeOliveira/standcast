@@ -17,7 +17,7 @@ import {
 } from '@standcast/db';
 import type { WorkerDeps } from '../../deps';
 import { logError } from '../../log-error';
-import { resolveTeams } from '../../teams';
+import { resolveMemberTeams } from '../../teams';
 import { enqueueScanJob } from './scan-member-signals';
 
 type OperationalInstallation = Awaited<ReturnType<typeof listOperationalInstallations>>[number];
@@ -58,7 +58,7 @@ async function enqueueReminders(
       kind: 'digest',
     });
     if (digest?.status === 'sent') continue;
-    const [resolved] = await resolveTeams(deps, installation.id, installation.accountLogin, {
+    const [resolved] = await resolveMemberTeams(deps, installation.id, installation.accountLogin, {
       ...installation.config,
       teams: [team],
     });
@@ -118,7 +118,7 @@ async function enqueueScans(
 ): Promise<void> {
   const dates = dueScanDates(now, team);
   if (dates.length === 0) return;
-  const [resolved] = await resolveTeams(deps, installation.id, installation.accountLogin, {
+  const [resolved] = await resolveMemberTeams(deps, installation.id, installation.accountLogin, {
     ...installation.config,
     teams: [team],
   });

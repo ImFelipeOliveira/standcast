@@ -142,6 +142,7 @@ async function linkCard(
 const team = (cfg: StandcastConfig): ResolvedTeam => ({
   ...(cfg.teams[0] as StandcastConfig['teams'][number]),
   memberLogins: ['bob', 'carla'],
+  managerLogins: (cfg.teams[0]?.managers ?? []).map((m) => m.toLowerCase()),
 });
 
 async function setup(
@@ -226,6 +227,22 @@ describe('resolveRouteTarget', () => {
     });
     expect(fake.calls.codeowners).toEqual([{ repo: 'acme/api', ref: 'release' }]);
     expect(seen.flat()).not.toContain('@other/team');
+  });
+
+  test('CODEOWNERS entries "@org/." and "@org/.." are neither teams nor logins', async () => {
+    const seen: string[][] = [];
+    const fake = await setup({
+      pulls: { 'acme/api#7': pull() },
+      files: { 'acme/api#7': ['src/a.ts'] },
+      codeowners: { 'acme/api': '* @acme/.. @acme/. @Erin' },
+    });
+    const resolve = fake.deps.github.resolveTeamMembers;
+    fake.deps.github.resolveTeamMembers = async (o, owner, members) => {
+      seen.push(members);
+      return resolve(o, owner, members);
+    };
+    expect(await target(fake, prBlocker())).toEqual({ reason: 'codeowners', logins: ['erin'] });
+    expect(seen).toEqual([]);
   });
 
   test('the PR author and the daily author are never included', async () => {
@@ -478,6 +495,123 @@ describe('routeBlocker', () => {
     const dailyId = await seedDaily([prBlocker()]);
     await routeBlocker(fake.deps, { installationId: INST, dailyId, blockerIndex: 0 });
     expect(fake.directs.map((d) => d.userId)).toEqual(['U0MGR']);
+  });
+
+  test('a blocker without a ref routes to the members of a manager team', async () => {
+    const fake = await setup({}, identities, '[mgr, "@acme/leads"]');
+    fake.deps.github.resolveTeamMembers = async (_o, _owner, members) => ({
+      logins: members.flatMap((m) => (m === '@acme/leads' ? ['Erin'] : [m.toLowerCase()])),
+      missingTeams: [],
+      truncatedTeams: [],
+    });
+    const dailyId = await seedDaily([{ text: 'Need prod access' }]);
+    await routeBlocker(fake.deps, { installationId: INST, dailyId, blockerIndex: 0 });
+    expect(fake.directs.map((d) => d.userId).sort()).toEqual(['U0ERIN', 'U0MGR']);
+  });
+
+  test('explicit managers come first in config order before the members of a manager team', async () => {
+    const leads = ['aaron', 'abby', 'adam', 'alex', 'amy', 'ana', 'andy', 'anne'];
+    const fake = await setup(
+      {},
+      `${identities}\n  zoe: { slack: U0ZOE }\n  aaron: { slack: U0AARON }`,
+      '[zoe, "@acme/leads"]',
+    );
+    fake.deps.github.resolveTeamMembers = async (_o, _owner, members) => ({
+      logins: members.flatMap((m) => (m === '@acme/leads' ? leads : [m.toLowerCase()])),
+      missingTeams: [],
+      truncatedTeams: [],
+    });
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const dailyId = await seedDaily([{ text: 'Need prod access' }]);
+      await routeBlocker(fake.deps, { installationId: INST, dailyId, blockerIndex: 0 });
+    } finally {
+      errors.mockRestore();
+    }
+    expect(fake.directs.map((d) => d.userId)).toEqual(['U0ZOE', 'U0AARON']);
+  });
+
+  test('a manager team that cannot be resolved routes to nobody through it', async () => {
+    const fake = await setup({}, identities, '["@acme/leads"]');
+    fake.deps.github.resolveTeamMembers = async (_o, _owner, members) => ({
+      logins: members.filter((m) => !m.startsWith('@')).map((m) => m.toLowerCase()),
+      missingTeams: members.filter((m) => m === '@acme/leads'),
+      truncatedTeams: [],
+    });
+    const blocker: Item = { text: 'Need prod access' };
+    const dailyId = await seedDaily([blocker]);
+    await routeBlocker(fake.deps, { installationId: INST, dailyId, blockerIndex: 0 });
+    expect(fake.directs).toEqual([]);
+    const failed = await getDelivery(db, {
+      installationId: INST,
+      teamName: '',
+      date: DATE,
+      kind: 'blocker_route',
+      subject: `${dailyId}:${blockerRouteId(blocker)}:-`,
+    });
+    expect(failed?.error).toBe('no_route_target');
+  });
+
+  test('managers with a chat id are picked before the cap of 5', async () => {
+    const leads = ['aaron', 'abby', 'adam', 'alex', 'amy', 'ana', 'andy', 'anne'];
+    const fake = await setup(
+      {},
+      `${identities}\n  anne: { slack: U0ANNE }\n  andy: { slack: U0ANDY }`,
+      '["@acme/leads"]',
+    );
+    fake.deps.github.resolveTeamMembers = async (_o, _owner, members) => ({
+      logins: members.flatMap((m) => (m === '@acme/leads' ? leads : [m.toLowerCase()])),
+      missingTeams: [],
+      truncatedTeams: [],
+    });
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const dailyId = await seedDaily([{ text: 'Need prod access' }]);
+      await routeBlocker(fake.deps, { installationId: INST, dailyId, blockerIndex: 0 });
+    } finally {
+      errors.mockRestore();
+    }
+    expect(fake.directs.map((d) => d.userId)).toEqual(['U0ANDY', 'U0ANNE']);
+  });
+
+  test('a manager team GitHub fails to list makes the job retry, then routes', async () => {
+    const fake = await setup({}, identities, '["@acme/leads"]');
+    let failing = true;
+    fake.deps.github.resolveTeamMembers = async (_o, _owner, members) => {
+      if (failing && members.includes('@acme/leads')) {
+        throw Object.assign(new Error('boom'), { status: 502 });
+      }
+      return {
+        logins: members.flatMap((m) => (m === '@acme/leads' ? ['Erin'] : [m.toLowerCase()])),
+        missingTeams: [],
+        truncatedTeams: [],
+      };
+    };
+    const blocker: Item = { text: 'Need prod access' };
+    const dailyId = await seedDaily([blocker]);
+    const job = { installationId: INST, dailyId, blockerIndex: 0 };
+    const errors = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await expect(routeBlocker(fake.deps, job)).rejects.toThrow(
+        'blocker_route_managers_unavailable',
+      );
+    } finally {
+      errors.mockRestore();
+    }
+    expect(fake.directs).toEqual([]);
+    const none = await getDelivery(db, {
+      installationId: INST,
+      teamName: '',
+      date: DATE,
+      kind: 'blocker_route',
+      subject: `${dailyId}:${blockerRouteId(blocker)}:-`,
+    });
+    expect(none).toBeNull();
+    failing = false;
+    const retryAt = new Date(fake.deps.now().getTime() + 120_000);
+    fake.deps.now = () => retryAt;
+    await routeBlocker(fake.deps, job);
+    expect(fake.directs.map((d) => d.userId)).toEqual(['U0ERIN']);
   });
 
   test('a target without a chat id fails as no_chat_identity', async () => {

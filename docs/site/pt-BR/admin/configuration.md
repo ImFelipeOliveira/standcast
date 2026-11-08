@@ -11,7 +11,7 @@ O Standcast procura em dois repositórios, nesta ordem:
 
 Mantenha o `standcast.yml` no `.github-private`, ou em um `.github` que você tornou privado. O arquivo cita as pessoas dos seus times, e qualquer um lê o que está em um repositório público. Quando os dois repositórios têm o arquivo, vale o do `.github-private` e o do `.github` é ignorado. Quando só o `.github` tem o arquivo, nada muda para você: é onde o Standcast sempre leu.
 
-Para o arquivo não listar logins, inclua as pessoas por times do GitHub (`members: ["@org/team-slug"]`, veja [Times do GitHub](#times-do-github)) e deixe de fora o mapa `members` do nível de cima: o [mapeamento de identidades](#mapeamento-de-identidades) padrão não precisa de item por pessoa. O `managers` continua recebendo logins, porque gestores ganham acesso de leitura às dailies do time.
+Para o arquivo não listar logins, inclua as pessoas por times do GitHub (`members: ["@org/team-slug"]` e `managers: ["@org/team-slug"]`, veja [Times do GitHub](#times-do-github)) e deixe de fora o mapa `members` do nível de cima: o [mapeamento de identidades](#mapeamento-de-identidades) padrão não precisa de item por pessoa.
 
 Todo exemplo `yaml` desta página passa pelo parser de verdade quando a documentação é gerada.
 
@@ -76,7 +76,7 @@ Nenhuma outra chave é aceita. Uma chave desconhecida falha na validação com `
 | `remind_at` | `HH:MM`, 24 horas | sim | | `"09:30"` |
 | `digest_at` | `HH:MM`, 24 horas | sim | | `"10:00"` |
 | `language` | `en` ou `pt-BR` | não | `en` | `pt-BR` |
-| `managers` | lista de logins do GitHub, pelo menos um | sim | | `[felipeoliveira]` |
+| `managers` | lista de logins ou times do GitHub, pelo menos um | sim | | `[felipeoliveira, "@acme/leads"]` |
 | `members` | lista de logins ou times do GitHub, pelo menos um | sim | | `[alice, "@acme/backend"]` |
 | `chat.provider` | `slack` ou `google-chat` | sim | | `slack` |
 | `chat.channel` | texto, não vazio | sim | | `"#daily-backend"` ou `spaces/AAAAbbbbCCC` |
@@ -112,9 +112,27 @@ O idioma do consolidado e das dailies atrasadas publicadas na thread dele: `en` 
 
 ### `managers`
 
-Logins do GitHub dos gestores do time. Gestores leem os consolidados, as dailies e os impedimentos do time pelas [tools de gestor do MCP](/pt-BR/members/mcp#tools-de-gestor). Admins da organização leem todos os times sem precisar estar listados. Impedimentos sem outra pessoa para encaminhar vão para os gestores.
+Quem gere o time. Gestores leem os consolidados, as dailies e os impedimentos do time pelas [tools de gestor do MCP](/pt-BR/members/mcp#tools-de-gestor) e pelo app web, marcam impedimentos como resolvidos ou abertos de novo e enviam o lembrete na hora. Admins da organização fazem o mesmo em todos os times sem precisar estar listados. Impedimentos sem outra pessoa para encaminhar vão para os gestores.
 
-Cada item precisa ser um login simples. Nomes que começam com `@`, como `@acme/leads`, não são aceitos: o Standcast não expande times do GitHub, então liste os logins um a um. Um item de time é rejeitado com um erro.
+Cada item é:
+
+- um login do GitHub, como `felipeoliveira`; ou
+- um time do GitHub da sua organização, escrito `"@org/slug-do-time"`, como `"@acme/leads"`. Use aspas, porque o YAML não aceita um valor que começa com `@`.
+
+Dá para misturar os dois, como em `[felipeoliveira, "@acme/leads"]`. Mantenha pelo menos um item. Qualquer outro valor que começa com `@`, como `@alice` ou `@acme/`, é rejeitado.
+
+No GitHub, os membros de um time incluem os membros dos times filhos, então um time pai em `managers` torna gestor também quem está nos times filhos. Liste o time filho quando isso for amplo demais.
+
+O acesso de gestor segue o time do GitHub. O Standcast guarda os membros de cada time do GitHub por até 5 minutos, então quem entra ou sai do time ganha ou perde o acesso de gestor em até 5 minutos. Isso inclui os impedimentos encaminhados aos gestores. Quando o app recebe o evento de membership do GitHub, o processo da API que o recebe descarta a cópia dele na hora, mas o worker e os outros processos da API mantêm a deles até passarem os 5 minutos, então conte com 5 minutos. Um time que o Standcast não consegue ler não dá acesso de gestor a ninguém:
+
+- um time de outra organização, um time que não existe ou um time que o app não enxerga (confira a permissão Members) mostra um aviso na página Configuração;
+- um time com 5.000 membros ou mais mostra um aviso e não é usado;
+- quando o GitHub falha ou não responde em 5 segundos, o time fica de fora e um aviso aparece na página Configuração. O Standcast pergunta ao GitHub de novo depois de um minuto. Um impedimento encaminhado aos gestores nesse meio-tempo vai para os gestores listados por login; quando nenhum deles pode recebê-lo, ele é enviado de novo alguns minutos depois;
+- quando o GitHub leva mais de 3 segundos, as tools de gestor, o `/v1/manage` e a lista de times que você gere no app web deixam o time de fora sem esperar. A leitura continua, e os pedidos que vêm depois usam a resposta dela.
+
+Logins listados diretamente continuam funcionando em todos esses casos.
+
+Se o seu repositório de configuração for público, liste os gestores como um time do GitHub em vez de logins: o arquivo mostra só o nome do time, e quem gere cada time fica no GitHub, onde a visibilidade e os membros do time são controlados pela sua organização.
 
 ### `members`
 
@@ -123,7 +141,7 @@ Quem escreve dailies neste time. Cada item é:
 - um login do GitHub, como `alice`; ou
 - um time do GitHub, escrito `"@org/slug-do-time"`, como `"@acme/backend"`. Use aspas, porque o YAML não aceita valor começando com `@`.
 
-Os times do GitHub são resolvidos toda vez que o Standcast precisa do time, então as mudanças no GitHub valem sem editar o arquivo. O Standcast lê os 100 primeiros membros de cada time do GitHub. Os logins são comparados sem diferenciar maiúsculas e minúsculas.
+Os times do GitHub são lidos do GitHub, então as mudanças no GitHub valem sem editar o arquivo, nos mesmos 5 minutos de [`managers`](#managers). Um time do GitHub listado em `members` e em `managers`, ou em vários times, é lido uma vez só. O Standcast lê até 5.000 membros de cada time do GitHub. Qualquer outro valor que começa com `@`, como `@alice` ou `"@acme/back end"`, é rejeitado. Os logins são comparados sem diferenciar maiúsculas e minúsculas.
 
 Uma pessoa pode estar em vários times. A daily dela aparece no consolidado de cada time, e a data da daily usa o fuso e os dias úteis do **primeiro** time que a lista.
 
@@ -161,7 +179,7 @@ O CI falhando no commit head de um pull request conta depois de 24 horas, e não
 
 ## Times do GitHub
 
-Use um time do GitHub em vez de listar as pessoas uma a uma. É o jeito recomendado: o time muda no GitHub sem editar o arquivo, e o arquivo não lista logins. O app precisa da permissão Members (read), que ele pede na instalação.
+Use um time do GitHub em vez de listar as pessoas uma a uma, em `members` e em `managers`. É o jeito recomendado: o time muda no GitHub sem editar o arquivo, e o arquivo não lista logins. O app precisa da permissão Members (read), que ele pede na instalação.
 
 ```yaml
 teams:
@@ -169,7 +187,7 @@ teams:
     timezone: Europe/Lisbon
     remind_at: "09:00"
     digest_at: "09:30"
-    managers: [carol]
+    managers: [carol, "@acme/platform-leads"]
     members: ["@acme/platform", dave]
     chat:
       provider: slack
@@ -253,7 +271,8 @@ Estas são as mensagens que a página de setup mostra, no formato `caminho: mens
 | `teams.0.language: Invalid option: expected one of "pt-BR"\|"en"` | `pt`, `pt_BR`, `portugues` | Use `pt-BR` ou `en` |
 | `teams.0.chat.provider: Invalid option: expected one of "slack"\|"google-chat"` | `teams`, `Slack`, `google_chat`, `gchat` | Use `slack` ou `google-chat` |
 | `teams.0.members: Too small: expected array to have >=1 items` | `members: []` (o mesmo vale para `managers`) | Liste pelo menos uma pessoa |
-| `teams.0.managers.0: managers must be GitHub logins, not teams or @-prefixed names` | `managers: ["@acme/leads"]` | Liste os logins, como `[alice, bob]` |
+| `teams.0.managers.0: managers must be GitHub logins or GitHub teams written as @org/team-slug` | `managers: ["@leads"]` | Escreva um login, como `alice`, ou um time, como `"@acme/leads"` |
+| `teams.0.members.0: members must be GitHub logins or GitHub teams written as @org/team-slug` | `members: ["@alice"]`, `members: ["@acme/back end"]` | Escreva um login, como `alice`, ou um time pelo slug, como `"@acme/back-end"` |
 | `teams.0: Unrecognized key: "reminder"` | Uma chave escrita errado ou desconhecida | Confira a chave nas tabelas acima |
 | `members.alice.slack: must be a Slack user id like U0123ABCD` | Um nome, um e-mail, um id de canal ou `<!channel>` | Use o id de membro, que começa com `U` ou `W` |
 | `members.alice.google_chat: must be a Google Chat user like users/123456789` | Um e-mail, um nome ou só um número | Use `users/` seguido dos dígitos do id de usuário |

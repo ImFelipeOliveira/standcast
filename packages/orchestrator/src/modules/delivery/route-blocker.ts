@@ -6,6 +6,7 @@ import {
   ownersForFiles,
   parseCodeowners,
   parsePullRequestUrl,
+  parseTeamReference,
   type Ref,
   type ResolvedTeam,
   type StandcastConfig,
@@ -23,7 +24,7 @@ import {
 } from '@standcast/db';
 import type { WorkerDeps } from '../../deps';
 import { logError } from '../../log-error';
-import { resolveTeams } from '../../teams';
+import { isOwnTeam, resolveTeamsWithNotices } from '../../teams';
 import {
   directMessageIdsFor,
   forgetStaleChatIdentity,
@@ -35,6 +36,7 @@ import { blockerRouteId } from './events';
 
 export const ROUTE_BLOCKER_JOB = 'route-blocker';
 const MAX_ROUTE_TARGETS = 5;
+const MAX_MANAGER_CANDIDATES = 50;
 const MAX_ROUTED_BLOCKERS_PER_DAILY = 10;
 
 export type RouteBlockerJob = {
@@ -57,19 +59,27 @@ type RouteContext = {
 
 type Octokit = Awaited<ReturnType<WorkerDeps['github']['installationOctokit']>>;
 
-function cleanLogins(logins: string[], excluded: string[]): string[] {
+function cleanLogins(logins: string[], excluded: string[], limit = MAX_ROUTE_TARGETS): string[] {
   const skip = new Set(excluded.map((l) => l.toLowerCase()));
-  const result: string[] = [];
+  const result = new Set<string>();
   for (const login of logins) {
     const lower = login.replace(/^@/, '').toLowerCase();
-    if (!lower || skip.has(lower) || result.includes(lower)) continue;
-    result.push(lower);
+    if (!lower || skip.has(lower)) continue;
+    result.add(lower);
   }
-  return result.slice(0, MAX_ROUTE_TARGETS);
+  return [...result].slice(0, limit);
 }
 
 function managerTarget(ctx: RouteContext): RouteTarget {
-  return { reason: 'manager', logins: cleanLogins(ctx.firstTeam.managers, [ctx.author]) };
+  return {
+    reason: 'manager',
+    logins: cleanLogins(ctx.firstTeam.managerLogins, [ctx.author], MAX_MANAGER_CANDIDATES),
+  };
+}
+
+function reachableFirst(logins: string[], reachable: (login: string) => boolean): string[] {
+  const ordered = [...logins.filter(reachable), ...logins.filter((login) => !reachable(login))];
+  return ordered.slice(0, MAX_ROUTE_TARGETS);
 }
 
 async function expandOwners(
@@ -80,9 +90,9 @@ async function expandOwners(
 ): Promise<string[]> {
   const logins: string[] = [];
   for (const entry of entries) {
-    const team = /^@([^/]+)\/(.+)$/.exec(entry);
-    if (!team) logins.push(entry.replace(/^@/, ''));
-    else if ((team[1] as string).toLowerCase() === owner.toLowerCase()) {
+    if (parseTeamReference(entry) === null) {
+      if (!entry.includes('/')) logins.push(entry.replace(/^@/, ''));
+    } else if (isOwnTeam(entry, owner)) {
       logins.push(...(await deps.github.resolveTeamMembers(octokit, owner, [entry])).logins);
     }
   }
@@ -193,9 +203,17 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
   const blocker = daily ? findBlocker(daily.payload.blockers, job) : undefined;
   if (!daily || !blocker) return;
   const author = daily.login.toLowerCase();
-  const teams = await resolveTeams(deps, installation.id, installation.accountLogin, config);
+  const { teams, notices } = await resolveTeamsWithNotices(
+    deps,
+    installation.id,
+    installation.accountLogin,
+    config,
+  );
   const firstTeam = teamsForMember(author, teams)[0];
   if (!firstTeam) return;
+  const managersUnavailable = notices.some(
+    (notice) => notice.team === firstTeam.name && notice.kind === 'managers_unavailable',
+  );
   const blockerId = blockerRouteId(blocker);
   const reservation = await reserveBlockerRoute(deps.db, {
     installationId: job.installationId,
@@ -235,10 +253,16 @@ export async function routeBlocker(deps: WorkerDeps, job: RouteBlockerJob): Prom
   );
   const reachable = (login: string) => ids.has(login) || timedOut.has(login);
   if (target.reason !== 'manager' && !target.logins.some(reachable)) target = fallback;
+  if (target.reason === 'manager' && managersUnavailable && !target.logins.some(reachable)) {
+    throw new Error('blocker_route_managers_unavailable');
+  }
   const previous = reservation.recipients;
   if (previous) {
     target = { ...target, logins: target.logins.filter((l) => previous.has(l)) };
     if (target.logins.length === 0) return;
+  }
+  if (target.reason === 'manager') {
+    target = { ...target, logins: reachableFirst(target.logins, reachable) };
   }
 
   const keyFor = (suffix: string): DeliveryKey => ({

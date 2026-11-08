@@ -86,7 +86,8 @@ export async function configPeople(
   const teams = await resolveTeams(deps, installationId, owner, config);
   const people = new Set<string>();
   for (const team of teams) {
-    for (const login of [...team.memberLogins, ...team.managers]) people.add(login.toLowerCase());
+    for (const login of [...team.memberLogins, ...team.managerLogins])
+      people.add(login.toLowerCase());
   }
   return people;
 }

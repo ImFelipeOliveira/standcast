@@ -7,6 +7,7 @@ import {
 } from '@standcast/db';
 import type { Deps } from '../../deps';
 import { logError } from '../../log-error';
+import { invalidateResolvedTeams } from '../../teams';
 import { enqueueLoadConfig } from './load-installation-config';
 import {
   MAX_CHECK_SUITE_LOOKUPS,
@@ -32,6 +33,8 @@ export type GitHubEventPayload = {
 };
 
 const CONFIG_PR_ACTIONS = ['opened', 'synchronize', 'reopened'];
+
+const TEAM_MEMBERSHIP_EVENTS = ['membership', 'team', 'organization'];
 
 const SIGNAL_ACTIONS: Record<string, string[]> = {
   pull_request: [
@@ -168,6 +171,11 @@ async function onSignalEvent(deps: Deps, name: string, payload: GitHubEventPaylo
   }
 }
 
+function onTeamMembership(deps: Deps, payload: GitHubEventPayload): void {
+  const installationId = payload.installation?.id;
+  if (installationId !== undefined) invalidateResolvedTeams(deps, installationId);
+}
+
 export async function handleGitHubEvent(
   deps: Deps,
   name: string | undefined,
@@ -176,6 +184,7 @@ export async function handleGitHubEvent(
   if (name === 'installation') await onInstallation(deps, payload);
   else if (name === 'installation_repositories') await onInstallationRepositories(deps, payload);
   else if (name === 'push') await onPush(deps, payload);
+  else if (name && TEAM_MEMBERSHIP_EVENTS.includes(name)) onTeamMembership(deps, payload);
   else if (name === 'pull_request') {
     await onConfigPullRequest(deps, payload);
     await onSignalEvent(deps, name, payload);

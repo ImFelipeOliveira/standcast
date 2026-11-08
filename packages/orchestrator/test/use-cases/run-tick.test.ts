@@ -177,7 +177,7 @@ describe('runTick', () => {
   });
 
   test('a failing reminder enqueue is logged without payload and does not break the tick', async () => {
-    await seedOrg();
+    await seedOrg(config('[alice, "@acme/backend"]'));
     const fake = fakeDeps();
     fake.setNow(local('2026-10-28T09:30:00'));
     let attempts = 0;
