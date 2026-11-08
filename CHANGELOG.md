@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.9.1](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.9.0...standcast-v0.9.1) (2026-11-08)
+
+
+### Bug Fixes
+
+* serve the install script from the landing ([e009c0f](https://github.com/ImFelipeOliveira/standcast/commit/e009c0ff546093f7ef63a38aff3ec935f76cd189))
+* serve the install script from the landing ([#127](https://github.com/ImFelipeOliveira/standcast/issues/127)) ([5d49e46](https://github.com/ImFelipeOliveira/standcast/commit/5d49e46929b4ec065f2bf0f901f8444611ab6b3c))
+* show a progress bar while the install script downloads ([44effd4](https://github.com/ImFelipeOliveira/standcast/commit/44effd4d687e6f60ee4095968857cc527f1f48f2))
+
 ## [0.9.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.8.2...standcast-v0.9.0) (2026-11-08)
 
 
