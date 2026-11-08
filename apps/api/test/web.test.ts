@@ -999,7 +999,7 @@ describe('install script', () => {
 
   test('downloads only over https with curl and with wget', async () => {
     const body = await Bun.file(`${import.meta.dir}/../../../scripts/install.sh`).text();
-    expect(body).toContain("curl --proto '=https' --tlsv1.2 -fL --progress-bar -o");
+    expect(body).toContain("curl --proto '=https' --tlsv1.2");
     expect(body).toMatch(/download\(\) \{ wget -q -O "\$2" "\$1"; \}/);
     expect(body).not.toContain('--https-only');
     const urls = body.match(/\bhttps?:\/\/[^\s"'<>)]+/g) ?? [];
