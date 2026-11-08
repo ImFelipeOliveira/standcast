@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.9.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.8.2...standcast-v0.9.0) (2026-11-08)
+
+
+### Features
+
+* **config:** accept GitHub teams in managers ([#100](https://github.com/ImFelipeOliveira/standcast/issues/100)) ([947d8b0](https://github.com/ImFelipeOliveira/standcast/commit/947d8b0124815570a88d57e825c42ce3ea622110))
+
+
+### Bug Fixes
+
+* **access:** resolve managed teams before the admin check ([dcb59bd](https://github.com/ImFelipeOliveira/standcast/commit/dcb59bd44b96aa131ad2c584430a827a126084be))
+* **blockers:** retry routing when a manager team is unavailable ([625d307](https://github.com/ImFelipeOliveira/standcast/commit/625d3078cdb4ad037b8b8a72b7de2c427bf2b864))
+* **config:** reject "." and ".." as GitHub team slugs ([ffdb2eb](https://github.com/ImFelipeOliveira/standcast/commit/ffdb2eba959a1061935813d570ecfd3f23a7e800))
+* **docs:** serve the favicon at /favicon.svg ([0d45bc4](https://github.com/ImFelipeOliveira/standcast/commit/0d45bc4bac452d247d2f6d043cb4dcdedd13cefa))
+* **docs:** serve the favicon at /favicon.svg ([#117](https://github.com/ImFelipeOliveira/standcast/issues/117)) ([a541422](https://github.com/ImFelipeOliveira/standcast/commit/a5414227b2aea6eef933506eb2e2e49b075fe95f))
+* **site:** serve a png favicon and retitle the portuguese home ([fafa31b](https://github.com/ImFelipeOliveira/standcast/commit/fafa31be922dabd48ed1f67230622f023fa578e6))
+* **site:** serve a png favicon and retitle the portuguese home ([#118](https://github.com/ImFelipeOliveira/standcast/issues/118)) ([32b83bc](https://github.com/ImFelipeOliveira/standcast/commit/32b83bc44d15cb34016c92a96a53e806016316b8))
+* **teams:** bound team reads and keep member paths off manager teams ([373be68](https://github.com/ImFelipeOliveira/standcast/commit/373be68995915bcf170c3290a469e17293a6e972))
+* **teams:** keep member resolution off manager team listings ([403b5e9](https://github.com/ImFelipeOliveira/standcast/commit/403b5e93c26fda014ea82adcd8352962dd26344c))
+* **teams:** share in-flight team reads and time out each page ([3e768e4](https://github.com/ImFelipeOliveira/standcast/commit/3e768e4b6fef074d7b0aeceae661ebd54347bfa1))
+
+
+### Refactoring
+
+* share withDeadline between guarded and the Google Chat membership check ([0cc8530](https://github.com/ImFelipeOliveira/standcast/commit/0cc8530b4161e5735ed4797fafc31e9c7c13811f))
+
 ## [0.8.2](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.8.1...standcast-v0.8.2) (2026-11-07)
 
 
