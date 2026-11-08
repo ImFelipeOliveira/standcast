@@ -74,7 +74,7 @@ The landing page is a separate Cloudflare Worker, `standcast-landing`. See [clou
 
 ## Documentation site (Cloudflare Pages)
 
-The documentation site is a static VitePress build hosted on Cloudflare Pages, on its own domain. The api does not serve it: it keeps the API reference at `/reference`, `/openapi.json`, OAuth, webhooks and `/install.sh`, redirects `GET /setup` to `APP_URL`, and answers the old URLs with permanent redirects:
+The documentation site is a static VitePress build hosted on Cloudflare Pages, on its own domain. The api does not serve it: it keeps the API reference at `/reference`, `/openapi.json`, OAuth and webhooks, redirects `GET /setup` to `APP_URL` and `GET /install.sh` to `LANDING_URL`, and answers the old URLs with permanent redirects:
 
 | Old URL | Redirects to |
 | --- | --- |
@@ -98,7 +98,7 @@ Add the custom domain `app.standcast.app` to the Worker in Cloudflare, then set 
 
 ## Deploying without the final domain
 
-The hosted api is `https://api.standcast.app`. It serves OAuth, webhooks, the API reference at `/reference` and `/install.sh`. `GET /setup` redirects to the web app, which serves setup. The documentation site is `https://docs.standcast.app`. Set `PUBLIC_URL` to `https://api.standcast.app` and point everything below at it:
+The hosted api is `https://api.standcast.app`. It serves OAuth, webhooks and the API reference at `/reference`. `GET /setup` redirects to the web app, which serves setup. `GET /install.sh` redirects to `LANDING_URL/install.sh`. The landing serves that script at `https://standcast.app/install.sh`. The documentation site is `https://docs.standcast.app`. Set `PUBLIC_URL` to `https://api.standcast.app` and point everything below at it:
 
 - **GitHub App:** the callback URL, the webhook URL and the setup URL. See [github-app.md](github-app.md).
 - **GitHub App setup URL:** `https://app.standcast.app/setup`. `https://api.standcast.app/setup` keeps redirecting there, so an install that still has the API address keeps working. Change the GitHub setting by hand after this deploy.

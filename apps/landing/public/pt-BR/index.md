@@ -5,7 +5,7 @@
 O Standcast é uma ferramenta de código aberto para a daily de times de software. Rode `/daily` no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack ou no Google Chat.
 
 ```sh
-curl -fsSL https://api.standcast.app/install.sh | sh
+curl -fsSL https://standcast.app/install.sh | sh
 ```
 
 - [Entrar no beta](https://standcast.app/pt-BR/beta/)
