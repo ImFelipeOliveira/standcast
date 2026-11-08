@@ -1,4 +1,4 @@
-# Standcast: a sua daily, escrita no seu agente de IA
+# Standcast: a daily do seu time, escrita no seu agente de IA
 
 > Código aberto (MIT), grátis durante o beta público. GitHub, Linear, Slack e Google Chat hoje. Jira, ClickUp e outros vêm a seguir.
 
