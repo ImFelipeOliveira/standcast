@@ -4,6 +4,7 @@ import {
   listMemberInstallations,
   resolveSession,
   saveConnection,
+  upsertInstallation,
 } from '@standcast/db';
 import { ChatDeliveryError } from '@standcast/slack';
 import { db, useCleanDb } from '../../../db/test/setup';
@@ -27,6 +28,32 @@ describe('startSession', () => {
       (await listMemberInstallations(db, member?.id ?? '')).map((i) => i.installationId),
     ).toEqual([INST]);
     expect((await getIdentities(db, INST, 'slack')).get('alice')).toBe('U9');
+  });
+
+  test('links personal account installations only to their owner', async () => {
+    await seedOrg();
+    await upsertInstallation(db, {
+      id: 21,
+      accountLogin: 'bob',
+      accountType: 'User',
+      accountId: 2,
+    });
+    await upsertInstallation(db, {
+      id: 22,
+      accountLogin: 'Alice',
+      accountType: 'User',
+      accountId: 1,
+    });
+    const { deps } = fakeDeps({ installationIds: [INST, 21, 22] });
+    const result = await startSession(deps, { githubToken: 'gho_x' });
+    expect(result.orgs).toEqual([
+      { installationId: INST, login: 'acme' },
+      { installationId: 22, login: 'Alice' },
+    ]);
+    const member = await resolveSession(db, result.token, 'cli');
+    expect(
+      (await listMemberInstallations(db, member?.id ?? '')).map((i) => i.installationId),
+    ).toEqual([INST, 22]);
   });
 
   test('maps github 401 and 403 to unauthorized', async () => {
