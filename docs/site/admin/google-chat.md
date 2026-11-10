@@ -23,7 +23,7 @@ If the Google Chat card in the web app says "Google Chat is not available on thi
 
 The app posts a message in the space, in English and Portuguese, with a link code:
 
-> Standcast is in this space. To get digests here, an admin of your GitHub organization pastes this code in Standcast, Configuration → Google Chat: `K7QF3MZP`. The code is valid for 24 hours.
+> Standcast is in this space. To get digests here, an admin of your GitHub organization pastes this code in Standcast, Settings → Google Chat: `K7QF3MZP`. The code is valid for 24 hours.
 
 The code has 8 characters, is valid for 24 hours and works once. To get a new code, remove the app from the space and add it again. The new code replaces the old one.
 

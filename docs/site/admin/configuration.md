@@ -124,9 +124,9 @@ On GitHub, the members of a team include the members of its child teams, so a pa
 
 Manager access follows the GitHub team. Standcast keeps the members of each GitHub team for up to 5 minutes, so someone added to or removed from the team gains or loses manager access within 5 minutes. That includes the blockers routed to managers. When the app receives the GitHub membership event, the API process that receives it drops its copy at once, but the worker and any other API process keep theirs until the 5 minutes are up, so count on 5 minutes. A team that Standcast cannot read gives manager access to nobody:
 
-- a team of another organization, a team that does not exist, or a team the app cannot see (check the Members permission) shows a notice on the Configuration page;
+- a team of another organization, a team that does not exist, or a team the app cannot see (check the Members permission) shows a notice on the Settings page;
 - a team with 5,000 members or more shows a notice and is not used;
-- when GitHub fails or does not answer within 5 seconds, the team is skipped and a notice shows on the Configuration page. Standcast asks GitHub again after a minute. A blocker routed to the managers in the meantime goes to the managers listed by login; when none of them can get it, it is sent again a few minutes later;
+- when GitHub fails or does not answer within 5 seconds, the team is skipped and a notice shows on the Settings page. Standcast asks GitHub again after a minute. A blocker routed to the managers in the meantime goes to the managers listed by login; when none of them can get it, it is sent again a few minutes later;
 - when GitHub takes more than 3 seconds, the manager tools, `/v1/manage` and the list of teams you manage in the web app skip the team without waiting. The read goes on, and the requests that come after it use its answer.
 
 Logins listed directly keep working in all these cases.
