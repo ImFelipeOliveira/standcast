@@ -11,9 +11,10 @@ Google Chat is optional. Without `GOOGLE_CHAT_SERVICE_ACCOUNT`, the api and the 
 | App name | `Standcast`, or any name your users will recognize |
 | Avatar URL | An `https` URL of a square PNG or JPEG image |
 | Description | A short line, for example `Daily standup digests from your AI agent` |
+| Build mode | **Build this Chat app as a Google Workspace add-on** on. Google turns it on for new Chat apps |
 | Functionality | **Join spaces and group conversations** on |
-| Connection | **HTTP endpoint URL**: `<PUBLIC_URL>/webhooks/google-chat` |
-| Authentication audience | **Project number** |
+| Connection | **HTTP endpoint URL**, with one common HTTP endpoint URL for all triggers: `<PUBLIC_URL>/webhooks/google-chat` |
+| Authentication audience | Set by Google in add-on mode: the HTTP endpoint URL. Only an app built without the add-on mode has this field; choose **Project number** there |
 | Scope used by Standcast | `https://www.googleapis.com/auth/chat.bot`, as the app itself through a service account |
 
 ## Step by step
@@ -25,11 +26,12 @@ Google renames its console labels from time to time. If a name below differs, lo
 3. **Service account.** Go to **IAM & Admin > Service Accounts** and click **Create service account**. Give it a name such as `standcast-chat`. It needs no project role: skip the role and user steps.
 4. **JSON key.** Open the service account, go to **Keys**, click **Add key > Create new key**, choose **JSON** and click **Create**. The browser downloads the key file. Keep it secret: it lets anyone post as your app. If your organization blocks key creation with the policy `iam.disableServiceAccountKeyCreation`, ask a Google Cloud admin for an exception on this project.
 5. **Chat API configuration.** Go to **APIs & Services > Enabled APIs & services**, open **Google Chat API** and the **Configuration** tab. Fill in:
+   - **Build this Chat app as a Google Workspace add-on**: on. Google checks it for new Chat apps and does not let you clear it;
    - **App name**, **Avatar URL** and **Description** from the table above;
    - **Interactive features**: on;
    - **Functionality**: turn on **Join spaces and group conversations**. Direct messages with the app work without another setting;
-   - **Connection settings**: **HTTP endpoint URL**, and set it to `<PUBLIC_URL>/webhooks/google-chat`;
-   - **Authentication audience**: **Project number**. Google Chat then signs every request as `chat@system.gserviceaccount.com` with your project number as the audience. Standcast checks both against `GOOGLE_CHAT_PROJECT_NUMBER` and rejects anything else with 401, so only events for your own Chat app are accepted;
+   - **Connection settings**: **HTTP endpoint URL**, then **Use a common HTTP endpoint URL for all triggers**, and set it to `<PUBLIC_URL>/webhooks/google-chat`. The settings show a service account such as `service-123456789012@gcp-sa-gsuiteaddons.iam.gserviceaccount.com`, where the digits are your project number. Google Chat signs every request with a Google ID token for that service account, with the HTTP endpoint URL as the audience. Standcast checks the email against `GOOGLE_CHAT_PROJECT_NUMBER` and the audience against `<PUBLIC_URL>/webhooks/google-chat`, and rejects anything else with 401, so only events for your own Chat app are accepted;
+   - **Authentication audience**: only an app built without the add-on mode has this field. Choose **Project number**. Google Chat then signs every request as `chat@system.gserviceaccount.com` with your project number as the audience, and Standcast checks it against `GOOGLE_CHAT_PROJECT_NUMBER`. Standcast accepts both modes on the same endpoint;
    - **Visibility**: make the app available to the people and groups of your Google Workspace domain who will use it. Only users in your domain can find it until the app is published on the Google Workspace Marketplace;
    - **Logs**: optionally, turn on **Log errors to Logging** to see delivery errors in Google Cloud.
 
@@ -47,7 +49,7 @@ Google renames its console labels from time to time. If a name below differs, lo
 | Variable | Services | Value |
 | --- | --- | --- |
 | `GOOGLE_CHAT_SERVICE_ACCOUNT` | api and worker | The base64 of the service account JSON key. Empty or unset turns Google Chat off. A value that is not a base64 JSON key with `client_email` and `private_key` stops the service at startup with `must be a base64 encoded service account JSON key`. The value is never logged |
-| `GOOGLE_CHAT_PROJECT_NUMBER` | api only | The **Project number** of the Google Cloud project that owns the Chat app, digits only, such as `123456789012`. Required when `GOOGLE_CHAT_SERVICE_ACCOUNT` is set: without it the api stops at startup with `is required when GOOGLE_CHAT_SERVICE_ACCOUNT is set`, and a value that is not digits stops it with `must be the numeric Google Cloud project number` |
+| `GOOGLE_CHAT_PROJECT_NUMBER` | api only | The **Project number** of the Google Cloud project that owns the Chat app, digits only, such as `123456789012`. Standcast uses it to check the add-on service account email `service-<PROJECT_NUMBER>@gcp-sa-gsuiteaddons.iam.gserviceaccount.com`, or the audience of an app built without the add-on mode. Required when `GOOGLE_CHAT_SERVICE_ACCOUNT` is set: without it the api stops at startup with `is required when GOOGLE_CHAT_SERVICE_ACCOUNT is set`, and a value that is not digits stops it with `must be the numeric Google Cloud project number` |
 
 Set the same `GOOGLE_CHAT_SERVICE_ACCOUNT` on both services. The api uses it to check spaces and answer events; the worker uses it to post digests, late dailies, reminders and direct messages.
 
@@ -56,7 +58,10 @@ For local development, put `GOOGLE_CHAT_SERVICE_ACCOUNT` and `GOOGLE_CHAT_PROJEC
 ## Check it works
 
 1. Open Settings in the web app. The Google Chat card no longer says "Google Chat is not available on this server.".
-2. Add the app to a test space. It posts a message with a link code. If it says the app is not responding, check that the HTTP endpoint URL is `<PUBLIC_URL>/webhooks/google-chat`, that the authentication audience is **Project number**, and that `GOOGLE_CHAT_PROJECT_NUMBER` is the project number of the same Google Cloud project.
+2. Add the app to a test space. It posts a message with a link code. If it says the app is not responding, check that:
+   - the common HTTP endpoint URL for all triggers is exactly `<PUBLIC_URL>/webhooks/google-chat`, with the same scheme and host as `PUBLIC_URL` and no trailing slash. In add-on mode it is the audience Standcast expects;
+   - `GOOGLE_CHAT_PROJECT_NUMBER` is the project number of the same Google Cloud project. It must match the digits in the service account shown under **Connection settings**, `service-<PROJECT_NUMBER>@gcp-sa-gsuiteaddons.iam.gserviceaccount.com`;
+   - for an app built without the add-on mode, the authentication audience is **Project number**.
 3. Paste the code in the Google Chat card, set a test team with `provider: google-chat` and the space name, and send the app a direct message to link yourself.
 4. Let a digest post, and check that links, mentions and text with `<` show as expected in Google Chat.
 

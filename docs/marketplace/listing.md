@@ -47,8 +47,9 @@ rsvg-convert -w 220 -h 140 docs/marketplace/brand/banner.svg -o apps/landing/pub
 | Avatar URL | `https://standcast.app/brand/logo-256.png` |
 | Description | `Daily standup digests from your AI agent` (40 characters, the maximum) |
 | Functionality | **Join spaces and group conversations** on |
-| Connection settings | **HTTP endpoint URL**: `https://api.standcast.app/webhooks/google-chat` |
-| Authentication audience | **Project number** |
+| Build mode | **Build this Chat app as a Google Workspace add-on** on |
+| Connection settings | **HTTP endpoint URL**, common for all triggers: `https://api.standcast.app/webhooks/google-chat` |
+| Authentication audience | Set by Google in add-on mode. Only an app built without the add-on mode has this field: **Project number** |
 | Visibility | Keep your own domain while testing. Public availability comes from the Marketplace listing, not from this field |
 
 ## OAuth consent screen

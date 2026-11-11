@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- The Google Chat app answers in spaces and direct messages when it is set up as a Google Workspace add-on, the mode Google now uses for new Chat apps.
+
 ### 0.9.2 — 2026-11-08
 
 ### 0.9.1 — 2026-11-08
