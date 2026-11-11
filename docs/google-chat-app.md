@@ -26,7 +26,7 @@ Google renames its console labels from time to time. If a name below differs, lo
 3. **Service account.** Go to **IAM & Admin > Service Accounts** and click **Create service account**. Give it a name such as `standcast-chat`. It needs no project role: skip the role and user steps.
 4. **JSON key.** Open the service account, go to **Keys**, click **Add key > Create new key**, choose **JSON** and click **Create**. The browser downloads the key file. Keep it secret: it lets anyone post as your app. If your organization blocks key creation with the policy `iam.disableServiceAccountKeyCreation`, ask a Google Cloud admin for an exception on this project.
 5. **Chat API configuration.** Go to **APIs & Services > Enabled APIs & services**, open **Google Chat API** and the **Configuration** tab. Fill in:
-   - **Build this Chat app as a Google Workspace add-on**: on. Google checks it for new Chat apps and does not let you clear it;
+   - **Build this Chat app as a Google Workspace add-on**: Google checks it for new Chat apps. Leave it on. Some projects let you clear it and confirm with **Disable**, which switches the app to the legacy mode; others, such as projects of a personal Google account, keep it on. Standcast works in both modes;
    - **App name**, **Avatar URL** and **Description** from the table above;
    - **Interactive features**: on;
    - **Functionality**: turn on **Join spaces and group conversations**. Direct messages with the app work without another setting;
