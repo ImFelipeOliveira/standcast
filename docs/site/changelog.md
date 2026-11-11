@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+### 0.9.3 — 2026-11-11
+
 - The English messages of the Google Chat app and the web app point to Settings → Google Chat, the name of the page in English, instead of Configuration.
 - The Google Chat app answers in spaces and direct messages when it is set up as a Google Workspace add-on, the mode Google now uses for new Chat apps.
 - A personal account that installed the GitHub App no longer shows up in the organization list of the web app and the CLI for people who only collaborate on one of its repositories. Only the owner of the personal account sees it. They never had access to its data.
