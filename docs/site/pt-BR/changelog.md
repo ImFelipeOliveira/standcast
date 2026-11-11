@@ -11,6 +11,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 ### Não lançado
 
 - As mensagens em inglês do app do Google Chat e do app web apontam para Settings → Google Chat, o nome da página em inglês, em vez de Configuration.
+- O app do Google Chat responde em espaços e mensagens diretas quando é configurado como complemento do Google Workspace, o modo que o Google agora usa para novos apps do Chat.
 
 ### 0.9.2 — 08/11/2026
 

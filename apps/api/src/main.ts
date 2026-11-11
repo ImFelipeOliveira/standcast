@@ -13,7 +13,7 @@ import {
   pullRequestMerged,
   resolveTeamMembers,
 } from '@standcast/github';
-import { createGoogleJwks } from '@standcast/google-chat';
+import { createGoogleJwks, GOOGLE_OIDC_JWKS_URL } from '@standcast/google-chat';
 import { exchangeLinearCode, refreshLinearToken } from '@standcast/linear';
 import { createChatFor, createTrackerFor, type Deps } from '@standcast/orchestrator';
 import { createPgBossQueue } from '@standcast/queue';
@@ -94,7 +94,12 @@ const api = createApp(deps, {
   getClientIp: clientIpResolver({ trustProxy: env.TRUST_PROXY, hops: env.TRUSTED_PROXY_HOPS }),
   googleChat:
     googleChatAccount && env.GOOGLE_CHAT_PROJECT_NUMBER
-      ? { projectNumber: env.GOOGLE_CHAT_PROJECT_NUMBER, jwks: createGoogleJwks() }
+      ? {
+          projectNumber: env.GOOGLE_CHAT_PROJECT_NUMBER,
+          jwks: createGoogleJwks(),
+          endpointUrl: `${env.PUBLIC_URL}/webhooks/google-chat`,
+          oidcJwks: createGoogleJwks({ url: GOOGLE_OIDC_JWKS_URL }),
+        }
       : null,
 });
 
