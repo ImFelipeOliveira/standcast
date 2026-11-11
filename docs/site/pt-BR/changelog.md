@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- O app do Google Chat responde em espaços e mensagens diretas quando é configurado como complemento do Google Workspace, o modo que o Google agora usa para novos apps do Chat.
+
 ### 0.9.2 — 08/11/2026
 
 ### 0.9.1 — 08/11/2026

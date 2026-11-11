@@ -56,7 +56,7 @@ Set these on the api service. The worker needs `DATABASE_URL`, `STANDCAST_ENCRYP
 | `LINEAR_CLIENT_ID` | Required on api and worker. See [linear-app.md](linear-app.md) |
 | `LINEAR_CLIENT_SECRET` | Required on api and worker |
 | `GOOGLE_CHAT_SERVICE_ACCOUNT` | Optional, on api and worker. The base64 of the Google Chat service account JSON key. Empty or unset turns Google Chat off. See [google-chat-app.md](google-chat-app.md) |
-| `GOOGLE_CHAT_PROJECT_NUMBER` | Api only, required when `GOOGLE_CHAT_SERVICE_ACCOUNT` is set. Digits. The **Project number** of the Google Cloud project that owns the Chat app; the Chat app authentication audience must be **Project number** |
+| `GOOGLE_CHAT_PROJECT_NUMBER` | Api only, required when `GOOGLE_CHAT_SERVICE_ACCOUNT` is set. Digits. The **Project number** of the Google Cloud project that owns the Chat app. It must match the add-on service account `service-<PROJECT_NUMBER>@gcp-sa-gsuiteaddons.iam.gserviceaccount.com`; for an app built without the add-on mode, the authentication audience must be **Project number** |
 
 Set these on the worker service, which emails beta requests and deletes them after 365 days:
 
@@ -124,7 +124,7 @@ These settings live outside the repository, so a domain change does not update t
 | GitHub App | Enable Device Flow | on | `standcast login` fails with `device_flow_disabled` |
 | Slack app | Redirect URL | `<PUBLIC_URL>/oauth/slack/callback` | Connecting Slack fails with `redirect_uri did not match any configured URIs` |
 | Linear app | Callback URL | `<PUBLIC_URL>/oauth/linear/callback` | Connecting Linear fails with a redirect URI error on Linear |
-| Google Chat app | HTTP endpoint URL and authentication audience | `<PUBLIC_URL>/webhooks/google-chat`, with the authentication audience set to **Project number** and `GOOGLE_CHAT_PROJECT_NUMBER` set to that project number | Adding the app to a space posts no link code, and Google Chat says the app is not responding |
+| Google Chat app | HTTP endpoint URL | `<PUBLIC_URL>/webhooks/google-chat` as the common HTTP endpoint URL for all triggers, with `GOOGLE_CHAT_PROJECT_NUMBER` set to the project number. For an app built without the add-on mode, the authentication audience is **Project number** | Adding the app to a space posts no link code, and Google Chat says the app is not responding |
 
 ### When the final domain arrives
 
