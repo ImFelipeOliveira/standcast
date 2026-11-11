@@ -11,6 +11,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 ### Não lançado
 
 - O app do Google Chat responde em espaços e mensagens diretas quando é configurado como complemento do Google Workspace, o modo que o Google agora usa para novos apps do Chat.
+- Uma conta pessoal que instalou o GitHub App deixa de aparecer na lista de organizações do app web e da CLI para quem só colabora em um dos repositórios dela. Só a pessoa dona da conta pessoal a vê. Essas pessoas nunca tiveram acesso aos dados dela.
 
 ### 0.9.2 — 08/11/2026
 
