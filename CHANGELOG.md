@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.3](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.9.2...standcast-v0.9.3) (2026-11-11)
+
+
+### Bug Fixes
+
+* answer Google Chat events sent in the Workspace add-on format ([56c374f](https://github.com/ImFelipeOliveira/standcast/commit/56c374f6849664756394183008efccf3b44dffaf))
+* answer Google Chat events sent in the Workspace add-on format ([#141](https://github.com/ImFelipeOliveira/standcast/issues/141)) ([6d3ad96](https://github.com/ImFelipeOliveira/standcast/commit/6d3ad96cf89df7209f98650318d41e1b05ad5aaf))
+* link personal account installations only to their owner ([8bf0743](https://github.com/ImFelipeOliveira/standcast/commit/8bf0743733435b4e8b6a471d40c36c20fa78c8f2))
+* link personal account installations only to their owner ([#139](https://github.com/ImFelipeOliveira/standcast/issues/139)) ([e2099c6](https://github.com/ImFelipeOliveira/standcast/commit/e2099c6193005b8144207c173511bfe56e407e79))
+* point English Google Chat messages to Settings ([#140](https://github.com/ImFelipeOliveira/standcast/issues/140)) ([31049a7](https://github.com/ImFelipeOliveira/standcast/commit/31049a7b322a44ba14ceee47460dd7d47c804045))
+* point English Google Chat messages to Settings, the page name in English ([52e14c6](https://github.com/ImFelipeOliveira/standcast/commit/52e14c67b7bd92fb31020e7db5eb656a59c79686))
+
 ## [0.9.2](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.9.1...standcast-v0.9.2) (2026-11-08)
 
 
