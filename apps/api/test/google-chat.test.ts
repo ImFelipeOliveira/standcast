@@ -28,6 +28,7 @@ useCleanDb();
 const APP = 'https://app.test';
 const INST = 11;
 const PROJECT_NUMBER = '123456789012';
+const ENDPOINT = 'https://sw.test/webhooks/google-chat';
 const CODE = /\b([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8})\b/;
 
 type User = { cookie: string; csrf: string; member: MemberRow };
@@ -49,6 +50,7 @@ teams:
 
 async function harness(options: { enabled?: boolean } = {}) {
   const keys = await generateKeys('k1');
+  const oidcKeys = await generateKeys('g1');
   const users = new Map([
     [1, 'alice'],
     [2, 'bob'],
@@ -79,7 +81,16 @@ async function harness(options: { enabled?: boolean } = {}) {
   const { app, deps } = createTestApp({
     request,
     googleChatAvailable: enabled,
-    ...(enabled ? { googleChat: { projectNumber: PROJECT_NUMBER, jwks } } : {}),
+    ...(enabled
+      ? {
+          googleChat: {
+            projectNumber: PROJECT_NUMBER,
+            jwks,
+            endpointUrl: ENDPOINT,
+            oidcJwks: async () => [oidcKeys.jwk],
+          },
+        }
+      : {}),
   });
   await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
   await setInstallationConfig(db, INST, { status: 'configured', config: config() });
@@ -90,7 +101,7 @@ async function harness(options: { enabled?: boolean } = {}) {
     const token = await createSession(db, member.id, 'web');
     return { cookie: `sc_web=${token}`, csrf: csrfToken('sess', token), member };
   };
-  return { app, deps, keys, refreshes, alice: await session(1), bob: await session(2) };
+  return { app, deps, keys, oidcKeys, refreshes, alice: await session(1), bob: await session(2) };
 }
 
 type Harness = Awaited<ReturnType<typeof harness>>;
@@ -114,6 +125,28 @@ async function token(
     },
   );
 }
+
+async function addOnToken(
+  h: Pick<Harness, 'deps'>,
+  keys: TestKeys,
+  overrides: Record<string, unknown> = {},
+): Promise<string> {
+  return token(h, keys, {
+    iss: 'https://accounts.google.com',
+    aud: ENDPOINT,
+    email: `service-${PROJECT_NUMBER}@gcp-sa-gsuiteaddons.iam.gserviceaccount.com`,
+    email_verified: true,
+    ...overrides,
+  });
+}
+
+const addOn = (chat: Record<string, unknown>) => ({
+  commonEventObject: { hostApp: 'CHAT', platform: 'WEB' },
+  authorizationEventObject: { systemIdToken: 'x' },
+  chat: { eventTime: '2026-11-11T12:00:00Z', ...chat },
+});
+
+const room = { name: 'spaces/AAAA', type: 'ROOM', spaceType: 'SPACE', displayName: 'Alpha room' };
 
 const added = {
   type: 'ADDED_TO_SPACE',
@@ -295,6 +328,134 @@ describe('POST /webhooks/google-chat', () => {
     const text = ((await res.json()) as { text: string }).text;
     expect(text).toContain('standcast login');
     expect(text).not.toContain('google_chat:');
+  });
+
+  test('add-on events are verified against the endpoint url and the add-on service account', async () => {
+    const h = await harness();
+    const now = Math.floor(h.deps.now().getTime() / 1000);
+    const body = addOn({ user: { name: 'users/1' }, addedToSpacePayload: { space: room } });
+    const rejected = [
+      await addOnToken(h, h.keys),
+      await addOnToken(h, h.oidcKeys, { aud: PROJECT_NUMBER }),
+      await addOnToken(h, h.oidcKeys, { aud: 'https://evil.test/webhooks/google-chat' }),
+      await addOnToken(h, h.oidcKeys, { email: 'attacker@example.com' }),
+      await addOnToken(h, h.oidcKeys, { email_verified: false }),
+      await addOnToken(h, h.oidcKeys, { email_verified: undefined }),
+      await addOnToken(h, h.oidcKeys, { iss: 'https://evil.test' }),
+      await addOnToken(h, h.oidcKeys, { exp: now - 1 }),
+      await token(h, h.oidcKeys),
+    ];
+    for (const jwt of rejected) {
+      const res = await event(h, body, `Bearer ${jwt}`);
+      expect(res.status).toBe(401);
+      expect(await res.text()).toBe('');
+    }
+    expect(await db.select().from(googleChatSpaces)).toEqual([]);
+  });
+
+  test('an add-on added to space event answers with a code as a create message action', async () => {
+    const h = await harness();
+    const res = await event(
+      h,
+      addOn({
+        user: { name: 'users/1', email: 'alice@example.com' },
+        addedToSpacePayload: { space: room, interactionAdd: false },
+      }),
+      `Bearer ${await addOnToken(h, h.oidcKeys)}`,
+    );
+    expect(res.status).toBe(200);
+    const reply = (await res.json()) as {
+      hostAppDataAction: { chatDataAction: { createMessageAction: { message: { text: string } } } };
+    };
+    const text = reply.hostAppDataAction.chatDataAction.createMessageAction.message.text;
+    const code = CODE.exec(text)?.[1];
+    expect(code).toMatch(CODE);
+    const [row] = await db.select().from(googleChatSpaces);
+    expect(row?.spaceName).toBe('spaces/AAAA');
+    expect(row?.linkCodeHash).not.toBeNull();
+    expect((await linkSpace(h, h.alice, code ?? '')).status).toBe(201);
+  });
+
+  test('an add-on direct message answers the login hint as a create message action', async () => {
+    const h = await harness();
+    const res = await event(
+      h,
+      addOn({
+        user: { name: 'users/123', email: 'nobody@example.com', displayName: 'Nobody' },
+        space: { name: 'spaces/DM1', type: 'DM', singleUserBotDm: true },
+        messagePayload: {
+          space: {
+            name: 'spaces/DM1',
+            type: 'DM',
+            spaceType: 'DIRECT_MESSAGE',
+            singleUserBotDm: true,
+          },
+          message: { name: 'spaces/DM1/messages/1', text: 'hi' },
+        },
+      }),
+      `Bearer ${await addOnToken(h, h.oidcKeys, { iss: 'accounts.google.com' })}`,
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      hostAppDataAction: { chatDataAction: { createMessageAction: { message: { text: string } } } };
+    };
+    expect(Object.keys(body)).toEqual(['hostAppDataAction']);
+    const text = body.hostAppDataAction.chatDataAction.createMessageAction.message.text;
+    expect(text).toContain('standcast login');
+    expect(text).toContain('google_chat: users/123');
+  });
+
+  test('an add-on removed from space event removes the space and answers nothing', async () => {
+    const h = await harness();
+    const code = await issueCode(h);
+    expect((await linkSpace(h, h.alice, code)).status).toBe(201);
+    expect(await listGoogleChatSpaces(db, INST)).toHaveLength(1);
+    const res = await event(
+      h,
+      addOn({ user: { name: 'users/1' }, removedFromSpacePayload: { space: room } }),
+      `Bearer ${await addOnToken(h, h.oidcKeys)}`,
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({});
+    expect(await listGoogleChatSpaces(db, INST)).toEqual([]);
+    expect(await db.select().from(googleChatSpaces)).toEqual([]);
+  });
+
+  test('add-on events without a known payload or a space answer nothing', async () => {
+    const h = await harness();
+    const authorization = `Bearer ${await addOnToken(h, h.oidcKeys)}`;
+    for (const chat of [
+      { user: { name: 'users/1' }, space: room, buttonClickedPayload: { space: room } },
+      { user: { name: 'users/1' }, appCommandPayload: { space: room } },
+      { user: { name: 'users/1' }, messagePayload: { message: { text: 'hi' } } },
+    ]) {
+      const res = await event(h, addOn(chat), authorization);
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({});
+    }
+    expect(await db.select().from(googleChatSpaces)).toEqual([]);
+  });
+
+  test('a body in the other format than the token is 400', async () => {
+    const h = await harness();
+    const legacyBody = await event(h, added, `Bearer ${await addOnToken(h, h.oidcKeys)}`);
+    expect(legacyBody.status).toBe(400);
+    expect(await legacyBody.json()).toEqual({
+      error: { code: 'invalid_request', message: 'invalid body' },
+    });
+    const addOnBody = await event(
+      h,
+      addOn({ addedToSpacePayload: { space: room } }),
+      `Bearer ${await token(h, h.keys)}`,
+    );
+    expect(addOnBody.status).toBe(400);
+    const badSpace = await event(
+      h,
+      addOn({ messagePayload: { space: { name: 7 } } }),
+      `Bearer ${await addOnToken(h, h.oidcKeys)}`,
+    );
+    expect(badSpace.status).toBe(400);
+    expect(await db.select().from(googleChatSpaces)).toEqual([]);
   });
 });
 

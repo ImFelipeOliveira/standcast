@@ -47,8 +47,9 @@ rsvg-convert -w 220 -h 140 docs/marketplace/brand/banner.svg -o apps/landing/pub
 | Avatar URL | `https://standcast.app/brand/logo-256.png` |
 | Description | `Daily standup digests from your AI agent` (40 characters, the maximum) |
 | Functionality | **Join spaces and group conversations** on |
-| Connection settings | **HTTP endpoint URL**: `https://api.standcast.app/webhooks/google-chat` |
-| Authentication audience | **Project number** |
+| Build mode | **Build this Chat app as a Google Workspace add-on** on |
+| Connection settings | **HTTP endpoint URL**, common for all triggers: `https://api.standcast.app/webhooks/google-chat` |
+| Authentication audience | Set by Google in add-on mode. Only an app built without the add-on mode has this field: **Project number** |
 | Visibility | Keep your own domain while testing. Public availability comes from the Marketplace listing, not from this field |
 
 ## OAuth consent screen
@@ -91,13 +92,13 @@ rsvg-convert -w 220 -h 140 docs/marketplace/brand/banner.svg -o apps/landing/pub
 
 ## Store listing
 
-**Google Workspace Marketplace SDK > Store Listing.** Add English as the default language and Portuguese (Brazil) as a second one.
+**Google Workspace Marketplace SDK > Store Listing.** Add English as the default language and Portuguese (Brazil) as a second one. Every Google trademark in the listing text carries ™, as in Google Chat™, and the detailed descriptions end with the trademark attribution; the review rejects the listing without them.
 
 | Field | Value |
 | --- | --- |
 | App name | `Standcast` |
-| Short description (en, 76 characters) | `Your team's daily standup digest in Google Chat, written from your AI agent.` |
-| Short description (pt-BR, 79 characters) | `O consolidado da daily do seu time no Google Chat, escrito no seu agente de IA.` |
+| Short description (en, 77 characters) | `Your team's daily standup digest in Google Chat™, written from your AI agent.` |
+| Short description (pt-BR, 80 characters, the maximum) | `O consolidado da daily do seu time no Google Chat™, escrito no seu agente de IA.` |
 | Detailed description | See below, one per language |
 | Category | **Productivity**. The Marketplace has both **Business Tools** and **Productivity**; Productivity fits a team standup tool better. If the console offers subcategories, pick the closest to task or team management |
 | Pricing | **Free** |
@@ -115,18 +116,18 @@ rsvg-convert -w 220 -h 140 docs/marketplace/brand/banner.svg -o apps/landing/pub
 ### Detailed description (en)
 
 ```text
-Standcast posts your team's daily standup to a Google Chat space, once a day, at the time the team chooses.
+Standcast posts your team's daily standup to a Google Chat™ space, once a day, at the time the team chooses.
 
 Each person writes their daily in their AI agent (Claude Code, Cursor, Codex or any MCP client) or in the terminal, starting from a draft of their GitHub and Linear activity. They confirm it, and Standcast posts one digest per team: blockers first, then support requests, then what each person did and will do, and who has not sent theirs yet. Late dailies go in the digest thread.
 
-The Standcast app for Google Chat:
+The Standcast app for Google Chat™:
 • posts the team digest in a space you link to your organization;
 • sends reminders and routed blockers by direct message;
 • never reads messages in spaces, and keeps nothing from the text people send it.
 
 How to start:
 1. Install the Standcast GitHub App on your GitHub organization and add a standcast.yml.
-2. Add the Standcast app to a Google Chat space. It posts a link code.
+2. Add the Standcast app to a Google Chat™ space. It posts a link code.
 3. An admin pastes the code in Standcast and sets the space in standcast.yml.
 4. Each person sends the app a direct message once to link their account.
 
@@ -135,23 +136,25 @@ Standcast is open source (MIT) and free during the public beta. No productivity 
 Admin guide: https://docs.standcast.app/admin/google-chat
 Privacy: https://standcast.app/privacy/
 Support: support@standcast.app
+
+Google Chat™ is a trademark of Google LLC.
 ```
 
 ### Detailed description (pt-BR)
 
 ```text
-O Standcast publica a daily do seu time em um espaço do Google Chat, uma vez por dia, no horário que o time escolher.
+O Standcast publica a daily do seu time em um espaço do Google Chat™, uma vez por dia, no horário que o time escolher.
 
 Cada pessoa escreve a sua daily no seu agente de IA (Claude Code, Cursor, Codex ou qualquer cliente MCP) ou no terminal, a partir de um rascunho da sua atividade no GitHub e no Linear. Ela confirma, e o Standcast publica um consolidado por time: primeiro os impedimentos, depois os pedidos de apoio, depois o que cada pessoa fez e vai fazer, e quem ainda não mandou a sua. Dailies atrasadas entram na conversa do consolidado.
 
-O app do Standcast para o Google Chat:
+O app do Standcast para o Google Chat™:
 • publica o consolidado do time no espaço que você vincula à sua organização;
 • envia lembretes e impedimentos encaminhados por mensagem direta;
 • nunca lê mensagens dos espaços e não guarda nada do texto que as pessoas enviam a ele.
 
 Como começar:
 1. Instale o GitHub App do Standcast na sua organização do GitHub e adicione um standcast.yml.
-2. Adicione o app do Standcast a um espaço do Google Chat. Ele publica um código de vínculo.
+2. Adicione o app do Standcast a um espaço do Google Chat™. Ele publica um código de vínculo.
 3. Uma pessoa admin cola o código no Standcast e define o espaço no standcast.yml.
 4. Cada pessoa manda uma mensagem direta ao app uma vez para vincular a sua conta.
 
@@ -160,6 +163,8 @@ O Standcast é open source (MIT) e gratuito durante o beta público. Sem métric
 Guia para admins: https://docs.standcast.app/pt-BR/admin/google-chat
 Privacidade: https://standcast.app/pt-BR/privacidade/
 Suporte: support@standcast.app
+
+Google Chat™ é uma marca da Google LLC.
 ```
 
 ## Notes for the reviewer
@@ -167,7 +172,7 @@ Suporte: support@standcast.app
 Paste this in the reviewer notes field of the submission:
 
 ```text
-Standcast is a Google Chat app that posts a software team's daily standup digest to a Chat space and sends reminders by direct message. People write their daily in their AI agent or a command-line tool, outside Google Chat; the app only delivers. It uses app authentication only (a service account with the chat.bot scope) and requests no user data scopes. It does not read messages in spaces and keeps nothing from message text.
+Standcast is a Google Chat™ app that posts a software team's daily standup digest to a Chat space and sends reminders by direct message. People write their daily in their AI agent or a command-line tool, outside Google Chat™; the app only delivers. It uses app authentication only (a service account with the chat.bot scope) and requests no user data scopes. It does not read messages in spaces and keeps nothing from message text.
 
 How to test:
 1. Add Standcast to any space (space menu > Apps & integrations > Add apps). The app replies in the space, in English and Portuguese, with an 8-character link code valid for 24 hours. This confirms the app is reachable and answers events.
