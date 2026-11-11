@@ -215,7 +215,7 @@ export const en: Record<MessageKey, string> = {
   'setup.teams.channelNotMember':
     'Team {team}: the Standcast bot is not in the Slack channel {reference}. Invite it with /invite @Standcast in the channel.',
   'setup.teams.spaceNotLinked':
-    'Team {team}: this Google Chat space ({reference}) is not linked to this organization yet. Add the Standcast app to the space and paste the code it posts in Configuration → Google Chat.',
+    'Team {team}: this Google Chat space ({reference}) is not linked to this organization yet. Add the Standcast app to the space and paste the code it posts in Settings → Google Chat.',
   'setup.teams.spaceNotFound':
     'Team {team}: the Google Chat space {reference} was not found. Check the space name, and add the Standcast app to the space.',
   'setup.teams.spaceNotMember':
@@ -238,8 +238,7 @@ export const en: Record<MessageKey, string> = {
     'The Standcast bot is not in the channel or space. Add it to the space, or in Slack invite it with /invite @Standcast.',
   'setup.failure.channel_not_found': 'The chat channel or space was not found.',
   'setup.failure.is_archived': 'The Slack channel is archived.',
-  'setup.failure.chat_invalid':
-    'The chat connection is no longer valid. Reconnect it in Configuration.',
+  'setup.failure.chat_invalid': 'The chat connection is no longer valid. Reconnect it in Settings.',
   'setup.failure.user_not_found': 'The person was not found in the chat tool.',
   'setup.failure.user_disabled': "The person's Slack account is deactivated.",
   'setup.failure.ratelimited': 'The chat tool rate limited the messages for a while.',

@@ -111,7 +111,7 @@ describe('handleGoogleChatEvent in a room', () => {
     const text = reply?.text ?? '';
     const code = CODE.exec(text)?.[1] ?? '';
     expect(code).toHaveLength(8);
-    expect(text).toContain('Configuration → Google Chat');
+    expect(text).toContain('Settings → Google Chat');
     expect(text).toContain('Configuração → Google Chat');
     const row = (await db.select().from(googleChatSpaces)).find(
       (r) => r.spaceName === 'spaces/AAAA',

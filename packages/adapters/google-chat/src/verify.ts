@@ -2,6 +2,11 @@ import { discard, readJson, send, statusError } from './errors';
 
 export const CHAT_ISSUER_EMAIL = 'chat@system.gserviceaccount.com';
 export const GOOGLE_JWKS_URL = `https://www.googleapis.com/service_accounts/v1/jwk/${CHAT_ISSUER_EMAIL}`;
+export const GOOGLE_OIDC_JWKS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
+export const GOOGLE_OIDC_ISSUERS: readonly string[] = [
+  'https://accounts.google.com',
+  'accounts.google.com',
+];
 export const JWKS_CACHE_MS = 60 * 60 * 1000;
 export const JWKS_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 export const CLOCK_SKEW_MS = 60_000;
@@ -12,6 +17,12 @@ export type VerifyChatEventOptions = {
   jwks: JwksSource;
   now?: () => number;
 };
+
+export type AddOnAudience = { projectNumber: string; audience: string };
+
+export function addOnServiceAccountEmail(projectNumber: string): string {
+  return `service-${projectNumber}@gcp-sa-gsuiteaddons.iam.gserviceaccount.com`;
+}
 
 type KeyWithId = JsonWebKey & { kid?: string };
 
@@ -44,25 +55,19 @@ function notInFuture(seconds: unknown, nowMs: number): boolean {
   );
 }
 
-function claimsValid(
-  claims: Record<string, unknown>,
-  projectNumber: string,
-  nowMs: number,
-): boolean {
+function timesValid(claims: Record<string, unknown>, nowMs: number): boolean {
   return (
     notInFuture(claims.nbf, nowMs) &&
     notInFuture(claims.iat, nowMs) &&
-    claims.iss === CHAT_ISSUER_EMAIL &&
-    audienceMatches(claims.aud, projectNumber) &&
     typeof claims.exp === 'number' &&
     claims.exp * 1000 > nowMs
   );
 }
 
-export async function verifyChatEvent(
+async function verifyGoogleJwt(
   authorization: string | undefined,
-  projectNumber: string,
   opts: VerifyChatEventOptions,
+  accept: (claims: Record<string, unknown>) => boolean,
 ): Promise<boolean> {
   try {
     const match = /^Bearer ([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/.exec(
@@ -73,8 +78,7 @@ export async function verifyChatEvent(
     const header = decodeJson(rawHeader);
     if (header.alg !== 'RS256' || typeof header.kid !== 'string') return false;
     const claims = decodeJson(rawPayload);
-    if (!/^\d+$/.test(projectNumber)) return false;
-    if (!claimsValid(claims, projectNumber, (opts.now ?? Date.now)())) return false;
+    if (!timesValid(claims, (opts.now ?? Date.now)()) || !accept(claims)) return false;
     const byKid = (keys: JsonWebKey[]) => keys.find((k: KeyWithId) => k.kid === header.kid);
     const jwk = byKid(await opts.jwks()) ?? byKid(await opts.jwks({ refresh: true }));
     if (jwk?.kty !== 'RSA') return false;
@@ -95,6 +99,40 @@ export async function verifyChatEvent(
   } catch {
     return false;
   }
+}
+
+export function verifyChatEvent(
+  authorization: string | undefined,
+  projectNumber: string,
+  opts: VerifyChatEventOptions,
+): Promise<boolean> {
+  return verifyGoogleJwt(
+    authorization,
+    opts,
+    (claims) =>
+      /^\d+$/.test(projectNumber) &&
+      claims.iss === CHAT_ISSUER_EMAIL &&
+      audienceMatches(claims.aud, projectNumber),
+  );
+}
+
+export function verifyAddOnEvent(
+  authorization: string | undefined,
+  { projectNumber, audience }: AddOnAudience,
+  opts: VerifyChatEventOptions,
+): Promise<boolean> {
+  return verifyGoogleJwt(
+    authorization,
+    opts,
+    (claims) =>
+      /^\d+$/.test(projectNumber) &&
+      audience !== '' &&
+      typeof claims.iss === 'string' &&
+      GOOGLE_OIDC_ISSUERS.includes(claims.iss) &&
+      audienceMatches(claims.aud, audience) &&
+      claims.email === addOnServiceAccountEmail(projectNumber) &&
+      claims.email_verified === true,
+  );
 }
 
 export function createGoogleJwks(

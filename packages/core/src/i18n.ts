@@ -508,7 +508,7 @@ const en = {
   'setup.teams.channelNotMember':
     'Team {team}: the Standcast bot is not in the Slack channel {reference}. Invite it with /invite @Standcast in the channel.',
   'setup.teams.spaceNotLinked':
-    'Team {team}: this Google Chat space ({reference}) is not linked to this organization yet. Add the Standcast app to the space and paste the code it posts in Configuration → Google Chat.',
+    'Team {team}: this Google Chat space ({reference}) is not linked to this organization yet. Add the Standcast app to the space and paste the code it posts in Settings → Google Chat.',
   'setup.teams.spaceNotFound':
     'Team {team}: the Google Chat space {reference} was not found. Check the space name, and add the Standcast app to the space.',
   'setup.teams.spaceNotMember':
@@ -524,7 +524,7 @@ const en = {
   'checkRun.publicIdentity.message':
     "The {repo} repository is public and the members map has identity overrides (linear, slack, google_chat, jira). They publish each person's work e-mail and the login to e-mail mapping. Move standcast.yml to the {preferred} repository (or make {repo} private), or remove the overrides and use the default linking: the GitHub verified e-mail at standcast login and the Google Chat direct message.",
   'googleChat.linkCode':
-    'Standcast is in this space. To get digests here, an admin of your GitHub organization pastes this code in Standcast, Configuration → Google Chat: {code}. The code is valid for 24 hours.',
+    'Standcast is in this space. To get digests here, an admin of your GitHub organization pastes this code in Standcast, Settings → Google Chat: {code}. The code is valid for 24 hours.',
   'googleChat.spaceLinked':
     'This space now gets the digests of the {org} organization on Standcast. If that is not right, remove the app from the space to undo it.',
   'googleChat.linked': "You're linked, {logins}.",
