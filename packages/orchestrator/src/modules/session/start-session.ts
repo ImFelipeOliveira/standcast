@@ -9,7 +9,7 @@ import {
 } from '@standcast/db';
 import type { Deps } from '../../deps';
 import { linkChatIdentities } from '../../identity';
-import { forgetMembership, statusOf } from '../../membership';
+import { forgetMembership, isUserAccountOwner, statusOf } from '../../membership';
 import { DomainError } from '../access/errors';
 import { rememberGitHubInstallations } from '../github/github-installations';
 import { enqueueLinkTrackerIdentity } from '../linear/tracker-identity';
@@ -42,7 +42,9 @@ export async function syncMemberFromGitHub(
   const known: { id: number; accountLogin: string }[] = [];
   for (const id of profile.installationIds) {
     const installation = await getInstallation(deps.db, id);
-    if (installation) known.push({ id, accountLogin: installation.accountLogin });
+    if (!installation) continue;
+    if (installation.accountType === 'User' && !isUserAccountOwner(installation, member)) continue;
+    known.push({ id, accountLogin: installation.accountLogin });
   }
   const ids = known.map((i) => i.id);
   forgetMembership(deps, profile.installationIds, member.id);
