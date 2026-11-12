@@ -4,6 +4,11 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 
 ## Unreleased
 
+## 0.9.4 — 2026-11-12
+
+- No public API changes.
+
+
 ## 0.9.3 — 2026-11-11
 
 - No public API changes. The Google Chat webhook receiver (`POST /webhooks/google-chat`) also accepts events from a Chat app built as a Google Workspace add-on: a Google ID token for `service-<project number>@gcp-sa-gsuiteaddons.iam.gserviceaccount.com` with the endpoint URL as the audience, and the event under `chat.addedToSpacePayload`, `chat.removedFromSpacePayload` or `chat.messagePayload`. It answers those events with `hostAppDataAction.chatDataAction.createMessageAction`. Events in the legacy format are handled as before.
