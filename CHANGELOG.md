@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.9.4](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.9.3...standcast-v0.9.4) (2026-11-12)
+
+
+### Bug Fixes
+
+* **daily:** give each summary line its ref and note the change ([077ebf0](https://github.com/ImFelipeOliveira/standcast/commit/077ebf0f9aef86a47276393b140d5b7f2bc05278))
+* **daily:** leave session-only summary lines without a ref ([51012cf](https://github.com/ImFelipeOliveira/standcast/commit/51012cf43f12e08b9861337af105bb9017dd79d7))
+* **daily:** summarize yesterday in at most 5 lines ([c62a7f8](https://github.com/ImFelipeOliveira/standcast/commit/c62a7f83dad5c424d879abb74ffb7cba26e336b2))
+* **daily:** summarize yesterday in at most 5 lines ([#155](https://github.com/ImFelipeOliveira/standcast/issues/155)) ([0823a8f](https://github.com/ImFelipeOliveira/standcast/commit/0823a8f50652a8965ccf52172d98a9d171f46baf))
+* **digest:** keep the submit going when the missed digest enqueue fails ([c0b1286](https://github.com/ImFelipeOliveira/standcast/commit/c0b12869a2543bcce8e09cf0a7632090f6d369c3))
+* **digest:** send the digest when a daily arrives after a missed window ([9328717](https://github.com/ImFelipeOliveira/standcast/commit/932871706bec5191f4a5f86379b52ce41f20095c))
+* **digest:** send the digest when a daily arrives after a missed window ([#153](https://github.com/ImFelipeOliveira/standcast/issues/153)) ([08b0c97](https://github.com/ImFelipeOliveira/standcast/commit/08b0c97024671c7b60a070b2d799c584dde09df8))
+* **github:** time out the repository selection request ([e39c409](https://github.com/ImFelipeOliveira/standcast/commit/e39c4097b8643f2bb826679261c2d03eaf5f9e29))
+* **google-chat:** post messages with the Chat markup syntax ([5c8fc8e](https://github.com/ImFelipeOliveira/standcast/commit/5c8fc8e0eac18f2b106051fd2ecba9121d286675))
+* **google-chat:** post messages with the Chat markup syntax ([#154](https://github.com/ImFelipeOliveira/standcast/issues/154)) ([13bfcb9](https://github.com/ImFelipeOliveira/standcast/commit/13bfcb935ce90e8724422c4b99ab4ff8ad71286f))
+* **web:** create the config repository under the organization ([860ee19](https://github.com/ImFelipeOliveira/standcast/commit/860ee19937cd2866a0402246d4be10952471c551))
+* **web:** create the config repository under the organization ([#151](https://github.com/ImFelipeOliveira/standcast/issues/151)) ([14c19ac](https://github.com/ImFelipeOliveira/standcast/commit/14c19ac58afb6b4456d344c522c0338b9c9399e1))
+
 ## [0.9.3](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.9.2...standcast-v0.9.3) (2026-11-11)
 
 
