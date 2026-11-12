@@ -62,6 +62,7 @@ function harness(source: Source) {
         calls.push(owner);
         return source;
       },
+      fetchRepositorySelection: async () => null,
       exchangeWebCode: async () => {
         throw new Error('unused');
       },

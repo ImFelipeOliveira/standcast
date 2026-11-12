@@ -11,6 +11,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 ### Unreleased
 
 - The `/daily` skill and the MCP server summarize yesterday in at most 5 lines, grouped by project or theme, instead of one line per pull request.
+- **Create the .github-private repository** in the web app opens GitHub's form with the organization as the owner, instead of your personal account. When the GitHub App only has access to selected repositories, the page also reminds you to add the new repository to the app.
 
 ### 0.9.3 — 2026-11-11
 

@@ -41,6 +41,7 @@ const deps: Deps = {
       truncatedTeams: [],
     }),
     fetchConfigSource: async () => ({ found: false, reason: 'no_repo', repository: null }),
+    fetchRepositorySelection: async () => null,
     getPullRequest: async () => null,
     pullRequestMerged: async () => null,
     listPullRequestFiles: async () => [],

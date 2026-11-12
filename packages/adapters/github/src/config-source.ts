@@ -2,6 +2,8 @@ import type { Octokit } from '@octokit/core';
 import { CONFIG_FILE, CONFIG_REPOS, type ConfigRepo } from '@standcast/core';
 import { httpStatus } from './errors';
 
+export const REPOSITORY_SELECTION_TIMEOUT_MS = 5000;
+
 export type ConfigSourceReason = 'no_repo' | 'no_access' | 'no_file';
 
 export type ConfigRepository = { name: ConfigRepo; defaultBranch: string; private: boolean };
@@ -80,4 +82,17 @@ export async function fetchConfigSource(
   }
   const repository = withoutFile[0] ?? null;
   return { found: false, reason: repository ? 'no_file' : 'no_repo', repository };
+}
+
+export type RepositorySelection = 'all' | 'selected';
+
+export async function fetchRepositorySelection(
+  octokit: Octokit,
+): Promise<RepositorySelection | null> {
+  const response = await octokit.request('GET /installation/repositories', {
+    per_page: 1,
+    request: { signal: AbortSignal.timeout(REPOSITORY_SELECTION_TIMEOUT_MS) },
+  });
+  const selection = (response.data as { repository_selection?: string }).repository_selection;
+  return selection === 'all' || selection === 'selected' ? selection : null;
 }

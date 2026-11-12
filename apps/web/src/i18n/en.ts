@@ -189,6 +189,9 @@ export const en: Record<MessageKey, string> = {
     'The template has one Slack team and one Google Chat team. Keep the one you use, set its channel, and delete the other before committing.',
   'setup.config.createFile': 'Create standcast.yml from the template',
   'setup.config.createRepo': 'Create the {repo} repository',
+  'setup.config.selectedRepositories':
+    "Standcast's GitHub App only has access to selected repositories. After you create {repo}, add it to the app, or Standcast will not find it.",
+  'setup.config.chooseRepositories': 'Choose repositories on GitHub',
   'setup.config.template': 'standcast.yml template',
   'setup.config.templateTeam': 'Team',
   'setup.config.editOnGithub': 'Edit on GitHub',
