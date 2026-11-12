@@ -42,11 +42,15 @@ async function enqueueMissedDigests(deps: Deps, ctx: OrgContext): Promise<void> 
   for (const team of ctx.mine) {
     if (!isWorkday(ctx.date, team)) continue;
     if (!isPastDue(now, ctx.date, team.digestAt, team.timezone)) continue;
-    await enqueueDigestIfOpen(deps, {
-      installationId: ctx.installationId,
-      teamName: team.name,
-      date: ctx.date,
-    });
+    try {
+      await enqueueDigestIfOpen(deps, {
+        installationId: ctx.installationId,
+        teamName: team.name,
+        date: ctx.date,
+      });
+    } catch (error) {
+      logError('missed digest enqueue failed', error);
+    }
   }
 }
 

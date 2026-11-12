@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- When the digest window closes before the digest is sent, the first daily submitted that day after the window sends the digest with every daily sent so far. Before, that daily was stored but never posted.
+
 ### 0.9.3 — 2026-11-11
 
 - The English messages of the Google Chat app and the web app point to Settings → Google Chat, the name of the page in English, instead of Configuration.

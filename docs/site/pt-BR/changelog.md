@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- Quando a janela do consolidado fecha sem que ele tenha sido enviado, a primeira daily enviada naquele dia depois da janela envia o consolidado com todas as dailies enviadas até então. Antes, essa daily era guardada mas nunca publicada.
+
 ### 0.9.3 — 11/11/2026
 
 - As mensagens em inglês do app do Google Chat e do app web apontam para Settings → Google Chat, o nome da página em inglês, em vez de Configuration.

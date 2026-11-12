@@ -195,6 +195,28 @@ describe('submitDaily', () => {
     }
   });
 
+  test('a failing digest enqueue after the window does not stop the rest of the submit', async () => {
+    const { deps, isMember, member, queue, setNow } = await setup();
+    setNow(new Date('2026-10-28T20:20:00Z'));
+    const enqueue = deps.queue.enqueue.bind(deps.queue);
+    deps.queue.enqueue = async (name, data, opts) => {
+      if (name === 'send-digest') throw new Error('queue down');
+      return enqueue(name, data, opts);
+    };
+    const spy = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const result = await submitDaily(deps, isMember, member, {
+        ...daily,
+        blockers: [{ text: 'Need prod access' }],
+      });
+      expect(result.date).toBe('2026-10-28');
+      expect(queue.enqueued.map((j) => j.name)).toEqual(['route-blocker']);
+      expect(JSON.stringify(spy.mock.calls)).toContain('queue down');
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   test('a submitted blocker with the url of a pending suggestion confirms it', async () => {
     const { deps, isMember, member } = await setup();
     const url = 'https://github.com/acme/api/pull/7';
