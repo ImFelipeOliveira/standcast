@@ -57,6 +57,7 @@ export function createGoogleChatChannel(
       : `${space}/messages`;
     const response = await call('POST', path, {
       ...renderGoogleChat(msg),
+      markupSyntax: 'MARKUP_SYNTAX_CHAT',
       ...(thread ? { thread: { name: thread } } : {}),
     });
     if (!response.ok) {
