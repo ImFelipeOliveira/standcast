@@ -258,7 +258,12 @@ describe('configuração', () => {
     const html = renderPage(
       baseStatus({
         config: { status: 'unconfigured', reason: 'no_repo' },
-        configRepo: { exists: false, name: '.github-private' },
+        configRepo: {
+          exists: false,
+          name: '.github-private',
+          repositorySelection: 'all',
+          installationSettingsUrl: 'https://github.com/organizations/acme/settings/installations/7',
+        },
         configFileUrl: null,
         teams: [],
       }),
@@ -266,10 +271,32 @@ describe('configuração', () => {
     expect(html).toContain('Ainda não configurado.');
     expect(html).toContain('Nem o repositório .github-private nem o .github existem.');
     expect(html).toContain(
-      'href="https://github.com/new?name=.github-private&amp;visibility=private"',
+      'href="https://github.com/new?owner=acme&amp;name=.github-private&amp;visibility=private"',
     );
     expect(html).toContain('Criar o repositório .github-private');
     expect(html).not.toContain('Editar no GitHub');
+    expect(html).not.toContain('repositórios selecionados');
+  });
+
+  test('a missing config repository warns when the app reaches selected repositories only', () => {
+    const html = renderPage(
+      baseStatus({
+        config: { status: 'unconfigured', reason: 'no_repo' },
+        configRepo: {
+          exists: false,
+          name: '.github-private',
+          repositorySelection: 'selected',
+          installationSettingsUrl: 'https://github.com/organizations/acme/settings/installations/7',
+        },
+        configFileUrl: null,
+        teams: [],
+      }),
+    );
+    expect(html).toContain(
+      'O GitHub App do Standcast só tem acesso a repositórios selecionados. Depois de criar o .github-private, adicione-o ao app, ou o Standcast não vai encontrá-lo.',
+    );
+    expect(html).toContain('href="https://github.com/organizations/acme/settings/installations/7"');
+    expect(html).toContain('Escolher repositórios no GitHub');
   });
 
   test('unconfigured config with a repository links to create the file there', () => {

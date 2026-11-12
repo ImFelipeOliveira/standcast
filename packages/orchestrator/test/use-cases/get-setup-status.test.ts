@@ -466,6 +466,46 @@ describe('getSetupStatus teams and config file', () => {
     const status = await load(config());
     expect(status.configFileUrl).toBeNull();
   });
+
+  test('tells when the app only reaches selected repositories and the config repo is missing', async () => {
+    const status = await load(null, { repositorySelection: 'selected' });
+    expect(status.configRepo).toEqual({
+      exists: false,
+      name: '.github-private',
+      repositorySelection: 'selected',
+      installationSettingsUrl: 'https://github.com/organizations/acme/settings/installations/11',
+    });
+  });
+
+  test('links the personal installation settings for a user account', async () => {
+    await seedOrg(null, { accountType: 'User', accountLogin: 'alice' });
+    const member = await seedMember();
+    await setMemberInstallations(db, member.id, [INST]);
+    const fake = fakeDeps({ repositorySelection: 'all' });
+    const status = await getSetupStatus(fake.deps, createMembershipCheck(fake.deps), member, INST);
+    expect(status.configRepo).toEqual({
+      exists: false,
+      name: '.github-private',
+      repositorySelection: 'all',
+      installationSettingsUrl: 'https://github.com/settings/installations/11',
+    });
+  });
+
+  test('keeps the page when github does not say which repositories the app reaches', async () => {
+    const status = await load(null, {
+      repositorySelection: Object.assign(new Error('boom'), { status: 502 }),
+    });
+    expect(status.configRepo).toMatchObject({ exists: false, repositorySelection: null });
+  });
+
+  test('does not ask which repositories the app reaches when the config repo exists', async () => {
+    await seedOrg(null);
+    const member = await seedMember();
+    await setMemberInstallations(db, member.id, [INST]);
+    const fake = fakeDeps({ source: found('teams: []'), repositorySelection: 'selected' });
+    await getSetupStatus(fake.deps, createMembershipCheck(fake.deps), member, INST);
+    expect(fake.calls.repositorySelection).toBe(0);
+  });
 });
 
 describe('getSetupStatus config notices', () => {

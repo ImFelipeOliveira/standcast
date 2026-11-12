@@ -11,6 +11,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 ### Não lançado
 
 - Quando a janela do consolidado fecha sem que ele tenha sido enviado, a primeira daily enviada naquele dia depois da janela envia o consolidado com todas as dailies enviadas até então. Antes, essa daily era guardada mas nunca publicada.
+- **Criar o repositório .github-private** no app web abre o formulário do GitHub com a organização como dona, em vez da sua conta pessoal. Quando o GitHub App só tem acesso a repositórios selecionados, a página também lembra de adicionar o repositório novo ao app.
 
 ### 0.9.3 — 11/11/2026
 

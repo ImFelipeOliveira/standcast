@@ -23,6 +23,7 @@ import {
   type PersonFailureGroup,
   type TeamFailure,
 } from '@standcast/db';
+import type { RepositorySelection } from '@standcast/github';
 import type { Deps } from '../../deps';
 import { guarded } from '../../guarded';
 import { type TeamNotice, teamResolutionNotices } from '../../teams';
@@ -49,7 +50,12 @@ export type SetupStatus = {
   accessWarning: string | null;
   configRepo:
     | { exists: true; name: ConfigRepo; defaultBranch: string }
-    | { exists: false; name: ConfigRepo };
+    | {
+        exists: false;
+        name: ConfigRepo;
+        repositorySelection: RepositorySelection | null;
+        installationSettingsUrl: string;
+      };
   slack: { connected: false } | { connected: true; workspace: string };
   googleChat: { available: boolean; spaces: { name: string; displayName: string }[] };
   linear:
@@ -112,15 +118,36 @@ export type ConfigNotice = 'public_identity_overrides';
 
 type ConfigLocation = { repo: SetupStatus['configRepo']; public: boolean };
 
-async function findConfigRepo(
-  deps: Deps,
-  installationId: number,
-  owner: string,
-): Promise<ConfigLocation> {
-  const octokit = await deps.github.installationOctokit(installationId);
-  const source = await deps.github.fetchConfigSource(octokit, owner);
+type InstallationAccount = {
+  id: number;
+  accountLogin: string;
+  accountType: 'Organization' | 'User';
+};
+
+function installationSettingsUrl(account: InstallationAccount): string {
+  return account.accountType === 'User'
+    ? `https://github.com/settings/installations/${account.id}`
+    : `https://github.com/organizations/${encodeURIComponent(account.accountLogin)}/settings/installations/${account.id}`;
+}
+
+async function findConfigRepo(deps: Deps, account: InstallationAccount): Promise<ConfigLocation> {
+  const octokit = await deps.github.installationOctokit(account.id);
+  const source = await deps.github.fetchConfigSource(octokit, account.accountLogin);
   const repository = source.repository;
-  if (!repository) return { repo: { exists: false, name: PREFERRED_CONFIG_REPO }, public: false };
+  if (!repository) {
+    const repositorySelection = await deps.github
+      .fetchRepositorySelection(octokit)
+      .catch(() => null);
+    return {
+      repo: {
+        exists: false,
+        name: PREFERRED_CONFIG_REPO,
+        repositorySelection,
+        installationSettingsUrl: installationSettingsUrl(account),
+      },
+      public: false,
+    };
+  }
   return {
     repo: { exists: true, name: repository.name, defaultBranch: repository.defaultBranch },
     public: source.found && !repository.private,
@@ -279,7 +306,7 @@ export async function getSetupStatus(
     linked,
     googleChatSpaces,
   ] = await Promise.all([
-    findConfigRepo(deps, installation.id, installation.accountLogin),
+    findConfigRepo(deps, installation),
     getConnection(deps.db, installation.id, 'slack', deps.encryptionKey),
     getConnectionInfo(deps.db, installation.id, 'linear'),
     listFailedTeamDeliveries(deps.db, installation.id, TEAM_FAILURE_LIMIT),

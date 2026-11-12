@@ -15,7 +15,12 @@ import {
   upsertInstallation,
   upsertMember,
 } from '@standcast/db';
-import type { CheckRunInput, ConfigRepository, PullRequestDetail } from '@standcast/github';
+import type {
+  CheckRunInput,
+  ConfigRepository,
+  PullRequestDetail,
+  RepositorySelection,
+} from '@standcast/github';
 import type { LinearOrganization, LinearTokens } from '@standcast/linear';
 import { createMemoryQueue } from '@standcast/queue';
 import { db } from '../../../db/test/setup';
@@ -60,6 +65,7 @@ export type FakeOptions = {
   webCode?: (code: string) => Promise<string>;
   slackExchange?: Deps['slack']['exchangeCode'];
   sourceError?: unknown;
+  repositorySelection?: RepositorySelection | null | Error;
   pulls?: Record<string, PullRequestDetail | null>;
   files?: Record<string, string[]>;
   codeowners?: Record<string, string | null>;
@@ -173,6 +179,7 @@ export function fakeDeps(opts: FakeOptions = {}) {
     snapshots: [] as string[],
     codeowners: [] as { repo: string; ref: string }[],
     createCheckRun: [] as CheckRunInput[],
+    repositorySelection: 0,
   };
   const orgMembers = new Set(['alice']);
   const roles = new Map<string, { role: string; state: string }>();
@@ -249,6 +256,11 @@ export function fakeDeps(opts: FakeOptions = {}) {
         calls.configRepos.push(options?.repo);
         if (opts.sourceError) throw opts.sourceError;
         return opts.source ?? { found: false, reason: 'no_repo', repository: null };
+      },
+      fetchRepositorySelection: async () => {
+        calls.repositorySelection += 1;
+        if (opts.repositorySelection instanceof Error) throw opts.repositorySelection;
+        return opts.repositorySelection ?? null;
       },
       getPullRequest: async (_o, ref) => {
         const key = `${ref.owner}/${ref.repo}#${ref.number}`;

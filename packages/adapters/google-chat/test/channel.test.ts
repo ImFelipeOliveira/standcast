@@ -61,7 +61,7 @@ describe('createGoogleChatChannel', () => {
     expect(calls[0]?.url).toBe(`${API}/v1/spaces/AAA/messages`);
     expect(calls[0]?.headers.get('authorization')).toBe('Bearer ya29.token');
     expect(calls[0]?.headers.get('content-type')).toBe('application/json');
-    expect(calls[0]?.body).toEqual({ text: 'hi' });
+    expect(calls[0]?.body).toEqual({ text: 'hi', markupSyntax: 'MARKUP_SYNTAX_CHAT' });
     expect(calls[0]?.signal).toBeInstanceOf(AbortSignal);
     expect(GOOGLE_CHAT_REQUEST_TIMEOUT_MS).toBe(15_000);
   });
@@ -81,7 +81,11 @@ describe('createGoogleChatChannel', () => {
     expect(calls[0]?.url).toBe(
       `${API}/v1/spaces/AAA/messages?messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD`,
     );
-    expect(calls[0]?.body).toEqual({ text: 'hi', thread: { name: 'spaces/AAA/threads/t1' } });
+    expect(calls[0]?.body).toEqual({
+      text: 'hi',
+      markupSyntax: 'MARKUP_SYNTAX_CHAT',
+      thread: { name: 'spaces/AAA/threads/t1' },
+    });
   });
 
   test('a response without a thread is invalid_response', async () => {
