@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+### 0.9.4 — 2026-11-12
+
 - The `/daily` skill and the MCP server summarize yesterday in at most 5 lines, grouped by project or theme, instead of one line per pull request.
 - On a workday, when the digest window closes before the digest is sent, the first daily submitted that day after the window queues the digest, with every daily sent so far. It is not queued again once the digest has used all its attempts, and a queued digest can still fail like any other. Before, that daily was stored but never posted.
 - **Create the .github-private repository** in the web app opens GitHub's form with the organization as the owner, instead of your personal account. When the GitHub App only has access to selected repositories, the page also reminds you to add the new repository to the app.
