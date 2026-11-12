@@ -19,7 +19,7 @@ O plugin do Standcast para o Claude Code adiciona a skill `/daily` e registra o 
 Digite `/daily`, ou peça do seu jeito: "minha daily", "standup", "o que eu fiz ontem". A skill:
 
 1. Busca o rascunho do ontem a partir da sua atividade no GitHub, dos seus cards se o Linear está conectado e das suas sessões locais do Claude Code. Se você está em mais de uma organização, pergunta qual.
-2. Mostra o ontem, uma linha por trabalho, e deixa você corrigir, remover ou adicionar itens. Ela pode adicionar coisas que de fato aconteceram nesta sessão do Claude Code.
+2. Mostra o ontem resumido, em até 5 linhas agrupadas por projeto ou tema, e deixa você corrigir, remover ou adicionar itens. Ela pode adicionar coisas que de fato aconteceram nesta sessão do Claude Code.
 3. Se o rascunho tem impedimentos sugeridos, como um pull request seu esperando revisão, com checks falhando ou um card em andamento há dias, pergunta sobre cada um. Se for um impedimento de verdade, ele entra nos seus impedimentos com o link; se não, a skill o ignora e ele só volta se o sinal mudar. Ela nunca adiciona uma sugestão sem a sua resposta, e as sugestões só são visíveis para você.
 4. Pergunta o que você vai fazer hoje e o que está travando você, no seu idioma.
 5. Pergunta se você precisa de apoio de alguém, sem estar travado: um review, uma decisão, um pareamento. "Não" deixa a seção vazia.
@@ -39,7 +39,7 @@ Ela usa as tools do MCP quando estão disponíveis e, senão, a CLI `standcast`.
 
 ## Suas sessões de IA
 
-O rascunho usa as suas sessões do Claude Code na janela do rascunho, então o ontem cobre também o trabalho que ainda não tem pull request. Uma sessão se junta a um pull request pelo repositório e pela branch, ou a um card quando a branch cita o card. Cada trabalho vira uma linha, escrita no seu idioma a partir dos títulos da atividade e dos títulos e prompts das sessões.
+O rascunho usa as suas sessões do Claude Code na janela do rascunho, então o ontem cobre também o trabalho que ainda não tem pull request. Uma sessão se junta a um pull request pelo repositório e pela branch, ou a um card quando a branch cita o card. O ontem vira um resumo de até 5 linhas, agrupadas por projeto ou tema, escrito no seu idioma a partir dos títulos da atividade e dos títulos e prompts das sessões.
 
 - O Standcast lê os arquivos das sessões em `~/.claude/projects` na sua máquina: títulos, até cinco dos seus prompts por sessão, a pasta de trabalho, a branch e os caminhos dos arquivos editados. Trechos que parecem segredos viram `[redacted]`.
 - O Standcast lê os dados das sessões na sua máquina e não os envia para a API do Standcast, para logs nem para webhooks. O Claude Code recebe esses dados para montar o rascunho e os envia ao provedor do modelo dele, como o resto da conversa. Só a daily que você confirma é enviada ao Standcast.

@@ -120,7 +120,8 @@ describe('daily skill', () => {
   });
 
   test('builds yesterday from work items and honors turning sessions off', () => {
-    expect(skill).toContain('one line per work item');
+    expect(skill).toContain('at most 5 lines');
+    expect(skill).not.toContain('one line per work item');
     expect(skill).toContain('includeSessions: false');
     expect(skill).toContain('standcast draft --sessions');
     expect(skill).toContain('standcast draft --sessions --org <org>');

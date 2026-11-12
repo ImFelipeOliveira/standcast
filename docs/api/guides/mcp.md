@@ -81,7 +81,7 @@ Every tool declares an input schema, an output schema and annotations, and retur
 
 The MCP server runs on your machine and reads the session files itself, from `~/.claude/projects` (or `STANDCAST_CLAUDE_DIR`). Standcast does not send session data to the Standcast API, logs or webhooks. The MCP client you connect receives it and may send it to its model provider. Only the daily you confirm is submitted to Standcast.
 
-The agent builds yesterday with one line per work item, in your language, and does not paste your prompts into the daily unless you ask. To leave your sessions out, tell the agent (it calls again with `includeSessions: false`), or set `STANDCAST_SESSIONS=off` in the environment of the MCP server to turn it off everywhere.
+The agent builds yesterday as a short summary, at most 5 lines grouped by project or theme, in your language, and does not paste your prompts into the daily unless you ask. To leave your sessions out, tell the agent (it calls again with `includeSessions: false`), or set `STANDCAST_SESSIONS=off` in the environment of the MCP server to turn it off everywhere.
 
 ### Suggested blockers
 

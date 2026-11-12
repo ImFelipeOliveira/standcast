@@ -19,7 +19,7 @@ The Standcast plugin for Claude Code adds the `/daily` skill and registers the S
 Type `/daily`, or ask for it in your words: "my daily", "standup", "what did I do yesterday". The skill:
 
 1. Gets the draft of yesterday from your GitHub activity, your cards if Linear is connected, and your local Claude Code sessions. If you belong to more than one organization, it asks which one.
-2. Shows yesterday, one line per piece of work, and lets you correct, remove or add items. It may add things that really happened in this Claude Code session.
+2. Shows yesterday as a short summary, at most 5 lines grouped by project or theme, and lets you correct, remove or add items. It may add things that really happened in this Claude Code session.
 3. If the draft has suggested blockers, such as your pull request waiting for review, failing checks or a card in progress for days, asks about each one. If it is a real blocker, it goes into your blockers with its link; if not, the skill ignores it and it does not come back unless the signal changes. It never adds a suggestion without your answer, and suggestions are visible only to you.
 4. Asks what you will do today and what blocks you, in your language.
 5. Asks whether you need support from anyone, without being blocked: a review, a decision, a pairing session. "No" leaves the section empty.
@@ -39,7 +39,7 @@ It uses the MCP tools when they are available, and falls back to the `standcast`
 
 ## Your AI sessions
 
-The draft uses your Claude Code sessions from the draft window, so yesterday covers work that has no pull request yet. A session joins a pull request by its repository and branch, or a card when the branch names it. Each piece of work becomes one line, written in your language from the activity titles and the session titles and prompts.
+The draft uses your Claude Code sessions from the draft window, so yesterday covers work that has no pull request yet. A session joins a pull request by its repository and branch, or a card when the branch names it. Yesterday becomes a short summary of at most 5 lines, grouped by project or theme, written in your language from the activity titles and the session titles and prompts.
 
 - Standcast reads the session files in `~/.claude/projects` on your machine: titles, up to five of your prompts per session, the working directory, the branch and the paths of edited files. Tokens that look like secrets are replaced by `[redacted]`.
 - Standcast reads session data on your machine and does not send it to the Standcast API, logs or webhooks. Claude Code receives it to write the draft and sends it to its model provider, like the rest of the conversation. Only the daily you confirm is submitted to Standcast.
