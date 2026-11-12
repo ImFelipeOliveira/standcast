@@ -241,6 +241,8 @@ describe('getSetupStatus', () => {
     expect((await getSetupStatus(deps, isMember, member, INST)).configRepo).toEqual({
       exists: false,
       name: '.github-private',
+      repositorySelection: null,
+      installationSettingsUrl: 'https://github.com/organizations/acme/settings/installations/11',
     });
   });
 

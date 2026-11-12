@@ -65,16 +65,29 @@ export function localInstant(date: string, hhmm: string, tz: string): Date {
   return new Date(new TZDate(y, m - 1, d, h as number, min as number, 0, 0, tz).getTime());
 }
 
+export const DUE_GRACE_MINUTES = 120;
+
+function minutesSince(now: Date, date: string, hhmm: string, tz: string): number {
+  return Math.floor((now.getTime() - localInstant(date, hhmm, tz).getTime()) / 60_000);
+}
+
 export function isDue(
   now: Date,
   date: string,
   hhmm: string,
   tz: string,
-  graceMinutes = 120,
+  graceMinutes = DUE_GRACE_MINUTES,
 ): boolean {
-  const [y, m, d] = parseDate(date);
-  const [h, min] = hhmm.split(':').map(Number);
-  const start = new TZDate(y, m - 1, d, h as number, min as number, 0, 0, tz).getTime();
-  const elapsed = Math.floor((now.getTime() - start) / 60_000);
+  const elapsed = minutesSince(now, date, hhmm, tz);
   return elapsed >= 0 && elapsed <= graceMinutes;
+}
+
+export function isPastDue(
+  now: Date,
+  date: string,
+  hhmm: string,
+  tz: string,
+  graceMinutes = DUE_GRACE_MINUTES,
+): boolean {
+  return minutesSince(now, date, hhmm, tz) > graceMinutes;
 }

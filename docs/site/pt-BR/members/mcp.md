@@ -88,7 +88,7 @@ A `standcast_get_draft` também lê as suas sessões locais do Claude Code na ja
 
 O servidor MCP roda na sua máquina e lê os arquivos das sessões ele mesmo, em `~/.claude/projects` (ou `STANDCAST_CLAUDE_DIR`). O Standcast não envia os dados das sessões para a API do Standcast, para logs nem para webhooks. O cliente MCP que você conecta recebe esses dados e pode enviá-los ao provedor do modelo dele. Só a daily que você confirma é enviada ao Standcast.
 
-O agente monta o ontem com uma linha por item de trabalho, no seu idioma, e não cola os seus prompts na daily, a menos que você peça. Para deixar as sessões de fora, diga ao agente (ele chama de novo com `includeSessions: false`), ou defina `STANDCAST_SESSIONS=off` no ambiente do servidor MCP para desligar em todo lugar.
+O agente monta o ontem resumido, em até 5 linhas agrupadas por projeto ou tema, no seu idioma, e não cola os seus prompts na daily, a menos que você peça. Para deixar as sessões de fora, diga ao agente (ele chama de novo com `includeSessions: false`), ou defina `STANDCAST_SESSIONS=off` no ambiente do servidor MCP para desligar em todo lugar.
 
 ## Impedimentos sugeridos
 

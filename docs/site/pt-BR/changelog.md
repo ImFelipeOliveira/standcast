@@ -10,6 +10,10 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- A skill `/daily` e o servidor MCP resumem o ontem em até 5 linhas, agrupadas por projeto ou tema, em vez de uma linha por pull request.
+- Num dia útil, quando a janela do consolidado fecha sem que ele tenha sido enviado, a primeira daily enviada naquele dia depois da janela coloca o consolidado na fila, com todas as dailies enviadas até então. Ele não volta para a fila depois de usar todas as tentativas, e um consolidado na fila ainda pode falhar como qualquer outro. Antes, essa daily era guardada mas nunca publicada.
+- **Criar o repositório .github-private** no app web abre o formulário do GitHub com a organização como dona, em vez da sua conta pessoal. Quando o GitHub App só tem acesso a repositórios selecionados, a página também lembra de adicionar o repositório novo ao app.
+
 ### 0.9.3 — 11/11/2026
 
 - As mensagens em inglês do app do Google Chat e do app web apontam para Settings → Google Chat, o nome da página em inglês, em vez de Configuration.

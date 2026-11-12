@@ -192,6 +192,9 @@ export const ptBR = {
     'O modelo tem um time no Slack e um time no Google Chat. Mantenha o que você usa, ajuste o canal dele e apague o outro antes do commit.',
   'setup.config.createFile': 'Criar standcast.yml com o modelo',
   'setup.config.createRepo': 'Criar o repositório {repo}',
+  'setup.config.selectedRepositories':
+    'O GitHub App do Standcast só tem acesso a repositórios selecionados. Depois de criar o {repo}, adicione-o ao app, ou o Standcast não vai encontrá-lo.',
+  'setup.config.chooseRepositories': 'Escolher repositórios no GitHub',
   'setup.config.template': 'Modelo do standcast.yml',
   'setup.config.templateTeam': 'Time',
   'setup.config.editOnGithub': 'Editar no GitHub',

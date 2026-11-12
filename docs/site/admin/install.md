@@ -74,7 +74,7 @@ teams:
       channel: spaces/AAAAAAAAAAA
 ```
 
-Delete the team for the chat you do not use. Change the team name, time zone, times, people and channel, then commit. For Google Chat, the channel is the space name from the Google Chat card. The file must be at the **root** of the repository, on the default branch. If neither `.github-private` nor `.github` exists, the page shows **Create the .github-private repository** instead, which opens GitHub's new repository form with the name filled in and the visibility set to private.
+Delete the team for the chat you do not use. Change the team name, time zone, times, people and channel, then commit. For Google Chat, the channel is the space name from the Google Chat card. The file must be at the **root** of the repository, on the default branch. If neither `.github-private` nor `.github` exists, the page shows **Create the .github-private repository** instead, which opens GitHub's new repository form with your organization as the owner, the name filled in and the visibility set to private. If the GitHub App only has access to selected repositories, the page also says so and shows **Choose repositories on GitHub**: after you create the repository, add it to the app there, or Standcast will not find it.
 
 The template lists your login. For a larger team, prefer a GitHub team (`members: ["@org/team-slug"]`), so the file lists no logins, and leave out the top-level `members` map: people are linked by the verified email of their GitHub account when they run `standcast login`, and in Google Chat by a direct message to the app. `members.<login>` overrides are only for exceptions, and they are rejected in a public repository. See [Identity mapping](/admin/configuration#identity-mapping).
 

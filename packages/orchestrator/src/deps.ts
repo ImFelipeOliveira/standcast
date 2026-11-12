@@ -5,6 +5,7 @@ import type {
   createCheckRun,
   fetchCodeowners,
   fetchConfigSource,
+  fetchRepositorySelection,
   getPullRequest,
   getUserProfile,
   listActivity,
@@ -33,6 +34,7 @@ export type Deps = {
     listActivity: typeof listActivity;
     resolveTeamMembers: typeof resolveTeamMembers;
     fetchConfigSource: typeof fetchConfigSource;
+    fetchRepositorySelection: typeof fetchRepositorySelection;
     getPullRequest: typeof getPullRequest;
     pullRequestMerged: typeof pullRequestMerged;
     listPullRequestFiles: typeof listPullRequestFiles;

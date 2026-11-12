@@ -1,5 +1,5 @@
 import type { SetupStatus } from '@standcast/orchestrator';
-import { Alert, AlertTitle } from '../../components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
@@ -49,8 +49,8 @@ export function newConfigFileUrl(
   return `https://github.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/new/${encodeURIComponent(branch)}?filename=standcast.yml&value=${encodeURIComponent(template)}`;
 }
 
-export function newConfigRepoUrl(repo: string): string {
-  return `https://github.com/new?name=${encodeURIComponent(repo)}&visibility=private`;
+export function newConfigRepoUrl(owner: string, repo: string): string {
+  return `https://github.com/new?owner=${encodeURIComponent(owner)}&name=${encodeURIComponent(repo)}&visibility=private`;
 }
 
 function LinkButton({ href, primary, label }: { href: string; primary?: boolean; label: string }) {
@@ -85,7 +85,7 @@ export function ConfigFile({ status }: { status: SetupStatus }) {
       ) : (
         <LinkButton
           primary
-          href={newConfigRepoUrl(status.configRepo.name)}
+          href={newConfigRepoUrl(status.owner, status.configRepo.name)}
           label={t('setup.config.createRepo', { repo: status.configRepo.name })}
         />
       )
@@ -116,6 +116,20 @@ export function ConfigFile({ status }: { status: SetupStatus }) {
           {action}
         </span>
       </CardHeader>
+      {!configured &&
+      !status.configRepo.exists &&
+      status.configRepo.repositorySelection === 'selected' ? (
+        <Alert variant="warn" role="status">
+          <AlertDescription className="flex flex-col items-start gap-2">
+            <p>{t('setup.config.selectedRepositories', { repo: status.configRepo.name })}</p>
+            <Button asChild variant="outline">
+              <a href={status.configRepo.installationSettingsUrl}>
+                {t('setup.config.chooseRepositories')}
+              </a>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : null}
       {status.configNotices.map((notice) => (
         <Alert key={notice} variant="warn" role="status">
           <AlertTitle>{t(CONFIG_NOTICES[notice])}</AlertTitle>
