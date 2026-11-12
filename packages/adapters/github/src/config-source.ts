@@ -81,3 +81,13 @@ export async function fetchConfigSource(
   const repository = withoutFile[0] ?? null;
   return { found: false, reason: repository ? 'no_file' : 'no_repo', repository };
 }
+
+export type RepositorySelection = 'all' | 'selected';
+
+export async function fetchRepositorySelection(
+  octokit: Octokit,
+): Promise<RepositorySelection | null> {
+  const response = await octokit.request('GET /installation/repositories', { per_page: 1 });
+  const selection = (response.data as { repository_selection?: string }).repository_selection;
+  return selection === 'all' || selection === 'selected' ? selection : null;
+}

@@ -1,5 +1,9 @@
 import { describe, expect, test } from 'bun:test';
-import { type ConfigRepository, fetchConfigSource } from '../src/config-source';
+import {
+  type ConfigRepository,
+  fetchConfigSource,
+  fetchRepositorySelection,
+} from '../src/config-source';
 import { fixture, octokitWith } from './helpers';
 
 const SOURCE = 'timezone: America/Sao_Paulo\n';
@@ -166,5 +170,42 @@ describe('fetchConfigSource revision', () => {
     await fetchConfigSource(octokit, 'acme');
     const file = calls.find((call) => call.url.pathname.endsWith('standcast.yml'));
     expect(file?.url.searchParams.has('ref')).toBe(false);
+  });
+});
+
+describe('fetchRepositorySelection', () => {
+  test('returns selected when the installation has access to chosen repositories only', async () => {
+    const { octokit, calls } = octokitWith({
+      'GET /installation/repositories': {
+        body: JSON.stringify({
+          total_count: 1,
+          repositories: [],
+          repository_selection: 'selected',
+        }),
+      },
+    });
+    expect(await fetchRepositorySelection(octokit)).toBe('selected');
+    expect(calls[0]?.url.searchParams.get('per_page')).toBe('1');
+  });
+
+  test('returns all when the installation covers every repository', async () => {
+    const { octokit } = octokitWith({
+      'GET /installation/repositories': {
+        body: JSON.stringify({ total_count: 3, repositories: [], repository_selection: 'all' }),
+      },
+    });
+    expect(await fetchRepositorySelection(octokit)).toBe('all');
+  });
+
+  test('returns null when github does not say', async () => {
+    const { octokit } = octokitWith({
+      'GET /installation/repositories': { body: JSON.stringify({ total_count: 0 }) },
+    });
+    expect(await fetchRepositorySelection(octokit)).toBeNull();
+  });
+
+  test('throws when github fails', async () => {
+    const { octokit } = octokitWith({ 'GET /installation/repositories': { status: 500 } });
+    await expect(fetchRepositorySelection(octokit)).rejects.toThrow();
   });
 });

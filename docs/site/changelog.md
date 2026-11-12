@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- **Create the .github-private repository** in the web app opens GitHub's form with the organization as the owner, instead of your personal account. When the GitHub App only has access to selected repositories, the page also reminds you to add the new repository to the app.
+
 ### 0.9.3 — 2026-11-11
 
 - The English messages of the Google Chat app and the web app point to Settings → Google Chat, the name of the page in English, instead of Configuration.
