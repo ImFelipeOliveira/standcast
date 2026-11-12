@@ -1,4 +1,11 @@
-import type { DailyConfirmation, DailySubmission, Item, StoredDaily } from '@standcast/core';
+import {
+  type DailyConfirmation,
+  type DailySubmission,
+  type Item,
+  isPastDue,
+  isWorkday,
+  type StoredDaily,
+} from '@standcast/core';
 import {
   confirmSuggestionsByUrl,
   getDelivery,
@@ -12,6 +19,7 @@ import { type MembershipCheck, type OrgContext, resolveOrgContext } from '../acc
 import { emitEventSafely } from '../delivery/emit-event';
 import { blockerRouteId, newBlockers, newRoutedBlockers } from '../delivery/events';
 import { ROUTE_BLOCKER_JOB, type RouteBlockerJob } from '../delivery/route-blocker';
+import { enqueueDigestIfOpen } from '../delivery/send-digest';
 import { recordBlockers } from './blocker-states';
 
 export type SubmitDailyResult = { date: string; teams: string[]; late: boolean };
@@ -27,6 +35,19 @@ async function isLate(deps: Deps, ctx: OrgContext): Promise<boolean> {
     if (delivery?.status === 'sent') return true;
   }
   return false;
+}
+
+async function enqueueMissedDigests(deps: Deps, ctx: OrgContext): Promise<void> {
+  const now = deps.now();
+  for (const team of ctx.mine) {
+    if (!isWorkday(ctx.date, team)) continue;
+    if (!isPastDue(now, ctx.date, team.digestAt, team.timezone)) continue;
+    await enqueueDigestIfOpen(deps, {
+      installationId: ctx.installationId,
+      teamName: team.name,
+      date: ctx.date,
+    });
+  }
 }
 
 async function confirmBlockerSuggestions(
@@ -108,6 +129,7 @@ export async function submitDaily(
       date: ctx.date,
     });
   }
+  await enqueueMissedDigests(deps, ctx);
   const fresh = newBlockers(previous?.payload.blockers, payload.blockers);
   await enqueueBlockerRoutes(
     deps,

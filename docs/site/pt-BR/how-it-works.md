@@ -42,7 +42,7 @@ No `digest_at`, no fuso do time e só em dias úteis, o Standcast publica uma me
 
 As pessoas são mencionadas no Slack ou no Google Chat quando o Standcast conhece o usuário delas lá. Senão, aparecem como `@` seguido do login do GitHub, em texto. Veja [Slack](/pt-BR/admin/slack#como-as-pessoas-sao-mencionadas) e [Google Chat](/pt-BR/admin/google-chat#como-as-pessoas-sao-vinculadas).
 
-Existe exatamente um consolidado por time por dia. Se o worker estiver fora do ar às 10:00, o consolidado sai quando ele voltar, desde que dentro de 120 minutos. Depois das 12:00, ele não sai naquele dia. Uma publicação com falha é tentada até 3 vezes no total, e o erro aparece na página de setup.
+Existe exatamente um consolidado por time por dia. Se o worker estiver fora do ar às 10:00, o consolidado sai quando ele voltar, desde que dentro de 120 minutos. Depois das 12:00, o worker não o envia mais sozinho: a primeira daily enviada naquele dia depois das 12:00 dispara o consolidado, com todas as dailies enviadas até então. Uma publicação com falha é tentada até 3 vezes no total, e o erro aparece na página de setup.
 
 ## 10:40 · Bob manda uma daily atrasada
 

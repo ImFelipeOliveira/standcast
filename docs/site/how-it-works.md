@@ -42,7 +42,7 @@ At `digest_at`, in the team's time zone and only on workdays, Standcast posts on
 
 People are mentioned in Slack or Google Chat when Standcast knows their user there. Otherwise they appear as `@` followed by their GitHub login, as plain text. See [Slack](/admin/slack#how-people-are-mentioned) and [Google Chat](/admin/google-chat#how-people-are-linked).
 
-There is exactly one digest per team per day. If the worker is down at 10:00, the digest goes out when it comes back, as long as that is within 120 minutes. After 12:00 it is skipped for that day. A failed post is retried up to 3 attempts in total, and the error shows up on the setup page.
+There is exactly one digest per team per day. If the worker is down at 10:00, the digest goes out when it comes back, as long as that is within 120 minutes. After 12:00 the worker no longer sends it on its own: the first daily sent that day after 12:00 sends the digest, with every daily sent so far. A failed post is retried up to 3 attempts in total, and the error shows up on the setup page.
 
 ## 10:40 · Bob sends a late daily
 

@@ -12,12 +12,14 @@ import {
   completeDelivery,
   type DeliveryKey,
   failDelivery,
+  getDelivery,
   getInstallation,
   getMemberLogins,
   listDailies,
+  MAX_DELIVERY_ATTEMPTS,
   operationalConfig,
 } from '@standcast/db';
-import type { WorkerDeps } from '../../deps';
+import type { Deps, WorkerDeps } from '../../deps';
 import { resolveMemberTeams } from '../../teams';
 import { isChannelLinked } from '../chat/chat';
 import { chatUserIdsFor } from '../chat/chat-identity';
@@ -27,6 +29,18 @@ import { emitEventSafely } from './emit-event';
 export const DIGEST_POST_DEADLINE_MS = 5 * 60 * 1000;
 
 export type SendDigestJob = { installationId: number; teamName: string; date: string };
+
+export async function enqueueDigestIfOpen(
+  deps: Pick<Deps, 'db' | 'queue'>,
+  job: SendDigestJob,
+): Promise<void> {
+  const delivery = await getDelivery(deps.db, { ...job, kind: 'digest' });
+  if (delivery?.status === 'sent') return;
+  if (delivery?.status === 'failed' && delivery.attempts >= MAX_DELIVERY_ATTEMPTS) return;
+  await deps.queue.enqueue('send-digest', job, {
+    singletonKey: `digest:${job.installationId}:${job.teamName}:${job.date}`,
+  });
+}
 
 type Daily = Awaited<ReturnType<typeof listDailies>>[number];
 

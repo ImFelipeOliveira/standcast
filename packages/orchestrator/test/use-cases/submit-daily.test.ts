@@ -2,6 +2,7 @@ import { describe, expect, spyOn, test } from 'bun:test';
 import {
   claimDelivery,
   completeDelivery,
+  failDelivery,
   getMemberDaily,
   listDailies,
   listPendingSuggestions,
@@ -100,6 +101,44 @@ describe('submitDaily', () => {
         data: { installationId: INST, memberId: member.id, date: '2026-10-28' },
       },
     ]);
+  });
+
+  test('a daily sent after a missed digest window enqueues the digest', async () => {
+    const { deps, isMember, member, queue, setNow } = await setup();
+    setNow(new Date('2026-10-28T20:20:00Z'));
+    const result = await submitDaily(deps, isMember, member, daily);
+    expect(result.late).toBe(false);
+    expect(queue.enqueued).toEqual([
+      {
+        name: 'send-digest',
+        data: { installationId: INST, teamName: 'Alpha', date: '2026-10-28' },
+      },
+    ]);
+  });
+
+  test('a daily sent within the digest window leaves the digest to the tick', async () => {
+    const { deps, isMember, member, queue, setNow } = await setup();
+    setNow(new Date('2026-10-28T14:30:00Z'));
+    await submitDaily(deps, isMember, member, daily);
+    expect(queue.enqueued).toEqual([]);
+  });
+
+  test('a daily sent after the digest attempts ran out does not enqueue the digest', async () => {
+    const { deps, isMember, member, queue, setNow } = await setup();
+    const key = {
+      installationId: INST,
+      teamName: 'Alpha',
+      date: '2026-10-28',
+      kind: 'digest' as const,
+    };
+    for (let i = 0; i < 3; i++) {
+      const claim = await claimDelivery(db, key);
+      if (claim.status !== 'claimed') throw new Error('not claimed');
+      await failDelivery(db, key, claim.token, 'no_chat_connection');
+    }
+    setNow(new Date('2026-10-28T20:20:00Z'));
+    await submitDaily(deps, isMember, member, daily);
+    expect(queue.enqueued).toEqual([]);
   });
 
   test('enqueues one route-blocker job per new blocker only', async () => {
