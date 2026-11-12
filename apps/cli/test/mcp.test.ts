@@ -252,6 +252,7 @@ describe('mcp server', () => {
     expect(instructions).toContain('at most 5 lines');
     expect(instructions).not.toContain('one line per work item');
     expect(instructions).toContain('the pull request ref when it has one, otherwise the card ref');
+    expect(instructions).toContain('A line built only from sessions has no ref.');
     expect(instructions).toContain('never sent to Standcast');
   });
 
