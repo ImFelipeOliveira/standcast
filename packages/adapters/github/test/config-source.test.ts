@@ -1,8 +1,10 @@
 import { describe, expect, test } from 'bun:test';
+import { Octokit } from '@octokit/core';
 import {
   type ConfigRepository,
   fetchConfigSource,
   fetchRepositorySelection,
+  REPOSITORY_SELECTION_TIMEOUT_MS,
 } from '../src/config-source';
 import { fixture, octokitWith } from './helpers';
 
@@ -208,4 +210,23 @@ describe('fetchRepositorySelection', () => {
     const { octokit } = octokitWith({ 'GET /installation/repositories': { status: 500 } });
     await expect(fetchRepositorySelection(octokit)).rejects.toThrow();
   });
+
+  test(
+    'a request that never settles times out and falls back to null',
+    async () => {
+      const hanging = (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const signal = init?.signal ?? (input instanceof Request ? input.signal : undefined);
+        return new Promise<Response>((_, reject) => {
+          signal?.addEventListener('abort', () => reject(signal.reason));
+        });
+      }) as typeof fetch;
+      const octokit = new Octokit({ request: { fetch: hanging } });
+      const started = Date.now();
+      const selection = await fetchRepositorySelection(octokit).catch(() => null);
+      expect(selection).toBeNull();
+      expect(Date.now() - started).toBeGreaterThanOrEqual(REPOSITORY_SELECTION_TIMEOUT_MS - 100);
+      expect(Date.now() - started).toBeLessThan(REPOSITORY_SELECTION_TIMEOUT_MS + 1000);
+    },
+    REPOSITORY_SELECTION_TIMEOUT_MS + 3000,
+  );
 });
