@@ -39,7 +39,7 @@ It uses the MCP tools when they are available, and falls back to the `standcast`
 
 ## Your AI sessions
 
-The draft uses your Claude Code sessions from the draft window, so yesterday covers work that has no pull request yet. A session joins a pull request by its repository and branch, or a card when the branch names it. Each piece of work becomes one line, written in your language from the activity titles and the session titles and prompts.
+The draft uses your Claude Code sessions from the draft window, so yesterday covers work that has no pull request yet. A session joins a pull request by its repository and branch, or a card when the branch names it. Yesterday becomes a short summary of at most 5 lines, grouped by project or theme, written in your language from the activity titles and the session titles and prompts.
 
 - Standcast reads the session files in `~/.claude/projects` on your machine: titles, up to five of your prompts per session, the working directory, the branch and the paths of edited files. Tokens that look like secrets are replaced by `[redacted]`.
 - Standcast reads session data on your machine and does not send it to the Standcast API, logs or webhooks. Claude Code receives it to write the draft and sends it to its model provider, like the rest of the conversation. Only the daily you confirm is submitted to Standcast.

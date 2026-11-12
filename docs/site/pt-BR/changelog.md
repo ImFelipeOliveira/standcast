@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- A skill `/daily` e o servidor MCP resumem o ontem em até 5 linhas, agrupadas por projeto ou tema, em vez de uma linha por pull request.
+
 ### 0.9.3 — 11/11/2026
 
 - As mensagens em inglês do app do Google Chat e do app web apontam para Settings → Google Chat, o nome da página em inglês, em vez de Configuration.
