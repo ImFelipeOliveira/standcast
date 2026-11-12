@@ -18,6 +18,7 @@ import {
 import type { WorkerDeps } from '../../deps';
 import { logError } from '../../log-error';
 import { resolveMemberTeams } from '../../teams';
+import { enqueueDigestIfOpen } from '../delivery/send-digest';
 import { enqueueScanJob } from './scan-member-signals';
 
 type OperationalInstallation = Awaited<ReturnType<typeof listOperationalInstallations>>[number];
@@ -163,19 +164,11 @@ export async function runTick(deps: WorkerDeps): Promise<void> {
       );
       const date = dueDigestDate(now, team);
       if (!date) continue;
-      const delivery = await getDelivery(deps.db, {
+      await enqueueDigestIfOpen(deps, {
         installationId: installation.id,
         teamName: team.name,
         date,
-        kind: 'digest',
       });
-      if (delivery?.status === 'sent') continue;
-      if (delivery?.status === 'failed' && delivery.attempts >= MAX_DELIVERY_ATTEMPTS) continue;
-      await deps.queue.enqueue(
-        'send-digest',
-        { installationId: installation.id, teamName: team.name, date },
-        { singletonKey: `digest:${installation.id}:${team.name}:${date}` },
-      );
     }
   }
 }
