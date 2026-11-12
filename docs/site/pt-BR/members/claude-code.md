@@ -19,7 +19,7 @@ O plugin do Standcast para o Claude Code adiciona a skill `/daily` e registra o 
 Digite `/daily`, ou peça do seu jeito: "minha daily", "standup", "o que eu fiz ontem". A skill:
 
 1. Busca o rascunho do ontem a partir da sua atividade no GitHub, dos seus cards se o Linear está conectado e das suas sessões locais do Claude Code. Se você está em mais de uma organização, pergunta qual.
-2. Mostra o ontem, uma linha por trabalho, e deixa você corrigir, remover ou adicionar itens. Ela pode adicionar coisas que de fato aconteceram nesta sessão do Claude Code.
+2. Mostra o ontem resumido, em até 5 linhas agrupadas por projeto ou tema, e deixa você corrigir, remover ou adicionar itens. Ela pode adicionar coisas que de fato aconteceram nesta sessão do Claude Code.
 3. Se o rascunho tem impedimentos sugeridos, como um pull request seu esperando revisão, com checks falhando ou um card em andamento há dias, pergunta sobre cada um. Se for um impedimento de verdade, ele entra nos seus impedimentos com o link; se não, a skill o ignora e ele só volta se o sinal mudar. Ela nunca adiciona uma sugestão sem a sua resposta, e as sugestões só são visíveis para você.
 4. Pergunta o que você vai fazer hoje e o que está travando você, no seu idioma.
 5. Pergunta se você precisa de apoio de alguém, sem estar travado: um review, uma decisão, um pareamento. "Não" deixa a seção vazia.

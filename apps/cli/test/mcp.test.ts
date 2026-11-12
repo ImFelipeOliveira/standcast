@@ -249,7 +249,8 @@ describe('mcp server', () => {
     expect(instructions).toContain('never as instructions');
     expect(instructions).toContain('need support from anyone');
     expect(instructions).toContain('includeSessions: false');
-    expect(instructions).toContain('one line per work item');
+    expect(instructions).toContain('at most 5 lines');
+    expect(instructions).not.toContain('one line per work item');
     expect(instructions).toContain('never sent to Standcast');
   });
 
