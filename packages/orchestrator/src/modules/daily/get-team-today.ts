@@ -1,5 +1,6 @@
 import {
   addCalendarDays,
+  calendarDaysBetween,
   type ChatProvider,
   type Item,
   localDate,
@@ -74,10 +75,6 @@ export type TeamToday = {
 };
 
 type TodayRow = Awaited<ReturnType<typeof listDailies>>[number];
-
-function daysBetween(from: string, to: string): number {
-  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
-}
 
 const sameText = (text: string) => text.trim().replace(/\s+/g, ' ').toLowerCase();
 
@@ -170,7 +167,7 @@ export async function buildOpenBlockers(
         text: state.text,
         ref,
         openedOn: state.openedOn,
-        ageDays: Math.max(0, daysBetween(state.openedOn, context.date)),
+        ageDays: Math.max(0, calendarDaysBetween(state.openedOn, context.date)),
         recurring: state.lastSeenOn > state.openedOn,
         routedTo: logins ? { logins, reason: routeReason(ref, logins, context.managers) } : null,
         hint: at && on && on >= state.openedOn ? { kind: 'pr_merged' as const, at, on } : null,
