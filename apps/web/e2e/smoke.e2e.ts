@@ -29,6 +29,44 @@ test('hoje shows the team blocker and who sent today', async ({ page, context })
   await expect(page.getByLabel('Resumo de hoje')).toContainText('1 de 2');
 });
 
+test('admins move between settings tabs and redeliver a failed webhook', async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.goto(`/orgs/${INSTALLATION_ID}/configuracao?connected=slack`);
+  await expect(page).toHaveURL(`/orgs/${INSTALLATION_ID}/settings?connected=slack`);
+  const tabs = page.getByRole('navigation', { name: 'Seções da configuração' });
+  await expect(tabs.locator('[aria-current="page"]')).toHaveText(['Geral']);
+
+  await tabs.getByRole('link', { name: 'Pessoas e vínculos' }).click();
+  await expect(page).toHaveURL(`/orgs/${INSTALLATION_ID}/settings/people`);
+  await expect(tabs.locator('[aria-current="page"]')).toHaveText(['Pessoas e vínculos']);
+  await expect(page.getByRole('cell', { name: '@alice' })).toBeVisible();
+
+  await tabs.getByRole('link', { name: 'API e webhooks' }).click();
+  await expect(page).toHaveURL(`/orgs/${INSTALLATION_ID}/settings/api`);
+  await expect(tabs.locator('[aria-current="page"]')).toHaveText(['API e webhooks']);
+  const redeliver = page.getByRole('button', { name: 'Reenviar' });
+
+  await page.route('**/redeliver', (route) =>
+    route.fulfill({
+      status: 500,
+      contentType: 'application/json',
+      body: '{"error":{"code":"internal","message":"boom"}}',
+    }),
+  );
+  await redeliver.click();
+  await expect(page.getByRole('alert')).toContainText('Não foi possível concluir agora');
+
+  await page.unroute('**/redeliver');
+  await redeliver.click();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Entrega colocada na fila de novo.' }),
+  ).toBeVisible();
+  await expect(redeliver).toHaveCount(0);
+});
+
 test('an anonymous visit lands on the sign-in page', async ({ page }) => {
   await page.goto(`/orgs/${INSTALLATION_ID}/today?team=${TEAM_NAME}`);
   await expect(page).toHaveURL(/\/sign-in\?next=/);

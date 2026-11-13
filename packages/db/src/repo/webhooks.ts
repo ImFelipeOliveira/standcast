@@ -379,7 +379,9 @@ export async function redeliverWebhookDelivery(
   const owned = db
     .select({ id: webhookEndpoints.id })
     .from(webhookEndpoints)
-    .where(eq(webhookEndpoints.installationId, installationId));
+    .where(
+      and(eq(webhookEndpoints.installationId, installationId), eq(webhookEndpoints.active, true)),
+    );
   const rows = await db
     .update(webhookDeliveries)
     .set({

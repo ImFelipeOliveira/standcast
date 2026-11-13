@@ -12,8 +12,8 @@
 
 - People and links is configuration diagnosis, not a metric: no counts per person, no activity; only linked/missing and the source of the link.
 - Admin only (same gate as API keys and webhooks); non-admins get 403 on the API and do not see the tab.
-- Chat status per provider of the person's teams: `linked` with source `config` (override in `members.<login>`) or `identity` (stored link), else `missing`. Linear: `linked` via override or stored identity, else `missing`. Jira: `linked` via override, else `missing`. CLI: any CLI session.
-- Redeliver only `failed` deliveries of the same installation: status → `pending`, attempts → 0, next attempt now, last error cleared.
+- Chat status per provider of the person's teams: `linked` with source `config` (override in `members.<login>`) or `identity` (stored link), else `missing`. Linear: `linked` via override or stored identity, else `missing`. Jira gets no column while the integration is not available. CLI: an active CLI session.
+- Redeliver only `failed` deliveries of an active endpoint of the same installation: status → `pending`, attempts → 0, next attempt now, last error cleared, delivery job enqueued right away.
 
 ## Review Focus
 

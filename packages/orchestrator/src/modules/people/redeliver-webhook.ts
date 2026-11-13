@@ -4,6 +4,7 @@ import { DomainError } from '../access/errors';
 import type { MembershipCheck } from '../access/org-context';
 import { isUuid } from '../access/pagination';
 import { requireAdmin } from '../access/require-admin';
+import { DELIVER_WEBHOOK_JOB } from '../delivery/emit-event';
 
 export async function redeliverWebhook(
   deps: Deps,
@@ -19,4 +20,5 @@ export async function redeliverWebhook(
   ) {
     throw new DomainError('not_found', 'failed webhook delivery not found');
   }
+  await deps.queue.enqueue(DELIVER_WEBHOOK_JOB, { deliveryId });
 }

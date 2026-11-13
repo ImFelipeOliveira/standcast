@@ -3,6 +3,8 @@ import {
   createDb,
   createSession,
   deleteInstallation,
+  insertWebhookDeliveries,
+  insertWebhookEndpoint,
   migrate,
   setInstallationConfig,
   setMemberInstallations,
@@ -15,6 +17,7 @@ import { recordBlockers } from '@standcast/orchestrator';
 export const INSTALLATION_ID = 4242;
 export const TEAM_NAME = 'Plataforma';
 export const BLOCKER_TEXT = 'Aguardando acesso ao banco de produção';
+export const WEBHOOK_URL = 'https://hooks.acme.test/standcast';
 
 const CONFIG = `
 teams:
@@ -70,6 +73,29 @@ export async function seed(
     date,
     blockers,
   });
+  const endpoint = await insertWebhookEndpoint(
+    db,
+    {
+      installationId: INSTALLATION_ID,
+      url: WEBHOOK_URL,
+      events: ['daily.submitted'],
+      secret: 'whsec_e2e',
+    },
+    new Uint8Array(32).fill(7),
+  );
+  const [deliveryId] = await insertWebhookDeliveries(db, [
+    {
+      endpointId: endpoint.id,
+      event: 'daily.submitted',
+      eventId: crypto.randomUUID(),
+      payload: {},
+      nextAttemptAt: new Date(),
+    },
+  ]);
+  if (!deliveryId) throw new Error('missing e2e webhook delivery');
+  await db.execute(
+    `update webhook_deliveries set status = 'failed', attempts = 8, last_error = 'timeout' where id = '${deliveryId}'`,
+  );
   const token = await createSession(db, member.id, 'web');
   return { db, token };
 }
