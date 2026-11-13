@@ -43,6 +43,12 @@ test('a failed reopen says so and clears on retry', async ({ page, context }) =>
     .filter({ hasText: 'Não foi possível atualizar o impedimento' });
   await page.getByRole('button', { name: 'Reabrir' }).click();
   await expect(failed).toBeVisible();
+  const reopened = page.waitForResponse(
+    (response) =>
+      response.url().endsWith('/reopen') && response.request().method() === 'POST',
+  );
   await page.getByRole('button', { name: 'Reabrir' }).click();
+  expect((await reopened).status()).toBe(204);
+  expect(attempts).toBe(2);
   await expect(failed).toBeHidden();
 });
