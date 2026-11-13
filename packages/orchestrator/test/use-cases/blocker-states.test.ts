@@ -372,6 +372,26 @@ describe('setBlockerResolved', () => {
     await expect(attempt).rejects.toMatchObject({ code: 'forbidden' });
   });
 
+  test('a reopen of an open blocker keeps a resolve that lands while it is checked', async () => {
+    const { deps, isMember, alice, bob, id } = await opened();
+    const resolvingMeanwhile: typeof isMember = async (installation, member) => {
+      await setBlockerResolved(deps, isMember, alice, {
+        installationId: INST,
+        blockerStateId: id,
+        resolved: true,
+      });
+      return isMember(installation, member);
+    };
+    await setBlockerResolved(deps, resolvingMeanwhile, bob, {
+      installationId: INST,
+      blockerStateId: id,
+      resolved: false,
+    });
+    const row = await getBlockerState(db, INST, id);
+    expect(row?.resolvedAt?.toISOString()).toBe('2026-10-28T15:00:00.000Z');
+    expect(row?.resolvedByMemberId).toBe(alice.id);
+  });
+
   test('other installation id is not found', async () => {
     const { deps, isMember, bob, id } = await opened();
     for (const [installationId, blockerStateId] of [
