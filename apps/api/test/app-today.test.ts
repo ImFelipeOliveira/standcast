@@ -179,3 +179,78 @@ describe('/v1/app today', () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe('/v1/app blockers', () => {
+  test('lists open blockers of readable teams with who can resolve them', async () => {
+    const { app, alice, bob, carol, blockerId } = await harness();
+    const asBob = await (await get(app, bob, `${INST}/blockers`)).json();
+    expect(asBob.open).toHaveLength(1);
+    expect(asBob.open[0]).toMatchObject({
+      id: blockerId,
+      author: 'bob',
+      text: 'need prod access',
+      teams: ['Alpha'],
+      canResolve: true,
+    });
+    expect(asBob.resolved).toEqual([]);
+    const asAlice = await (await get(app, alice, `${INST}/blockers`)).json();
+    expect(asAlice.open[0].canResolve).toBe(true);
+    const asCarol = await (await get(app, carol, `${INST}/blockers`)).json();
+    expect(asCarol.open).toEqual([]);
+  });
+
+  test('a blocker shared by two readable teams shows once with both teams', async () => {
+    const { app, bob, blockerId } = await harness();
+    const shared = parseConfig(`
+teams:
+  - name: Alpha
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [alice]
+    members: [alice, bob]
+    chat: { provider: slack, channel: "#alpha" }
+  - name: Beta
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [carol]
+    members: [carol, bob]
+    chat: { provider: slack, channel: "#beta" }
+`);
+    if (!shared.ok) throw new Error('config');
+    await setInstallationConfig(db, INST, { status: 'configured', config: shared.config });
+    const body = await (await get(app, bob, `${INST}/blockers`)).json();
+    expect(body.open.map((b: { id: string; teams: string[] }) => [b.id, b.teams])).toEqual([
+      [blockerId, ['Alpha', 'Beta']],
+    ]);
+  });
+
+  test('the team filter narrows the list, rejects unknown and unreadable teams', async () => {
+    const { app, alice, carol } = await harness();
+    expect((await (await get(app, alice, `${INST}/blockers?team=Alpha`)).json()).open).toHaveLength(
+      1,
+    );
+    expect((await get(app, alice, `${INST}/blockers?team=Nope`)).status).toBe(404);
+    expect((await get(app, carol, `${INST}/blockers?team=Alpha`)).status).toBe(403);
+    expect((await get(app, alice, `12/blockers`)).status).toBe(403);
+  });
+
+  test('resolved blockers move to the resolved list with who resolved them', async () => {
+    const { app, alice, bob, blockerId } = await harness();
+    expect((await post(app, bob, `${INST}/blockers/${blockerId}/resolve`)).status).toBe(204);
+    const body = await (await get(app, alice, `${INST}/blockers`)).json();
+    expect(body.open).toEqual([]);
+    expect(body.resolved).toEqual([
+      {
+        id: blockerId,
+        teams: ['Alpha'],
+        author: 'bob',
+        text: 'need prod access',
+        ref: null,
+        resolvedOn: '2026-10-28',
+        resolvedBy: 'bob',
+      },
+    ]);
+  });
+});

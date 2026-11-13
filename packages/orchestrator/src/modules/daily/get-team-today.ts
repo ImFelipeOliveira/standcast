@@ -132,7 +132,7 @@ async function lookupHints(
   return hints;
 }
 
-async function openBlockers(deps: Deps, access: TeamAccess): Promise<TodayBlocker[]> {
+export async function openTeamBlockers(deps: Deps, access: TeamAccess): Promise<TodayBlocker[]> {
   const ids = await getInstallationMemberIds(
     deps.db,
     access.installation.id,
@@ -263,7 +263,7 @@ export async function getTeamToday(
     };
   });
   const [blockers, support] = await Promise.all([
-    openBlockers(deps, access),
+    openTeamBlockers(deps, access),
     supportRequests(deps, access, rows),
   ]);
   return {

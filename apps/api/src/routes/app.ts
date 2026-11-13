@@ -7,6 +7,7 @@ import {
   type Deps,
   DomainError,
   disableWebhookEndpoint,
+  getOrgBlockers,
   getOrgContext,
   getSetupStatus,
   getTeamsSummary,
@@ -143,6 +144,17 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       200,
     ),
   );
+
+  app.get(`${ORG}/blockers`, async (c) => {
+    const team = c.req.query('team');
+    return c.json(
+      await getOrgBlockers(deps, isMember, c.get('member'), {
+        installationId: installationIdOf(c),
+        ...(team ? { team } : {}),
+      }),
+      200,
+    );
+  });
 
   for (const [action, resolved] of [
     ['resolve', true],
