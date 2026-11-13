@@ -14,7 +14,7 @@
 
 - No "who did not send" for past days, no per-person counts: day rows carry team counts only (dailies, blockers).
 - Chat link: Slack opens the channel via `https://slack.com/app_redirect?team=<team id>&channel=<channel id>` (the exact message permalink needs the workspace domain, which is not stored); Google Chat opens the digest thread `https://chat.google.com/room/<space id>/<thread id>`; no link when there is no sent digest or no ref.
-- Search: query of at least 2 characters, range at most 92 days (default last 28), at most 100 results, matches text, ref URL, ref title and card identifiers case-insensitively.
+- Search: query of 2 to 100 characters, range at most 92 days (default last 28), at most 100 results, matches text, ref URL, ref title and card identifiers case-insensitively.
 - Shipped: pull requests and cards from the `yesterday` section of confirmed dailies, grouped by daily date; default range is the last 7 days.
 - Copy in pt-BR and en; no code comments.
 
@@ -22,7 +22,7 @@
 
 1. A member of another team gets 403 on every history route; unknown team 404.
 2. A day without a digest delivery but with dailies still shows (status `none`), and a digest that failed shows `failed` without a link.
-3. `q` shorter than 2 characters and ranges over 92 days are rejected with 422 (the repo convention for invalid_request), not silently widened.
+3. `q` shorter than 2 or longer than 100 characters and ranges over 92 days are rejected with 422 (the repo convention for invalid_request), not silently widened.
 4. CSV export escapes quotes, commas and newlines in item text.
 5. The Today header's chat button uses the provider name and hides when the digest is not sent.
 
