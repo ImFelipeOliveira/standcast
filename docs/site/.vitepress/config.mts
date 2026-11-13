@@ -1,8 +1,14 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { type DefaultTheme, defineConfigWithTheme } from 'vitepress';
 import llmstxt from 'vitepress-plugin-llms';
+import { codeBackgrounds, shikiContrastTransformer } from '../../../scripts/docs-contrast';
 import { writeSiteHeaders } from '../../../scripts/docs-headers';
 import { writeLocaleLlms } from '../../../scripts/docs-llms';
+import { OG_HEIGHT, OG_WIDTH, ogImageFor, templateDigest } from '../../../scripts/docs-og';
 import { publicUrlPlugin, resolvePublicUrl } from '../../../scripts/docs-public-url';
+import { localeThemeConfig, sharedThemeConfig } from '../../../scripts/docs-theme-config';
 
 const supportEmail = process.env.SUPPORT_EMAIL?.trim();
 if (!supportEmail) {
@@ -15,118 +21,24 @@ type ThemeConfig = DefaultTheme.Config & { supportEmail: string };
 
 const DOCS_DOMAIN = 'https://docs.standcast.app';
 
-const OG_IMAGE = `${DOCS_DOMAIN}/og.png`;
-
-const OG_ALT = 'Standcast: your daily standup, written in your AI agent';
-
 function pageUrl(relativePath: string): string {
   const path = relativePath.replace(/\.md$/, '').replace(/(^|\/)index$/, '$1');
   return `${DOCS_DOMAIN}/${path}`;
 }
 
-const API_REFERENCE = { link: `${publicUrl}/reference`, target: '_self' };
+const API_REFERENCE = `${publicUrl}/reference`;
 
-function sidebar(prefix: string, labels: Record<string, string>): DefaultTheme.SidebarItem[] {
-  return [
-    {
-      text: labels.introduction,
-      items: [
-        { text: labels.overview, link: `${prefix}/` },
-        { text: labels.concepts, link: `${prefix}/concepts` },
-        { text: labels.howItWorks, link: `${prefix}/how-it-works` },
-        { text: labels.integrations, link: `${prefix}/integrations` },
-        { text: labels.privacy, link: `${prefix}/privacy` },
-      ],
-    },
-    {
-      text: labels.admins,
-      items: [
-        { text: labels.install, link: `${prefix}/admin/install` },
-        { text: labels.configuration, link: `${prefix}/admin/configuration` },
-        { text: labels.webApp, link: `${prefix}/admin/web-app` },
-        { text: 'Slack', link: `${prefix}/admin/slack` },
-        { text: 'Google Chat', link: `${prefix}/admin/google-chat` },
-        { text: labels.apiKeys, link: `${prefix}/admin/api-keys` },
-        { text: 'Webhooks', link: `${prefix}/admin/webhooks` },
-      ],
-    },
-    {
-      text: labels.members,
-      items: [
-        { text: labels.gettingStarted, link: `${prefix}/members/getting-started` },
-        { text: 'CLI', link: `${prefix}/members/cli` },
-        { text: labels.claudeCode, link: `${prefix}/members/claude-code` },
-        { text: labels.mcp, link: `${prefix}/members/mcp` },
-      ],
-    },
-    {
-      text: 'API',
-      items: [
-        { text: labels.apiOverview, link: `${prefix}/api/overview` },
-        { text: 'Webhooks', link: `${prefix}/api/webhooks` },
-        { text: labels.apiReference, ...API_REFERENCE },
-      ],
-    },
-    {
-      text: labels.more,
-      items: [
-        { text: 'FAQ', link: `${prefix}/faq` },
-        { text: labels.troubleshooting, link: `${prefix}/troubleshooting` },
-        { text: 'Changelog', link: `${prefix}/changelog` },
-      ],
-    },
-  ];
-}
+const codeContrast = shikiContrastTransformer(
+  codeBackgrounds(readFileSync(fileURLToPath(new URL('./theme/brand.css', import.meta.url)), 'utf8')),
+);
 
-const en = {
-  introduction: 'Introduction',
-  overview: 'Overview',
-  concepts: 'Concepts',
-  howItWorks: 'How it works',
-  integrations: 'Integrations',
-  privacy: 'Privacy',
-  admins: 'For admins',
-  install: 'Install',
-  configuration: 'standcast.yml reference',
-  webApp: 'Web app',
-  apiKeys: 'API keys',
-  members: 'For members',
-  gettingStarted: 'Getting started',
-  claudeCode: 'Claude Code skill',
-  mcp: 'MCP server',
-  apiOverview: 'Overview',
-  apiReference: 'API reference',
-  more: 'More',
-  troubleshooting: 'Troubleshooting',
-};
-
-const ptBR = {
-  introduction: 'Introdução',
-  overview: 'Visão geral',
-  concepts: 'Conceitos',
-  howItWorks: 'Como funciona',
-  integrations: 'Integrações',
-  privacy: 'Privacidade',
-  admins: 'Para admins',
-  install: 'Instalação',
-  configuration: 'Referência do standcast.yml',
-  webApp: 'App web',
-  apiKeys: 'API keys',
-  members: 'Para membros',
-  gettingStarted: 'Primeiros passos',
-  claudeCode: 'Skill do Claude Code',
-  mcp: 'Servidor MCP',
-  apiOverview: 'Visão geral',
-  apiReference: 'Referência da API',
-  more: 'Mais',
-  troubleshooting: 'Solução de problemas',
-};
+const ogDigest = await templateDigest();
 
 export default defineConfigWithTheme<ThemeConfig>({
   title: 'Standcast',
   base: '/',
   srcExclude: ['README.md'],
-  lastUpdated: false,
+  lastUpdated: true,
   cleanUrls: true,
   sitemap: { hostname: DOCS_DOMAIN },
   ignoreDeadLinks: false,
@@ -146,6 +58,7 @@ export default defineConfigWithTheme<ThemeConfig>({
     ],
   },
   markdown: {
+    codeTransformers: [codeContrast],
     config: (md) => {
       publicUrlPlugin(publicUrl)(md);
     },
@@ -155,13 +68,23 @@ export default defineConfigWithTheme<ThemeConfig>({
     ['meta', { name: 'robots', content: 'max-image-preview:large' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:site_name', content: 'Standcast' }],
-    ['meta', { property: 'og:image', content: OG_IMAGE }],
-    ['meta', { property: 'og:image:width', content: '1280' }],
-    ['meta', { property: 'og:image:height', content: '640' }],
-    ['meta', { property: 'og:image:alt', content: OG_ALT }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    ['meta', { name: 'twitter:image', content: OG_IMAGE }],
   ],
+  transformHead: async ({ pageData, siteConfig }) => {
+    if (!existsSync(join(siteConfig.srcDir, pageData.relativePath))) return [];
+    const { card, image } = await ogImageFor(siteConfig.srcDir, pageData.relativePath, ogDigest);
+    if (!existsSync(join(siteConfig.srcDir, 'public', image))) {
+      throw new Error(`${pageData.relativePath}: missing ${image}, run bun run docs:og`);
+    }
+    const url = `${DOCS_DOMAIN}/${image}`;
+    return [
+      ['meta', { property: 'og:image', content: url }],
+      ['meta', { property: 'og:image:width', content: String(OG_WIDTH) }],
+      ['meta', { property: 'og:image:height', content: String(OG_HEIGHT) }],
+      ['meta', { property: 'og:image:alt', content: `${card.title} | Standcast` }],
+      ['meta', { name: 'twitter:image', content: url }],
+    ];
+  },
   transformPageData: (pageData, { siteConfig }) => {
     const locale = pageData.relativePath.startsWith('pt-BR/') ? 'pt-BR' : 'root';
     const localeConfig = siteConfig.site.locales[locale];
@@ -182,69 +105,18 @@ export default defineConfigWithTheme<ThemeConfig>({
       label: 'English',
       lang: 'en',
       description: 'Standcast orchestrates your team daily standup from GitHub to Slack or Google Chat.',
-      themeConfig: {
-        nav: [
-          { text: 'Docs', link: '/' },
-          { text: en.apiReference, ...API_REFERENCE },
-        ],
-        sidebar: sidebar('', en),
-        outline: { label: 'On this page' },
-        docFooter: { prev: 'Previous', next: 'Next' },
-      },
+      themeConfig: localeThemeConfig('en', API_REFERENCE),
     },
     'pt-BR': {
       label: 'Português (Brasil)',
       lang: 'pt-BR',
       link: '/pt-BR/',
       description: 'O Standcast orquestra a daily do seu time, do GitHub ao Slack ou ao Google Chat.',
-      themeConfig: {
-        nav: [
-          { text: 'Docs', link: '/pt-BR/' },
-          { text: ptBR.apiReference, ...API_REFERENCE },
-        ],
-        sidebar: sidebar('/pt-BR', ptBR),
-        outline: { label: 'Nesta página' },
-        docFooter: { prev: 'Anterior', next: 'Próxima' },
-        darkModeSwitchLabel: 'Aparência',
-        sidebarMenuLabel: 'Menu',
-        returnToTopLabel: 'Voltar ao topo',
-        langMenuLabel: 'Idioma',
-        notFound: {
-          title: 'PÁGINA NÃO ENCONTRADA',
-          quote: 'Esta página não existe.',
-          linkLabel: 'Ir para o início',
-          linkText: 'Voltar ao início',
-        },
-      },
+      themeConfig: localeThemeConfig('pt-BR', API_REFERENCE),
     },
   },
   themeConfig: {
     supportEmail,
-    logo: '/logo.svg',
-    siteTitle: 'Standcast',
-    socialLinks: [{ icon: 'github', link: 'https://github.com/ImFelipeOliveira/standcast' }],
-    search: {
-      provider: 'local',
-      options: {
-        locales: {
-          'pt-BR': {
-            translations: {
-              button: { buttonText: 'Buscar', buttonAriaLabel: 'Buscar' },
-              modal: {
-                displayDetails: 'Mostrar detalhes',
-                resetButtonTitle: 'Limpar busca',
-                backButtonTitle: 'Fechar busca',
-                noResultsText: 'Nenhum resultado para',
-                footer: {
-                  selectText: 'selecionar',
-                  navigateText: 'navegar',
-                  closeText: 'fechar',
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    ...sharedThemeConfig(),
   },
 });
