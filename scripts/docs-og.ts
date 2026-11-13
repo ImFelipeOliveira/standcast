@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -34,7 +35,12 @@ function plain(text: string): string {
     .trim();
 }
 
-export function pageTitle(markdown: string): string {
+function lf(text: string): string {
+  return text.replace(/\r\n?/g, '\n');
+}
+
+export function pageTitle(source: string): string {
+  const markdown = lf(source);
   const frontmatter = markdown.match(/^---\n([\s\S]*?)\n---/)?.[1] ?? '';
   const title = frontmatter.match(/^title:\s*(.+)$/m)?.[1]?.replace(/^['"]|['"]$/g, '');
   if (title !== undefined) return plain(title);
@@ -69,12 +75,20 @@ export function ogImagePath(relativePath: string, card: OgCard, digest: string):
   return `og/${relativePath.replace(/\.md$/, '')}.${ogHash(card, digest)}.png`;
 }
 
+export function textDigest(template: string, fonts: string): string {
+  return createHash('sha256')
+    .update(RENDER_VERSION)
+    .update(lf(template))
+    .update(lf(fonts))
+    .digest('hex');
+}
+
 export async function templateDigest(): Promise<string> {
   const [template, fonts] = await Promise.all([
     readFile(OG_TEMPLATE, 'utf8'),
     readFile(OG_FONTS, 'utf8'),
   ]);
-  return createHash('sha256').update(RENDER_VERSION).update(template).update(fonts).digest('hex');
+  return textDigest(template, fonts);
 }
 
 export async function docPages(siteDir: string): Promise<string[]> {
@@ -90,4 +104,20 @@ export async function ogImageFor(siteDir: string, relativePath: string, digest: 
   const markdown = await readFile(join(siteDir, relativePath), 'utf8');
   const card = ogCard(relativePath, markdown);
   return { card, image: ogImagePath(relativePath, card, digest) };
+}
+
+export async function requireOgImage(siteDir: string, relativePath: string, digest: string) {
+  const result = await ogImageFor(siteDir, relativePath, digest);
+  if (!existsSync(join(siteDir, 'public', result.image))) {
+    throw new Error(
+      [
+        `${relativePath} has no link preview image ${result.image}.`,
+        'Its title, section or the og-docs template changed. Render the images and commit them:',
+        '  bunx playwright install chromium',
+        '  bun run docs:og',
+        '  git add docs/site/public/og',
+      ].join('\n'),
+    );
+  }
+  return result;
 }

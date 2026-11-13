@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, test } from 'bun:test';
-import { mkdtemp, readdir, readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { contrast } from './docs-contrast';
@@ -10,7 +10,9 @@ import {
   ogHash,
   ogImagePath,
   pageTitle,
+  requireOgImage,
   templateDigest,
+  textDigest,
 } from './docs-og';
 
 const ROOT = join(import.meta.dir, '..');
@@ -35,6 +37,13 @@ describe('og card', () => {
       'standcast.yml reference',
     );
     expect(pageTitle('---\noutline: [2, 3]\n---\n\n# Changelog\n')).toBe('Changelog');
+  });
+
+  test('Windows line endings give the same title', () => {
+    expect(pageTitle('---\r\ntitle: API overview\r\n---\r\n\r\n# Something else\r\n')).toBe(
+      'API overview',
+    );
+    expect(pageTitle('# Changelog\r\n\r\nText\r\n')).toBe('Changelog');
   });
 
   test('display path drops index and the md extension', () => {
@@ -70,6 +79,52 @@ describe('og card', () => {
       `og/pt-BR/admin/install.${ogHash(card, 'a')}.png`,
     );
     expect(ogImagePath('index.md', card, 'a')).toBe(`og/index.${ogHash(card, 'a')}.png`);
+  });
+});
+
+describe('template digest', () => {
+  test('is the same for a checkout with Windows line endings', () => {
+    const template = '<h1 data-slot="title">x</h1>\n<p>y</p>\n';
+    const fonts = '@font-face {\n  font-family: Inter;\n}\n';
+    expect(textDigest(template.replaceAll('\n', '\r\n'), fonts.replaceAll('\n', '\r\n'))).toBe(
+      textDigest(template, fonts),
+    );
+    expect(textDigest(`${template}<b>z</b>`, fonts)).not.toBe(textDigest(template, fonts));
+  });
+});
+
+describe('missing og image', () => {
+  test('fails with the commands that render and commit it', async () => {
+    const site = await mkdtemp(join(tmpdir(), 'standcast-og-site-'));
+    try {
+      await mkdir(join(site, 'admin'), { recursive: true });
+      await writeFile(join(site, 'admin/install.md'), '# Install\n');
+      const error = await requireOgImage(site, 'admin/install.md', 'digest').catch((e) => e);
+      expect(error).toBeInstanceOf(Error);
+      const message = String(error.message);
+      expect(message).toContain('admin/install.md');
+      expect(message).toMatch(/og\/admin\/install\.[0-9a-f]{10}\.png/);
+      expect(message).toContain('bunx playwright install chromium');
+      expect(message).toContain('bun run docs:og');
+      expect(message).toContain('docs/site/public/og');
+    } finally {
+      await rm(site, { recursive: true, force: true });
+    }
+  });
+
+  test('returns the card and image when the image is committed', async () => {
+    const site = await mkdtemp(join(tmpdir(), 'standcast-og-site-'));
+    try {
+      await mkdir(join(site, 'admin'), { recursive: true });
+      await writeFile(join(site, 'admin/install.md'), '# Install\n');
+      const card = ogCard('admin/install.md', '# Install\n');
+      const image = ogImagePath('admin/install.md', card, 'digest');
+      await mkdir(join(site, 'public/og/admin'), { recursive: true });
+      await writeFile(join(site, 'public', image), '');
+      expect(await requireOgImage(site, 'admin/install.md', 'digest')).toEqual({ card, image });
+    } finally {
+      await rm(site, { recursive: true, force: true });
+    }
   });
 });
 
