@@ -20,6 +20,7 @@ import {
   logoutWebSession,
   redeliverWebhook,
   remindNow,
+  revokeAllWebSessions,
   revokeInstallationApiKey,
   searchTeamDailies,
   sendTestEvent,
@@ -125,6 +126,12 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
 
   app.post('/v1/app/logout', async (c) => {
     await logoutWebSession(deps, c.get('sessionToken'));
+    deleteCookie(c, WEB_COOKIE, { path: WEB_COOKIE_PATH, secure: true });
+    return c.body(null, 204);
+  });
+
+  app.post('/v1/app/sessions/revoke-all', async (c) => {
+    await revokeAllWebSessions(deps, c.get('member').id);
     deleteCookie(c, WEB_COOKIE, { path: WEB_COOKIE_PATH, secure: true });
     return c.body(null, 204);
   });
