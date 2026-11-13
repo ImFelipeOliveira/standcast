@@ -1,6 +1,7 @@
 import {
   addCalendarDays,
   buildBlockerAlert,
+  ChatDeliveryError,
   type ChatProvider,
   type MessageRef,
   type Person,
@@ -32,6 +33,7 @@ import { describeDeliveryError, spaceNotLinked } from './delivery-error';
 export const SEND_BLOCKER_ALERTS_JOB = 'send-blocker-alerts';
 export const MAX_BLOCKER_ALERTS_PER_SCAN = 10;
 export const MAX_ALERT_MANAGER_MENTIONS = 20;
+export const ALERT_POST_DEADLINE_MS = 5 * 60 * 1000;
 
 export type SendBlockerAlertsJob = { installationId: number; teamName: string; date: string };
 
@@ -96,6 +98,21 @@ async function routesOf(
   return routes;
 }
 
+async function staleStates(
+  deps: WorkerDeps,
+  installationId: number,
+  memberLogins: string[],
+  date: string,
+  alertDays: number,
+): Promise<OpenBlockerState[]> {
+  const memberIds = await getInstallationMemberIds(deps.db, installationId, memberLogins);
+  return listStaleBlockerStates(deps.db, installationId, {
+    authorMemberIds: [...memberIds.values()],
+    openedOnOrBefore: addCalendarDays(date, -alertDays),
+    limit: MAX_BLOCKER_ALERTS_PER_SCAN,
+  });
+}
+
 export async function sendBlockerAlerts(
   deps: WorkerDeps,
   job: SendBlockerAlertsJob,
@@ -111,6 +128,7 @@ export async function sendBlockerAlerts(
   const claim = await claimDelivery(deps.db, key);
   if (claim.status !== 'claimed') return;
 
+  const claimedAt = deps.now().getTime();
   const provider = teamConfig.chat.provider;
   let lastRef: MessageRef | null = null;
   try {
@@ -139,38 +157,40 @@ export async function sendBlockerAlerts(
     if (notices.some((notice) => notice.kind === 'managers_unavailable')) {
       throw new Error('blocker_alert_managers_unavailable');
     }
-    if (team.managerLogins.length > 0) {
-      const memberIds = await getInstallationMemberIds(deps.db, installation.id, team.memberLogins);
-      const states = await listStaleBlockerStates(deps.db, installation.id, {
-        authorMemberIds: [...memberIds.values()],
-        openedOnOrBefore: addCalendarDays(job.date, -alertDays),
-        limit: MAX_BLOCKER_ALERTS_PER_SCAN,
-      });
-      if (states.length > 0) {
-        const managers = await managerPeople(
-          deps,
-          installation.id,
-          config,
-          provider,
-          team.managerLogins,
-        );
-        const routes = await routesOf(deps, installation.id, states);
-        for (const state of states) {
-          lastRef = await chat.postToChannel(
-            team.chat.channel,
-            buildBlockerAlert({
-              lang: team.language,
-              team: team.name,
-              managers,
-              author: state.authorLogin,
-              blocker: state.ref ? { text: state.text, ref: state.ref } : { text: state.text },
-              ageDays: daysBetween(state.openedOn, job.date),
-              openedOn: state.openedOn,
-              routedTo: routes.get(`${state.authorMemberId}:${state.blockerId}`) ?? [],
-            }),
+    const states =
+      team.managerLogins.length > 0
+        ? await staleStates(deps, installation.id, team.memberLogins, job.date, alertDays)
+        : [];
+    if (states.length > 0) {
+      const managers = await managerPeople(
+        deps,
+        installation.id,
+        config,
+        provider,
+        team.managerLogins,
+      );
+      const routes = await routesOf(deps, installation.id, states);
+      for (const state of states) {
+        if (deps.now().getTime() - claimedAt > ALERT_POST_DEADLINE_MS) {
+          throw new ChatDeliveryError(
+            'deadline_exceeded',
+            'blocker alert attempt ran past its deadline',
           );
-          await markBlockerStateAlerted(deps.db, installation.id, state.id, deps.now());
         }
+        lastRef = await chat.postToChannel(
+          team.chat.channel,
+          buildBlockerAlert({
+            lang: team.language,
+            team: team.name,
+            managers,
+            author: state.authorLogin,
+            blocker: state.ref ? { text: state.text, ref: state.ref } : { text: state.text },
+            ageDays: daysBetween(state.openedOn, job.date),
+            openedOn: state.openedOn,
+            routedTo: routes.get(`${state.authorMemberId}:${state.blockerId}`) ?? [],
+          }),
+        );
+        await markBlockerStateAlerted(deps.db, installation.id, state.id, deps.now());
       }
     }
   } catch (error) {

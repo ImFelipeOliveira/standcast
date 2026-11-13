@@ -14,6 +14,7 @@ import { ChatDeliveryError } from '@standcast/slack';
 import { blockerStates, deliveries } from '../../../db/src/schema';
 import { db, useCleanDb } from '../../../db/test/setup';
 import {
+  ALERT_POST_DEADLINE_MS,
   blockerRouteId,
   MAX_BLOCKER_ALERTS_PER_SCAN,
   recordBlockers,
@@ -267,5 +268,22 @@ describe('sendBlockerAlerts', () => {
     const row = await getDelivery(db, scanKey());
     expect(row?.status).toBe('failed');
     expect(row?.error).toBe('no_chat_connection');
+  });
+
+  test('stops posting once the attempt runs past its deadline', async () => {
+    const { deps, posted, alice, hooks, setNow } = await setup();
+    await store(alice, '2026-10-20', [staging, logs]);
+    const start = deps.now().getTime();
+    hooks.afterSend = async () => {
+      setNow(new Date(start + ALERT_POST_DEADLINE_MS + 1));
+    };
+    await expect(sendBlockerAlerts(deps, job)).rejects.toBeInstanceOf(ChatDeliveryError);
+    expect(posted).toHaveLength(1);
+    const row = await getDelivery(db, scanKey());
+    expect(row?.status).toBe('failed');
+    expect(row?.error?.startsWith('deadline_exceeded')).toBe(true);
+    hooks.afterSend = undefined;
+    await sendBlockerAlerts(deps, job);
+    expect(posted).toHaveLength(2);
   });
 });
