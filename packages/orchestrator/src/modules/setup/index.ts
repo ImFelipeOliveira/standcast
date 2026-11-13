@@ -1,3 +1,4 @@
+export * from './config-editor';
 export * from './get-org-context';
 export * from './get-setup-status';
 export * from './get-teams-summary';

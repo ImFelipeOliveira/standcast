@@ -108,6 +108,32 @@ test('the phone drawer moves focus, closes with Escape and on team change', asyn
   await expect(page.getByRole('dialog', { name: 'Menu' })).toHaveCount(0);
 });
 
+test('admins type the team in the standcast.yml editor and see it validated', async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.goto(`/orgs/${INSTALLATION_ID}/settings/config`);
+  const tabs = page.getByRole('navigation', { name: 'Seções da configuração' });
+  await expect(tabs.locator('[aria-current="page"]')).toHaveText(['standcast.yml']);
+  const yaml = page.locator('pre');
+  await expect(yaml).toContainText('members: [alice, bob]');
+
+  const members = page.getByLabel('Membros', { exact: true });
+  await members.fill('');
+  await members.pressSequentially('alice, bob carol');
+  await expect(members).toHaveValue('alice, bob carol');
+  await expect(yaml).toContainText('members: [alice, bob, carol]');
+
+  const channel = page.getByLabel('Canal', { exact: true });
+  await channel.fill('#plataforma-x');
+  await page.getByRole('button', { name: 'Slack', exact: true }).click();
+  await expect(channel).toHaveValue('#plataforma-x');
+  await expect(yaml).toContainText('channel: "#plataforma-x"');
+
+  await expect(page.getByRole('status').filter({ hasText: 'Válido' })).toBeVisible();
+});
+
 test('widening past the desk breakpoint closes the phone drawer and frees the page', async ({
   page,
   context,
