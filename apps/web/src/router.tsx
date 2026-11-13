@@ -16,6 +16,7 @@ import {
   signInUrl,
 } from './api/client';
 import { orgContextQuery, sessionQuery } from './api/queries';
+import { BlockersPage } from './pages/blockers/BlockersPage';
 import { ComingSoon } from './pages/ComingSoon';
 import { ConfiguracaoPage } from './pages/configuracao/ConfiguracaoPage';
 import { HojePage } from './pages/hoje/HojePage';
@@ -196,6 +197,33 @@ const hojeRoute = createRoute({
   },
 });
 
+type BlockersSearch = { state?: 'resolved'; team?: string };
+
+function parseBlockersSearch(search: Record<string, unknown>): BlockersSearch {
+  return {
+    ...(search.state === 'resolved' ? { state: 'resolved' as const } : {}),
+    ...(typeof search.team === 'string' && search.team.length > 0 ? { team: search.team } : {}),
+  };
+}
+
+const blockersRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: 'blockers',
+  validateSearch: parseBlockersSearch,
+  component: function Blockers() {
+    const { installationId } = orgRoute.useParams();
+    const { state, team } = parseBlockersSearch(blockersRoute.useSearch());
+    return (
+      <BlockersPage
+        key={`${installationId}:${team ?? ''}`}
+        installationId={installationId}
+        tab={state === 'resolved' ? 'resolved' : 'open'}
+        team={team}
+      />
+    );
+  },
+});
+
 const historicoRoute = createRoute({
   getParentRoute: () => orgRoute,
   path: 'history',
@@ -267,6 +295,7 @@ export const routeTree = rootRoute.addChildren([
   orgRoute.addChildren([
     orgIndexRoute,
     hojeRoute,
+    blockersRoute,
     historicoRoute,
     configuracaoRoute,
     legacyTodayRoute,

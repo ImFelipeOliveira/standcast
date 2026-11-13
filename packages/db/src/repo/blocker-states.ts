@@ -1,5 +1,20 @@
 import type { Ref } from '@standcast/core';
-import { and, asc, eq, inArray, isNull, lt, lte, notInArray, type SQL, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  lte,
+  notInArray,
+  type SQL,
+  sql,
+} from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import type { Db } from '../client';
 import { type BlockerStateRow, blockerStates, dailies, members } from '../schema';
 
@@ -183,4 +198,67 @@ export async function markBlockerStateAlerted(
     )
     .returning({ id: blockerStates.id });
   return rows.length > 0;
+}
+
+export type ResolvedBlockerState = BlockerStateRow & {
+  authorLogin: string;
+  resolvedByLogin: string | null;
+};
+
+export async function reopenBlockerState(
+  db: Db,
+  installationId: number,
+  id: string,
+  latest: { date: string; submittedAt: Date },
+): Promise<boolean> {
+  const sameDaily = sql`exists (select 1 from ${dailies} where ${dailies.installationId} = ${blockerStates.installationId} and ${dailies.memberId} = ${blockerStates.authorMemberId} and ${dailies.date} = ${latest.date} and date_trunc('milliseconds', ${dailies.submittedAt}) = ${latest.submittedAt.toISOString()}::timestamptz)`;
+  const noLaterDaily = sql`not exists (select 1 from ${dailies} where ${dailies.installationId} = ${blockerStates.installationId} and ${dailies.memberId} = ${blockerStates.authorMemberId} and ${dailies.date} > ${latest.date})`;
+  const rows = await db
+    .update(blockerStates)
+    .set({ resolvedAt: null, resolvedByMemberId: null, resolvedOn: null })
+    .where(
+      and(
+        eq(blockerStates.id, id),
+        eq(blockerStates.installationId, installationId),
+        isNotNull(blockerStates.resolvedAt),
+        sameDaily,
+        noLaterDaily,
+      ),
+    )
+    .returning({ id: blockerStates.id });
+  return rows.length > 0;
+}
+
+export async function listResolvedBlockerStates(
+  db: Db,
+  installationId: number,
+  authorMemberIds: string[],
+  sinceDate: string,
+): Promise<ResolvedBlockerState[]> {
+  if (authorMemberIds.length === 0) return [];
+  const resolver = alias(members, 'resolver');
+  const rows = await db
+    .select({
+      state: blockerStates,
+      authorLogin: members.login,
+      resolvedByLogin: resolver.login,
+    })
+    .from(blockerStates)
+    .innerJoin(members, eq(members.id, blockerStates.authorMemberId))
+    .leftJoin(resolver, eq(resolver.id, blockerStates.resolvedByMemberId))
+    .where(
+      and(
+        eq(blockerStates.installationId, installationId),
+        inArray(blockerStates.authorMemberId, authorMemberIds),
+        isNotNull(blockerStates.resolvedAt),
+        gte(blockerStates.resolvedOn, sinceDate),
+      ),
+    )
+    .orderBy(desc(blockerStates.resolvedAt))
+    .limit(100);
+  return rows.map((r) => ({
+    ...r.state,
+    authorLogin: r.authorLogin,
+    resolvedByLogin: r.resolvedByLogin ?? null,
+  }));
 }

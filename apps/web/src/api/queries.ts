@@ -1,4 +1,4 @@
-import type { SetupStatus, TeamSummary, TeamToday } from '@standcast/orchestrator';
+import type { OrgBlockers, SetupStatus, TeamSummary, TeamToday } from '@standcast/orchestrator';
 import { QueryClient, queryOptions, useQuery } from '@tanstack/react-query';
 import { ApiError, apiGet, fetchSession, type OrgContext } from './client';
 
@@ -68,4 +68,16 @@ export function useTeamToday(installationId: number, team: string) {
 
 export function useTeamsSummary(installationId: number, enabled: boolean) {
   return useQuery({ ...teamsSummaryQuery(installationId), enabled });
+}
+
+export function orgBlockersQuery(installationId: number, team?: string) {
+  const query = team ? `?team=${encodeURIComponent(team)}` : '';
+  return queryOptions({
+    queryKey: ['org', installationId, 'blockers', team ?? null],
+    queryFn: () => apiGet<OrgBlockers>(`/v1/app/orgs/${installationId}/blockers${query}`),
+  });
+}
+
+export function useOrgBlockers(installationId: number, team?: string) {
+  return useQuery(orgBlockersQuery(installationId, team));
 }

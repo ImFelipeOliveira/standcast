@@ -48,6 +48,7 @@ type Props = {
   onResolve: () => void;
   onReopen: () => void;
   onViewDaily: (() => void) | null;
+  teams?: string[];
 };
 
 export function BlockerCard({
@@ -60,6 +61,7 @@ export function BlockerCard({
   onResolve,
   onReopen,
   onViewDaily,
+  teams = [],
 }: Props) {
   const t = useT();
   const lang = useLang();
@@ -93,6 +95,11 @@ export function BlockerCard({
           </Badge>
         )}
         {blocker.recurring ? <Badge variant="neutral">{t('hoje.blocker.recurring')}</Badge> : null}
+        {teams.map((name) => (
+          <Badge key={name} variant="outline">
+            {name}
+          </Badge>
+        ))}
         {blocker.hint && !resolved ? (
           <Badge variant="ok">
             <CheckIcon />

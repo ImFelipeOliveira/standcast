@@ -100,7 +100,7 @@ describe('shell', () => {
   test('sidebar marks the active section', async () => {
     const { html } = await renderAt('/orgs/11/history');
     const links = navLinks(html);
-    expect(links).toHaveLength(3);
+    expect(links).toHaveLength(4);
     const current = links.filter((link) => link.includes('aria-current="page"'));
     expect(current).toHaveLength(1);
     expect(current[0]).toContain('href="/orgs/11/history"');
@@ -112,7 +112,12 @@ describe('shell', () => {
   test('sidebar links keep the current org', async () => {
     const { html } = await renderAt('/orgs/11/today');
     const hrefs = navLinks(html).map((link) => link.match(/href="([^"]+)"/)?.[1]);
-    expect(hrefs).toEqual(['/orgs/11/today', '/orgs/11/history', '/orgs/11/settings']);
+    expect(hrefs).toEqual([
+      '/orgs/11/today',
+      '/orgs/11/blockers',
+      '/orgs/11/history',
+      '/orgs/11/settings',
+    ]);
   });
 
   test('old Portuguese URLs redirect and keep the query', async () => {
