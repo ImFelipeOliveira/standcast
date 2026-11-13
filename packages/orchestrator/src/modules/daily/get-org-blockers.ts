@@ -2,6 +2,7 @@ import { addCalendarDays, dailyDateFor, managesTeam, type Ref } from '@standcast
 import {
   getInstallationMemberIds,
   listCurrentOpenBlockerStates,
+  listLatestDailies,
   listResolvedBlockerStates,
   type MemberRow,
   type OpenBlockerState,
@@ -14,6 +15,7 @@ import { authorizeInstallation } from '../access/authorize-installation';
 import { DomainError } from '../access/errors';
 import { isInstallationAdmin } from '../access/is-installation-admin';
 import type { MembershipCheck } from '../access/org-context';
+import { listsBlocker } from './blocker-states';
 import { buildOpenBlockers, type TodayBlocker } from './get-team-today';
 
 const ADMIN_CHECK_TIMEOUT_MS = 3000;
@@ -76,36 +78,39 @@ export async function getOrgBlockers(
     throw new DomainError('forbidden', 'you cannot read this team');
   }
   const now = deps.now();
-  const byName = new Map(
-    readable.map((team) => [
-      team.name,
-      { team, date: dailyDateFor(now, team), elevated: admin || managesTeam(login, team) },
-    ]),
-  );
+  const dates = new Map(all.map((team) => [team.name, dailyDateFor(now, team)]));
+  const byName = new Map(readable.map((team) => [team.name, team]));
   const teamsOf = (author: string) =>
     readable
       .filter((team) => team.memberLogins.includes(author))
       .map((team) => team.name)
       .sort((a, b) => a.localeCompare(b));
-  const canResolveFor = (author: string, teams: string[]) =>
-    author === login || teams.some((name) => byName.get(name)?.elevated === true);
+  const calendarOf = (author: string) => {
+    const team =
+      all.find((entry) => entry.memberLogins.includes(author)) ??
+      (readable[0] as (typeof readable)[number]);
+    return { timezone: team.timezone, date: dates.get(team.name) ?? dailyDateFor(now, team) };
+  };
+  const canResolveFor = (author: string) =>
+    author === login ||
+    admin ||
+    all.some((team) => team.memberLogins.includes(author) && managesTeam(login, team));
   const logins = [...new Set(readable.flatMap((team) => team.memberLogins))];
   const ids = [...(await getInstallationMemberIds(deps.db, installation.id, logins)).values()];
   const states = await listCurrentOpenBlockerStates(deps.db, installation.id, ids);
   const contextOf = (state: OpenBlockerState) => {
-    const teams = teamsOf(state.authorLogin.toLowerCase())
+    const author = state.authorLogin.toLowerCase();
+    const teams = teamsOf(author)
       .map((name) => byName.get(name))
-      .filter((entry) => entry !== undefined);
-    const first = teams[0];
+      .filter((team) => team !== undefined);
     return {
-      timezone: first?.team.timezone ?? 'UTC',
-      date: first?.date ?? dailyDateFor(now, readable[0] as (typeof readable)[number]),
-      managers: new Set(teams.flatMap((entry) => entry.team.managerLogins)),
+      ...calendarOf(author),
+      managers: new Set(teams.flatMap((team) => team.managerLogins)),
     };
   };
   const open = await buildOpenBlockers(deps, installation, states, contextOf);
-  const latest = [...byName.values()]
-    .map((entry) => entry.date)
+  const latest = readable
+    .map((team) => dates.get(team.name) ?? '')
     .sort()
     .at(-1);
   const resolvedRows = latest
@@ -116,30 +121,33 @@ export async function getOrgBlockers(
         addCalendarDays(latest, -RESOLVED_WINDOW_DAYS),
       )
     : [];
+  const latestDailies = await listLatestDailies(deps.db, installation.id, [
+    ...new Set(resolvedRows.map((row) => row.authorMemberId)),
+  ]);
+  const stillListed = (row: (typeof resolvedRows)[number]) =>
+    listsBlocker(latestDailies.get(row.authorMemberId)?.payload.blockers ?? [], row.blockerId);
   return {
     open: open.map((blocker) => {
-      const teams = teamsOf(blocker.author);
-      const context = byName.get(teams[0] ?? '');
+      const calendar = calendarOf(blocker.author);
       return {
         ...blocker,
-        teams,
-        canResolve: canResolveFor(blocker.author, teams),
-        timezone: context?.team.timezone ?? 'UTC',
-        today: context?.date ?? blocker.openedOn,
+        teams: teamsOf(blocker.author),
+        canResolve: canResolveFor(blocker.author),
+        timezone: calendar.timezone,
+        today: calendar.date,
       };
     }),
     resolved: resolvedRows.map((row) => {
       const author = row.authorLogin.toLowerCase();
-      const teams = teamsOf(author);
       return {
         id: row.id,
-        teams,
+        teams: teamsOf(author),
         author,
         text: row.text,
         ref: row.ref ?? null,
         resolvedOn: row.resolvedOn ?? '',
         resolvedBy: row.resolvedByLogin?.toLowerCase() ?? null,
-        canResolve: canResolveFor(author, teams),
+        canResolve: stillListed(row) && canResolveFor(author),
       };
     }),
   };

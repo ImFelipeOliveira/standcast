@@ -5,6 +5,7 @@ export * from './events';
 export * from './notify-suggestions';
 export * from './remind-now';
 export * from './route-blocker';
+export * from './send-blocker-alerts';
 export * from './send-digest';
 export * from './send-late-daily';
 export * from './send-reminder';

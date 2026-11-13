@@ -1,19 +1,83 @@
 :root {
-  --vp-c-brand-1: #3b4bc8;
-  --vp-c-brand-2: #2f3da6;
-  --vp-c-brand-3: #3b4bc8;
-  --vp-c-brand-soft: rgba(59, 75, 200, 0.14);
-  --vp-c-text-1: #15171c;
-  --vp-home-hero-name-color: #3b4bc8;
-  --vp-code-lang-color: #565b66;
+  --vp-c-brand-1: #3446c2;
+  --vp-c-brand-2: #2f3ca8;
+  --vp-c-brand-3: #3446c2;
+  --vp-c-brand-soft: rgba(52, 70, 194, 0.12);
+  --vp-c-bg: #ffffff;
+  --vp-c-bg-alt: #f4f4f5;
+  --vp-c-bg-soft: #f4f4f5;
+  --vp-c-divider: #e7e7ea;
+  --vp-c-gutter: #e7e7ea;
+  --vp-c-text-1: #18181b;
+  --vp-c-text-2: #3f3f46;
+  --vp-c-text-3: #5b5b66;
+  --vp-code-block-bg: #f4f4f5;
+  --vp-code-bg: #ebebed;
+  --vp-code-color: #3446c2;
+  --vp-code-lang-color: #5b5b66;
+  --vp-code-tab-text-color: #3f3f46;
+  --vp-button-brand-bg: #3446c2;
+  --vp-button-brand-hover-bg: #2f3ca8;
+  --vp-button-brand-active-bg: #28338f;
+  --vp-button-brand-text: #ffffff;
+  --vp-button-brand-hover-text: #ffffff;
+  --vp-button-brand-active-text: #ffffff;
+  --vp-home-hero-name-color: #3446c2;
+  --sc-focus-ring: #3446c2;
 }
 
 .dark {
-  --vp-c-text-1: rgba(255, 255, 245, 0.86);
-  --vp-home-hero-name-color: #8c98f0;
-  --vp-c-brand-1: #8c98f0;
-  --vp-c-brand-2: #a7b0f4;
-  --vp-c-brand-3: #3b4bc8;
-  --vp-c-brand-soft: rgba(140, 152, 240, 0.16);
-  --vp-code-lang-color: #a9adb8;
+  --vp-c-brand-1: #8b98f0;
+  --vp-c-brand-2: #a5aff7;
+  --vp-c-brand-3: #3446c2;
+  --vp-c-brand-soft: rgba(139, 152, 240, 0.16);
+  --vp-c-bg: #1b1b1f;
+  --vp-c-bg-alt: #161618;
+  --vp-c-bg-soft: #202127;
+  --vp-c-divider: #2a2a30;
+  --vp-c-gutter: #000000;
+  --vp-c-text-1: #ededef;
+  --vp-c-text-2: #c9c9cf;
+  --vp-c-text-3: #a1a1aa;
+  --vp-code-block-bg: #161618;
+  --vp-code-bg: #26262b;
+  --vp-code-color: #8b98f0;
+  --vp-code-lang-color: #a1a1aa;
+  --vp-code-tab-text-color: #c9c9cf;
+  --vp-button-brand-bg: #3446c2;
+  --vp-button-brand-hover-bg: #2f3ca8;
+  --vp-button-brand-active-bg: #28338f;
+  --vp-home-hero-name-color: #8b98f0;
+  --sc-focus-ring: #8b98f0;
+}
+
+.vp-doc a:not(.header-anchor) {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.vp-doc a:not(.header-anchor):hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--sc-focus-ring) !important;
+  outline-offset: 2px;
+}
+
+.vp-code-group .tabs input:focus-visible + label {
+  outline: 2px solid var(--sc-focus-ring);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+.vp-code-group .tabs label {
+  min-height: 24px;
+  min-width: 24px;
+}
+
+.vp-doc [class*='language-'] > button.copy {
+  min-height: 24px;
+  min-width: 24px;
 }

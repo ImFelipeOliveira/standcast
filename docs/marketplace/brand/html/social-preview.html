@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Social preview</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+body{margin:0}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+</style>
+</head>
+<body>
+<div style="position: relative; width: 1280px; height: 640px; overflow: hidden; background: #18181B; color: #EDEDEF; font-family: Inter, system-ui, sans-serif">
+<svg aria-hidden="true" width="1280" height="640" style="position: absolute; inset: 0">
+<defs>
+<pattern id="sp-dot" width="14" height="14" patternUnits="userSpaceOnUse"><rect x="5" y="5" width="4" height="4" fill="#FFFFFF" fill-opacity="0.06"></rect></pattern>
+<pattern id="sp-lit" width="14" height="14" patternUnits="userSpaceOnUse"><rect x="1" y="1" width="12" height="12" rx="1.5" fill="#8E9AF5" fill-opacity="0.55"></rect></pattern>
+<pattern id="sp-mid" width="14" height="14" patternUnits="userSpaceOnUse"><rect x="1" y="1" width="12" height="12" rx="1.5" fill="#8E9AF5" fill-opacity="0.18"></rect></pattern>
+</defs>
+<rect width="1280" height="640" fill="url(#sp-dot)"></rect>
+<rect x="756" y="420" width="56" height="220" fill="url(#sp-mid)"></rect>
+<rect x="756" y="476" width="56" height="164" fill="url(#sp-lit)"></rect>
+<rect x="826" y="308" width="56" height="332" fill="url(#sp-mid)"></rect>
+<rect x="826" y="364" width="56" height="276" fill="url(#sp-lit)"></rect>
+<rect x="714" y="560" width="14" height="14" fill="url(#sp-mid)"></rect>
+</svg>
+<div style="position: absolute; left: 80px; top: 80px; bottom: 80px; width: 620px; display: flex; flex-direction: column; justify-content: space-between">
+<span style="display: flex; align-items: center; gap: 12px">
+<svg aria-hidden="true" width="36" height="33" viewBox="0 0 44 40"><rect x="0" y="20" width="11" height="20" rx="1.5" fill="#8E9AF5"></rect><rect x="16" y="10" width="11" height="30" rx="1.5" fill="#8E9AF5"></rect><rect x="32" y="0" width="11" height="40" rx="1.5" fill="#8E9AF5"></rect></svg>
+<span style="font-family: Saira, Inter, sans-serif; font-weight: 700; font-size: 32px; letter-spacing: -0.01em; color: #FFFFFF">Standcast</span>
+</span>
+<div style="display: flex; flex-direction: column; gap: 20px">
+<h1 style="margin: 0; font-size: 62px; line-height: 1.03; font-weight: 600; letter-spacing: -0.035em; color: #FFFFFF">The daily standup, written in your AI agent.</h1>
+<p style="margin: 0; font-size: 22px; line-height: 1.45; color: #A1A1AA">Drafted from GitHub and Linear. One digest per team in Slack or Google Chat.</p>
+</div>
+<span class="mono" style="font-size: 16px; color: #A1A1AA">github.com/ImFelipeOliveira/standcast · MIT</span>
+</div>
+<div style="position: absolute; left: 900px; top: 120px; width: 460px; background: #FFFFFF; color: #18181B; border-radius: 16px; box-shadow: 0 30px 60px -20px rgba(0,0,0,.7); overflow: hidden">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #E7E7EA">
+<span style="font-weight: 600; font-size: 17px"># daily-backend</span>
+<span class="mono" style="font-size: 14px; color: #5B5B66">10:00</span>
+</div>
+<div style="padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; font-size: 16px">
+<span style="font-weight: 600">Digest · Tuesday, Nov 4</span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 13px; font-weight: 600; color: #9A4A00">Blockers · 1</span>
+<span style="color: #3F3F46">Ana: deploy waits on the database change <span class="mono" style="font-size: 14px; color: #3446C2">api#8379</span></span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 13px; font-weight: 600; color: #5B5B66">Updates</span>
+<span style="color: #3F3F46">Ana · Bruno · Carla</span>
+</div>
+<span style="font-size: 14px; color: #5B5B66">Not sent yet: Davi</span>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -124,7 +124,7 @@ Quando um push em qualquer branch do repositório `.github-private` ou `.github`
 
 ## Próximos passos
 
-- Peça a cada membro para seguir os [Primeiros passos](/pt-BR/members/getting-started). As pessoas são ligadas ao usuário do Slack quando entram, então elas devem entrar depois que o Slack estiver conectado.
+- Peça a cada membro para seguir o guia [Escreva sua primeira daily](/pt-BR/members/getting-started). As pessoas são ligadas ao usuário do Slack quando entram, então elas devem entrar depois que o Slack estiver conectado.
 - No Google Chat, peça a cada membro para entrar e depois mandar uma mensagem direta para o app do Standcast uma vez.
 - Se você usa o Linear, peça a cada membro para entrar depois que o Linear estiver conectado, para o usuário dele no Linear ser ligado.
 - Crie [API keys](/pt-BR/admin/api-keys) ou [webhooks](/pt-BR/admin/webhooks) se outros sistemas precisarem dos dados.

@@ -29,7 +29,7 @@ A team member can open Today for their own team. Managers open the teams they ma
 
 ### Resolve a blocker
 
-Managers, admins and the person who wrote the blocker can mark it as resolved, and reopen it. A resolved blocker leaves the open list. If the person lists it again in the daily of a later day, it opens again. Resending the daily of the day it was resolved keeps it resolved.
+Managers, admins and the person who wrote the blocker can mark it as resolved, and reopen it. A resolved blocker leaves the open list. If the person lists it again in the daily of a later day, it opens again. Resending the daily of the day it was resolved keeps it resolved. A resolved blocker can be reopened only while it is in the person's latest daily: once they send a daily without it, it stays resolved until they list it again.
 
 ### Remind now
 

@@ -469,4 +469,5 @@ export const en: Record<MessageKey, string> = {
   'people.managerOf': 'manager of {team}',
   'people.note':
     'No per-person metrics: this page only shows whether the configuration is complete.',
+  'history.exportTitle': '{team} · shipped {from} to {to}',
 };
