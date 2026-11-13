@@ -15,6 +15,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 - Web app addresses are in English: `/orgs/<id>/today`, `/history` and `/settings`. Old links to `/hoje`, `/historico` and `/configuracao` still work and keep their query string.
 - The web app shows the Standcast icon in the browser tab.
 - Stale blocker alert: with `signals.blocker_alert_days` set on a team, a blocker still open that many days after it was first reported gets one message in the team's channel or space after the digest, mentioning the team's managers, with the blocker, its link, its age, who reported it and who it was routed to. Each blocker is alerted once in each team. Without the key, nothing changes. See [Stale blocker alert](/how-it-works#stale-blocker-alert).
+- Google Chat: while someone in a team's digest is not linked to Google Chat and shows as `@login`, the digest ends with a **Link my account** button. A click links the person who clicked, by the same email match as a direct message to the app, and the answer is visible only to them. Mentioning the app in a space links the person the same way. The worker needs `PUBLIC_URL` for the button. See [Google Chat](/admin/google-chat#how-people-are-linked).
 
 ### 0.9.4 — 2026-11-12
 

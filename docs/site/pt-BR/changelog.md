@@ -15,6 +15,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 - Os endereços do app web estão em inglês: `/orgs/<id>/today`, `/history` e `/settings`. Links antigos para `/hoje`, `/historico` e `/configuracao` continuam funcionando e mantêm a query string.
 - O app web mostra o ícone do Standcast na aba do navegador.
 - Alerta de impedimento parado: com `signals.blocker_alert_days` definido em um time, um impedimento que continua aberto esse número de dias depois de ser informado pela primeira vez recebe uma mensagem no canal ou espaço do time depois do consolidado, mencionando os gestores do time, com o impedimento, o link, há quanto tempo está aberto, quem o informou e para quem foi encaminhado. Cada impedimento recebe o alerta uma vez só em cada time. Sem a chave, nada muda. Veja [Alerta de impedimento parado](/pt-BR/how-it-works#alerta-de-impedimento-parado).
+- Google Chat: enquanto alguém no consolidado de um time não está vinculado ao Google Chat e aparece como `@login`, o consolidado termina com um botão **Vincular minha conta**. Um clique vincula quem clicou, pelo mesmo e-mail usado na mensagem direta para o app, e a resposta só aparece para essa pessoa. Mencionar o app num espaço vincula a pessoa do mesmo jeito. O worker precisa de `PUBLIC_URL` para o botão. Veja [Google Chat](/pt-BR/admin/google-chat#como-as-pessoas-sao-vinculadas).
 
 ### 0.9.4 — 12/11/2026
 

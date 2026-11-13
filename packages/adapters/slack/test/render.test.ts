@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { buildBlockerAlert } from '@standcast/core';
+import { buildBlockerAlert, LINK_CHAT_ACCOUNT_ACTION, type Message } from '@standcast/core';
 import { renderSlack } from '../src/render';
 
 describe('renderSlack blocker alert', () => {
@@ -32,6 +32,15 @@ describe('renderSlack blocker alert', () => {
 });
 
 describe('renderSlack', () => {
+  test('message actions do not change the slack payload', () => {
+    const plain: Message = { fallbackText: 'fb', blocks: [{ type: 'paragraph', content: ['hi'] }] };
+    const withLink: Message = {
+      ...plain,
+      actions: [{ type: LINK_CHAT_ACCOUNT_ACTION, text: 'Link?', label: 'Link my account' }],
+    };
+    expect(renderSlack(withLink)).toEqual(renderSlack(plain));
+  });
+
   test('render heading/paragraph/list/divider', () => {
     const out = renderSlack({
       fallbackText: 'fb',
