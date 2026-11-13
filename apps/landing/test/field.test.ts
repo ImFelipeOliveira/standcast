@@ -48,12 +48,12 @@ class Toggle extends Target {
   }
 }
 
-function fakeCanvas(onDraw: () => void) {
+function fakeCanvas(onDraw: () => void, onMark: () => void = () => {}) {
   const ink = {
     setTransform() {},
     clearRect: onDraw,
     drawImage() {},
-    fillRect() {},
+    fillRect: onMark,
     fillStyle: '',
     globalAlpha: 1,
   };
@@ -62,6 +62,7 @@ function fakeCanvas(onDraw: () => void) {
 
 function startField(options: { reduced?: boolean; paused?: boolean } = {}) {
   let draws = 0;
+  let marks = 0;
   let next = 1;
   let observed: ((entries: { isIntersecting: boolean }[]) => void) | undefined;
   const frames = new Map<number, (now: number) => void>();
@@ -70,9 +71,14 @@ function startField(options: { reduced?: boolean; paused?: boolean } = {}) {
   const reduce = new Query(Boolean(options.reduced));
   const dark = new Query(false);
   const toggle = new Toggle();
-  const canvas = fakeCanvas(() => {
-    draws++;
-  });
+  const canvas = fakeCanvas(
+    () => {
+      draws++;
+    },
+    () => {
+      marks++;
+    },
+  );
   const document = Object.assign(new Target(), {
     hidden: false,
     querySelector: (selector: string) =>
@@ -128,6 +134,8 @@ function startField(options: { reduced?: boolean; paused?: boolean } = {}) {
   return {
     toggle,
     stored,
+    draws: () => draws,
+    marks: () => marks,
     run,
     pending: () => frames.size,
     see: (isIntersecting: boolean) => observed?.([{ isIntersecting }]),
@@ -200,6 +208,8 @@ describe('pixel field', () => {
   test('never animates with reduced motion and hides the pause button', () => {
     const field = startField({ reduced: true });
     field.see(true);
+    expect(field.draws()).toBeGreaterThan(0);
+    expect(field.marks()).toBeGreaterThan(0);
     expect(field.toggle.hidden).toBe(true);
     expect(field.run(1000)).toBe(0);
   });
