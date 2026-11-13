@@ -300,11 +300,11 @@ describe('web login', () => {
   test('a failed app login goes back to the app sign-in with the code and next', async () => {
     const { app, webCodes } = harness();
     await seed();
-    const { state } = await beginLogin(app, '/orgs/11/hoje?team=core', 'app');
+    const { state } = await beginLogin(app, '/orgs/11/today?team=core', 'app');
     const res = await callback(app, state, 'sc_login=other');
     expect(res.status).toBe(302);
     expect(location(res)).toBe(
-      `https://app.test/sign-in?error=invalid_state&next=${encodeURIComponent('/orgs/11/hoje?team=core')}`,
+      `https://app.test/sign-in?error=invalid_state&next=${encodeURIComponent('/orgs/11/today?team=core')}`,
     );
     const cleared = res.headers.getSetCookie().find((c) => c.startsWith('sc_login=')) ?? '';
     expect(cleared).toContain('Max-Age=0');
@@ -317,11 +317,11 @@ describe('web login', () => {
     deps.github.exchangeWebCode = async () => {
       throw new Error('github is down');
     };
-    const { state, loginCookie } = await beginLogin(app, '/orgs/11/hoje', 'app');
+    const { state, loginCookie } = await beginLogin(app, '/orgs/11/today', 'app');
     const res = await callback(app, state, loginCookie);
     expect(res.status).toBe(302);
     expect(location(res)).toBe(
-      `https://app.test/sign-in?error=generic&next=${encodeURIComponent('/orgs/11/hoje')}`,
+      `https://app.test/sign-in?error=generic&next=${encodeURIComponent('/orgs/11/today')}`,
     );
   });
 
@@ -349,13 +349,13 @@ describe('web login', () => {
 
   test('callback with access_denied sends the person to the app sign-in', async () => {
     const { app } = harness();
-    const { state } = await beginLogin(app, '/orgs/11/hoje', 'app');
+    const { state } = await beginLogin(app, '/orgs/11/today', 'app');
     const res = await app.request(
       `/auth/github/callback?error=access_denied&state=${encodeURIComponent(state)}`,
     );
     expect(res.status).toBe(302);
     expect(location(res)).toBe(
-      `https://app.test/sign-in?error=access_denied&next=${encodeURIComponent('/orgs/11/hoje')}`,
+      `https://app.test/sign-in?error=access_denied&next=${encodeURIComponent('/orgs/11/today')}`,
     );
   });
 
@@ -595,7 +595,7 @@ describe('slack connection', () => {
       },
     );
     expect(res.status).toBe(302);
-    expect(location(res)).toBe(`https://app.test/orgs/${INST}/configuracao?connected=slack`);
+    expect(location(res)).toBe(`https://app.test/orgs/${INST}/settings?connected=slack`);
     expect(slackCalls).toEqual([
       { code: 'c1', redirectUri: 'https://sw.test/oauth/slack/callback' },
     ]);
@@ -648,7 +648,7 @@ describe('linear connection', () => {
       { headers: { cookie } },
     );
     expect(res.status).toBe(302);
-    expect(location(res)).toBe(`https://app.test/orgs/${INST}/configuracao?connected=linear`);
+    expect(location(res)).toBe(`https://app.test/orgs/${INST}/settings?connected=linear`);
     expect(linear.calls.exchanges.map((e) => e.code)).toEqual(['c1']);
     expect(await getConnection(db, INST, 'linear', KEY)).toMatchObject({
       externalId: 'org-1',
