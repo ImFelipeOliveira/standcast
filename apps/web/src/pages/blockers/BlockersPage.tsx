@@ -208,6 +208,7 @@ function ResolvedList({
   return (
     <div className="flex flex-col gap-3">
       <p className="m-0 text-[12px] text-muted">{t('blockers.resolvedNote')}</p>
+      {reopen.isError ? <FailedAlert /> : null}
       <Card className="gap-0 p-0">
         <ul className="m-0 list-none p-0">
           {blockers.map((blocker, index) => (
@@ -244,7 +245,10 @@ function ResolvedList({
                     variant="outline"
                     className="ml-auto"
                     disabled={reopen.isPending}
-                    onClick={() => reopen.mutate(blocker.id)}
+                    onClick={() => {
+                      reopen.reset();
+                      reopen.mutate(blocker.id);
+                    }}
                   >
                     {t('hoje.blocker.reopen')}
                   </Button>
