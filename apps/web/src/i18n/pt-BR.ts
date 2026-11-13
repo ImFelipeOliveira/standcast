@@ -378,4 +378,6 @@ export const ptBR = {
   'blockers.byTeam': 'Abertos por time',
   'blockers.failed': 'Não foi possível atualizar o impedimento. Tente de novo.',
   'blockers.state': 'Estado',
+  'chat.openSlack': 'Abrir no Slack',
+  'chat.openGoogleChat': 'Abrir no Google Chat',
 } as const;

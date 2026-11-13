@@ -371,4 +371,6 @@ export const en: Record<MessageKey, string> = {
   'blockers.byTeam': 'Open by team',
   'blockers.failed': 'Could not update the blocker. Try again.',
   'blockers.state': 'Status',
+  'chat.openSlack': 'Open in Slack',
+  'chat.openGoogleChat': 'Open in Google Chat',
 };

@@ -1,9 +1,12 @@
 import { describe, expect, test } from 'bun:test';
 import { parseConfig } from '@standcast/core';
 import {
+  claimDelivery,
+  completeDelivery,
   createSession,
   getBlockerState,
   type MemberRow,
+  saveConnection,
   setInstallationConfig,
   setMemberInstallations,
   upsertDaily,
@@ -303,5 +306,25 @@ describe('/v1/app blockers permissions', () => {
       true,
     );
     expect((await (await get(app, carol, `${INST}/blockers`)).json()).resolved).toEqual([]);
+describe('/v1/app today chat link', () => {
+  test('names the provider and links only once the digest is sent', async () => {
+    const { app, bob } = await harness();
+    const before = await (await get(app, bob, `${INST}/teams/Alpha/today`)).json();
+    expect(before.chat).toEqual({ provider: 'slack', url: null });
+    await saveConnection(db, INST, 'slack', 'T999', 'xoxb-secret', new Uint8Array(32).fill(1));
+    const key = {
+      installationId: INST,
+      teamName: 'Alpha',
+      date: '2026-10-28',
+      kind: 'digest' as const,
+    };
+    const claim = await claimDelivery(db, key);
+    if (claim.status !== 'claimed') throw new Error('claim');
+    await completeDelivery(db, key, claim.token, { channel: 'C123', id: '1730000000.000100' });
+    const after = await (await get(app, bob, `${INST}/teams/Alpha/today`)).json();
+    expect(after.chat).toEqual({
+      provider: 'slack',
+      url: 'https://slack.com/app_redirect?team=T999&channel=C123',
+    });
   });
 });

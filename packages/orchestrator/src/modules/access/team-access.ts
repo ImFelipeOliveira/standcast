@@ -2,6 +2,7 @@ import {
   dailyDateFor,
   localDate,
   localInstant,
+  type MessageRef,
   managesTeam,
   type ResolvedTeam,
 } from '@standcast/core';
@@ -72,7 +73,11 @@ export async function loadTeamAccess(
   };
 }
 
-export type DigestState = { status: 'scheduled' | 'sent' | 'failed'; sentAt: Date | null };
+export type DigestState = {
+  status: 'scheduled' | 'sent' | 'failed';
+  sentAt: Date | null;
+  ref: MessageRef | null;
+};
 
 export async function digestState(deps: Deps, access: TeamAccess): Promise<DigestState> {
   const row = await getDelivery(deps.db, {
@@ -81,11 +86,12 @@ export async function digestState(deps: Deps, access: TeamAccess): Promise<Diges
     date: access.date,
     kind: 'digest',
   });
-  if (row?.status === 'sent') return { status: 'sent', sentAt: row.updatedAt };
+  if (row?.status === 'sent')
+    return { status: 'sent', sentAt: row.updatedAt, ref: row.ref ?? null };
   if (row?.status === 'failed' && row.attempts >= MAX_DELIVERY_ATTEMPTS) {
-    return { status: 'failed', sentAt: null };
+    return { status: 'failed', sentAt: null, ref: null };
   }
-  return { status: 'scheduled', sentAt: null };
+  return { status: 'scheduled', sentAt: null, ref: null };
 }
 
 export function remindWindowOpen(deps: Deps, access: TeamAccess): boolean {

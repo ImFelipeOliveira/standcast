@@ -1,11 +1,14 @@
 import {
   addCalendarDays,
+  type ChatProvider,
   type Item,
   localDate,
+  type MessageRef,
   parsePullRequestUrl,
   type Ref,
 } from '@standcast/core';
 import {
+  getConnectionInfo,
   getInstallationMemberIds,
   type InstallationRow,
   listBlockerRouteRecipients,
@@ -26,6 +29,7 @@ import {
   remindWindowOpen,
   type TeamAccess,
 } from '../access/team-access';
+import { chatLink } from '../history/chat-link';
 
 const HINT_TIMEOUT_MS = 3000;
 const MAX_HINT_CALLS = 10;
@@ -66,6 +70,7 @@ export type TeamToday = {
   blockers: TodayBlocker[];
   support: TodaySupport[];
   shipped: TodayShipped[];
+  chat: { provider: ChatProvider; url: string | null };
 };
 
 type TodayRow = Awaited<ReturnType<typeof listDailies>>[number];
@@ -239,6 +244,20 @@ function shippedFrom(rows: TodayRow[]): TodayShipped[] {
   );
 }
 
+export async function digestChatUrl(
+  deps: Deps,
+  access: TeamAccess,
+  ref: MessageRef | null,
+): Promise<string | null> {
+  if (!ref) return null;
+  const provider = access.team.chat.provider;
+  const slackTeamId =
+    provider === 'slack'
+      ? ((await getConnectionInfo(deps.db, access.installation.id, 'slack'))?.externalId ?? null)
+      : null;
+  return chatLink(provider, ref, slackTeamId);
+}
+
 export async function getTeamToday(
   deps: Deps,
   isMember: MembershipCheck,
@@ -277,9 +296,10 @@ export async function getTeamToday(
       },
     };
   });
-  const [blockers, support] = await Promise.all([
+  const [blockers, support, chatUrl] = await Promise.all([
     openTeamBlockers(deps, access),
     supportRequests(deps, access, rows),
+    digestChatUrl(deps, access, digest.ref),
   ]);
   return {
     team: {
@@ -296,5 +316,6 @@ export async function getTeamToday(
     blockers,
     support,
     shipped: shippedFrom(rows),
+    chat: { provider: team.chat.provider, url: chatUrl },
   };
 }

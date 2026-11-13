@@ -9,6 +9,7 @@ export * from './modules/chat';
 export * from './modules/daily';
 export * from './modules/delivery';
 export * from './modules/github';
+export * from './modules/history';
 export * from './modules/linear';
 export * from './modules/org';
 export * from './modules/retention';
