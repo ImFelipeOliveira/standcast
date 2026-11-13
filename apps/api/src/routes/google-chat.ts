@@ -35,21 +35,29 @@ const spaceSchema = z.object({
 
 const userSchema = z.object({ name: z.string(), email: z.string().optional() });
 
+const commonSchema = z
+  .object({ parameters: z.record(z.string(), z.string().max(200)).optional() })
+  .optional()
+  .catch(undefined);
+
 const eventSchema = z.object({
   type: z.string(),
   space: spaceSchema.optional(),
   user: userSchema.optional(),
+  common: commonSchema,
 });
 
 const payloadSchema = z.object({ space: spaceSchema.optional() }).optional();
 
 const addOnEventSchema = z.object({
+  commonEventObject: commonSchema,
   chat: z.object({
     user: userSchema.optional(),
     space: spaceSchema.optional(),
     messagePayload: payloadSchema,
     addedToSpacePayload: payloadSchema,
     removedFromSpacePayload: payloadSchema,
+    buttonClickedPayload: payloadSchema,
   }),
 });
 
@@ -57,24 +65,30 @@ const ADD_ON_PAYLOADS = [
   ['addedToSpacePayload', 'ADDED_TO_SPACE'],
   ['removedFromSpacePayload', 'REMOVED_FROM_SPACE'],
   ['messagePayload', 'MESSAGE'],
+  ['buttonClickedPayload', 'CARD_CLICKED'],
 ] as const;
+
+function withAction(event: GoogleChatEvent, common: z.infer<typeof commonSchema>): GoogleChatEvent {
+  const action = common?.parameters?.action;
+  return event.type === 'CARD_CLICKED' && action ? { ...event, action } : event;
+}
 
 function parseEvent(format: Format, body: unknown): GoogleChatEvent | 'ignore' | 'invalid' {
   if (format === 'chat') {
     const parsed = eventSchema.safeParse(body);
     if (!parsed.success) return 'invalid';
-    const { space, ...event } = parsed.data;
-    return space ? { ...event, space } : 'ignore';
+    const { space, common, ...event } = parsed.data;
+    return space ? withAction({ ...event, space }, common) : 'ignore';
   }
   const parsed = addOnEventSchema.safeParse(body);
   if (!parsed.success) return 'invalid';
-  const { chat } = parsed.data;
+  const { chat, commonEventObject } = parsed.data;
   const found = ADD_ON_PAYLOADS.find(([key]) => chat[key]);
   if (!found) return 'ignore';
   const [key, type] = found;
   const space = chat[key]?.space ?? chat.space;
   if (!space) return 'ignore';
-  return { type, space, ...(chat.user ? { user: chat.user } : {}) };
+  return withAction({ type, space, ...(chat.user ? { user: chat.user } : {}) }, commonEventObject);
 }
 
 async function verifiedFormat(
@@ -96,12 +110,12 @@ async function verifiedFormat(
 
 function wrapReply(format: Format, reply: GoogleChatReply | null) {
   if (!reply) return {};
-  if (format === 'chat') return { text: reply.text };
-  return {
-    hostAppDataAction: {
-      chatDataAction: { createMessageAction: { message: { text: reply.text } } },
-    },
+  const message = {
+    text: reply.text,
+    ...(reply.privateTo ? { privateMessageViewer: { name: reply.privateTo } } : {}),
   };
+  if (format === 'chat') return message;
+  return { hostAppDataAction: { chatDataAction: { createMessageAction: { message } } } };
 }
 
 const invalidBody = { error: { code: 'invalid_request', message: 'invalid body' } };

@@ -6,7 +6,11 @@ export type Block =
   | { type: 'list'; items: Inline[][] }
   | { type: 'divider' };
 
-export type Message = { fallbackText: string; blocks: Block[] };
+export const LINK_CHAT_ACCOUNT_ACTION = 'link-chat-account';
+
+export type MessageAction = { type: typeof LINK_CHAT_ACCOUNT_ACTION; text: string; label: string };
+
+export type Message = { fallbackText: string; blocks: Block[]; actions?: MessageAction[] };
 
 export type Person = { login: string; chatUserId?: string };
 

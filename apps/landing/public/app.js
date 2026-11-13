@@ -1,228 +1,269 @@
 (() => {
-  const copy = document.getElementById('copy');
-  const cmd = document.getElementById('cmd');
-  if (copy && cmd) {
-    const label = copy.textContent;
-    const done = copy.dataset.done || label;
-    const selectCmd = () => {
-      const range = document.createRange();
-      range.selectNodeContents(cmd);
-      const selection = window.getSelection();
-      if (!selection) return;
-      selection.removeAllRanges();
-      selection.addRange(range);
-    };
-    copy.addEventListener('click', () => {
-      const text = cmd.dataset.copy || '';
-      const confirm = () => {
-        copy.textContent = done;
-        setTimeout(() => {
-          copy.textContent = label;
-        }, 1600);
-      };
-      if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(text).then(confirm, selectCmd);
-      } else {
-        selectCmd();
+  const reduceQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  const darkQuery = window.matchMedia?.('(prefers-color-scheme: dark)');
+  const reduced = () => Boolean(reduceQuery?.matches);
+
+  const storage = {
+    get(key) {
+      try {
+        return window.localStorage.getItem(key);
+      } catch {
+        return null;
       }
-    });
-  }
-
-  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-  const FRAGMENT = [
-    'precision mediump float;',
-    'uniform vec2 res;uniform float time;uniform float cell;uniform float strength;uniform float ratio;',
-    'uniform float focus;uniform float spread;',
-    'uniform vec3 ca;uniform vec3 cb;uniform vec3 cc;',
-    'float h(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}',
-    'float n(vec2 q){vec2 i=floor(q);vec2 f=fract(q);vec2 u=f*f*(3.-2.*f);',
-    'return mix(mix(h(i),h(i+vec2(1.,0.)),u.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),u.x),u.y);}',
-    'float fbm(vec2 q){float v=0.;float a=.5;for(int k=0;k<4;k++){v+=a*n(q);q=q*2.02+vec2(1.7,9.2);a*=.5;}return v;}',
-    'float blob(vec2 p,vec2 c,float r){vec2 d=(p-c)/r;return exp(-dot(d,d));}',
-    'void main(){',
-    'vec2 c=floor(gl_FragCoord.xy/cell);vec2 l=fract(gl_FragCoord.xy/cell)-.5;',
-    'float t=time*.16;',
-    'vec2 q=c/115.+vec2(t*.45,t*.15);',
-    'vec2 w=vec2(fbm(q+vec2(t*.9,-t*.6)),fbm(q+vec2(5.2-t*.7,1.3+t*.8)));',
-    'vec2 w2=vec2(fbm(q+3.*w+vec2(1.7,9.2)+t*.5),fbm(q+3.*w+vec2(8.3,2.8)-t*.4));',
-    'float W=res.x/ratio;',
-    'vec2 P=vec2(c.x*cell,res.y-c.y*cell)/ratio+(w2-.5)*220.;',
-    'P.y=mod(P.y,820.);',
-    'float b=blob(P,vec2(W*(focus+spread*sin(t*.53)),230.+130.*cos(t*.8)),250.);',
-    'b+=blob(P,vec2(W*(focus+spread*cos(t*.41+1.3)),560.+110.*sin(t*.9)),230.);',
-    'b+=.85*blob(P,vec2(W*(focus+spread*sin(t*.37+2.1)),110.+90.*sin(t*1.1)),210.);',
-    'b+=.85*blob(P,vec2(W*(focus+spread*cos(t*.47+4.)),700.+80.*cos(t*.6)),220.);',
-    'b+=.7*blob(P,vec2(W*(focus-spread*sin(t*.29+.7)),400.+150.*sin(t*.45)),200.);',
-    'float v=fbm(q+3.4*w2)*.66+min(b,1.2)*.4;',
-    'float g=smoothstep(.34,.94,v);',
-    'vec3 col=mix(ca,cb,smoothstep(.3,.7,w2.x));col=mix(col,cc,smoothstep(.66,1.02,v)*.9);',
-    'col*=.75+.7*g;',
-    'float m=step(max(abs(l.x),abs(l.y)),.37);',
-    'float a=m*(.03+.97*pow(g,1.35))*(.8+.4*h(c))*strength;',
-    'gl_FragColor=vec4(min(col,vec3(1.))*a,min(a,1.));}',
-  ].join('');
-  const VERTEX = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
-
-  const rgb = (value) => {
-    const hex = value.trim().replace('#', '');
-    const full = hex.length === 3 ? hex.replace(/./g, '$&$&') : hex;
-    const num = Number.parseInt(full, 16) || 0;
-    return [((num >> 16) & 255) / 255, ((num >> 8) & 255) / 255, (num & 255) / 255];
+    },
+    set(key, value) {
+      try {
+        window.localStorage.setItem(key, value);
+        return true;
+      } catch {
+        return false;
+      }
+    },
   };
 
-  const startField = (field) => {
-    const gl = field.getContext('webgl', { premultipliedAlpha: true, antialias: false });
-    if (!gl) return;
-    const shader = (type, source) => {
-      const s = gl.createShader(type);
-      gl.shaderSource(s, source);
-      gl.compileShader(s);
-      return s;
-    };
-    const program = gl.createProgram();
-    gl.attachShader(program, shader(gl.VERTEX_SHADER, VERTEX));
-    gl.attachShader(program, shader(gl.FRAGMENT_SHADER, FRAGMENT));
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return;
-    gl.useProgram(program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-    const at = gl.getAttribLocation(program, 'p');
-    gl.enableVertexAttribArray(at);
-    gl.vertexAttribPointer(at, 2, gl.FLOAT, false, 0, 0);
-    const u = (name) => gl.getUniformLocation(program, name);
-    const theme = () => {
-      const css = getComputedStyle(field);
-      gl.uniform3fv(u('ca'), rgb(css.getPropertyValue('--field-a')));
-      gl.uniform3fv(u('cb'), rgb(css.getPropertyValue('--field-b')));
-      gl.uniform3fv(u('cc'), rgb(css.getPropertyValue('--field-c')));
-      gl.uniform1f(u('strength'), Number.parseFloat(css.getPropertyValue('--field-strength')) || 1);
-      gl.uniform1f(u('focus'), Number.parseFloat(css.getPropertyValue('--field-focus')) || 0.5);
-      gl.uniform1f(u('spread'), Number.parseFloat(css.getPropertyValue('--field-spread')) || 0.3);
-    };
-    const size = () => {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      field.width = Math.max(1, Math.round(field.clientWidth * ratio));
-      field.height = Math.max(1, Math.round(field.clientHeight * ratio));
-      gl.viewport(0, 0, field.width, field.height);
-      gl.uniform2f(u('res'), field.width, field.height);
-      gl.uniform1f(u('cell'), 5 * ratio);
-      gl.uniform1f(u('ratio'), ratio);
-    };
-    const start = performance.now() - 30000;
-    const now = () => (reduce ? 30 : (performance.now() - start) / 1000);
-    const draw = () => {
-      gl.uniform1f(u('time'), now());
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    };
-    let visible = false;
-    let frame = 0;
-    const loop = () => {
-      draw();
-      frame = visible && !document.hidden ? requestAnimationFrame(loop) : 0;
-    };
-    const resume = () => {
-      if (reduce) {
-        draw();
-        return;
-      }
-      if (!frame && visible && !document.hidden) frame = requestAnimationFrame(loop);
-    };
-    theme();
-    size();
-    draw();
-    const resized = () => {
-      size();
-      draw();
-    };
-    if ('ResizeObserver' in window) new ResizeObserver(resized).observe(field);
-    else window.addEventListener('resize', resized);
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver((entries) => {
-        visible = entries.some((entry) => entry.isIntersecting);
-        resume();
-      }).observe(field);
-    } else {
-      visible = true;
-      resume();
+  const selectText = (element) => {
+    const selection = window.getSelection();
+    if (!selection) return;
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  };
+
+  const status = document.getElementById('copy-status');
+  const announce = (text) => {
+    if (status) status.textContent = text;
+  };
+
+  if (navigator.clipboard?.writeText) {
+    for (const button of document.querySelectorAll('button.copy[data-target]')) {
+      const source = document.getElementById(button.dataset.target ?? '');
+      if (!source) continue;
+      const label = button.textContent;
+      const done = button.dataset.done || label;
+      let timer = 0;
+      button.hidden = false;
+      button.addEventListener('click', () => {
+        const text = source.dataset.copy || source.textContent || '';
+        navigator.clipboard.writeText(text).then(
+          () => {
+            button.textContent = done;
+            announce(done);
+            clearTimeout(timer);
+            timer = window.setTimeout(() => {
+              button.textContent = label;
+              announce('');
+            }, 1600);
+          },
+          () => selectText(source),
+        );
+      });
     }
-    document.addEventListener('visibilitychange', resume);
-    window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      theme();
-      draw();
-    });
-  };
-  for (const field of document.querySelectorAll('.hero-field')) startField(field);
+  }
 
   const header = document.querySelector('header.nav');
-  if (header && document.querySelector('.field-stage')) {
-    const clear = () => header.classList.toggle('nav-clear', window.scrollY < 24);
-    clear();
-    window.addEventListener('scroll', clear, { passive: true });
+  if (header) {
+    let queued = false;
+    const update = () => {
+      queued = false;
+      header.classList.toggle('nav-compact', window.scrollY > 32);
+    };
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(update);
+      },
+      { passive: true },
+    );
+    update();
   }
 
-  if (!reduce && 'IntersectionObserver' in window) {
-    const root = document.documentElement;
-    const days = [...document.querySelectorAll('.day')];
-    const reveals = [
-      ...document.querySelectorAll(
-        'main section:not(.hero) .head, .features > *, .ways > *, .connect > *, .privacy-grid > .col, .beta',
-      ),
-    ].filter((element) => !element.closest('.day-grid'));
-    for (const element of reveals) element.classList.add('reveal');
-    root.classList.add('play-scroll');
-    const shown = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          entry.target.classList.add('in');
-          shown.unobserve(entry.target);
-        }
-      },
-      { rootMargin: '0px 0px -12% 0px' },
+  for (const list of document.querySelectorAll('[role="tablist"]')) {
+    const tabs = [...list.querySelectorAll('[role="tab"]')];
+    const panels = tabs.map((tab) =>
+      document.getElementById(tab.getAttribute('aria-controls') ?? ''),
     );
-    for (const element of reveals) shown.observe(element);
-    let ticking = false;
-    const track = () => {
-      ticking = false;
-      const anchor = window.innerHeight * 0.6;
-      for (const day of days) {
-        const box = day.getBoundingClientRect();
-        const progress = Math.min(1, Math.max(0, (anchor - box.top) / box.height));
-        day.style.setProperty('--progress', progress.toFixed(3));
-        for (const slot of day.children) {
-          slot.classList.toggle('in', slot.getBoundingClientRect().top + 12 < anchor);
-        }
-      }
+    if (tabs.length === 0 || panels.some((panel) => !panel)) continue;
+    const select = (index, focus) => {
+      tabs.forEach((tab, i) => {
+        const on = i === index;
+        tab.setAttribute('aria-selected', String(on));
+        tab.tabIndex = on ? 0 : -1;
+        panels[i].hidden = !on;
+      });
+      if (focus) tabs[index].focus();
     };
-    const schedule = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(track);
-    };
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule);
-    track();
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(i, false));
+      tab.addEventListener('keydown', (event) => {
+        const moves = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 };
+        if (!(event.key in moves)) return;
+        event.preventDefault();
+        select((moves[event.key] + tabs.length) % tabs.length, true);
+      });
+    });
+    list.hidden = false;
+    list.parentElement?.classList.add('tabbed');
+    select(0, false);
   }
 
   const stage = document.querySelector('.stage');
-  const replay = document.getElementById('replay');
-  if (!stage || !replay || !window.matchMedia) return;
-  if (reduce) return;
-  let timer = 0;
-  const play = () => {
-    stage.classList.remove('play');
-    void stage.offsetWidth;
-    stage.classList.add('play');
-    replay.hidden = true;
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      replay.hidden = false;
-    }, 5400);
+  if (stage && !reduced()) stage.classList.add('play');
+
+  const startField = (canvas, context, toggle) => {
+    const CELL = 10;
+    const FRAME = 1000 / 30;
+    const KEY = 'standcast:field-paused';
+    let cells = [];
+    let width = 0;
+    let cols = 0;
+    let rows = 0;
+    let ratio = 1;
+    let mark = '#3b4bc8';
+    let base = null;
+    let visible = !('IntersectionObserver' in window);
+    let paused = storage.get(KEY) === '1';
+    let still = reduced();
+    let frame = 0;
+    let last = 0;
+    let clock = 0;
+
+    const limit = (col) => {
+      if (width < 960) return 0.1;
+      const x = col / cols;
+      return x < 0.5 ? 0.1 : 0.1 + 0.22 * Math.min(1, (x - 0.5) / 0.2);
+    };
+
+    const spawn = (at) => {
+      if (!cols || !rows || cells.length > 260) return;
+      let col = 0;
+      for (let tries = 0; tries < 6; tries++) {
+        col = Math.floor(Math.random() * cols);
+        if (Math.random() < 0.18 + 0.82 * (col / cols) ** 1.6) break;
+      }
+      const row = Math.floor(Math.random() * rows);
+      const length = 1 + Math.floor(Math.random() * 4);
+      const duration = 3200 + Math.random() * 1200;
+      for (let i = 0; i < length; i++) {
+        cells.push({ col, row: row - i, start: at + i * 160, duration });
+      }
+    };
+
+    const paintBase = () => {
+      const styles = getComputedStyle(canvas);
+      mark = styles.getPropertyValue('--mark').trim() || mark;
+      const dot = styles.getPropertyValue('--dot').trim() || 'rgba(24, 24, 27, 0.08)';
+      base = document.createElement('canvas');
+      base.width = canvas.width;
+      base.height = canvas.height;
+      const ink = base.getContext('2d');
+      if (!ink) return;
+      ink.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ink.fillStyle = dot;
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) ink.fillRect(x * CELL + 3, y * CELL + 3, 4, 4);
+      }
+    };
+
+    const draw = () => {
+      context.setTransform(1, 0, 0, 1, 0, 0);
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      if (base) context.drawImage(base, 0, 0);
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      context.fillStyle = mark;
+      const alive = [];
+      for (const cell of cells) {
+        const x = (clock - cell.start) / cell.duration;
+        if (x >= 1) continue;
+        alive.push(cell);
+        if (x <= 0 || cell.row < 0) continue;
+        context.globalAlpha = limit(cell.col) * Math.sin(Math.PI * x);
+        context.fillRect(cell.col * CELL + 1, cell.row * CELL + 1, 8, 8);
+      }
+      context.globalAlpha = 1;
+      cells = alive;
+    };
+
+    const resize = () => {
+      ratio = Math.min(window.devicePixelRatio || 1, 2);
+      width = canvas.clientWidth;
+      cols = Math.ceil(width / CELL);
+      rows = Math.ceil(canvas.clientHeight / CELL);
+      canvas.width = Math.max(1, Math.round(width * ratio));
+      canvas.height = Math.max(1, Math.round(canvas.clientHeight * ratio));
+      paintBase();
+      draw();
+    };
+
+    const running = () => !still && !paused && visible && !document.hidden;
+
+    const tick = (now) => {
+      frame = 0;
+      if (!last || now - last >= FRAME - 1) {
+        clock += last ? Math.min(now - last, 100) : FRAME;
+        last = now;
+        if (Math.random() < 0.55) spawn(clock);
+        draw();
+      }
+      schedule();
+    };
+
+    const schedule = () => {
+      if (running()) {
+        if (!frame) frame = requestAnimationFrame(tick);
+        return;
+      }
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      last = 0;
+    };
+
+    const sync = () => {
+      if (!toggle) return;
+      toggle.hidden = still;
+      toggle.setAttribute('aria-pressed', String(paused));
+    };
+
+    toggle?.addEventListener('click', () => {
+      paused = !paused;
+      storage.set(KEY, paused ? '1' : '0');
+      sync();
+      schedule();
+    });
+
+    reduceQuery?.addEventListener?.('change', () => {
+      still = reduced();
+      sync();
+      schedule();
+    });
+
+    darkQuery?.addEventListener?.('change', () => {
+      paintBase();
+      draw();
+    });
+
+    if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas);
+    else window.addEventListener('resize', resize);
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver((entries) => {
+        visible = entries.some((entry) => entry.isIntersecting);
+        schedule();
+      }).observe(canvas);
+    }
+
+    document.addEventListener('visibilitychange', schedule);
+
+    resize();
+    for (let i = 0; i < (still ? 70 : 40); i++) spawn(clock - Math.random() * 3000);
+    draw();
+    sync();
+    schedule();
   };
-  replay.addEventListener('click', play);
-  play();
+
+  const canvas = document.querySelector('canvas.field');
+  const context = canvas?.getContext('2d');
+  if (canvas && context) startField(canvas, context, document.querySelector('button.field-toggle'));
 })();
