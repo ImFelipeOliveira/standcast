@@ -199,7 +199,7 @@ export function ApiKeys({
       {apiKeys.keys.length === 0 ? (
         <p className="m-0 text-[13px] text-muted">{t('setup.apiKeys.none')}</p>
       ) : (
-        <Table className="text-[13px]">
+        <Table className="text-[13px]" label={t('setup.apiKeys.title')}>
           <TableHeader>
             <TableRow>
               <TableHead scope="col">{t('setup.apiKeys.name')}</TableHead>

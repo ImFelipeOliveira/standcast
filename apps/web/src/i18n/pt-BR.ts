@@ -17,7 +17,7 @@ export const ptBR = {
   'role.admin': 'admin',
   'role.manager': 'gestor',
   'role.member': 'membro',
-  'user.menu': 'Menu da conta de {login}',
+  'user.menu': 'Menu da conta',
   'user.docs': 'Documentação',
   'user.signOut': 'Sair',
   'noInstallations.title': 'Instale o Standcast na sua organização',

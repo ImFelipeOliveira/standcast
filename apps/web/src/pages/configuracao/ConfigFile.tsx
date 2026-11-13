@@ -142,7 +142,7 @@ export function ConfigFile({ status }: { status: SetupStatus }) {
           {config.lastValid ? (
             <p className="m-0 text-[13px]">{t('setup.config.keepsLastValid')}</p>
           ) : null}
-          <Table>
+          <Table label={t('setup.config.error')}>
             <TableHeader>
               <TableRow>
                 <TableHead scope="col">{t('setup.config.path')}</TableHead>
