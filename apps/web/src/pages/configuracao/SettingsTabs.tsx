@@ -3,11 +3,16 @@ import { useSetupStatus } from '../../api/queries';
 import { type MessageKey, useT } from '../../i18n';
 import { cn } from '../../lib/utils';
 
-export type SettingsTab = 'general' | 'people' | 'api';
+export type SettingsTab = 'general' | 'people' | 'config' | 'api';
 
 const TABS: { tab: SettingsTab; to: string; label: MessageKey }[] = [
   { tab: 'general', to: '/orgs/$installationId/settings', label: 'settings.tab.general' },
   { tab: 'people', to: '/orgs/$installationId/settings/people', label: 'settings.tab.people' },
+  {
+    tab: 'config',
+    to: '/orgs/$installationId/settings/config',
+    label: 'settings.tab.config',
+  },
   { tab: 'api', to: '/orgs/$installationId/settings/api', label: 'settings.tab.api' },
 ];
 

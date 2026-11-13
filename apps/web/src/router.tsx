@@ -8,6 +8,7 @@ import {
   redirect,
 } from '@tanstack/react-router';
 import {
+  ApiError,
   clearSignInMarker,
   fetchSession,
   SIGN_IN_ERRORS,
@@ -15,10 +16,11 @@ import {
   safeNext,
   signInUrl,
 } from './api/client';
-import { orgContextQuery, sessionQuery } from './api/queries';
+import { configQuery, orgContextQuery, sessionQuery, useSetupStatus } from './api/queries';
 import { useT } from './i18n';
 import { BlockersPage } from './pages/blockers/BlockersPage';
-import { ConfiguracaoPage } from './pages/configuracao/ConfiguracaoPage';
+import { ConfigEditor, configEditUrl } from './pages/configuracao/ConfigEditor';
+import { ConfiguracaoPage, LoadError } from './pages/configuracao/ConfiguracaoPage';
 import { PeopleTab } from './pages/configuracao/PeopleTab';
 import { SettingsTabs } from './pages/configuracao/SettingsTabs';
 import { HistoryPage, type HistorySearch } from './pages/history/HistoryPage';
@@ -326,6 +328,51 @@ const settingsPeopleRoute = createRoute({
   },
 });
 
+const settingsConfigRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: 'settings/config',
+  beforeLoad: ({ context, params, cause }) => {
+    if (cause !== 'enter') return;
+    context.queryClient.removeQueries({
+      queryKey: configQuery(params.installationId).queryKey,
+      exact: true,
+    });
+  },
+  component: function SettingsConfig() {
+    const t = useT();
+    const { installationId } = orgRoute.useParams();
+    const setup = useSetupStatus(installationId);
+    const status = setup.data;
+    return (
+      <>
+        <PageHeader
+          title={t('setup.heading')}
+          actions={<SettingsTabs installationId={installationId} current="config" />}
+        />
+        {status ? (
+          <ConfigEditor
+            installationId={installationId}
+            editUrl={
+              status.configRepo.exists
+                ? configEditUrl(
+                    status.owner,
+                    status.configRepo.name,
+                    status.configRepo.defaultBranch,
+                    status.config.status !== 'unconfigured',
+                  )
+                : null
+            }
+          />
+        ) : setup.isError && !(setup.error instanceof ApiError && setup.error.status === 401) ? (
+          <LoadError header={false} onRetry={() => void setup.refetch()} />
+        ) : (
+          <Loading header={false} />
+        )}
+      </>
+    );
+  },
+});
+
 const settingsApiRoute = createRoute({
   getParentRoute: () => orgRoute,
   path: 'settings/api',
@@ -389,6 +436,7 @@ export const routeTree = rootRoute.addChildren([
     configuracaoRoute,
     settingsPeopleRoute,
     settingsApiRoute,
+    settingsConfigRoute,
     legacyTodayRoute,
     legacyHistoryRoute,
     legacySettingsRoute,
