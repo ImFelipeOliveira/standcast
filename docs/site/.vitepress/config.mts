@@ -4,9 +4,10 @@ import { fileURLToPath } from 'node:url';
 import { type DefaultTheme, defineConfigWithTheme } from 'vitepress';
 import llmstxt from 'vitepress-plugin-llms';
 import { codeBackgrounds, shikiContrastTransformer } from '../../../scripts/docs-contrast';
+import { fullGitHistory, gitRunner } from '../../../scripts/docs-git';
 import { writeSiteHeaders } from '../../../scripts/docs-headers';
 import { writeLocaleLlms } from '../../../scripts/docs-llms';
-import { OG_HEIGHT, OG_WIDTH, ogImageFor, templateDigest } from '../../../scripts/docs-og';
+import { OG_HEIGHT, OG_WIDTH, requireOgImage, templateDigest } from '../../../scripts/docs-og';
 import { publicUrlPlugin, resolvePublicUrl } from '../../../scripts/docs-public-url';
 import { localeThemeConfig, sharedThemeConfig } from '../../../scripts/docs-theme-config';
 
@@ -34,11 +35,16 @@ const codeContrast = shikiContrastTransformer(
 
 const ogDigest = await templateDigest();
 
+const lastUpdated = fullGitHistory(gitRunner(fileURLToPath(new URL('.', import.meta.url))));
+if (!lastUpdated) {
+  console.warn('docs: the git history is shallow or missing, so pages leave out the last updated date');
+}
+
 export default defineConfigWithTheme<ThemeConfig>({
   title: 'Standcast',
   base: '/',
   srcExclude: ['README.md'],
-  lastUpdated: true,
+  lastUpdated,
   cleanUrls: true,
   sitemap: { hostname: DOCS_DOMAIN },
   ignoreDeadLinks: false,
@@ -72,10 +78,11 @@ export default defineConfigWithTheme<ThemeConfig>({
   ],
   transformHead: async ({ pageData, siteConfig }) => {
     if (!existsSync(join(siteConfig.srcDir, pageData.relativePath))) return [];
-    const { card, image } = await ogImageFor(siteConfig.srcDir, pageData.relativePath, ogDigest);
-    if (!existsSync(join(siteConfig.srcDir, 'public', image))) {
-      throw new Error(`${pageData.relativePath}: missing ${image}, run bun run docs:og`);
-    }
+    const { card, image } = await requireOgImage(
+      siteConfig.srcDir,
+      pageData.relativePath,
+      ogDigest,
+    );
     const url = `${DOCS_DOMAIN}/${image}`;
     return [
       ['meta', { property: 'og:image', content: url }],
