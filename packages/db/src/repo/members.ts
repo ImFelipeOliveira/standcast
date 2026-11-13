@@ -303,19 +303,6 @@ export async function findMembersByEmail(db: Db, email: string): Promise<MemberR
     .orderBy(members.login);
 }
 
-export async function listMembersByLogins(db: Db, logins: string[]): Promise<MemberRow[]> {
-  if (logins.length === 0) return [];
-  return db
-    .select()
-    .from(members)
-    .where(
-      inArray(
-        sql`lower(${members.login})`,
-        logins.map((login) => login.toLowerCase()),
-      ),
-    );
-}
-
 export async function listMemberIdentities(
   db: Db,
   installationId: number,

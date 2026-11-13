@@ -1,8 +1,8 @@
 import { type ChatProvider, memberOverrides } from '@standcast/core';
 import {
+  getInstallationMemberIds,
   listMemberIdentities,
-  listMemberIdsWithSession,
-  listMembersByLogins,
+  listMemberIdsWithActiveCliSession,
   type MemberRow,
   operationalConfig,
 } from '@standcast/db';
@@ -47,12 +47,12 @@ export async function getPeopleLinks(
   const logins = [
     ...new Set(teams.flatMap((team) => [...team.memberLogins, ...team.managerLogins])),
   ].sort((a, b) => a.localeCompare(b));
-  const rows = await listMembersByLogins(deps.db, logins);
-  const byLogin = new Map(rows.map((row) => [row.login.toLowerCase(), row]));
-  const ids = rows.map((row) => row.id);
+  const memberIds = await getInstallationMemberIds(deps.db, installation.id, logins);
+  const byLogin = new Map([...memberIds.entries()].map(([login, id]) => [login, { id }]));
+  const ids = [...memberIds.values()];
   const [identities, cli] = await Promise.all([
     listMemberIdentities(deps.db, installation.id, ids),
-    listMemberIdsWithSession(deps.db, ids, 'cli'),
+    listMemberIdsWithActiveCliSession(deps.db, ids, deps.now()),
   ]);
   const linked = new Set(identities.map((row) => `${row.memberId}:${row.provider}`));
   return {

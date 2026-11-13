@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { and, eq, inArray, lt, or, sql } from 'drizzle-orm';
+import { and, eq, gt, inArray, lt, or, sql } from 'drizzle-orm';
 import type { Db } from '../client';
 import { type MemberRow, members, sessions } from '../schema';
 import { PRUNE_BATCH } from './prune-batch';
@@ -72,15 +72,22 @@ export async function deleteExpiredSessions(db: Db, now: Date): Promise<number> 
   }
 }
 
-export async function listMemberIdsWithSession(
+export async function listMemberIdsWithActiveCliSession(
   db: Db,
   memberIds: string[],
-  kind: 'cli' | 'web',
+  now: Date,
 ): Promise<Set<string>> {
   if (memberIds.length === 0) return new Set();
+  const cutoff = new Date(now.getTime() - CLI_IDLE_DAYS * 86_400_000);
   const rows = await db
     .selectDistinct({ memberId: sessions.memberId })
     .from(sessions)
-    .where(and(inArray(sessions.memberId, memberIds), eq(sessions.kind, kind)));
+    .where(
+      and(
+        inArray(sessions.memberId, memberIds),
+        eq(sessions.kind, 'cli'),
+        gt(sessions.lastUsedAt, cutoff),
+      ),
+    );
   return new Set(rows.map((row) => row.memberId));
 }
