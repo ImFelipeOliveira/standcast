@@ -120,7 +120,10 @@ function TodayView({ installationId, today }: { installationId: number; today: T
   const resolve = useResolveBlocker(installationId, team);
   const reopen = useReopenBlocker(installationId, team);
   const remind = useRemindNow(installationId, team);
-  const setup = useQuery({ ...setupStatusQuery(installationId), enabled: today.digest.everSent === false });
+  const setup = useQuery({
+    ...setupStatusQuery(installationId),
+    enabled: today.digest.everSent === false,
+  });
   const [filter, setFilter] = useState<DailyFilter>('all');
   const [viewing, setViewing] = useState<string | null>(null);
   const [resolved, setResolved] = useState<Record<string, TodayBlocker>>({});

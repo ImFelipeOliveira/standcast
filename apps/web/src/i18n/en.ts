@@ -516,4 +516,14 @@ export const en: Record<MessageKey, string> = {
   'firstSteps.digest': 'Get the first digest',
   'firstSteps.digestBody':
     'The digest goes to the channel at {time}, with the dailies sent by then.',
+  'palette.searchIn': 'Search “{query}” in the dailies of {team}',
+  'palette.open': 'Search',
+  'palette.title': 'Search the panel',
+  'palette.placeholder': 'Screens, teams, PRs, cards or daily text',
+  'palette.screens': 'Screens',
+  'palette.teams': 'Teams',
+  'palette.search': 'Dailies',
+  'palette.empty': 'Nothing found. Type at least 2 letters to search the dailies.',
+  'palette.hint': '↑ ↓ to pick, Enter to open, Esc to close.',
+  'palette.results': '{count} result(s)',
 };

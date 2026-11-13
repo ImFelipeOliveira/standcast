@@ -9,6 +9,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 ## Product
 
 ### Unreleased
+- **Today** shows **First steps** until a team gets its first digest: install, standcast.yml, chat connection, first daily and first digest, each with its state in words and what to do next.
+- **Search** (⌘K or Ctrl K, or the Search button in the sidebar) jumps to any screen or team and searches the dailies of your teams by text, pull request or card.
 - **Settings** in the web app has tabs: General, People and links, and API and webhooks. **People and links** (admins) shows, for each person in standcast.yml, whether Standcast can find them in the team's chat and tracker, where the link comes from, and whether they use the CLI or plugin, with what to do when a link is missing. A failed webhook delivery can be sent again with **Redeliver**.
 - The web app has a **History** page for each team: past digests by day with the full digest, search over confirmed dailies (text, pull request or card), and the week's shipped pull requests and cards with copy as Markdown and Markdown/CSV export. It never shows who did not send on past days.
 - **Today** and **History** open the digest in the team's chat, with a button named after it (Open in Slack or Open in Google Chat) once the digest is sent.

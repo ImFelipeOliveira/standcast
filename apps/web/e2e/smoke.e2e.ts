@@ -107,3 +107,37 @@ test('the phone drawer moves focus, closes with Escape and on team change', asyn
   await page.getByRole('dialog', { name: 'Menu' }).getByRole('link', { name: TEAM_NAME }).click();
   await expect(page.getByRole('dialog', { name: 'Menu' })).toHaveCount(0);
 });
+
+test('⌘K opens the search, the keyboard picks a result and Enter opens it', async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.goto(`/orgs/${INSTALLATION_ID}/today?team=${TEAM_NAME}`);
+  await expect(page.getByRole('heading', { name: 'Precisa de você' })).toBeVisible();
+  await page.keyboard.press('ControlOrMeta+k');
+  const input = page.getByRole('combobox', { name: 'Buscar no painel' });
+  await expect(input).toBeFocused();
+  await expect(page.getByRole('option', { name: 'Hoje' })).toHaveAttribute('aria-selected', 'true');
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('option', { name: 'Impedimentos' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(`/orgs/${INSTALLATION_ID}/blockers`);
+  await expect(input).toBeHidden();
+
+  await page
+    .getByRole('button', { name: /Buscar/ })
+    .first()
+    .click();
+  await input.fill('deploy');
+  await expect(page.getByRole('option', { name: /nas dailies de/ }).first()).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/history\?.*tab=search/);
+  await expect(page).toHaveURL(/q=deploy/);
+});
