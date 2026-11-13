@@ -27,7 +27,7 @@ The image no longer builds the documentation site. If the api and worker service
 
 ## Runtime variables
 
-Set these on the api service. The worker needs `DATABASE_URL`, `STANDCAST_ENCRYPTION_KEY`, the five `GITHUB_*` variables, the two `LINEAR_*` variables and `GOOGLE_CHAT_SERVICE_ACCOUNT` when Google Chat is on, plus `SUPPORT_EMAIL` and `BETA_EMAIL_FROM` when `RESEND_API_KEY` is set; setting all of them on both is harmless.
+Set these on the api service. The worker needs `DATABASE_URL`, `STANDCAST_ENCRYPTION_KEY`, the five `GITHUB_*` variables, the two `LINEAR_*` variables and `GOOGLE_CHAT_SERVICE_ACCOUNT` and `PUBLIC_URL` when Google Chat is on, plus `SUPPORT_EMAIL` and `BETA_EMAIL_FROM` when `RESEND_API_KEY` is set; setting all of them on both is harmless.
 
 **Required since the web app:** `APP_URL` must be set on the api. The api fails to start without it, so set it before you deploy this version.
 
@@ -37,7 +37,7 @@ Set these on the api service. The worker needs `DATABASE_URL`, `STANDCAST_ENCRYP
 | --- | --- |
 | `DATABASE_URL` | Reference the Postgres service |
 | `PORT` | Set by Railway |
-| `PUBLIC_URL` | Public address of the api, for example `https://api.standcast.app` |
+| `PUBLIC_URL` | Public address of the api, for example `https://api.standcast.app`. Also on the worker when Google Chat is on: the **Link my account** button under Google Chat digests calls `<PUBLIC_URL>/webhooks/google-chat`. Without it on the worker, digests have no button |
 | `SUPPORT_EMAIL` | Shown on the web app Settings page, the API error pages, and the OpenAPI document |
 | `DOCS_URL` | Address of the documentation site, `https` with no trailing slash, for example `https://docs.standcast.app`. Defaults to `https://docs.standcast.app`. The OpenAPI document links to it, and the api redirects `/docs` and `/docs/*` to it with a 301 |
 | `LANDING_URL` | Address of the landing page, `https` with no trailing slash. Defaults to `https://standcast.app`. It is where the api sends the browser back when the beta request form is invalid |

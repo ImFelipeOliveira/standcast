@@ -501,7 +501,7 @@ export const ptBR = {
   'editor.validationFailed': 'Não foi possível validar',
   'editor.alertTag': 'Alerta',
   'editor.readOnly':
-    'O editor não grava nada: copie o YAML ou abra o arquivo no GitHub e faça o commit no repositório .github da organização.',
+    'O editor não grava nada: copie o YAML ou abra o arquivo no GitHub e faça o commit no repositório de configuração da organização.',
   'firstSteps.title': 'Primeiros passos',
   'firstSteps.progress': '{done} de {total}',
   'firstSteps.intro': 'Este quadro some quando o time receber o primeiro consolidado no chat.',
@@ -536,4 +536,5 @@ export const ptBR = {
   'palette.empty': 'Nada encontrado. Digite ao menos 2 letras para buscar nas dailies.',
   'palette.hint': '↑ ↓ para escolher, Enter para abrir, Esc para fechar.',
   'palette.results': '{count} resultado(s)',
+  'history.exportTitle': '{team} · entregas de {from} a {to}',
 } as const;

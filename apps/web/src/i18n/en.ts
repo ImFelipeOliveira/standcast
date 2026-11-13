@@ -494,7 +494,7 @@ export const en: Record<MessageKey, string> = {
   'editor.validationFailed': 'Could not validate',
   'editor.alertTag': 'Alert',
   'editor.readOnly':
-    'The editor saves nothing: copy the YAML or open the file on GitHub and commit it to the organization .github repository.',
+    "The editor saves nothing: copy the YAML or open the file on GitHub and commit it to the organization's configuration repository.",
   'firstSteps.title': 'First steps',
   'firstSteps.progress': '{done} of {total}',
   'firstSteps.intro': 'This box goes away once the team gets its first digest in the chat.',
@@ -530,4 +530,5 @@ export const en: Record<MessageKey, string> = {
   'palette.empty': 'Nothing found. Type at least 2 letters to search the dailies.',
   'palette.hint': '↑ ↓ to pick, Enter to open, Esc to close.',
   'palette.results': '{count} result(s)',
+  'history.exportTitle': '{team} · shipped {from} to {to}',
 };

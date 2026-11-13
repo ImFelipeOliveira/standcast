@@ -13,25 +13,29 @@ O `standcast mcp` inicia um servidor [Model Context Protocol](https://modelconte
 
 ## Configure o seu cliente
 
-Claude Desktop (`claude_desktop_config.json`) e Cursor (`.cursor/mcp.json`):
+Adicione o servidor na configuração do seu cliente: `claude_desktop_config.json` no Claude Desktop, `.cursor/mcp.json` no Cursor, `.vscode/mcp.json` no VS Code e `~/.codex/config.toml` no Codex.
 
-```json
+::: code-group
+
+```json [Claude Desktop]
 {"mcpServers":{"standcast":{"command":"standcast","args":["mcp"]}}}
 ```
 
-VS Code (`.vscode/mcp.json`):
+```json [Cursor]
+{"mcpServers":{"standcast":{"command":"standcast","args":["mcp"]}}}
+```
 
-```json
+```json [VS Code]
 {"servers":{"standcast":{"type":"stdio","command":"standcast","args":["mcp"]}}}
 ```
 
-Codex (`~/.codex/config.toml`):
-
-```toml
+```toml [Codex]
 [mcp_servers.standcast]
 command = "standcast"
 args = ["mcp"]
 ```
+
+:::
 
 Qualquer outro cliente: `{"command": "standcast", "args": ["mcp"]}`.
 

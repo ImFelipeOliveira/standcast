@@ -16,11 +16,11 @@ import { Connections, setupProgress } from './Connections';
 import { FailedDeliveries } from './FailedDeliveries';
 import { Webhooks } from './Webhooks';
 
-function LoadError({ onRetry }: { onRetry: () => void }) {
+export function LoadError({ onRetry, header = true }: { onRetry: () => void; header?: boolean }) {
   const t = useT();
   return (
     <>
-      <SectionHeader />
+      {header ? <SectionHeader /> : null}
       <Card role="alert" className="items-start">
         <h2 className="m-0 font-bold text-[17px]">{t('error.title')}</h2>
         <p className="m-0 text-text2">{t('error.body')}</p>

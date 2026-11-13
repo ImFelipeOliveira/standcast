@@ -8,6 +8,7 @@ import {
   redirect,
 } from '@tanstack/react-router';
 import {
+  ApiError,
   clearSignInMarker,
   fetchSession,
   SIGN_IN_ERRORS,
@@ -15,11 +16,11 @@ import {
   safeNext,
   signInUrl,
 } from './api/client';
-import { orgContextQuery, sessionQuery, useSetupStatus } from './api/queries';
+import { configQuery, orgContextQuery, sessionQuery, useSetupStatus } from './api/queries';
 import { useT } from './i18n';
 import { BlockersPage } from './pages/blockers/BlockersPage';
 import { ConfigEditor, configEditUrl } from './pages/configuracao/ConfigEditor';
-import { ConfiguracaoPage } from './pages/configuracao/ConfiguracaoPage';
+import { ConfiguracaoPage, LoadError } from './pages/configuracao/ConfiguracaoPage';
 import { PeopleTab } from './pages/configuracao/PeopleTab';
 import { SettingsTabs } from './pages/configuracao/SettingsTabs';
 import { HistoryPage, type HistorySearch } from './pages/history/HistoryPage';
@@ -262,7 +263,7 @@ const historicoRoute = createRoute({
     throw redirect({
       to: '/orgs/$installationId/history',
       params,
-      search: { team },
+      search: { ...parseHistorySearch(search), team },
       replace: true,
     });
   },
@@ -330,6 +331,13 @@ const settingsPeopleRoute = createRoute({
 const settingsConfigRoute = createRoute({
   getParentRoute: () => orgRoute,
   path: 'settings/config',
+  beforeLoad: ({ context, params, cause }) => {
+    if (cause !== 'enter') return;
+    context.queryClient.removeQueries({
+      queryKey: configQuery(params.installationId).queryKey,
+      exact: true,
+    });
+  },
   component: function SettingsConfig() {
     const t = useT();
     const { installationId } = orgRoute.useParams();
@@ -355,6 +363,8 @@ const settingsConfigRoute = createRoute({
                 : null
             }
           />
+        ) : setup.isError && !(setup.error instanceof ApiError && setup.error.status === 401) ? (
+          <LoadError header={false} onRetry={() => void setup.refetch()} />
         ) : (
           <Loading header={false} />
         )}

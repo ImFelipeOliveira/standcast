@@ -171,11 +171,27 @@ describe('withKept', () => {
       OrgBlockers['open'][number],
       OrgBlockers['open'][number],
     ];
-    const kept = new Map([[first.id, first]]);
+    const kept = new Map([[first.id, { blocker: first, settled: true }]]);
     expect(withKept([second], kept).map((entry) => [entry.blocker.id, entry.resolved])).toEqual([
       ['b1', true],
       ['b2', false],
     ]);
     expect(withKept([first, second], new Map()).every((entry) => !entry.resolved)).toBe(true);
+  });
+
+  test('a pending resolve shows as resolved before the refetch', () => {
+    const [first] = blockers.open as [OrgBlockers['open'][number]];
+    const kept = new Map([[first.id, { blocker: first, settled: false }]]);
+    expect(withKept([first], kept).map((entry) => [entry.blocker.id, entry.resolved])).toEqual([
+      ['b1', true],
+    ]);
+  });
+
+  test('a blocker reopened elsewhere after the resolve shows as open again', () => {
+    const [first] = blockers.open as [OrgBlockers['open'][number]];
+    const kept = new Map([[first.id, { blocker: first, settled: true }]]);
+    expect(withKept([first], kept).map((entry) => [entry.blocker.id, entry.resolved])).toEqual([
+      ['b1', false],
+    ]);
   });
 });

@@ -6,7 +6,9 @@ import { parseLinearIssueUrl } from './linear-ref';
 import {
   type Block,
   type Inline,
+  LINK_CHAT_ACCOUNT_ACTION,
   type Message,
+  type MessageAction,
   type Person,
   personInline,
   toPlainText,
@@ -101,7 +103,19 @@ export function buildDigest(input: {
     });
     blocks.push({ type: 'paragraph', content });
   }
-  return message(blocks);
+  const people = [...entries, ...missing];
+  if (team.chat?.provider !== 'google-chat' || people.every((p) => p.chatUserId)) {
+    return message(blocks);
+  }
+  return { ...message(blocks), actions: [linkAccountAction(lang)] };
+}
+
+function linkAccountAction(lang: Language): MessageAction {
+  return {
+    type: LINK_CHAT_ACCOUNT_ACTION,
+    text: t(lang, 'googleChat.linkPrompt'),
+    label: t(lang, 'googleChat.linkButton'),
+  };
 }
 
 export function buildLateDaily(entry: DigestEntry, lang: Language): Message {

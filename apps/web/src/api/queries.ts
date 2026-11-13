@@ -106,10 +106,11 @@ function rangeQuery(from?: string, to?: string): string {
   return value ? `?${value}` : '';
 }
 
-export function teamHistoryQuery(installationId: number, team: string) {
+export function teamHistoryQuery(installationId: number, team: string, from?: string, to?: string) {
   return queryOptions({
-    queryKey: ['org', installationId, 'team', team, 'history', 'days'],
-    queryFn: () => apiGet<TeamHistory>(`${historyPath(installationId, team)}/digests`),
+    queryKey: ['org', installationId, 'team', team, 'history', 'days', from ?? null, to ?? null],
+    queryFn: () =>
+      apiGet<TeamHistory>(`${historyPath(installationId, team)}/digests${rangeQuery(from, to)}`),
   });
 }
 

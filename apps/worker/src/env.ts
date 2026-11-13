@@ -17,9 +17,18 @@ const googleChatServiceAccount = z
     }
   });
 
+const publicUrl = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  z
+    .url()
+    .transform((url) => url.replace(/\/+$/, ''))
+    .optional(),
+);
+
 const schema = z
   .object({
     DATABASE_URL: z.string().min(1),
+    PUBLIC_URL: publicUrl,
     STANDCAST_ENCRYPTION_KEY: z
       .string()
       .transform((v) => Buffer.from(v, 'base64'))

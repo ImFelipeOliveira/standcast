@@ -21,7 +21,7 @@ Ele resolve três problemas que aparecem quando o time escreve a daily com IA:
 
 ## Para quem é
 
-- **Membros** escrevem a própria daily pelo agente de IA. Comece por [Primeiros passos](/pt-BR/members/getting-started).
+- **Membros** escrevem a própria daily pelo agente de IA. Comece por [Escreva sua primeira daily](/pt-BR/members/getting-started).
 - **Gestores** recebem o consolidado do time no Slack ou no Google Chat e leem as dailies, os consolidados e os impedimentos do time pela própria IA. Comece pelo [Servidor MCP](/pt-BR/members/mcp).
 - **Admins** instalam o GitHub App, conectam o Slack ou o Google Chat e escrevem o `standcast.yml`. Comece pela [Instalação](/pt-BR/admin/install).
 - **Integradores** leem os dados da organização com uma API key e recebem webhooks. Comece pela [visão geral da API](/pt-BR/api/overview).
@@ -73,7 +73,7 @@ Veja [Como funciona](/pt-BR/how-it-works) para o ciclo completo de um dia.
 | Você é | Leia |
 | --- | --- |
 | Admin configurando a organização | [Instalação](/pt-BR/admin/install) e depois a [referência do standcast.yml](/pt-BR/admin/configuration) |
-| Membro escrevendo a primeira daily | [Primeiros passos](/pt-BR/members/getting-started) |
+| Membro escrevendo a primeira daily | [Escreva sua primeira daily](/pt-BR/members/getting-started) |
 | Usuário do Claude Code | [Skill do Claude Code](/pt-BR/members/claude-code) |
 | Usuário do Cursor, Codex, Claude Desktop ou VS Code | [Servidor MCP](/pt-BR/members/mcp) |
 | Gestor | [Servidor MCP](/pt-BR/members/mcp#tools-de-gestor) e [Como funciona](/pt-BR/how-it-works) |

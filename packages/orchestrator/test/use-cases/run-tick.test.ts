@@ -10,7 +10,7 @@ import {
 } from '@standcast/db';
 import type { EnqueueOptions } from '@standcast/queue';
 import { db, useCleanDb } from '../../../db/test/setup';
-import { runTick, scanOffsetSeconds } from '../../src';
+import { runTick, SEND_BLOCKER_ALERTS_JOB, scanOffsetSeconds } from '../../src';
 import { config, fakeDeps, INST, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
@@ -334,6 +334,117 @@ teams:
       spy.mockRestore();
       expect(logged).toContain('queue down');
       expect(fake.queue.enqueued.map((j) => j.name)).toContain('send-reminder');
+    });
+  });
+
+  describe('stale blocker alerts', () => {
+    const alerts = (f: { queue: { enqueued: { name: string; data: unknown }[] } }) =>
+      f.queue.enqueued.filter((j) => j.name === SEND_BLOCKER_ALERTS_JOB).map((j) => j.data);
+
+    function alerting(days = '3'): StandcastConfig {
+      const parsed = parseConfig(`
+teams:
+  - name: Alpha
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [alice]
+    members: [alice]
+    chat: { provider: slack, channel: "#alpha" }
+    signals: { blocker_alert_days: ${days} }
+  - name: Beta
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [bob]
+    members: [bob]
+    chat: { provider: slack, channel: "#beta" }
+`);
+      if (!parsed.ok) throw new Error(JSON.stringify(parsed.errors));
+      return parsed.config;
+    }
+
+    async function digestSent(teamName: string, date = '2026-10-28') {
+      await markDeliverySent(db, digestKey(date, teamName));
+    }
+
+    test('enqueued once per team per day, only after the digest is sent', async () => {
+      await seedOrg(alerting());
+      const fake = fakeDeps();
+      fake.setNow(local('2026-10-28T10:00:00'));
+      await runTick(fake.deps);
+      expect(alerts(fake)).toEqual([]);
+
+      await digestSent('Alpha');
+      await digestSent('Beta');
+      for (const at of ['10:01', '10:02', '10:30']) {
+        fake.setNow(local(`2026-10-28T${at}:00`));
+        await runTick(fake.deps);
+      }
+      expect(alerts(fake)).toEqual([
+        { installationId: INST, teamName: 'Alpha', date: '2026-10-28' },
+      ]);
+    });
+
+    test('uses a singleton key per team and day', async () => {
+      await seedOrg(alerting());
+      await digestSent('Alpha');
+      const fake = fakeDeps();
+      const seen: (EnqueueOptions | undefined)[] = [];
+      const enqueue = fake.queue.enqueue.bind(fake.queue);
+      fake.deps.queue = {
+        ...fake.queue,
+        enqueue: async (name, data, opts) => {
+          if (name === SEND_BLOCKER_ALERTS_JOB) seen.push(opts);
+          return enqueue(name, data, opts);
+        },
+      };
+      fake.setNow(local('2026-10-28T10:05:00'));
+      await runTick(fake.deps);
+      expect(seen).toEqual([{ singletonKey: `blocker-alert:${INST}:Alpha:2026-10-28` }]);
+    });
+
+    test('not enqueued again once the day was scanned or ran out of attempts', async () => {
+      await seedOrg(alerting());
+      await digestSent('Alpha');
+      await markDeliverySent(db, { ...digestKey('2026-10-28'), kind: 'blocker_alert' });
+      const scanned = await tickAt(local('2026-10-28T10:05:00'), alerting());
+      expect(alerts(scanned)).toEqual([]);
+
+      const key = { ...digestKey('2026-10-29'), kind: 'blocker_alert' as const };
+      await digestSent('Alpha', '2026-10-29');
+      for (let i = 0; i < 3; i++) {
+        const claim = await claimDelivery(db, key);
+        if (claim.status !== 'claimed') throw new Error('not claimed');
+        await failDelivery(db, key, claim.token, 'not_in_channel: x');
+      }
+      const exhausted = await tickAt(local('2026-10-29T10:05:00'), alerting());
+      expect(alerts(exhausted)).toEqual([]);
+    });
+
+    test('a failed scan with attempts left is enqueued again', async () => {
+      await seedOrg(alerting());
+      await digestSent('Alpha');
+      const key = { ...digestKey('2026-10-28'), kind: 'blocker_alert' as const };
+      const claim = await claimDelivery(db, key);
+      if (claim.status !== 'claimed') throw new Error('not claimed');
+      await failDelivery(db, key, claim.token, 'ratelimited: x');
+      const fake = await tickAt(local('2026-10-28T10:05:00'), alerting());
+      expect(alerts(fake)).toHaveLength(1);
+    });
+
+    test('never enqueued without blocker_alert_days, on a non-workday or outside the window', async () => {
+      await seedOrg(config());
+      await digestSent('Alpha');
+      const off = await tickAt(local('2026-10-28T10:05:00'), config());
+      expect(alerts(off)).toEqual([]);
+
+      await digestSent('Alpha', '2026-10-31');
+      const weekend = await tickAt(local('2026-10-31T10:05:00'), alerting());
+      expect(alerts(weekend)).toEqual([]);
+
+      const late = await tickAt(local('2026-10-28T12:01:00'), alerting());
+      expect(alerts(late)).toEqual([]);
     });
   });
 });

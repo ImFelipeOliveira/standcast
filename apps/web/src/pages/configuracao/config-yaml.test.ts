@@ -16,6 +16,13 @@ function config(team: Partial<StandcastConfig['teams'][number]> = {}): Standcast
   };
 }
 
+describe('emptyTeam', () => {
+  test('defaults to en like standcast.yml, or to the language it is given', () => {
+    expect(emptyTeam('x').language).toBe('en');
+    expect(emptyTeam('x', 'pt-BR').language).toBe('pt-BR');
+  });
+});
+
 describe('toYaml', () => {
   for (const chat of [
     { provider: 'slack' as const, channel: '#daily-plataforma' },

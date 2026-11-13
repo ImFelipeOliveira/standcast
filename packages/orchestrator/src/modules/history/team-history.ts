@@ -1,5 +1,6 @@
 import { addCalendarDays, type ChatProvider, type Item, type Ref } from '@standcast/core';
 import {
+  type DailyCursor,
   type DailyRecord,
   getConnectionInfo,
   getDelivery,
@@ -19,7 +20,8 @@ const SHIPPED_DAYS = 7;
 const MAX_RANGE_DAYS = 92;
 const SEARCH_LIMIT = 100;
 const MIN_QUERY_LENGTH = 2;
-const MAX_DAILIES = 5000;
+const MAX_QUERY_LENGTH = 100;
+const DAILIES_PAGE = 1000;
 
 export type HistoryStatus = 'sent' | 'failed' | 'pending' | 'none';
 
@@ -99,16 +101,25 @@ function range(
   return { from, to };
 }
 
-function teamDailies(
+async function teamDailies(
   deps: Deps,
   access: TeamAccess,
   filter: { from?: string; to?: string; date?: string },
 ): Promise<DailyRecord[]> {
-  return listDailiesPage(deps.db, access.installation.id, {
-    ...filter,
-    logins: access.team.memberLogins,
-    limit: MAX_DAILIES,
-  });
+  const records: DailyRecord[] = [];
+  let after: DailyCursor | undefined;
+  for (;;) {
+    const page = await listDailiesPage(deps.db, access.installation.id, {
+      ...filter,
+      logins: access.team.memberLogins,
+      limit: DAILIES_PAGE,
+      ...(after ? { after } : {}),
+    });
+    records.push(...page);
+    const last = page.at(-1);
+    if (page.length < DAILIES_PAGE || !last) return records;
+    after = { date: last.date, id: last.id };
+  }
 }
 
 async function slackTeamId(deps: Deps, access: TeamAccess): Promise<string | null> {
@@ -229,10 +240,10 @@ export async function searchTeamDailies(
 ): Promise<{ results: SearchResult[] }> {
   const access = await readableTeam(deps, isMember, member, input);
   const query = (input.q ?? '').trim().toLowerCase();
-  if (query.length < MIN_QUERY_LENGTH) {
+  if (query.length < MIN_QUERY_LENGTH || query.length > MAX_QUERY_LENGTH) {
     throw new DomainError(
       'invalid_request',
-      `the search needs at least ${MIN_QUERY_LENGTH} characters`,
+      `the search needs ${MIN_QUERY_LENGTH} to ${MAX_QUERY_LENGTH} characters`,
     );
   }
   const { from, to } = range(access, input, HISTORY_DAYS);
