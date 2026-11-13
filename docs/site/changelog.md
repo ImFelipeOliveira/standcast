@@ -9,7 +9,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 ## Product
 
 ### Unreleased
-- Screen readers announce the account menu button with the name and role shown on it, the support email link in Settings is underlined, and wide tables in Settings can be scrolled with the keyboard. Every page of the web app is now checked with axe in light and dark themes and on phones on every change.
+- Screen readers announce the account menu button with the name and role shown on it, the support email link in Settings is underlined, and wide tables in Settings can be scrolled with the keyboard. The sign-in, Today, Blockers, History and Settings pages of the web app are now checked with axe in light and dark themes and on phones on every change.
 - **Settings** in the web app has tabs: General, People and links, and API and webhooks. **People and links** (admins) shows, for each person in standcast.yml, whether Standcast can find them in the team's chat and tracker, where the link comes from, and whether they use the CLI or plugin, with what to do when a link is missing. A failed webhook delivery can be sent again with **Redeliver**.
 - The web app has a **History** page for each team: past digests by day with the full digest, search over confirmed dailies (text, pull request or card), and the week's shipped pull requests and cards with copy as Markdown and Markdown/CSV export. It never shows who did not send on past days.
 - **Today** and **History** open the digest in the team's chat, with a button named after it (Open in Slack or Open in Google Chat) once the digest is sent.
