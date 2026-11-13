@@ -10,6 +10,11 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- The web app has its own sign-in page. Opening the app without a session shows it instead of jumping straight to GitHub, and **Continue with GitHub** brings you back to the page you asked for.
+- When signing in fails (you cancel on GitHub, the link expires, GitHub does not confirm the account or the browser drops the session cookie), you return to the sign-in page with a message saying what happened and a **Try again** button, instead of an error page on the API.
+- Web app addresses are in English: `/orgs/<id>/today`, `/history` and `/settings`. Old links to `/hoje`, `/historico` and `/configuracao` still work and keep their query string.
+- The web app shows the Standcast icon in the browser tab.
+
 ### 0.9.4 — 2026-11-12
 
 - The `/daily` skill and the MCP server summarize yesterday in at most 5 lines, grouped by project or theme, instead of one line per pull request.
