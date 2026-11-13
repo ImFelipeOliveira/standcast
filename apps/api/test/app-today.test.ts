@@ -330,4 +330,23 @@ describe('/v1/app today chat link', () => {
       url: 'https://slack.com/app_redirect?team=T999&channel=C123',
     });
   });
+
+  test('says whether the team ever got a digest, so new teams see their first steps', async () => {
+    const { app, bob, carol } = await harness();
+    const before = await (await get(app, bob, `${INST}/teams/Alpha/today`)).json();
+    expect(before.digest.everSent).toBe(false);
+    const key = {
+      installationId: INST,
+      teamName: 'Alpha',
+      date: '2026-10-20',
+      kind: 'digest' as const,
+    };
+    const claim = await claimDelivery(db, key);
+    if (claim.status !== 'claimed') throw new Error('claim');
+    await completeDelivery(db, key, claim.token, { channel: 'C123', id: '1730000000.000100' });
+    const after = await (await get(app, bob, `${INST}/teams/Alpha/today`)).json();
+    expect(after.digest).toMatchObject({ status: 'scheduled', everSent: true });
+    const other = await (await get(app, carol, `${INST}/teams/Beta/today`)).json();
+    expect(other.digest.everSent).toBe(false);
+  });
 });

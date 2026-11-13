@@ -366,6 +366,26 @@ export async function listDigestDeliveries(
     .limit(f.limit);
 }
 
+export async function hasSentDigest(
+  db: Db,
+  installationId: number,
+  teamName: string,
+): Promise<boolean> {
+  const rows = await db
+    .select({ id: deliveries.id })
+    .from(deliveries)
+    .where(
+      and(
+        eq(deliveries.installationId, installationId),
+        eq(deliveries.kind, 'digest'),
+        eq(deliveries.teamName, teamName),
+        eq(deliveries.status, 'sent'),
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
+}
+
 const PERSON_DELIVERY_KINDS = [
   'reminder',
   'blocker_route',

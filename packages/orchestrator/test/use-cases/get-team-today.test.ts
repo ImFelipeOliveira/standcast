@@ -102,7 +102,11 @@ describe('getTeamToday', () => {
       remindAt: '09:00',
       digestAt: '10:00',
     });
-    expect(today.digest).toEqual({ status: 'sent', sentAt: '2026-10-28T13:00:00.000Z' });
+    expect(today.digest).toEqual({
+      status: 'sent',
+      sentAt: '2026-10-28T13:00:00.000Z',
+      everSent: true,
+    });
     expect(today.people).toEqual([
       { login: 'alice', status: 'missing', submittedAt: null, daily: null },
       {
@@ -323,7 +327,7 @@ teams:
   test('manager can remind only before the digest', async () => {
     const { deps, isMember, alice } = await setup();
     const before = await getTeamToday(deps, isMember, alice, team);
-    expect(before.digest).toEqual({ status: 'scheduled', sentAt: null });
+    expect(before.digest).toEqual({ status: 'scheduled', sentAt: null, everSent: false });
     expect(before).toMatchObject({ canRemind: true, canResolve: true });
     deps.now = () => new Date('2026-10-28T13:00:00Z');
     expect(await getTeamToday(deps, isMember, alice, team)).toMatchObject({

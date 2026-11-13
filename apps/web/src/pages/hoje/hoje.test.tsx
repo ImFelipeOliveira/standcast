@@ -30,7 +30,7 @@ function fixture(overrides: Partial<TeamToday> = {}): TeamToday {
       digestAt: '10:00',
     },
     date: '2026-11-03',
-    digest: { status: 'scheduled', sentAt: null },
+    digest: { status: 'scheduled', sentAt: null, everSent: true },
     chat: { provider: 'slack', url: null },
     canRemind: true,
     canResolve: true,

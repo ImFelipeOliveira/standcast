@@ -10,6 +10,7 @@ import {
 import {
   getConnectionInfo,
   getInstallationMemberIds,
+  hasSentDigest,
   type InstallationRow,
   listBlockerRouteRecipients,
   listCurrentOpenBlockerStates,
@@ -63,7 +64,7 @@ export type TodayShipped = { author: string; text: string; ref: Ref };
 export type TeamToday = {
   team: { name: string; timezone: string; remindAt: string; digestAt: string };
   date: string;
-  digest: { status: 'scheduled' | 'sent' | 'failed'; sentAt: string | null };
+  digest: { status: 'scheduled' | 'sent' | 'failed'; sentAt: string | null; everSent: boolean };
   canRemind: boolean;
   canResolve: boolean;
   people: TodayPerson[];
@@ -296,10 +297,11 @@ export async function getTeamToday(
       },
     };
   });
-  const [blockers, support, chatUrl] = await Promise.all([
+  const [blockers, support, chatUrl, everSent] = await Promise.all([
     openTeamBlockers(deps, access),
     supportRequests(deps, access, rows),
     digestChatUrl(deps, access, digest.ref),
+    digest.status === 'sent' || hasSentDigest(deps.db, access.installation.id, team.name),
   ]);
   return {
     team: {
@@ -309,7 +311,11 @@ export async function getTeamToday(
       digestAt: team.digestAt,
     },
     date,
-    digest: { status: digest.status, sentAt: digest.sentAt?.toISOString() ?? null },
+    digest: {
+      status: digest.status,
+      sentAt: digest.sentAt?.toISOString() ?? null,
+      everSent,
+    },
     canRemind: access.elevated && digest.status !== 'sent' && remindWindowOpen(deps, access),
     canResolve: access.elevated,
     people,
