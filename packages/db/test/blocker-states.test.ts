@@ -1,9 +1,11 @@
 import { describe, expect, test } from 'bun:test';
 import {
   getBlockerState,
+  isBlockerStateCurrent,
   listResolvedBlockerStates,
   setBlockerStateResolved,
   upsertBlockerState,
+  upsertDaily,
   upsertInstallation,
   upsertMember,
 } from '../src';
@@ -190,5 +192,42 @@ describe('resolved blocker states', () => {
     ]);
     expect(await listResolvedBlockerStates(db, INST, [], '2026-10-14')).toEqual([]);
     expect(await listResolvedBlockerStates(db, 200, [ana.id], '2026-10-14')).toEqual([]);
+  });
+
+  test('a resolved blocker is current only while it is in the author latest daily', async () => {
+    const { ana } = await seed();
+    const daily = (date: string) =>
+      upsertDaily(db, {
+        installationId: INST,
+        memberId: ana.id,
+        date,
+        payload: { org: 'acme', yesterday: [], today: [], blockers: [], support: [] },
+        submittedAt: new Date(`${date}T12:00:00Z`),
+      });
+    const row = await upsertBlockerState(db, {
+      installationId: INST,
+      authorMemberId: ana.id,
+      blockerId: 'b1',
+      text: 'waiting review',
+      ref: null,
+      date: '2026-10-28',
+    });
+    expect(await isBlockerStateCurrent(db, INST, row.id)).toBe(false);
+    await daily('2026-10-28');
+    await setBlockerStateResolved(db, INST, row.id, {
+      by: ana.id,
+      at: new Date('2026-10-28T13:00:00Z'),
+      on: '2026-10-28',
+    });
+    expect(await isBlockerStateCurrent(db, INST, row.id)).toBe(true);
+    expect((await listResolvedBlockerStates(db, INST, [ana.id], '2026-10-14'))[0]?.current).toBe(
+      true,
+    );
+    await daily('2026-10-29');
+    expect(await isBlockerStateCurrent(db, INST, row.id)).toBe(false);
+    expect(await isBlockerStateCurrent(db, 200, row.id)).toBe(false);
+    expect((await listResolvedBlockerStates(db, INST, [ana.id], '2026-10-14'))[0]?.current).toBe(
+      false,
+    );
   });
 });

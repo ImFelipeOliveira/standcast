@@ -140,7 +140,7 @@ export async function getOrgBlockers(
         ref: row.ref ?? null,
         resolvedOn: row.resolvedOn ?? '',
         resolvedBy: row.resolvedByLogin?.toLowerCase() ?? null,
-        canResolve: canResolveFor(author),
+        canResolve: row.current && canResolveFor(author),
       };
     }),
   };
