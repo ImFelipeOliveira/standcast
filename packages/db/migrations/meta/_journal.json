@@ -134,6 +134,13 @@
       "when": 1794539154635,
       "tag": "0018_blocker_states_alerted_teams",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794594768867,
+      "tag": "0019_members_verified_emails",
+      "breakpoints": true
     }
   ]
 }

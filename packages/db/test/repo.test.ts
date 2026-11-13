@@ -9,6 +9,7 @@ import {
   deleteInstallation,
   deleteMemberSessions,
   failDelivery,
+  findMembersByEmail,
   getConnection,
   getConnectionInfo,
   getConnectionSnapshot,
@@ -418,6 +419,29 @@ describe('member logins', () => {
     const rows = await db.execute(sql`SELECT login, email FROM members WHERE id = ${a.id}`);
     expect(rows[0]?.login).toBe('~1');
     expect(rows[0]?.email).toBe('a@x.com');
+  });
+
+  test('upsertMember keeps the stored verified emails when none are given', async () => {
+    await upsertMember(db, {
+      githubUserId: 1,
+      login: 'ana',
+      email: 'ana@acme.io',
+      verifiedEmails: ['ana@acme.io', 'Ana@Home.dev'],
+    });
+    const again = await upsertMember(db, { githubUserId: 1, login: 'ana', email: 'ana@acme.io' });
+    expect(again.verifiedEmails).toEqual(['ana@acme.io', 'ana@home.dev']);
+  });
+
+  test('findMembersByEmail matches the primary or any verified email', async () => {
+    const ana = await upsertMember(db, {
+      githubUserId: 1,
+      login: 'ana',
+      email: 'ana@acme.io',
+      verifiedEmails: ['ana@acme.io', 'ana@home.dev'],
+    });
+    expect((await findMembersByEmail(db, ' ANA@home.dev ')).map((m) => m.id)).toEqual([ana.id]);
+    expect((await findMembersByEmail(db, 'Ana@Acme.io')).map((m) => m.id)).toEqual([ana.id]);
+    expect(await findMembersByEmail(db, 'someone@else.io')).toEqual([]);
   });
 
   test('updateMemberLogin returns null for an unknown github id', async () => {
