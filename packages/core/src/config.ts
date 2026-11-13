@@ -17,7 +17,12 @@ export type TeamConfig = {
   members: string[];
   chat: { provider: ChatProvider; channel: string };
   tracker?: { provider: 'linear' | 'jira'; team: string };
-  signals: { prReviewHours: number; cardStaleDays: number; directMessage: boolean };
+  signals: {
+    prReviewHours: number;
+    cardStaleDays: number;
+    directMessage: boolean;
+    blockerAlertDays?: number;
+  };
 };
 
 export type MemberOverrides = {
@@ -68,6 +73,14 @@ const loginOrTeam = (field: string) =>
     message: `${field} must be GitHub logins or GitHub teams written as @org/team-slug`,
   });
 
+const BLOCKER_ALERT_DAYS_MESSAGE =
+  'blocker_alert_days must be a whole number of days greater than 0';
+
+const blockerAlertDays = z
+  .number({ error: BLOCKER_ALERT_DAYS_MESSAGE })
+  .int(BLOCKER_ALERT_DAYS_MESSAGE)
+  .positive(BLOCKER_ALERT_DAYS_MESSAGE);
+
 const teamSchema = z.strictObject({
   name: z.string().min(1),
   timezone,
@@ -92,6 +105,7 @@ const teamSchema = z.strictObject({
       pr_review_hours: z.number().positive().default(48),
       card_stale_days: z.number().positive().default(5),
       direct_message: z.boolean().default(false),
+      blocker_alert_days: blockerAlertDays.optional(),
     })
     .default({ pr_review_hours: 48, card_stale_days: 5, direct_message: false }),
 });
@@ -187,6 +201,9 @@ function toConfig(raw: RawConfig): StandcastConfig {
           directMessage: t.signals.direct_message,
         },
       };
+      if (t.signals.blocker_alert_days !== undefined) {
+        team.signals.blockerAlertDays = t.signals.blocker_alert_days;
+      }
       if (t.tracker) team.tracker = t.tracker;
       return team;
     }),
