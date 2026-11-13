@@ -1,20 +1,23 @@
 import type { TeamShipped } from '@standcast/orchestrator';
-import type { Lang } from '../../i18n';
+import { type Lang, translate } from '../../i18n';
 import { refLabel } from '../hoje/refLabel';
 
 const oneLine = (text: string) => text.replace(/\s+/g, ' ').trim();
 
+const escapeMarkdown = (text: string) => text.replace(/[\\`*_[\]<>]/g, '\\$&');
+
 export function shippedMarkdown(shipped: TeamShipped, team: string, lang: Lang): string {
-  const title =
-    lang === 'pt-BR'
-      ? `## ${team} · entregas de ${shipped.from} a ${shipped.to}`
-      : `## ${team} · shipped ${shipped.from} to ${shipped.to}`;
-  const lines = [title, ''];
+  const title = translate(lang, 'history.exportTitle', {
+    team: escapeMarkdown(team),
+    from: shipped.from,
+    to: shipped.to,
+  });
+  const lines = [`## ${title}`, ''];
   for (const day of shipped.days) {
     lines.push(`### ${day.date}`);
     for (const item of day.items) {
       const link = item.ref ? ` ([${refLabel(item.ref)}](${item.ref.url}))` : '';
-      lines.push(`- ${oneLine(item.text)}${link} — @${item.author}`);
+      lines.push(`- ${escapeMarkdown(oneLine(item.text))}${link} — @${item.author}`);
     }
     lines.push('');
   }

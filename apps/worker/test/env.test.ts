@@ -37,6 +37,15 @@ describe('worker env', () => {
     ).not.toThrow();
   });
 
+  test('PUBLIC_URL is optional, loses trailing slashes and must be a url', () => {
+    expect(parseEnv(base).PUBLIC_URL).toBeUndefined();
+    expect(parseEnv({ ...base, PUBLIC_URL: '' }).PUBLIC_URL).toBeUndefined();
+    expect(parseEnv({ ...base, PUBLIC_URL: 'https://api.standcast.app//' }).PUBLIC_URL).toBe(
+      'https://api.standcast.app',
+    );
+    expect(() => parseEnv({ ...base, PUBLIC_URL: 'api.standcast.app' })).toThrow();
+  });
+
   test('GOOGLE_CHAT_SERVICE_ACCOUNT is optional, parsed and fails fast when malformed', () => {
     expect(parseEnv(base).GOOGLE_CHAT_SERVICE_ACCOUNT).toBeUndefined();
     const key = Buffer.from(

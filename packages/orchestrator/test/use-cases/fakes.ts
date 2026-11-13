@@ -9,6 +9,7 @@ import {
   type StandcastConfig,
 } from '@standcast/core';
 import {
+  type Db,
   issueGoogleChatLinkCode,
   redeemGoogleChatLinkCode,
   setInstallationConfig,
@@ -422,11 +423,13 @@ export function fakeChat() {
 
 export function flakyDb() {
   let armed = false;
+  let only: unknown = null;
   const proxy = new Proxy(db, {
     get(target, prop, receiver) {
       if (prop === 'update' && armed) {
-        armed = false;
-        return () => {
+        return (table: Parameters<Db['update']>[0]) => {
+          if (only !== null && table !== only) return target.update(table);
+          armed = false;
           throw new Error('db down');
         };
       }
@@ -435,8 +438,9 @@ export function flakyDb() {
   });
   return {
     db: proxy,
-    failNextUpdate: () => {
+    failNextUpdate: (table: unknown = null) => {
       armed = true;
+      only = table;
     },
   };
 }

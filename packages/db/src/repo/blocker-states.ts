@@ -9,6 +9,7 @@ import {
   isNotNull,
   isNull,
   lt,
+  lte,
   notInArray,
   type SQL,
   sql,
@@ -121,33 +122,112 @@ export async function setBlockerStateResolved(
 
 export type OpenBlockerState = BlockerStateRow & { authorLogin: string };
 
+const latestDailyOfAuthor = sql`(select max(${dailies.date}) from ${dailies} where ${dailies.installationId} = ${blockerStates.installationId} and ${dailies.memberId} = ${blockerStates.authorMemberId})`;
+
+function currentOpenFilters(installationId: number, authorMemberIds: string[]): SQL[] {
+  return [
+    eq(blockerStates.installationId, installationId),
+    inArray(blockerStates.authorMemberId, authorMemberIds),
+    isNull(blockerStates.resolvedAt),
+    sql`${blockerStates.lastSeenOn} = ${latestDailyOfAuthor}`,
+  ];
+}
+
 export async function listCurrentOpenBlockerStates(
   db: Db,
   installationId: number,
   authorMemberIds: string[],
 ): Promise<OpenBlockerState[]> {
   if (authorMemberIds.length === 0) return [];
-  const latest = sql`(select max(${dailies.date}) from ${dailies} where ${dailies.installationId} = ${blockerStates.installationId} and ${dailies.memberId} = ${blockerStates.authorMemberId})`;
+  const rows = await db
+    .select({ state: blockerStates, authorLogin: members.login })
+    .from(blockerStates)
+    .innerJoin(members, eq(members.id, blockerStates.authorMemberId))
+    .where(and(...currentOpenFilters(installationId, authorMemberIds)))
+    .orderBy(asc(blockerStates.openedOn), asc(members.login), asc(blockerStates.text));
+  return rows.map((r) => ({ ...r.state, authorLogin: r.authorLogin }));
+}
+
+export type StaleBlockerQuery = {
+  teamName: string;
+  authorMemberIds: string[];
+  openedOnOrBefore: string;
+  limit: number;
+};
+
+export async function listStaleBlockerStates(
+  db: Db,
+  installationId: number,
+  query: StaleBlockerQuery,
+): Promise<OpenBlockerState[]> {
+  if (query.authorMemberIds.length === 0) return [];
   const rows = await db
     .select({ state: blockerStates, authorLogin: members.login })
     .from(blockerStates)
     .innerJoin(members, eq(members.id, blockerStates.authorMemberId))
     .where(
       and(
-        eq(blockerStates.installationId, installationId),
-        inArray(blockerStates.authorMemberId, authorMemberIds),
-        isNull(blockerStates.resolvedAt),
-        sql`${blockerStates.lastSeenOn} = ${latest}`,
+        ...currentOpenFilters(installationId, query.authorMemberIds),
+        sql`not (${query.teamName} = any(${blockerStates.alertedTeams}))`,
+        lte(blockerStates.openedOn, query.openedOnOrBefore),
       ),
     )
-    .orderBy(asc(blockerStates.openedOn), asc(members.login), asc(blockerStates.text));
+    .orderBy(asc(blockerStates.openedOn), asc(members.login), asc(blockerStates.text))
+    .limit(query.limit);
   return rows.map((r) => ({ ...r.state, authorLogin: r.authorLogin }));
+}
+
+export async function markBlockerStateAlerted(
+  db: Db,
+  installationId: number,
+  id: string,
+  alert: { teamName: string; at: Date },
+): Promise<boolean> {
+  const rows = await db
+    .update(blockerStates)
+    .set({
+      alertedAt: sql`coalesce(${blockerStates.alertedAt}, ${alert.at.toISOString()}::timestamptz)`,
+      alertedTeams: sql`array_append(${blockerStates.alertedTeams}, ${alert.teamName})`,
+    })
+    .where(
+      and(
+        eq(blockerStates.id, id),
+        eq(blockerStates.installationId, installationId),
+        sql`not (${alert.teamName} = any(${blockerStates.alertedTeams}))`,
+      ),
+    )
+    .returning({ id: blockerStates.id });
+  return rows.length > 0;
 }
 
 export type ResolvedBlockerState = BlockerStateRow & {
   authorLogin: string;
   resolvedByLogin: string | null;
 };
+
+export async function reopenBlockerState(
+  db: Db,
+  installationId: number,
+  id: string,
+  latest: { date: string; submittedAt: Date },
+): Promise<boolean> {
+  const sameDaily = sql`exists (select 1 from ${dailies} where ${dailies.installationId} = ${blockerStates.installationId} and ${dailies.memberId} = ${blockerStates.authorMemberId} and ${dailies.date} = ${latest.date} and date_trunc('milliseconds', ${dailies.submittedAt}) = ${latest.submittedAt.toISOString()}::timestamptz)`;
+  const noLaterDaily = sql`not exists (select 1 from ${dailies} where ${dailies.installationId} = ${blockerStates.installationId} and ${dailies.memberId} = ${blockerStates.authorMemberId} and ${dailies.date} > ${latest.date})`;
+  const rows = await db
+    .update(blockerStates)
+    .set({ resolvedAt: null, resolvedByMemberId: null, resolvedOn: null })
+    .where(
+      and(
+        eq(blockerStates.id, id),
+        eq(blockerStates.installationId, installationId),
+        isNotNull(blockerStates.resolvedAt),
+        sameDaily,
+        noLaterDaily,
+      ),
+    )
+    .returning({ id: blockerStates.id });
+  return rows.length > 0;
+}
 
 export async function listResolvedBlockerStates(
   db: Db,
@@ -158,7 +238,11 @@ export async function listResolvedBlockerStates(
   if (authorMemberIds.length === 0) return [];
   const resolver = alias(members, 'resolver');
   const rows = await db
-    .select({ state: blockerStates, authorLogin: members.login, resolvedByLogin: resolver.login })
+    .select({
+      state: blockerStates,
+      authorLogin: members.login,
+      resolvedByLogin: resolver.login,
+    })
     .from(blockerStates)
     .innerJoin(members, eq(members.id, blockerStates.authorMemberId))
     .leftJoin(resolver, eq(resolver.id, blockerStates.resolvedByMemberId))

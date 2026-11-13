@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import type { TeamConfig } from '../src/config';
 import { buildDigest, buildLateDaily, type DigestEntry } from '../src/digest';
-import type { Block, Inline } from '../src/message';
+import { type Block, type Inline, LINK_CHAT_ACCOUNT_ACTION } from '../src/message';
 
 function team(language: 'pt-BR' | 'en', members: string[]): TeamConfig {
   return { name: 'backend', language, members } as unknown as TeamConfig;
@@ -150,6 +150,44 @@ describe('buildDigest', () => {
     const msg = buildDigest({ ...base, entries: [e] });
     expect(JSON.stringify(msg.blocks)).toContain('"@dave"');
     expect(JSON.stringify(msg.blocks)).not.toContain('mention');
+  });
+
+  test('a google chat digest with someone not linked offers the link button in the team language', () => {
+    const chatTeam = (language: 'pt-BR' | 'en', provider: string) =>
+      ({
+        ...team(language, ['alice', 'carol']),
+        chat: { provider, channel: 'spaces/AAAA' },
+      }) as unknown as TeamConfig;
+    const unlinked = { date, entries: [entry('alice', 'users/1')], missing: [{ login: 'carol' }] };
+    expect(buildDigest({ ...unlinked, team: chatTeam('en', 'google-chat') }).actions).toEqual([
+      {
+        type: LINK_CHAT_ACCOUNT_ACTION,
+        text: 'Shown as @login instead of your name? Link your Google Chat account so Standcast can mention you.',
+        label: 'Link my account',
+      },
+    ]);
+    expect(buildDigest({ ...unlinked, team: chatTeam('pt-BR', 'google-chat') }).actions).toEqual([
+      {
+        type: LINK_CHAT_ACCOUNT_ACTION,
+        text: 'Aparece como @login em vez do seu nome? Vincule a sua conta do Google Chat para o Standcast mencionar você.',
+        label: 'Vincular minha conta',
+      },
+    ]);
+    expect(buildDigest({ ...unlinked, team: chatTeam('en', 'slack') }).actions).toBeUndefined();
+    const linked = buildDigest({
+      date,
+      team: chatTeam('en', 'google-chat'),
+      entries: [entry('alice', 'users/1')],
+      missing: [{ login: 'carol', chatUserId: 'users/2' }],
+    });
+    expect(linked.actions).toBeUndefined();
+    const author = buildDigest({
+      date,
+      team: chatTeam('en', 'google-chat'),
+      entries: [entry('alice', undefined)],
+      missing: [],
+    });
+    expect(author.actions).toHaveLength(1);
   });
 
   test('nobody missing', () => {

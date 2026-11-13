@@ -1,7 +1,46 @@
 import { describe, expect, test } from 'bun:test';
+import { buildBlockerAlert, LINK_CHAT_ACCOUNT_ACTION, type Message } from '@standcast/core';
 import { renderSlack } from '../src/render';
 
+describe('renderSlack blocker alert', () => {
+  test('mentions the managers and links the blocker ref', () => {
+    const out = renderSlack(
+      buildBlockerAlert({
+        lang: 'en',
+        team: 'Alpha',
+        managers: [{ login: 'carol', chatUserId: 'UCAROL' }, { login: 'dave' }],
+        author: 'alice',
+        blocker: {
+          text: 'waiting on <staging>',
+          ref: { kind: 'pull_request', url: 'https://github.com/acme/api/pull/7', title: 'Fix' },
+        },
+        ageDays: 5,
+        openedOn: '2026-10-23',
+        routedTo: ['bob'],
+      }),
+    );
+    const sections = out.blocks.map((b) => JSON.stringify(b)).join('\n');
+    expect(out.blocks[0]).toEqual({
+      type: 'header',
+      text: { type: 'plain_text', text: '🚧 Blocker open for 5 days · Alpha' },
+    });
+    expect(sections).toContain('<@UCAROL>, @dave');
+    expect(sections).toContain('waiting on &lt;staging&gt;');
+    expect(sections).toContain('<https://github.com/acme/api/pull/7|Fix>');
+    expect(sections).toContain('Routed to @bob.');
+  });
+});
+
 describe('renderSlack', () => {
+  test('message actions do not change the slack payload', () => {
+    const plain: Message = { fallbackText: 'fb', blocks: [{ type: 'paragraph', content: ['hi'] }] };
+    const withLink: Message = {
+      ...plain,
+      actions: [{ type: LINK_CHAT_ACCOUNT_ACTION, text: 'Link?', label: 'Link my account' }],
+    };
+    expect(renderSlack(withLink)).toEqual(renderSlack(plain));
+  });
+
   test('render heading/paragraph/list/divider', () => {
     const out = renderSlack({
       fallbackText: 'fb',

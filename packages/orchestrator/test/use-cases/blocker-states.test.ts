@@ -5,6 +5,7 @@ import {
   listCurrentOpenBlockerStates,
   type MemberRow,
   setMemberInstallations,
+  upsertDaily,
   upsertMember,
 } from '@standcast/db';
 import { db, useCleanDb } from '../../../db/test/setup';
@@ -232,6 +233,13 @@ describe('recordBlockers', () => {
 describe('setBlockerResolved', () => {
   async function opened(...args: Parameters<typeof setup>) {
     const ctx = await setup(...args);
+    await upsertDaily(db, {
+      installationId: INST,
+      memberId: ctx.bob.id,
+      date: '2026-10-28',
+      payload: { org: 'acme', yesterday: [], today: [], blockers: [access], support: [] },
+      submittedAt: new Date('2026-10-28T12:00:00Z'),
+    });
     await recordBlockers(ctx.deps, {
       installationId: INST,
       memberId: ctx.bob.id,

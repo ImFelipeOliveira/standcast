@@ -18,7 +18,8 @@ export type DomainErrorCode =
   | 'invalid_beta_request'
   | 'invalid_code'
   | 'space_already_linked'
-  | 'too_many_spaces';
+  | 'too_many_spaces'
+  | 'blocker_not_current';
 
 export class DomainError extends Error {
   constructor(

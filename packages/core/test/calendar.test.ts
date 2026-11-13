@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import {
   addCalendarDays,
   type Calendar,
+  calendarDaysBetween,
   dailyDateFor,
   isDue,
   isWorkday,
@@ -68,5 +69,13 @@ describe('calendar', () => {
     expect(addCalendarDays('2026-03-09', -1)).toBe('2026-03-08');
     expect(addCalendarDays('2026-03-01', -1)).toBe('2026-02-28');
     expect(addCalendarDays('2026-12-31', 1)).toBe('2027-01-01');
+  });
+
+  test('calendarDaysBetween counts whole days across months and time changes', () => {
+    expect(calendarDaysBetween('2026-10-23', '2026-10-28')).toBe(5);
+    expect(calendarDaysBetween('2026-02-27', '2026-03-09')).toBe(10);
+    expect(calendarDaysBetween('2026-12-31', '2027-01-01')).toBe(1);
+    expect(calendarDaysBetween('2026-10-28', '2026-10-28')).toBe(0);
+    expect(calendarDaysBetween('2026-10-28', '2026-10-27')).toBe(-1);
   });
 });

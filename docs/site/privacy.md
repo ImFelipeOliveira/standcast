@@ -41,12 +41,12 @@ The Standcast app for Google Chat calls the Google Chat API as itself, with the 
 - check whether a user set in `members.<login>.google_chat` is a member of one of your linked spaces, before sending them a direct message;
 - find the direct message space with a person, and send direct messages: reminders, routed blockers and, if the team enables `signals.direct_message`, suggested blockers.
 
-Google sends Standcast an event only when the app is added to a space, removed from a space, or sent a direct message. From these events Standcast uses:
+Google sends Standcast an event only when the app is added to a space, removed from a space, sent a direct message, mentioned in a space, or when someone clicks **Link my account** under a digest. From these events Standcast uses:
 
 - the space name (`spaces/...`) and its display name, to link the space to your organization;
-- from a direct message, the sender's Google Chat user id and email, only to link the person to their Standcast account.
+- from a direct message, a mention or a click, the Google Chat user id and email of that person, only to link them to their Standcast account. The answer to a mention or a click is visible only to that person.
 
-Standcast keeps nothing from the text of the messages people send the app. It does not read messages in spaces, and it does not look people up by email in Google Chat.
+Standcast keeps nothing from the text of the messages people send the app. It does not read messages in spaces, and it does not look people up by email in Google Chat. A click links only the person who clicked; nobody learns anything about another person from it.
 
 ### Linear
 

@@ -1,4 +1,4 @@
-# Getting started
+# Write your first daily
 
 Send your first daily in a few minutes. Before you start, your admin must have [installed Standcast](/admin/install) and listed you in a team in `standcast.yml`.
 
@@ -16,21 +16,26 @@ Download the binary for your system from the [latest release](https://github.com
 | Linux, ARM64 | `standcast-bun-linux-arm64` |
 | Windows, x64 | `standcast-bun-windows-x64.exe` |
 
-On macOS or Linux, put it on your `PATH` as `standcast`. For example, on a Mac with Apple silicon:
+On macOS or Linux, the install script downloads the right binary, checks it against the release's `SHA256SUMS` file and installs it to `~/.local/bin/standcast`. To install by hand, download the binary and `SHA256SUMS`, check the binary's hash and put it on your `PATH` as `standcast`; the manual tab shows it for a Mac with Apple silicon and installs nothing if the hash does not match. On Linux, use `sha256sum -c` instead of `shasum -a 256 -c`. The `export` line puts `~/.local/bin` on your `PATH` for the current terminal only; put it in `~/.zshrc`, `~/.bashrc` or `~/.profile` to keep it.
 
-```bash
-mkdir -p ~/.local/bin
-curl -fsSL -o ~/.local/bin/standcast \
-  https://github.com/ImFelipeOliveira/standcast/releases/latest/download/standcast-bun-darwin-arm64
-chmod +x ~/.local/bin/standcast
-standcast --version
-```
+::: code-group
 
-Each release also has a `SHA256SUMS` file to check the download. Or use the install script, which downloads the right binary, checks it against `SHA256SUMS` and installs it to `~/.local/bin/standcast`:
-
-```bash
+```bash [Install script]
 curl -fsSL https://standcast.app/install.sh | sh
 ```
+
+```bash [Manual, Mac with Apple silicon]
+mkdir -p ~/.local/bin
+export PATH="$HOME/.local/bin:$PATH"
+cd "$(mktemp -d)"
+curl -fsSLO https://github.com/ImFelipeOliveira/standcast/releases/latest/download/standcast-bun-darwin-arm64
+curl -fsSLO https://github.com/ImFelipeOliveira/standcast/releases/latest/download/SHA256SUMS
+grep ' standcast-bun-darwin-arm64$' SHA256SUMS | shasum -a 256 -c \
+  && install -m 755 standcast-bun-darwin-arm64 ~/.local/bin/standcast \
+  && standcast --version
+```
+
+:::
 
 ## 2. Sign in
 
@@ -40,7 +45,7 @@ standcast login
 
 The CLI shows a code and opens GitHub in your browser. Enter the code and authorize Standcast. The CLI then prints "Signed in as" and your login.
 
-Signing in also links you to your Slack user, so that the digest can mention you. If your admin connects Slack or changes `standcast.yml` after you sign in, run `standcast login` again. If your team uses Google Chat, also send the Standcast app a direct message once in Google Chat, to link your Google Chat user. See [Google Chat](/admin/google-chat#how-people-are-linked).
+Signing in also links you to your Slack user, so that the digest can mention you. If your admin connects Slack or changes `standcast.yml` after you sign in, run `standcast login` again. If your team uses Google Chat, also link your Google Chat user once: click **Link my account** under your team's digest in Google Chat, mention the Standcast app in a space, or send the app a direct message. To get reminders by direct message, send the app a direct message once anyway: Google Chat lets the app message you only after that. See [Google Chat](/admin/google-chat#how-people-are-linked).
 
 Check who you are and which organizations you can write dailies for:
 

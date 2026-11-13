@@ -29,6 +29,7 @@ Every error response uses the same envelope:
 | `invalid_code` | 422 | The Google Chat link code is wrong, already used or older than 24 hours. Remove the Standcast app from the space and add it again to get a new code. |
 | `space_already_linked` | 409 | The Google Chat space is linked to another organization. An admin of that organization must unlink it first. |
 | `too_many_spaces` | 409 | The organization already has 20 linked Google Chat spaces, the maximum. Unlink one before linking another. |
+| `blocker_not_current` | 409 | Only on the web app route that reopens a blocker: the author sent a later daily without it, so it stays resolved. If it still blocks them, they list it again in their next daily. |
 | `payload_too_large` | 413 | Only on the GitHub and Google Chat webhook receivers: the body is larger than 1 MB. Nothing was processed. |
 | `rate_limited` | 429 | Too many requests. Wait `Retry-After` seconds, then retry (see Rate limits). |
 | `internal` | 500 | Unexpected server error. Retry with backoff and contact support if it persists. |

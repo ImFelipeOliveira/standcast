@@ -10,7 +10,7 @@ Os lembretes vão só para quem ainda não enviou a daily, no máximo uma vez po
 
 O Standcast não conhece o seu usuário no Slack, então não consegue mandar um lembrete nem um impedimento encaminhado. A entrega com falha aparece na página de setup. Rode `standcast login` de novo depois que o Slack foi conectado, ou peça ao admin para adicionar `members.<seu-login>.slack` no `standcast.yml`. Veja [Meu nome aparece como @login](#meu-nome-aparece-como-login).
 
-No Google Chat, o Standcast não conhece o seu usuário no Google Chat. Mande uma mensagem direta para o app do Standcast no Google Chat, ou peça ao admin para adicionar `members.<seu-login>.google_chat`. Veja [O Google Chat não me vincula](#o-google-chat-nao-me-vincula).
+No Google Chat, o Standcast não conhece o seu usuário no Google Chat. Clique em **Vincular minha conta** embaixo do consolidado do time, mande uma mensagem direta para o app do Standcast no Google Chat, ou peça ao admin para adicionar `members.<seu-login>.google_chat`. Vincular a conta não abre uma mensagem direta, então mande uma mensagem direta para o app do Standcast para receber lembretes. Veja [O Google Chat não me vincula](#o-google-chat-nao-me-vincula).
 
 ## `no_route_target`
 
@@ -41,7 +41,7 @@ Use **Sair** no topo da página de setup. Isso encerra a sessão web no servidor
 
 ## O Google Chat não me vincula
 
-Você se vincula mandando uma mensagem direta para o app do Standcast no Google Chat. Veja a resposta do app:
+Você se vincula no Google Chat clicando em **Vincular minha conta** embaixo do consolidado do time, mencionando o app do Standcast num espaço ou mandando uma mensagem direta para o app. Veja a resposta do app, que só você vê:
 
 1. **"Nenhuma conta do Standcast usa este e-mail"**: rode `standcast login` primeiro e mande uma mensagem para o app de novo. Se a sua conta do Google usa um e-mail diferente da sua conta do GitHub, peça ao admin para adicionar `members.<seu-login>.google_chat` com o seu id de usuário, como `users/123456789`.
 2. **"nenhuma organização sua conectou o Google Chat"**: um admin precisa vincular um espaço antes. Veja [Google Chat](/pt-BR/admin/google-chat#_2-vincule-o-espaco).
