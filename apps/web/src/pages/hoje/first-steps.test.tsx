@@ -9,6 +9,7 @@ function today(overrides: Partial<TeamToday> = {}): TeamToday {
     team: { name: 'backend', timezone: 'America/Sao_Paulo', remindAt: '09:00', digestAt: '10:00' },
     date: '2026-11-03',
     digest: { status: 'scheduled', sentAt: null, everSent: false },
+    everSubmitted: false,
     chat: { provider: 'slack', url: null },
     canRemind: true,
     canResolve: true,
@@ -20,9 +21,14 @@ function today(overrides: Partial<TeamToday> = {}): TeamToday {
   };
 }
 
-const render = (value: TeamToday, chatConnected: boolean | null) =>
+const render = (value: TeamToday, chatConnected: boolean | null, onRetryChat?: () => void) =>
   renderToStaticMarkup(
-    <FirstSteps installationId={11} today={value} chatConnected={chatConnected} />,
+    <FirstSteps
+      installationId={11}
+      today={value}
+      chatConnected={chatConnected}
+      onRetryChat={onRetryChat}
+    />,
   );
 
 beforeEach(() => applyLang('pt-BR'));
@@ -43,6 +49,7 @@ describe('first steps', () => {
     const html = render(
       today({
         chat: { provider: 'google-chat', url: null },
+        everSubmitted: true,
         people: [
           { login: 'ana', status: 'sent', submittedAt: '2026-11-03T12:00:00.000Z', daily: null },
         ],
@@ -51,6 +58,26 @@ describe('first steps', () => {
     );
     expect(html).toContain('4 de 5');
     expect(html).toContain('Conectar o Google Chat');
+    expect(html).not.toContain('href="/orgs/11/settings"');
+  });
+
+  test('a daily sent on an earlier day keeps the first daily done', () => {
+    const html = render(today({ everSubmitted: true }), false);
+    expect(html).toContain('3 de 5');
+    expect(html).not.toContain('Ver como instalar');
+  });
+
+  test('while the chat check loads it says so instead of asking to connect', () => {
+    const html = render(today(), null);
+    expect(html).toContain('Verificando');
+    expect(html).not.toContain('href="/orgs/11/settings"');
+    expect(html).toContain('2 de 5');
+  });
+
+  test('when the chat check fails it offers to try again instead of asking to connect', () => {
+    const html = render(today(), null, () => undefined);
+    expect(html).toContain('Não verificado');
+    expect(html).toContain('Tentar de novo');
     expect(html).not.toContain('href="/orgs/11/settings"');
   });
 

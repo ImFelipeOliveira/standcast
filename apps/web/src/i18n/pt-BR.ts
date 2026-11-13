@@ -507,6 +507,8 @@ export const ptBR = {
   'firstSteps.intro': 'Este quadro some quando o time receber o primeiro consolidado no chat.',
   'firstSteps.done': 'Feito',
   'firstSteps.pending': 'Pendente',
+  'firstSteps.checking': 'Verificando',
+  'firstSteps.unchecked': 'Não verificado',
   'firstSteps.install': 'Instalar o app no GitHub',
   'firstSteps.installBody': 'O Standcast já lê a organização.',
   'firstSteps.config': 'Criar o standcast.yml',

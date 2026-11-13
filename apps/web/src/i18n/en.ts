@@ -500,6 +500,8 @@ export const en: Record<MessageKey, string> = {
   'firstSteps.intro': 'This box goes away once the team gets its first digest in the chat.',
   'firstSteps.done': 'Done',
   'firstSteps.pending': 'To do',
+  'firstSteps.checking': 'Checking',
+  'firstSteps.unchecked': 'Not checked',
   'firstSteps.install': 'Install the GitHub app',
   'firstSteps.installBody': 'Standcast already reads the organization.',
   'firstSteps.config': 'Create standcast.yml',

@@ -197,6 +197,7 @@ function TodayView({ installationId, today }: { installationId: number; today: T
         installationId={installationId}
         today={today}
         chatConnected={chatConnectedFor(setup.data, today)}
+        onRetryChat={setup.isError ? () => void setup.refetch() : undefined}
       />
       <SummaryTiles today={{ ...today, blockers: open }} />
       <div className="flex flex-wrap items-start gap-6">

@@ -65,6 +65,7 @@ export type TeamToday = {
   team: { name: string; timezone: string; remindAt: string; digestAt: string };
   date: string;
   digest: { status: 'scheduled' | 'sent' | 'failed'; sentAt: string | null; everSent: boolean };
+  everSubmitted: boolean;
   canRemind: boolean;
   canResolve: boolean;
   people: TodayPerson[];
@@ -297,11 +298,15 @@ export async function getTeamToday(
       },
     };
   });
-  const [blockers, support, chatUrl, everSent] = await Promise.all([
+  const [blockers, support, chatUrl, everSent, everSubmitted] = await Promise.all([
     openTeamBlockers(deps, access),
     supportRequests(deps, access, rows),
     digestChatUrl(deps, access, digest.ref),
     digest.status === 'sent' || hasSentDigest(deps.db, access.installation.id, team.name),
+    rows.length > 0 ||
+      listDailiesPage(deps.db, access.installation.id, { to: date, logins, limit: 1 }).then(
+        (found) => found.length > 0,
+      ),
   ]);
   return {
     team: {
@@ -316,6 +321,7 @@ export async function getTeamToday(
       sentAt: digest.sentAt?.toISOString() ?? null,
       everSent,
     },
+    everSubmitted,
     canRemind: access.elevated && digest.status !== 'sent' && remindWindowOpen(deps, access),
     canResolve: access.elevated,
     people,

@@ -1,5 +1,6 @@
 import type { SetupStatus, TeamToday } from '@standcast/orchestrator';
 import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { type MessageKey, useLang, useT } from '../../i18n';
 import { docsUrl } from '../../lib/links';
@@ -9,6 +10,8 @@ type Step = {
   title: MessageKey;
   body: MessageKey;
   done: boolean;
+  unknown?: MessageKey;
+  retry?: () => void;
   link?: { href: string; label: MessageKey; external?: boolean };
 };
 
@@ -26,10 +29,12 @@ export function FirstSteps({
   installationId,
   today,
   chatConnected,
+  onRetryChat,
 }: {
   installationId: number;
   today: TeamToday;
   chatConnected: boolean | null;
+  onRetryChat?: () => void;
 }) {
   const t = useT();
   const lang = useLang();
@@ -42,15 +47,22 @@ export function FirstSteps({
       title: googleChat ? 'firstSteps.chatGoogle' : 'firstSteps.chatSlack',
       body: googleChat ? 'firstSteps.chatGoogleBody' : 'firstSteps.chatSlackBody',
       done: chatConnected === true,
+      unknown:
+        chatConnected === null
+          ? onRetryChat
+            ? 'firstSteps.unchecked'
+            : 'firstSteps.checking'
+          : undefined,
+      retry: chatConnected === null ? onRetryChat : undefined,
       link:
-        chatConnected === true
-          ? undefined
-          : { href: `/orgs/${installationId}/settings`, label: 'firstSteps.openSettings' },
+        chatConnected === false
+          ? { href: `/orgs/${installationId}/settings`, label: 'firstSteps.openSettings' }
+          : undefined,
     },
     {
       title: 'firstSteps.daily',
       body: 'firstSteps.dailyBody',
-      done: today.people.some((person) => person.status !== 'missing'),
+      done: today.everSubmitted,
       link: { href: docsUrl(lang), label: 'firstSteps.openDocs', external: true },
     },
     { title: 'firstSteps.digest', body: 'firstSteps.digestBody', done: false },
@@ -83,7 +95,11 @@ export function FirstSteps({
               <span className="flex flex-wrap items-center gap-2">
                 <span className="font-semibold text-[14px]">{t(step.title)}</span>
                 <Badge variant={step.done ? 'ok' : 'neutral'}>
-                  {step.done ? t('firstSteps.done') : t('firstSteps.pending')}
+                  {step.done
+                    ? t('firstSteps.done')
+                    : step.unknown
+                      ? t(step.unknown)
+                      : t('firstSteps.pending')}
                 </Badge>
               </span>
               <span className="text-[13px] text-text2">
@@ -100,6 +116,16 @@ export function FirstSteps({
                     <span className="sr-only"> {t('firstSteps.newTab')}</span>
                   ) : null}
                 </a>
+              ) : null}
+              {step.retry ? (
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={step.retry}
+                  className="min-h-11 self-start text-[13px] desk:min-h-0"
+                >
+                  {t('error.retry')}
+                </Button>
               ) : null}
             </span>
           </li>

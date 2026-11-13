@@ -37,6 +37,7 @@ const backendToday: TeamToday = {
   team: { name: 'backend', timezone: 'UTC', remindAt: '09:00', digestAt: '10:00' },
   date: '2026-11-03',
   digest: { status: 'scheduled', sentAt: null, everSent: true },
+  everSubmitted: true,
   chat: { provider: 'slack', url: null },
   canRemind: false,
   canResolve: false,
