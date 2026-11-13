@@ -10,6 +10,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- Um impedimento resolvido só pode ser reaberto em **Hoje** ou **Impedimentos** enquanto ainda está na última daily de quem o escreveu. Depois que a pessoa envia uma daily sem ele, ele continua resolvido e **Reabrir** deixa de aparecer para ele; se ainda atrapalha, ela o lista de novo na próxima daily. Antes, dava para reabrir a qualquer momento. Veja [App web](/pt-BR/admin/web-app).
 - No celular, fechar a **Busca** aberta com ⌘K ou Ctrl K com o menu lateral fechado devolve o foco para onde você estava, ou para o botão de menu, em vez de perdê-lo dentro do menu escondido.
 - Quando o navegador recusa **Copiar como markdown** no **Histórico**, a página avisa que a cópia falhou e indica **Exportar Markdown**, que baixa o mesmo texto, em vez de não fazer nada.
 - **Histórico** mantém como foi escrito o texto da daily que começa com `1.`, `2)`, `#`, `-`, `+` ou `~` na cópia em Markdown e na exportação em Markdown, em vez de virar lista, título ou bloco de código.

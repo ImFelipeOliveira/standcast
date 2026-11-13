@@ -10,6 +10,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- A resolved blocker can be reopened on **Today** or **Blockers** only while it is still in the latest daily of the person who wrote it. Once they send a daily without it, it stays resolved and **Reopen** no longer shows for it; if it still blocks them, they list it again in their next daily. Before, it could be reopened at any time. See [Web app](/admin/web-app).
 - On phones, closing **Search** opened with ⌘K or Ctrl K while the side menu is closed puts focus back on what you were on before, or on the menu button, instead of losing it inside the hidden menu.
 - When the browser refuses **Copy as Markdown** in **History**, the page says the copy failed and points to **Export Markdown**, which downloads the same text, instead of doing nothing.
 - **History** keeps daily text that starts with `1.`, `2)`, `#`, `-`, `+` or `~` as written in copy as Markdown and the Markdown export, instead of turning it into a list, a heading or a code block.
