@@ -363,6 +363,40 @@ teams:
   });
 });
 
+describe('/v1/app blockers reopen', () => {
+  test('a resolved blocker removed from a resend of the same day cannot be reopened', async () => {
+    const { app, deps, alice, bob, blockerId } = await harness();
+    expect((await post(app, bob, `${INST}/blockers/${blockerId}/resolve`)).status).toBe(204);
+    await upsertDaily(db, {
+      installationId: INST,
+      memberId: bob.member.id,
+      date: '2026-10-28',
+      payload: {
+        org: 'acme',
+        yesterday: [],
+        today: [{ text: 'ship it' }],
+        blockers: [],
+        support: [],
+      },
+      submittedAt: new Date('2026-10-28T11:58:00Z'),
+    });
+    await recordBlockers(deps, {
+      installationId: INST,
+      memberId: bob.member.id,
+      date: '2026-10-28',
+      blockers: [],
+    });
+    const body = await (await get(app, alice, `${INST}/blockers`)).json();
+    expect(
+      body.resolved.map((b: { id: string; canResolve: boolean }) => [b.id, b.canResolve]),
+    ).toEqual([[blockerId, false]]);
+    const reopen = await post(app, bob, `${INST}/blockers/${blockerId}/reopen`);
+    expect(reopen.status).toBe(409);
+    expect((await reopen.json()).error.code).toBe('blocker_not_current');
+    expect((await getBlockerState(db, INST, blockerId))?.resolvedAt).not.toBeNull();
+  });
+});
+
 describe('/v1/app blockers calendar', () => {
   test("today follows the author's first configured team, whatever the filter", async () => {
     const { app, alice, blockerId } = await harness();

@@ -2,6 +2,7 @@ import { addCalendarDays, dailyDateFor, managesTeam, type Ref } from '@standcast
 import {
   getInstallationMemberIds,
   listCurrentOpenBlockerStates,
+  listLatestDailies,
   listResolvedBlockerStates,
   type MemberRow,
   type OpenBlockerState,
@@ -14,6 +15,7 @@ import { authorizeInstallation } from '../access/authorize-installation';
 import { DomainError } from '../access/errors';
 import { isInstallationAdmin } from '../access/is-installation-admin';
 import type { MembershipCheck } from '../access/org-context';
+import { listsBlocker } from './blocker-states';
 import { buildOpenBlockers, type TodayBlocker } from './get-team-today';
 
 const ADMIN_CHECK_TIMEOUT_MS = 3000;
@@ -119,6 +121,11 @@ export async function getOrgBlockers(
         addCalendarDays(latest, -RESOLVED_WINDOW_DAYS),
       )
     : [];
+  const latestDailies = await listLatestDailies(deps.db, installation.id, [
+    ...new Set(resolvedRows.map((row) => row.authorMemberId)),
+  ]);
+  const stillListed = (row: (typeof resolvedRows)[number]) =>
+    listsBlocker(latestDailies.get(row.authorMemberId)?.payload.blockers ?? [], row.blockerId);
   return {
     open: open.map((blocker) => {
       const calendar = calendarOf(blocker.author);
@@ -140,7 +147,7 @@ export async function getOrgBlockers(
         ref: row.ref ?? null,
         resolvedOn: row.resolvedOn ?? '',
         resolvedBy: row.resolvedByLogin?.toLowerCase() ?? null,
-        canResolve: row.current && canResolveFor(author),
+        canResolve: stillListed(row) && canResolveFor(author),
       };
     }),
   };
