@@ -20,7 +20,7 @@ export function AppShell({ installationId }: { installationId: number }) {
           void navigate({ to: SECTION_PATHS[section], params: { installationId: next } })
         }
       />
-      <main className="box-border min-w-0 flex-[999_1_640px] px-4 pt-6 pb-12 desk:px-9 desk:pt-8">
+      <main className="box-border min-w-0 flex-[999_1_640px] px-4 pb-12 desk:px-9">
         <div className="mx-auto flex max-w-[1180px] flex-col gap-6">
           <Outlet />
         </div>

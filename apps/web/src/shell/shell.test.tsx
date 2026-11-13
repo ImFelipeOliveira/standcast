@@ -123,6 +123,14 @@ describe('shell', () => {
     expect(history.router.state.location.pathname).toBe('/orgs/11/history');
   });
 
+  test('today and settings render a single sticky page heading', async () => {
+    for (const path of ['/orgs/11/today?team=backend', '/orgs/11/history']) {
+      const { html } = await renderAt(path);
+      expect(html.match(/<h1/g), path).toHaveLength(1);
+      expect(html, path).toContain('data-scrolled="false"');
+    }
+  });
+
   test('no installations', async () => {
     const { html } = await renderAt('/', { ...session, installations: [] });
     expect(html).toContain('href="https://github.com/apps/standcast/installations/new"');
