@@ -208,11 +208,11 @@ export function textLayerFromCairoSvg(svg: string): { defs: string; body: string
   const ids = new Map<string, string>();
   const defs: string[] = [];
   const groups: { fill: string; uses: string[] }[] = [];
-  for (const group of bodyPart.matchAll(
-    /<g fill="([^"]+)" fill-opacity="([^"]+)">([\s\S]*?)<\/g>/g,
-  )) {
-    const fill = cairoColor(group[1] ?? '', Number(group[2] ?? '1'));
-    for (const use of (group[3] ?? '').matchAll(
+  for (const group of bodyPart.matchAll(/<g ([^>]*)>([\s\S]*?)<\/g>/g)) {
+    const paintSpec = groupPaint(group[1] ?? '');
+    if (paintSpec === null) continue;
+    const fill = cairoColor(paintSpec.color, paintSpec.opacity);
+    for (const use of (group[2] ?? '').matchAll(
       /<use xlink:href="#([^"]+)" x="([^"]+)" y="([^"]+)"\/>/g,
     )) {
       const glyph = use[1] ?? '';
@@ -232,8 +232,24 @@ export function textLayerFromCairoSvg(svg: string): { defs: string; body: string
       else groups.push({ fill, uses: [tag] });
     }
   }
+  if (groups.length === 0) {
+    throw new Error('pdftocairo output has no text layer: no glyph groups were recognized');
+  }
   const body = groups.map((group) => `<g ${group.fill}>${group.uses.join('')}</g>`).join('');
   return { defs: defs.join(''), body };
+}
+
+function groupPaint(attributes: string): { color: string; opacity: number } | null {
+  const fill = attributes.match(/(?:^|\s)fill="([^"]+)"/)?.[1];
+  if (fill !== undefined) {
+    const opacity = attributes.match(/(?:^|\s)fill-opacity="([^"]+)"/)?.[1] ?? '1';
+    return { color: fill, opacity: Number(opacity) };
+  }
+  const style = attributes.match(/(?:^|\s)style="([^"]+)"/)?.[1];
+  const styleFill = style?.match(/(?:^|;)\s*fill:\s*([^;]+)/)?.[1];
+  if (style === undefined || styleFill === undefined) return null;
+  const opacity = style.match(/(?:^|;)\s*fill-opacity:\s*([^;]+)/)?.[1] ?? '1';
+  return { color: styleFill.trim(), opacity: Number(opacity.trim()) };
 }
 
 function cairoColor(value: string, opacity: number): string {
