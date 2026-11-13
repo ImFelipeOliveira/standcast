@@ -55,7 +55,7 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
   const teams = context.data ? teamsOf(context.data) : [];
   const summary = useTeamsSummary(installationId, section === 'today' && teams.length > 0);
   return (
-    <aside className="box-border flex max-w-full flex-[1_1_232px] flex-col gap-6 border-border-strong border-b bg-surface px-4 py-5 text-text desk:sticky desk:top-0 desk:h-screen desk:flex-[0_0_248px] desk:self-start desk:overflow-y-auto desk:border-r desk:border-b-0">
+    <aside className="box-border flex max-w-full flex-[1_1_232px] flex-col gap-6 bg-surface px-4 py-5 text-text desk:sticky desk:top-0 desk:h-screen desk:flex-[0_0_248px] desk:self-start desk:overflow-y-auto">
       <div className="flex items-center gap-2.5 px-2">
         <Logo />
         <ThemeToggle />
@@ -73,7 +73,7 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
               className={cn(
                 'flex min-h-11 items-center gap-2.5 rounded-[9px] px-3 font-medium text-sm no-underline desk:min-h-10',
                 active
-                  ? 'bg-accent text-on-accent hover:bg-accent-hover'
+                  ? 'bg-hover font-semibold text-text'
                   : 'text-text2 hover:bg-hover hover:text-text',
               )}
             >
@@ -91,10 +91,7 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
               </svg>
               {t(SECTION_LABELS[item])}
               {SOON_SECTIONS.has(item) ? (
-                <Badge
-                  variant={active ? 'outline' : 'neutral'}
-                  className="ml-auto px-2 text-[11px]"
-                >
+                <Badge variant="neutral" className="ml-auto px-2 text-[11px]">
                   {t('nav.soon')}
                 </Badge>
               ) : null}
@@ -120,7 +117,9 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
                     aria-current={active ? 'page' : undefined}
                     className={cn(
                       'flex min-h-11 items-center justify-between gap-2 rounded-[9px] px-3 font-medium text-sm no-underline desk:min-h-10',
-                      active ? 'bg-hover text-text' : 'text-text2 hover:bg-hover hover:text-text',
+                      active
+                        ? 'bg-hover font-semibold text-text'
+                        : 'text-text2 hover:bg-hover hover:text-text',
                     )}
                   >
                     <span className="flex min-w-0 items-center gap-2">
