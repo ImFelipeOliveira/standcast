@@ -88,7 +88,8 @@ Em cada dia útil, depois que o consolidado do dia é publicado, o Standcast olh
 
 Regras:
 
-- Cada impedimento recebe um alerta só uma vez. Ele não é alertado de novo nos dias seguintes, nem depois de ser marcado como resolvido e voltar. Um impedimento diferente, ou um que saiu da daily e voltou depois como impedimento novo, pode receber alerta.
+- Cada impedimento recebe um alerta só uma vez por time. Ele não é alertado de novo nos dias seguintes, nem depois de sair da daily e voltar, nem depois de ser marcado como resolvido e voltar. Um impedimento com outro link, ou com outro texto quando não tem link, é um impedimento diferente e pode receber alerta.
+- Quando quem informou o impedimento está em mais de um time com o alerta ligado, cada um desses times recebe a sua mensagem, uma vez.
 - No máximo 10 impedimentos por time por dia, os mais antigos primeiro. Os outros saem no próximo dia útil.
 - Nada é enviado quando o time não tem gestores que o Standcast consiga encontrar, por exemplo quando os gestores são um time do GitHub sem membros.
 - Se o consolidado do dia não é publicado, o alerta espera o próximo dia útil.

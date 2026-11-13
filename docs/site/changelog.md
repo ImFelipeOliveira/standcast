@@ -14,7 +14,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 - When signing in fails (you cancel on GitHub, the link expires, GitHub does not confirm the account or the browser drops the session cookie), you return to the sign-in page with a message saying what happened and a **Try again** button, instead of an error page on the API.
 - Web app addresses are in English: `/orgs/<id>/today`, `/history` and `/settings`. Old links to `/hoje`, `/historico` and `/configuracao` still work and keep their query string.
 - The web app shows the Standcast icon in the browser tab.
-- Stale blocker alert: with `signals.blocker_alert_days` set on a team, a blocker still open that many days after it was first reported gets one message in the team's channel or space after the digest, mentioning the team's managers, with the blocker, its link, its age, who reported it and who it was routed to. Each blocker is alerted once. Without the key, nothing changes. See [Stale blocker alert](/how-it-works#stale-blocker-alert).
+- Stale blocker alert: with `signals.blocker_alert_days` set on a team, a blocker still open that many days after it was first reported gets one message in the team's channel or space after the digest, mentioning the team's managers, with the blocker, its link, its age, who reported it and who it was routed to. Each blocker is alerted once in each team. Without the key, nothing changes. See [Stale blocker alert](/how-it-works#stale-blocker-alert).
 
 ### 0.9.4 — 2026-11-12
 

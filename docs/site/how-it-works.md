@@ -88,7 +88,8 @@ On each workday, once that day's digest is posted, Standcast looks at the team's
 
 Rules:
 
-- Each blocker is alerted once. It is not alerted again on the next days, and not after it is marked as resolved and comes back. A different blocker, or one that left the daily and came back later as a new blocker, can be alerted.
+- Each blocker is alerted once per team. It is not alerted again on the next days, after it leaves the daily and comes back, or after it is marked as resolved and comes back. A blocker with a different link, or with a different text when it has no link, is a different blocker and can be alerted.
+- When the person who reported the blocker is in more than one team with the alert on, each of those teams gets its own message, once.
 - At most 10 blockers per team per day, oldest first. The others go out on the next workday.
 - Nothing is sent when the team has no managers Standcast can find, for example when its managers are a GitHub team with no members.
 - If the digest of the day is not posted, the alert waits for the next workday.

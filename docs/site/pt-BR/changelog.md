@@ -14,7 +14,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 - Quando o login falha (você cancela no GitHub, o link expira, o GitHub não confirma a conta ou o navegador descarta o cookie da sessão), você volta à página de login com uma mensagem dizendo o que aconteceu e um botão **Tentar de novo**, em vez de uma página de erro da API.
 - Os endereços do app web estão em inglês: `/orgs/<id>/today`, `/history` e `/settings`. Links antigos para `/hoje`, `/historico` e `/configuracao` continuam funcionando e mantêm a query string.
 - O app web mostra o ícone do Standcast na aba do navegador.
-- Alerta de impedimento parado: com `signals.blocker_alert_days` definido em um time, um impedimento que continua aberto esse número de dias depois de ser informado pela primeira vez recebe uma mensagem no canal ou espaço do time depois do consolidado, mencionando os gestores do time, com o impedimento, o link, há quanto tempo está aberto, quem o informou e para quem foi encaminhado. Cada impedimento recebe o alerta uma vez só. Sem a chave, nada muda. Veja [Alerta de impedimento parado](/pt-BR/how-it-works#alerta-de-impedimento-parado).
+- Alerta de impedimento parado: com `signals.blocker_alert_days` definido em um time, um impedimento que continua aberto esse número de dias depois de ser informado pela primeira vez recebe uma mensagem no canal ou espaço do time depois do consolidado, mencionando os gestores do time, com o impedimento, o link, há quanto tempo está aberto, quem o informou e para quem foi encaminhado. Cada impedimento recebe o alerta uma vez só em cada time. Sem a chave, nada muda. Veja [Alerta de impedimento parado](/pt-BR/how-it-works#alerta-de-impedimento-parado).
 
 ### 0.9.4 — 12/11/2026
 
