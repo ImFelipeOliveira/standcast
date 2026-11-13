@@ -39,6 +39,8 @@ O aviso diz que um time do GitHub citado no `standcast.yml` não foi encontrado 
 
 Use **Sair** no topo da página de setup. Isso encerra a sessão web no servidor. A sessão da CLI é separada: rode `standcast logout`.
 
+Para encerrar o app web em todos os navegadores de uma vez (por exemplo, num computador compartilhado ou perdido), abra **Conta** pelo menu com o seu nome e escolha **Sair de todas as sessões do painel**. A CLI e o plugin continuam conectados. Se a sua sessão neste navegador já expirou, o app web pede para você entrar de novo antes, e nada é encerrado até você tentar outra vez.
+
 ## O Google Chat não me vincula
 
 Você se vincula no Google Chat clicando em **Vincular minha conta** embaixo do consolidado do time, mencionando o app do Standcast num espaço ou mandando uma mensagem direta para o app. Veja a resposta do app, que só você vê:

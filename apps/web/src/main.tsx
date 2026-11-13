@@ -3,15 +3,16 @@ import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createQueryClient } from './api/queries';
-import { applyLang, getLang } from './i18n';
+import { applyLang, getLang, watchBrowserLang } from './i18n';
 import { createAppRouter } from './router';
 import './styles.css';
-import { applyTheme, initialTheme, readStoredTheme } from './theme';
+import { applyTheme, initialTheme, PREFERS_DARK, readStoredTheme, watchSystemTheme } from './theme';
 
-applyTheme(
-  initialTheme(readStoredTheme(), window.matchMedia('(prefers-color-scheme: dark)').matches),
-);
+const systemTheme = window.matchMedia(PREFERS_DARK);
+applyTheme(initialTheme(readStoredTheme(), systemTheme.matches));
+watchSystemTheme(systemTheme);
 applyLang(getLang());
+watchBrowserLang(window);
 
 const queryClient = createQueryClient();
 const router = createAppRouter(queryClient);

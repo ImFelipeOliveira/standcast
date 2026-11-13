@@ -8,6 +8,7 @@ import {
   countSentDeliveries,
   createSession,
   deleteInstallation,
+  deleteMemberSessions,
   failDelivery,
   getConnection,
   getConnectionInfo,
@@ -504,6 +505,21 @@ describe('sessions', () => {
     const token = await createSession(db, m.id, 'cli');
     await revokeSession(db, token);
     expect(await resolveSession(db, token, 'cli')).toBeNull();
+  });
+
+  test('deleteMemberSessions removes only that member sessions of that kind', async () => {
+    const m = await seed();
+    const other = await upsertMember(db, { githubUserId: 2, login: 'Bia', email: null });
+    const webA = await createSession(db, m.id, 'web');
+    const webB = await createSession(db, m.id, 'web');
+    const cli = await createSession(db, m.id, 'cli');
+    const otherWeb = await createSession(db, other.id, 'web');
+    expect(await deleteMemberSessions(db, m.id, 'web')).toBe(2);
+    expect(await resolveSession(db, webA, 'web')).toBeNull();
+    expect(await resolveSession(db, webB, 'web')).toBeNull();
+    expect((await resolveSession(db, cli, 'cli'))?.id).toBe(m.id);
+    expect((await resolveSession(db, otherWeb, 'web'))?.id).toBe(other.id);
+    expect(await deleteMemberSessions(db, m.id, 'web')).toBe(0);
   });
 });
 
