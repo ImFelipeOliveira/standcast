@@ -254,6 +254,22 @@ describe('cairo text layer', () => {
     expect(layer.body).toMatch(/fill="#FF0000" fill-opacity="0\.5"/);
   });
 
+  test('keeps every painted group inside an unpainted surface group', () => {
+    for (const [first, second] of [
+      ['fill="rgb(100%, 0%, 0%)" fill-opacity="1"', 'fill="rgb(0%, 0%, 100%)" fill-opacity="1"'],
+      [
+        'style="fill:rgb(100%,0%,0%);fill-opacity:1;"',
+        'style="fill:rgb(0%,0%,100%);fill-opacity:1;"',
+      ],
+    ]) {
+      const layer = textLayerFromCairoSvg(
+        `<svg>${defs}<g id="surface1"><g ${first}><use xlink:href="#glyph-0-1" x="3" y="6"/></g><g ${second}><use xlink:href="#glyph-0-1" x="6" y="9"/></g></g></svg>`,
+      );
+      expect(layer.body).toContain('<g fill="#FF0000"><use href="#g1" x="4" y="8"/></g>');
+      expect(layer.body).toContain('<g fill="#0000FF"><use href="#g1" x="8" y="12"/></g>');
+    }
+  });
+
   test('fails when the converter output has no text layer', () => {
     expect(() => textLayerFromCairoSvg('<svg><defs></defs><g><path d="M 0 0"/></g></svg>')).toThrow(
       /no text layer/,
