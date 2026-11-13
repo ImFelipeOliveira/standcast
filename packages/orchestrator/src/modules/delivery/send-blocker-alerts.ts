@@ -3,6 +3,7 @@ import {
   buildBlockerAlert,
   ChatDeliveryError,
   type ChatProvider,
+  calendarDaysBetween,
   type MessageRef,
   type Person,
   type StandcastConfig,
@@ -54,10 +55,6 @@ export async function enqueueBlockerAlertsIfDue(
   await deps.queue.enqueue(SEND_BLOCKER_ALERTS_JOB, job, {
     singletonKey: `blocker-alert:${job.installationId}:${job.teamName}:${job.date}`,
   });
-}
-
-function daysBetween(from: string, to: string): number {
-  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
 }
 
 async function managerPeople(
@@ -185,7 +182,7 @@ export async function sendBlockerAlerts(
             managers,
             author: state.authorLogin,
             blocker: state.ref ? { text: state.text, ref: state.ref } : { text: state.text },
-            ageDays: daysBetween(state.openedOn, job.date),
+            ageDays: calendarDaysBetween(state.openedOn, job.date),
             openedOn: state.openedOn,
             routedTo: routes.get(`${state.authorMemberId}:${state.blockerId}`) ?? [],
           }),
