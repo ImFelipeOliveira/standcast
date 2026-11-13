@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useOrgContext, useSession } from '../api/queries';
 import {
@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
-import { setLang, useLang, useT } from '../i18n';
+import { useLang, useT } from '../i18n';
 import { docsUrl } from '../lib/links';
 import { roleLabel } from './roles';
 import { signOut } from './sign-out';
@@ -39,7 +39,7 @@ export function UserMenu({ installationId }: { installationId: number }) {
     setFailed(false);
     const ok = await signOut({
       queryClient,
-      goToSignedOut: () => navigate({ to: '/signed-out', replace: true }),
+      goToSignedOut: () => navigate({ to: '/sign-in', search: { signed_out: 1 }, replace: true }),
     });
     if (!ok) setFailed(true);
   };
@@ -48,10 +48,8 @@ export function UserMenu({ installationId }: { installationId: number }) {
     <>
       {failed ? <SignOutError /> : null}
       <DropdownMenu>
-        <DropdownMenuTrigger
-          aria-label={t('user.menu', { login })}
-          className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-[9px] border-0 bg-transparent px-2 py-2.5 text-left text-text hover:bg-hover"
-        >
+        <DropdownMenuTrigger className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-[9px] border-0 bg-transparent px-2 py-2.5 text-left text-text hover:bg-hover">
+          <span className="sr-only">{`${t('user.menu')}: `}</span>
           <img
             src={avatarUrl}
             alt=""
@@ -70,15 +68,14 @@ export function UserMenu({ installationId }: { installationId: number }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" side="top">
           <DropdownMenuItem asChild>
+            <Link to="/orgs/$installationId/account" params={{ installationId }}>
+              {t('user.account')}
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
             <a href={docsUrl(lang)} target="_blank" rel="noreferrer">
               {t('user.docs')}
             </a>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            lang={lang === 'pt-BR' ? 'en' : 'pt-BR'}
-            onSelect={() => setLang(lang === 'pt-BR' ? 'en' : 'pt-BR')}
-          >
-            {t('lang.switch')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => void onSignOut()}>{t('user.signOut')}</DropdownMenuItem>

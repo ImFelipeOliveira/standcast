@@ -7,19 +7,30 @@ import {
   type Deps,
   DomainError,
   disableWebhookEndpoint,
+  getEditableConfig,
+  getOrgBlockers,
   getOrgContext,
+  getPeopleLinks,
   getSetupStatus,
+  getTeamDigest,
+  getTeamHistory,
+  getTeamShipped,
   getTeamsSummary,
   getTeamToday,
   linkGoogleChatSpace,
   logoutWebSession,
+  redeliverWebhook,
   remindNow,
+  revokeAllWebSessions,
   revokeInstallationApiKey,
+  searchTeamDailies,
   sendTestEvent,
   setBlockerResolved,
   unlinkGoogleChatSpace,
+  validateConfigSource,
 } from '@standcast/orchestrator';
 import { type Context, Hono, type MiddlewareHandler } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
 import { deleteCookie } from 'hono/cookie';
 import { z } from 'zod';
 import {
@@ -51,6 +62,8 @@ const createWebhookBody = z.object({
 const linkSpaceBody = z.object({ code: z.string() });
 
 const ORG = '/v1/app/orgs/:installationId';
+
+export const CONFIG_BODY_LIMIT_BYTES = 512 * 1024;
 
 function installationIdOf(c: Context): number {
   const raw = c.req.param('installationId') ?? '';
@@ -122,6 +135,12 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
     return c.body(null, 204);
   });
 
+  app.post('/v1/app/sessions/revoke-all', async (c) => {
+    await revokeAllWebSessions(deps, c.get('member').id);
+    deleteCookie(c, WEB_COOKIE, { path: WEB_COOKIE_PATH, secure: true });
+    return c.body(null, 204);
+  });
+
   app.get(`${ORG}/context`, async (c) =>
     c.json(await getOrgContext(deps, isMember, c.get('member'), installationIdOf(c)), 200),
   );
@@ -143,6 +162,101 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       200,
     ),
   );
+
+  const teamInput = (c: Context) => ({
+    installationId: installationIdOf(c),
+    team: c.req.param('team') ?? '',
+  });
+  const rangeInput = (c: Context) => {
+    const from = c.req.query('from');
+    const to = c.req.query('to');
+    return { ...(from ? { from } : {}), ...(to ? { to } : {}) };
+  };
+
+  app.get(`${ORG}/teams/:team/history/digests`, async (c) =>
+    c.json(
+      await getTeamHistory(deps, isMember, c.get('member'), { ...teamInput(c), ...rangeInput(c) }),
+      200,
+    ),
+  );
+
+  app.get(`${ORG}/teams/:team/history/digests/:date`, async (c) =>
+    c.json(
+      await getTeamDigest(deps, isMember, c.get('member'), {
+        ...teamInput(c),
+        date: c.req.param('date'),
+      }),
+      200,
+    ),
+  );
+
+  app.get(`${ORG}/teams/:team/history/search`, async (c) =>
+    c.json(
+      await searchTeamDailies(deps, isMember, c.get('member'), {
+        ...teamInput(c),
+        ...rangeInput(c),
+        q: c.req.query('q') ?? '',
+      }),
+      200,
+    ),
+  );
+
+  app.get(`${ORG}/teams/:team/history/shipped`, async (c) =>
+    c.json(
+      await getTeamShipped(deps, isMember, c.get('member'), { ...teamInput(c), ...rangeInput(c) }),
+      200,
+    ),
+  );
+
+  app.get(`${ORG}/config`, async (c) =>
+    c.json(await getEditableConfig(deps, isMember, c.get('member'), installationIdOf(c)), 200),
+  );
+
+  app.post(
+    `${ORG}/config/validate`,
+    bodyLimit({
+      maxSize: CONFIG_BODY_LIMIT_BYTES,
+      onError: (c) =>
+        c.json({ error: { code: 'payload_too_large', message: 'payload too large' } }, 413),
+    }),
+    async (c) => {
+      const body: unknown = await c.req.json().catch(() => undefined);
+      const source =
+        typeof body === 'object' && body !== null && 'source' in body
+          ? (body as { source: unknown }).source
+          : undefined;
+      return c.json(
+        await validateConfigSource(deps, isMember, c.get('member'), installationIdOf(c), source),
+        200,
+      );
+    },
+  );
+
+  app.get(`${ORG}/people`, async (c) =>
+    c.json(await getPeopleLinks(deps, isMember, c.get('member'), installationIdOf(c)), 200),
+  );
+
+  app.post(`${ORG}/webhooks/deliveries/:deliveryId/redeliver`, async (c) => {
+    await redeliverWebhook(
+      deps,
+      isMember,
+      c.get('member'),
+      installationIdOf(c),
+      c.req.param('deliveryId'),
+    );
+    return c.body(null, 204);
+  });
+
+  app.get(`${ORG}/blockers`, async (c) => {
+    const team = c.req.query('team');
+    return c.json(
+      await getOrgBlockers(deps, isMember, c.get('member'), {
+        installationId: installationIdOf(c),
+        ...(team ? { team } : {}),
+      }),
+      200,
+    );
+  });
 
   for (const [action, resolved] of [
     ['resolve', true],

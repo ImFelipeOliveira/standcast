@@ -98,7 +98,7 @@ export function DailyCard({ person, timezone, canRemind, remind, onRemind, onVie
           </Button>
         </div>
       ) : (
-        <div className="flex flex-col gap-2.5 rounded-[10px] border border-border-strong border-dashed p-3.5">
+        <div className="flex flex-col gap-2.5 rounded-[10px] border border-border border-dashed p-3.5">
           <span className="text-muted">{t('hoje.missing.body')}</span>
           {showRemind ? (
             <Button

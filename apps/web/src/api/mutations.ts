@@ -109,3 +109,37 @@ export function useRemindNow(installationId: number, team: string) {
     ),
   );
 }
+
+function useOrgBlockerMutation(installationId: number, action: 'resolve' | 'reopen') {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (blockerStateId: string) =>
+      apiPost<void>(
+        `${orgPath(installationId)}/blockers/${encodeURIComponent(blockerStateId)}/${action}`,
+      ),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['org', installationId, 'blockers'] }),
+        queryClient.invalidateQueries({ queryKey: ['org', installationId, 'team'] }),
+      ]),
+  });
+}
+
+export function useResolveOrgBlocker(installationId: number) {
+  return useOrgBlockerMutation(installationId, 'resolve');
+}
+
+export function useReopenOrgBlocker(installationId: number) {
+  return useOrgBlockerMutation(installationId, 'reopen');
+}
+
+export function useRedeliverWebhook(installationId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (deliveryId: string) =>
+      apiPost<void>(
+        `${orgPath(installationId)}/webhooks/deliveries/${encodeURIComponent(deliveryId)}/redeliver`,
+      ),
+    onSettled: () => queryClient.invalidateQueries(setupStatusQuery(installationId)),
+  });
+}

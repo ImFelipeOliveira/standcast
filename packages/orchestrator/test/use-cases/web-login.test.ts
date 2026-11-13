@@ -1,9 +1,17 @@
 import { describe, expect, test } from 'bun:test';
-import { resolveSession } from '@standcast/db';
+import { createSession, resolveSession } from '@standcast/db';
 import { GitHubOAuthError } from '@standcast/github';
 import { db, useCleanDb } from '../../../db/test/setup';
-import { completeWebLogin, type DomainError, hashNonce, signState, startWebLogin } from '../../src';
-import { fakeDeps, INST, seedOrg } from './fakes';
+import {
+  completeWebLogin,
+  type DomainError,
+  hashNonce,
+  readLoginState,
+  revokeAllWebSessions,
+  signState,
+  startWebLogin,
+} from '../../src';
+import { fakeDeps, INST, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -20,6 +28,28 @@ describe('startWebLogin', () => {
     expect(parsed.searchParams.get('redirect_uri')).toBe('https://sw.test/auth/github/callback');
     expect(nonce.length).toBeGreaterThan(20);
     expect(stateOf(url)).toContain('.');
+  });
+});
+
+describe('readLoginState', () => {
+  test('returns the target and sanitized next of a signed login state', () => {
+    const { deps } = fakeDeps();
+    const { url } = startWebLogin(deps, { next: '/orgs/11/hoje?team=core', target: 'app' });
+    expect(readLoginState(deps, stateOf(url))).toEqual({
+      next: '/orgs/11/hoje?team=core',
+      target: 'app',
+    });
+    const api = startWebLogin(deps, { next: '//evil.com' });
+    expect(readLoginState(deps, stateOf(api.url))).toEqual({ next: '/', target: 'api' });
+  });
+
+  test('returns null for a missing, tampered or expired state', () => {
+    const { deps } = fakeDeps();
+    const { url } = startWebLogin(deps, { next: '/x', target: 'app' });
+    const later = { ...deps, now: () => new Date(deps.now().getTime() + 60 * 60_000) };
+    expect(readLoginState(deps, undefined)).toBeNull();
+    expect(readLoginState(deps, `${stateOf(url)}x`)).toBeNull();
+    expect(readLoginState(later, stateOf(url))).toBeNull();
   });
 });
 
@@ -121,5 +151,22 @@ describe('completeWebLogin', () => {
 
   test('installation constant is seeded', () => {
     expect(INST).toBe(11);
+  });
+});
+
+describe('revokeAllWebSessions', () => {
+  test('ends every panel session of the member and keeps the CLI and other people', async () => {
+    const { deps } = fakeDeps();
+    const alice = await seedMember('Alice', 1);
+    const bruno = await seedMember('Bruno', 2);
+    const here = await createSession(db, alice.id, 'web');
+    const elsewhere = await createSession(db, alice.id, 'web');
+    const cli = await createSession(db, alice.id, 'cli');
+    const other = await createSession(db, bruno.id, 'web');
+    expect(await revokeAllWebSessions(deps, alice.id)).toEqual({ revoked: 2 });
+    expect(await resolveSession(db, here, 'web')).toBeNull();
+    expect(await resolveSession(db, elsewhere, 'web')).toBeNull();
+    expect((await resolveSession(db, cli, 'cli'))?.id).toBe(alice.id);
+    expect((await resolveSession(db, other, 'web'))?.id).toBe(bruno.id);
   });
 });

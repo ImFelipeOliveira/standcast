@@ -1,5 +1,87 @@
 import { describe, expect, test } from 'bun:test';
+import { buildBlockerAlert, LINK_CHAT_ACCOUNT_ACTION, type Message } from '@standcast/core';
 import { GOOGLE_CHAT_TEXT_LIMIT, MARKUP_BREAKER, renderGoogleChat } from '../src';
+
+describe('renderGoogleChat blocker alert', () => {
+  test('mentions the managers and links the blocker ref', () => {
+    const out = renderGoogleChat(
+      buildBlockerAlert({
+        lang: 'pt-BR',
+        team: 'Alpha',
+        managers: [{ login: 'carol', chatUserId: 'users/123' }, { login: 'dave' }],
+        author: 'alice',
+        blocker: {
+          text: 'esperando o banco de staging',
+          ref: { kind: 'card', url: 'https://linear.app/acme/issue/ENG-9', title: 'ENG-9' },
+        },
+        ageDays: 5,
+        openedOn: '2026-10-23',
+        routedTo: [],
+      }),
+    );
+    expect(out.text).toContain('*🚧 Impedimento aberto há 5 dias · Alpha*');
+    expect(out.text).toContain('<users/123>, @dave');
+    expect(out.text).toContain('esperando o banco de staging');
+    expect(out.text).toContain('<https://linear.app/acme/issue/ENG-9|ENG-9>');
+    expect(out.text).toContain('Aberto desde 23/10/2026, informado por @alice.');
+    expect(out.text).not.toContain('Encaminhado');
+  });
+});
+
+const ENDPOINT = 'https://api.test/webhooks/google-chat';
+
+const withLink: Message = {
+  fallbackText: 'fb',
+  blocks: [{ type: 'paragraph', content: ['Did not send: @carol'] }],
+  actions: [
+    { type: LINK_CHAT_ACCOUNT_ACTION, text: 'Shown as <@login>?', label: 'Link my account' },
+  ],
+};
+
+describe('renderGoogleChat actions', () => {
+  test('the link account action becomes a card button that calls the chat endpoint', () => {
+    expect(renderGoogleChat(withLink, { interactionUrl: ENDPOINT })).toEqual({
+      text: 'Did not send: @carol',
+      cardsV2: [
+        {
+          cardId: LINK_CHAT_ACCOUNT_ACTION,
+          card: {
+            sections: [
+              {
+                widgets: [
+                  { textParagraph: { text: 'Shown as &lt;@login&gt;?' } },
+                  {
+                    buttonList: {
+                      buttons: [
+                        {
+                          text: 'Link my account',
+                          onClick: {
+                            action: {
+                              function: ENDPOINT,
+                              parameters: [{ key: 'action', value: LINK_CHAT_ACCOUNT_ACTION }],
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      ],
+    });
+  });
+
+  test('without an interaction url or without actions there is no card', () => {
+    expect(renderGoogleChat(withLink)).toEqual({ text: 'Did not send: @carol' });
+    const { actions: _, ...plain } = withLink;
+    expect(renderGoogleChat(plain, { interactionUrl: ENDPOINT })).toEqual({
+      text: 'Did not send: @carol',
+    });
+  });
+});
 
 describe('renderGoogleChat', () => {
   test('renders heading, paragraph, list and divider as text', () => {

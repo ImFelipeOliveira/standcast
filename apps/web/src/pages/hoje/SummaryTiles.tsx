@@ -20,8 +20,8 @@ function Tile({
   return (
     <div
       className={cn(
-        'flex flex-col gap-1.5 rounded-[14px] border px-[18px] py-4',
-        warn ? 'border-warn-line bg-warn-soft text-warn-ink' : 'border-border bg-surface',
+        'flex flex-col gap-1.5 rounded-[10px] bg-surface px-[18px] py-4',
+        warn ? 'text-warn-ink' : null,
       )}
     >
       <span

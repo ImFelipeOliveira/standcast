@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Screenshot 5: team panel</title>
+<link rel="stylesheet" href="../brand/html/fonts.css">
+<style>
+body{margin:0}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.ref{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;color:#3446C2}
+.nav{display:flex;align-items:center;gap:10px;min-height:32px;padding:0 10px;border-radius:6px;font-size:13px;font-weight:500;color:#3F3F46}
+.dot{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600}
+.dot::before{content:'';width:7px;height:7px;border-radius:999px;background:currentColor}
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:4px;background:#F4F4F5;color:#3F3F46;font-size:12px;font-weight:500}
+.row{display:flex;flex-direction:column;gap:6px;padding:12px 16px;border-top:1px solid #E7E7EA}
+</style>
+</head>
+<body>
+<div style="position: relative; width: 1280px; height: 800px; overflow: hidden; background: #F4F4F5; color: #18181B; font-family: Inter, system-ui, sans-serif">
+<svg aria-hidden="true" width="1280" height="800" style="position: absolute; inset: 0">
+<defs><pattern id="s5-dot" width="14" height="14" patternUnits="userSpaceOnUse"><rect x="5" y="5" width="4" height="4" fill="#18181B" fill-opacity="0.06"></rect></pattern></defs>
+<rect width="1280" height="800" fill="url(#s5-dot)"></rect>
+</svg>
+<div style="position: absolute; left: 80px; top: 64px; width: 1120px; display: flex; flex-direction: column; gap: 12px">
+<span style="display: flex; align-items: center; gap: 10px"><svg aria-hidden="true" width="24" height="22" viewBox="0 0 44 40"><rect x="0" y="20" width="11" height="20" rx="1.5" fill="#3B4BC8"></rect><rect x="16" y="10" width="11" height="30" rx="1.5" fill="#3B4BC8"></rect><rect x="32" y="0" width="11" height="40" rx="1.5" fill="#3B4BC8"></rect></svg><span style="font-family: Saira, Inter, sans-serif; font-weight: 700; font-size: 20px">Standcast</span></span>
+<h1 style="margin: 0; font-size: 44px; line-height: 1.1; font-weight: 600; letter-spacing: -0.03em">Your team's day, blockers and history in one panel</h1>
+<p style="margin: 0; font-size: 20px; color: #5B5B66">Made to unblock the team. No per-person metrics, no rankings.</p>
+</div>
+<div style="position: absolute; left: 80px; right: 80px; top: 268px; bottom: -24px; display: flex; background: #F4F4F5; border-radius: 16px 16px 0 0; box-shadow: 0 30px 60px -24px rgba(24,24,27,.3); overflow: hidden">
+<div style="flex: 0 0 200px; background: #FFFFFF; padding: 14px 10px; display: flex; flex-direction: column; gap: 14px">
+<span style="display: flex; align-items: center; gap: 8px; padding: 0 6px"><svg aria-hidden="true" width="16" height="14" viewBox="0 0 44 40"><rect x="0" y="20" width="11" height="20" rx="1.5" fill="#3B4BC8"></rect><rect x="16" y="10" width="11" height="30" rx="1.5" fill="#3B4BC8"></rect><rect x="32" y="0" width="11" height="40" rx="1.5" fill="#3B4BC8"></rect></svg><span style="font-family: Saira, Inter, sans-serif; font-weight: 700; font-size: 15px">Standcast</span></span>
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span class="nav" style="background: #EBEBED; color: #18181B; font-weight: 600">Today</span>
+<span class="nav">Blockers <span class="mono" style="margin-left: auto; font-size: 11px; color: #5B5B66">5</span></span>
+<span class="nav">History</span>
+<span class="nav">Settings</span>
+</span>
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 12px; font-weight: 600; color: #5B5B66; padding: 0 10px">Teams · today</span>
+<span class="nav" style="color: #18181B; font-weight: 600">backend <span class="mono" style="margin-left: auto; font-size: 12px; color: #5B5B66; font-weight: 400">4/5</span></span>
+<span class="nav">platform <span class="mono" style="margin-left: auto; font-size: 12px; color: #5B5B66">2/4</span></span>
+</span>
+</div>
+<div style="flex: 1; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; min-width: 0">
+<span style="display: flex; flex-direction: column; gap: 2px"><span class="mono" style="font-size: 12px; color: #5B5B66">backend · America/Sao_Paulo</span><span style="font-size: 20px; font-weight: 600; letter-spacing: -0.015em">Tuesday, November 4</span></span>
+<div style="display: flex; gap: 16px; align-items: flex-start">
+<div style="flex: 1; min-width: 0; background: #FFFFFF; border-radius: 10px">
+<div style="padding: 12px 16px; font-size: 14px; font-weight: 600">Needs you <span class="tag mono" style="margin-left: 6px">2</span></div>
+<div class="row">
+<span style="display: flex; gap: 8px; align-items: center"><span class="dot mono" style="color: #9A4A00">3d</span><span class="tag">Blocker</span><span class="tag">Back in 3 dailies in a row</span></span>
+<span style="font-size: 13px">API deploy waits on the database change for opening hours and invoicing.</span>
+<span style="font-size: 12px; color: #5B5B66"><span class="mono">@ana</span> · <span class="ref">api#8379</span> · routed to <span class="mono">@bruno</span>, reviewer</span>
+</div>
+<div class="row">
+<span style="display: flex; gap: 8px; align-items: center"><span class="tag mono">today</span><span class="tag">Blocker</span><span class="dot" style="color: #11703F">Likely resolved: PR merged at 11:40</span></span>
+<span style="font-size: 13px">Waiting on the Partner webhook contract to continue the integration.</span>
+<span style="font-size: 12px; color: #5B5B66"><span class="mono">@carla</span> · <span class="ref">partner#7191</span> · routed to <span class="mono">@ana</span>, code owner</span>
+</div>
+</div>
+<div style="flex: 0 0 240px; background: #FFFFFF; border-radius: 10px; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px">
+<span style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600">Who has sent <span class="mono" style="font-weight: 400; color: #5B5B66">4 of 5</span></span>
+<span style="height: 4px; border-radius: 999px; background: #F4F4F5; overflow: hidden"><span style="display: block; width: 80%; height: 100%; background: #3B4BC8"></span></span>
+<span style="display: flex; justify-content: space-between; align-items: center; font-size: 13px"><span class="mono">@davi</span><span style="font-size: 12px; font-weight: 500; border: 1px solid #8A8A96; border-radius: 6px; padding: 2px 8px">Remind</span></span>
+<span style="display: flex; justify-content: space-between; font-size: 13px"><span class="mono">@ana</span><span class="mono" style="font-size: 12px; color: #5B5B66">08:50</span></span>
+<span style="display: flex; justify-content: space-between; font-size: 13px"><span class="mono">@bruno</span><span class="mono" style="font-size: 12px; color: #5B5B66">09:05</span></span>
+<span style="display: flex; justify-content: space-between; font-size: 13px"><span class="mono">@carla</span><span class="mono" style="font-size: 12px; color: #5B5B66">09:12</span></span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

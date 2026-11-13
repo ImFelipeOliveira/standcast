@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 import { createApp } from '@standcast/api';
 import { type Deps, nullTracker } from '@standcast/orchestrator';
 import { createMemoryQueue } from '@standcast/queue';
-import { seed } from './seed';
+import { ENCRYPTION_KEY, seed } from './seed';
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
 const tokenFile = process.env.E2E_TOKEN_FILE;
@@ -22,13 +22,15 @@ const deps: Deps = {
   db,
   queue: createMemoryQueue(),
   now: () => new Date(),
-  encryptionKey: new Uint8Array(32).fill(7),
+  encryptionKey: ENCRYPTION_KEY,
   github: {
     app: {} as Deps['github']['app'],
     installationOctokit: async () =>
       ({
         request: async (route: string) => {
           if (route.startsWith('GET /user/')) return { data: { login: 'alice' } };
+          if (route.startsWith('GET /orgs/{org}/memberships/'))
+            return { data: { role: 'admin', state: 'active' }, status: 200 };
           if (!route.startsWith('GET /repos/')) return { data: {}, status: 204 };
           throw Object.assign(new Error('not found'), { status: 404 });
         },

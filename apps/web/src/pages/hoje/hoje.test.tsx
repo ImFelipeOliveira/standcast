@@ -30,7 +30,9 @@ function fixture(overrides: Partial<TeamToday> = {}): TeamToday {
       digestAt: '10:00',
     },
     date: '2026-11-03',
-    digest: { status: 'scheduled', sentAt: null },
+    digest: { status: 'scheduled', sentAt: null, everSent: true },
+    everSubmitted: true,
+    chat: { provider: 'slack', url: null },
     canRemind: true,
     canResolve: true,
     people: [
@@ -172,6 +174,26 @@ describe('hoje', () => {
     expect(fresh).toContain('Provavelmente resolvido: PR mergeado às 11:40');
     expect(fresh).not.toContain('Recorrente');
     expect(fresh).not.toContain('Ver daily');
+  });
+
+  test('a response without the chat field still renders', () => {
+    const { chat: _chat, ...older } = fixture();
+    expect(renderPage(older as TeamToday)).toContain('Precisa de você');
+  });
+
+  test('the chat button names the provider and shows only with a link', () => {
+    expect(renderPage(fixture())).not.toContain('Abrir no Slack');
+    const slack = renderPage(
+      fixture({
+        chat: { provider: 'slack', url: 'https://slack.com/app_redirect?team=T1&channel=C1' },
+      }),
+    );
+    expect(slack).toContain('Abrir no Slack');
+    expect(slack).toContain('href="https://slack.com/app_redirect?team=T1&amp;channel=C1"');
+    const google = renderPage(
+      fixture({ chat: { provider: 'google-chat', url: 'https://chat.google.com/room/A/B' } }),
+    );
+    expect(google).toContain('Abrir no Google Chat');
   });
 
   test('support cards render', () => {

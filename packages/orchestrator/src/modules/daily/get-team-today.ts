@@ -1,12 +1,18 @@
 import {
   addCalendarDays,
+  type ChatProvider,
+  calendarDaysBetween,
   type Item,
   localDate,
+  type MessageRef,
   parsePullRequestUrl,
   type Ref,
 } from '@standcast/core';
 import {
+  getConnectionInfo,
   getInstallationMemberIds,
+  hasSentDigest,
+  type InstallationRow,
   listBlockerRouteRecipients,
   listCurrentOpenBlockerStates,
   listDailies,
@@ -25,6 +31,7 @@ import {
   remindWindowOpen,
   type TeamAccess,
 } from '../access/team-access';
+import { chatLink } from '../history/chat-link';
 
 const HINT_TIMEOUT_MS = 3000;
 const MAX_HINT_CALLS = 10;
@@ -58,20 +65,18 @@ export type TodayShipped = { author: string; text: string; ref: Ref };
 export type TeamToday = {
   team: { name: string; timezone: string; remindAt: string; digestAt: string };
   date: string;
-  digest: { status: 'scheduled' | 'sent' | 'failed'; sentAt: string | null };
+  digest: { status: 'scheduled' | 'sent' | 'failed'; sentAt: string | null; everSent: boolean };
+  everSubmitted: boolean;
   canRemind: boolean;
   canResolve: boolean;
   people: TodayPerson[];
   blockers: TodayBlocker[];
   support: TodaySupport[];
   shipped: TodayShipped[];
+  chat: { provider: ChatProvider; url: string | null };
 };
 
 type TodayRow = Awaited<ReturnType<typeof listDailies>>[number];
-
-function daysBetween(from: string, to: string): number {
-  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
-}
 
 const sameText = (text: string) => text.trim().replace(/\s+/g, ' ').toLowerCase();
 
@@ -83,12 +88,12 @@ function routeReason(ref: Ref | null, logins: string[], managers: Set<string>): 
 
 async function routesOf(
   deps: Deps,
-  access: TeamAccess,
+  installation: InstallationRow,
   states: OpenBlockerState[],
 ): Promise<Map<string, string[]>> {
   const rows = await listBlockerRouteRecipients(
     deps.db,
-    access.installation.id,
+    installation.id,
     [...new Set(states.map((s) => s.authorMemberId))],
     [...new Set(states.map((s) => s.blockerId))],
   );
@@ -104,10 +109,10 @@ async function routesOf(
 
 async function lookupHints(
   deps: Deps,
-  access: TeamAccess,
+  installation: InstallationRow,
   states: OpenBlockerState[],
 ): Promise<Map<string, string>> {
-  const owner = access.installation.accountLogin.toLowerCase();
+  const owner = installation.accountLogin.toLowerCase();
   const targets = states
     .flatMap((state) => {
       const pull = state.ref?.kind === 'pull_request' ? parsePullRequestUrl(state.ref.url) : null;
@@ -116,7 +121,7 @@ async function lookupHints(
     .slice(0, MAX_HINT_CALLS);
   const hints = new Map<string, string>();
   if (targets.length === 0) return hints;
-  const octokit = await deps.github.installationOctokit(access.installation.id);
+  const octokit = await deps.github.installationOctokit(installation.id);
   await Promise.all(
     targets.map(async ({ id, pull }) => {
       try {
@@ -124,7 +129,7 @@ async function lookupHints(
         if (result?.merged && result.mergedAt) hints.set(id, result.mergedAt);
       } catch (error) {
         logError('today hint lookup failed', error, {
-          installationId: String(access.installation.id),
+          installationId: String(installation.id),
         });
       }
     }),
@@ -132,34 +137,31 @@ async function lookupHints(
   return hints;
 }
 
-async function openBlockers(deps: Deps, access: TeamAccess): Promise<TodayBlocker[]> {
-  const ids = await getInstallationMemberIds(
-    deps.db,
-    access.installation.id,
-    access.team.memberLogins,
-  );
-  const states = await listCurrentOpenBlockerStates(deps.db, access.installation.id, [
-    ...ids.values(),
-  ]);
+export type BlockerContext = { timezone: string; date: string; managers: Set<string> };
+
+export async function buildOpenBlockers(
+  deps: Deps,
+  installation: InstallationRow,
+  states: OpenBlockerState[],
+  contextOf: (state: OpenBlockerState) => BlockerContext,
+): Promise<TodayBlocker[]> {
   if (states.length === 0) return [];
   const [routes, hints] = await Promise.all([
-    routesOf(deps, access, states),
+    routesOf(deps, installation, states),
     guarded(
-      lookupHints(deps, access, states),
+      lookupHints(deps, installation, states),
       new Map<string, string>(),
       HINT_TIMEOUT_MS,
       'today hints failed',
-      {
-        installationId: String(access.installation.id),
-      },
+      { installationId: String(installation.id) },
     ),
   ]);
-  const managers = new Set(access.team.managerLogins);
   return states
     .map((state) => {
+      const context = contextOf(state);
       const logins = routes.get(`${state.authorMemberId}:${state.blockerId}`);
       const at = hints.get(state.id);
-      const on = at ? localDate(new Date(at), access.team.timezone) : null;
+      const on = at ? localDate(new Date(at), context.timezone) : null;
       const ref = state.ref ?? null;
       return {
         id: state.id,
@@ -167,9 +169,9 @@ async function openBlockers(deps: Deps, access: TeamAccess): Promise<TodayBlocke
         text: state.text,
         ref,
         openedOn: state.openedOn,
-        ageDays: Math.max(0, daysBetween(state.openedOn, access.date)),
+        ageDays: Math.max(0, calendarDaysBetween(state.openedOn, context.date)),
         recurring: state.lastSeenOn > state.openedOn,
-        routedTo: logins ? { logins, reason: routeReason(ref, logins, managers) } : null,
+        routedTo: logins ? { logins, reason: routeReason(ref, logins, context.managers) } : null,
         hint: at && on && on >= state.openedOn ? { kind: 'pr_merged' as const, at, on } : null,
       };
     })
@@ -179,6 +181,23 @@ async function openBlockers(deps: Deps, access: TeamAccess): Promise<TodayBlocke
         a.author.localeCompare(b.author) ||
         a.text.localeCompare(b.text),
     );
+}
+
+export async function openTeamBlockers(deps: Deps, access: TeamAccess): Promise<TodayBlocker[]> {
+  const ids = await getInstallationMemberIds(
+    deps.db,
+    access.installation.id,
+    access.team.memberLogins,
+  );
+  const states = await listCurrentOpenBlockerStates(deps.db, access.installation.id, [
+    ...ids.values(),
+  ]);
+  const context = {
+    timezone: access.team.timezone,
+    date: access.date,
+    managers: new Set(access.team.managerLogins),
+  };
+  return buildOpenBlockers(deps, access.installation, states, () => context);
 }
 
 async function supportRequests(
@@ -224,6 +243,20 @@ function shippedFrom(rows: TodayRow[]): TodayShipped[] {
   );
 }
 
+export async function digestChatUrl(
+  deps: Deps,
+  access: TeamAccess,
+  ref: MessageRef | null,
+): Promise<string | null> {
+  if (!ref) return null;
+  const provider = access.team.chat.provider;
+  const slackTeamId =
+    provider === 'slack'
+      ? ((await getConnectionInfo(deps.db, access.installation.id, 'slack'))?.externalId ?? null)
+      : null;
+  return chatLink(provider, ref, slackTeamId);
+}
+
 export async function getTeamToday(
   deps: Deps,
   isMember: MembershipCheck,
@@ -262,9 +295,15 @@ export async function getTeamToday(
       },
     };
   });
-  const [blockers, support] = await Promise.all([
-    openBlockers(deps, access),
+  const [blockers, support, chatUrl, everSent, everSubmitted] = await Promise.all([
+    openTeamBlockers(deps, access),
     supportRequests(deps, access, rows),
+    digestChatUrl(deps, access, digest.ref),
+    digest.status === 'sent' || hasSentDigest(deps.db, access.installation.id, team.name),
+    rows.length > 0 ||
+      listDailiesPage(deps.db, access.installation.id, { to: date, logins, limit: 1 }).then(
+        (found) => found.length > 0,
+      ),
   ]);
   return {
     team: {
@@ -274,12 +313,18 @@ export async function getTeamToday(
       digestAt: team.digestAt,
     },
     date,
-    digest: { status: digest.status, sentAt: digest.sentAt?.toISOString() ?? null },
+    digest: {
+      status: digest.status,
+      sentAt: digest.sentAt?.toISOString() ?? null,
+      everSent,
+    },
+    everSubmitted,
     canRemind: access.elevated && digest.status !== 'sent' && remindWindowOpen(deps, access),
     canResolve: access.elevated,
     people,
     blockers,
     support,
     shipped: shippedFrom(rows),
+    chat: { provider: team.chat.provider, url: chatUrl },
   };
 }

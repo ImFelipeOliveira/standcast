@@ -12,8 +12,10 @@ import {
   getInstallation,
   getMemberById,
   type InstallationRow,
+  listLatestDailies,
   type MemberRow,
   operationalConfig,
+  reopenBlockerState,
   retireMissingBlockerStates,
   setBlockerStateResolved,
   upsertBlockerState,
@@ -52,6 +54,10 @@ export async function recordBlockers(deps: Deps, input: RecordBlockersInput): Pr
     date: input.date,
     keep: [...unique.keys()],
   });
+}
+
+export function listsBlocker(blockers: Item[], blockerId: string): boolean {
+  return blockers.some((blocker) => blockerRouteId(blocker) === blockerId);
 }
 
 export type SetBlockerResolvedInput = {
@@ -100,6 +106,23 @@ export async function setBlockerResolved(
       { installationId: String(installation.id) },
     ));
   if (!allowed) throw new DomainError('forbidden', 'you cannot change this blocker');
+  if (!input.resolved) {
+    if (state.resolvedAt === null) return;
+    const latest = (await listLatestDailies(deps.db, installation.id, [state.authorMemberId])).get(
+      state.authorMemberId,
+    );
+    const reopened =
+      latest !== undefined &&
+      listsBlocker(latest.payload.blockers, state.blockerId) &&
+      (await reopenBlockerState(deps.db, installation.id, state.id, latest));
+    if (!reopened) {
+      throw new DomainError(
+        'blocker_not_current',
+        "the blocker is no longer in the author's latest daily",
+      );
+    }
+    return;
+  }
   const now = deps.now();
   const first = teams[0];
   const resolvedOn = first ? dailyDateFor(now, first) : localDate(now, 'UTC');

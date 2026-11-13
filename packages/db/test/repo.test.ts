@@ -7,6 +7,7 @@ import {
   completeDelivery,
   createSession,
   deleteInstallation,
+  deleteMemberSessions,
   failDelivery,
   getConnection,
   getConnectionInfo,
@@ -20,8 +21,10 @@ import {
   listDailies,
   listFailedPersonDeliveryGroups,
   listFailedTeamDeliveries,
+  listMemberIdsWithActiveCliSession,
   listOperationalInstallations,
   listPersonDeliveries,
+  listSentDeliverySubjects,
   markConnectionInvalid,
   markDeliverySent,
   resolveSession,
@@ -199,6 +202,25 @@ describe('delivery markers', () => {
     expect(row?.status).toBe('sent');
     expect(row?.attempts).toBe(1);
     expect(await claimDelivery(db, key)).toEqual({ status: 'already_sent' });
+  });
+
+  test('listSentDeliverySubjects lists only sent rows of one team, day and kind', async () => {
+    await upsertInstallation(db, { id: 1, accountLogin: 'acme', accountType: 'Organization' });
+    const base = {
+      installationId: 1,
+      teamName: 'Alpha',
+      date: '2026-10-28',
+      kind: 'blocker_alert_post' as const,
+    };
+    await markDeliverySent(db, { ...base, subject: 'a' });
+    await markDeliverySent(db, { ...base, subject: 'b' });
+    await markDeliverySent(db, { ...base, teamName: 'Beta', subject: 'c' });
+    await markDeliverySent(db, { ...base, date: '2026-10-27', subject: 'd' });
+    await markDeliverySent(db, { ...base, kind: 'blocker_alert' });
+    const claim = await claimDelivery(db, { ...base, subject: 'e' });
+    if (claim.status !== 'claimed') throw new Error('not claimed');
+    await failDelivery(db, { ...base, subject: 'e' }, claim.token, 'rate_limited');
+    expect((await listSentDeliverySubjects(db, base)).sort()).toEqual(['a', 'b']);
   });
 });
 
@@ -460,11 +482,44 @@ describe('sessions', () => {
     expect((await resolveSession(db, active, 'cli'))?.id).toBe(m.id);
   });
 
+  test('active CLI sessions are listed only for members of the installation', async () => {
+    await upsertInstallation(db, { id: 1, accountLogin: 'acme', accountType: 'Organization' });
+    await upsertInstallation(db, { id: 2, accountLogin: 'other', accountType: 'Organization' });
+    const ana = await upsertMember(db, { githubUserId: 1, login: 'Ana', email: null });
+    const bob = await upsertMember(db, { githubUserId: 2, login: 'bob', email: null });
+    await setMemberInstallations(db, ana.id, [1]);
+    await setMemberInstallations(db, bob.id, [2]);
+    await createSession(db, ana.id, 'cli');
+    await createSession(db, bob.id, 'cli');
+    const now = new Date();
+    expect([...(await listMemberIdsWithActiveCliSession(db, 1, [ana.id, bob.id], now))]).toEqual([
+      ana.id,
+    ]);
+    expect([...(await listMemberIdsWithActiveCliSession(db, 2, [ana.id, bob.id], now))]).toEqual([
+      bob.id,
+    ]);
+  });
+
   test('revoked session resolves to null', async () => {
     const m = await seed();
     const token = await createSession(db, m.id, 'cli');
     await revokeSession(db, token);
     expect(await resolveSession(db, token, 'cli')).toBeNull();
+  });
+
+  test('deleteMemberSessions removes only that member sessions of that kind', async () => {
+    const m = await seed();
+    const other = await upsertMember(db, { githubUserId: 2, login: 'Bia', email: null });
+    const webA = await createSession(db, m.id, 'web');
+    const webB = await createSession(db, m.id, 'web');
+    const cli = await createSession(db, m.id, 'cli');
+    const otherWeb = await createSession(db, other.id, 'web');
+    expect(await deleteMemberSessions(db, m.id, 'web')).toBe(2);
+    expect(await resolveSession(db, webA, 'web')).toBeNull();
+    expect(await resolveSession(db, webB, 'web')).toBeNull();
+    expect((await resolveSession(db, cli, 'cli'))?.id).toBe(m.id);
+    expect((await resolveSession(db, otherWeb, 'web'))?.id).toBe(other.id);
+    expect(await deleteMemberSessions(db, m.id, 'web')).toBe(0);
   });
 });
 

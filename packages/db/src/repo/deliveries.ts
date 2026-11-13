@@ -89,7 +89,7 @@ export async function completeDelivery(
   db: Db,
   k: DeliveryKey,
   token: number,
-  ref: MessageRef,
+  ref: MessageRef | null,
 ): Promise<boolean> {
   const rows = await db
     .update(deliveries)
@@ -135,6 +135,25 @@ export async function markDeliverySent(db: Db, k: DeliveryKey): Promise<void> {
       ],
       set: { status: 'sent', error: null, updatedAt: sql`now()` },
     });
+}
+
+export async function listSentDeliverySubjects(
+  db: Db,
+  k: Omit<DeliveryKey, 'subject'>,
+): Promise<string[]> {
+  const rows = await db
+    .select({ subject: deliveries.subject })
+    .from(deliveries)
+    .where(
+      and(
+        eq(deliveries.installationId, k.installationId),
+        eq(deliveries.teamName, k.teamName),
+        eq(deliveries.date, k.date),
+        eq(deliveries.kind, k.kind),
+        eq(deliveries.status, 'sent'),
+      ),
+    );
+  return rows.map((row) => row.subject);
 }
 
 export async function getDelivery(db: Db, k: DeliveryKey): Promise<DeliveryRow | null> {
@@ -364,6 +383,26 @@ export async function listDigestDeliveries(
     )
     .orderBy(desc(deliveries.date), desc(deliveries.id))
     .limit(f.limit);
+}
+
+export async function hasSentDigest(
+  db: Db,
+  installationId: number,
+  teamName: string,
+): Promise<boolean> {
+  const rows = await db
+    .select({ id: deliveries.id })
+    .from(deliveries)
+    .where(
+      and(
+        eq(deliveries.installationId, installationId),
+        eq(deliveries.kind, 'digest'),
+        eq(deliveries.teamName, teamName),
+        eq(deliveries.status, 'sent'),
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
 }
 
 const PERSON_DELIVERY_KINDS = [

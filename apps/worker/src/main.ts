@@ -14,6 +14,7 @@ import {
   pullRequestMerged,
   resolveTeamMembers,
 } from '@standcast/github';
+import { googleChatEndpoint } from '@standcast/google-chat';
 import { exchangeLinearCode, refreshLinearToken } from '@standcast/linear';
 import {
   createChatFor,
@@ -27,6 +28,7 @@ import {
   RESOLVE_CHECK_SUITE_JOB,
   ROUTE_BLOCKER_JOB,
   SCAN_MEMBER_SIGNALS_JOB,
+  SEND_BLOCKER_ALERTS_JOB,
   VALIDATE_CONFIG_JOB,
   type WorkerDeps,
 } from '@standcast/orchestrator';
@@ -43,6 +45,7 @@ import { pruneDataJob } from './jobs/prune-data';
 import { resolveCheckSuiteJob } from './jobs/resolve-check-suite';
 import { routeBlockerJob } from './jobs/route-blocker';
 import { scanMemberSignalsJob } from './jobs/scan-member-signals';
+import { sendBlockerAlertsJob } from './jobs/send-blocker-alerts';
 import { sendDigestJob } from './jobs/send-digest';
 import { sendLateDailyJob } from './jobs/send-late-daily';
 import { sendReminderJob } from './jobs/send-reminder';
@@ -94,7 +97,10 @@ const deps: WorkerDeps = {
   chatFor: createChatFor(
     db,
     env.STANDCAST_ENCRYPTION_KEY,
-    chatFactories(env.GOOGLE_CHAT_SERVICE_ACCOUNT),
+    chatFactories(
+      env.GOOGLE_CHAT_SERVICE_ACCOUNT,
+      env.PUBLIC_URL ? { interactionUrl: googleChatEndpoint(env.PUBLIC_URL) } : {},
+    ),
   ),
   trackerFor: (...args) => createTrackerFor(deps)(...args),
   linear: { exchangeCode: exchangeLinearCode, refreshToken: refreshLinearToken },
@@ -114,6 +120,7 @@ const stately = { policies: ['stately'] } as const;
 
 await queue.work('tick', tickJob(deps), plain);
 await queue.work('send-digest', sendDigestJob(deps), keyed);
+await queue.work(SEND_BLOCKER_ALERTS_JOB, sendBlockerAlertsJob(deps), keyed);
 await queue.work('send-late-daily', sendLateDailyJob(deps), plain);
 await queue.work('send-reminder', sendReminderJob(deps), keyed);
 await queue.work(ROUTE_BLOCKER_JOB, routeBlockerJob(deps), keyed);

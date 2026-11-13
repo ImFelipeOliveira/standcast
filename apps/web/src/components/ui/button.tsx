@@ -12,7 +12,8 @@ export const buttonVariants = cva(
           'border-accent bg-accent text-on-accent hover:border-accent-hover hover:bg-accent-hover',
         outline: 'border-border-strong bg-surface text-text hover:bg-hover',
         ghost: 'border-transparent bg-transparent text-text2 hover:bg-hover hover:text-text',
-        destructive: 'border-bad-line bg-bad-soft text-bad-ink hover:text-bad-ink2',
+        destructive:
+          'border-border-strong bg-surface text-bad-ink hover:bg-hover hover:text-bad-ink2',
         link: 'h-auto min-h-0 border-transparent p-0 text-accent-text underline-offset-4 hover:text-accent-ink hover:underline',
       },
       size: {

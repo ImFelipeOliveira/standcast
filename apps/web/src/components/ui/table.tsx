@@ -1,15 +1,20 @@
 import type { ComponentProps } from 'react';
 import { cn } from '../../lib/utils';
 
-export function Table({ className, ...props }: ComponentProps<'table'>) {
+export function Table({ className, label, ...props }: ComponentProps<'table'> & { label: string }) {
   return (
-    <div data-slot="table-container" className="relative w-full overflow-x-auto">
+    <section
+      data-slot="table-container"
+      aria-label={label}
+      tabIndex={0}
+      className="relative w-full overflow-x-auto"
+    >
       <table
         data-slot="table"
         className={cn('w-full min-w-[620px] border-collapse text-left text-sm', className)}
         {...props}
       />
-    </div>
+    </section>
   );
 }
 

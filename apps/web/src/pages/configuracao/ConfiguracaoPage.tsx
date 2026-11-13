@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ApiError, isSignInStuck } from '../../api/client';
+import { type ReactNode, useState } from 'react';
+import { ApiError } from '../../api/client';
 import type { CreatedApiKey, CreatedWebhook } from '../../api/mutations';
 import { useSetupStatus } from '../../api/queries';
 import { Badge } from '../../components/ui/badge';
@@ -7,32 +7,41 @@ import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { useLang, useT } from '../../i18n';
 import { docsUrl } from '../../lib/links';
-import { Loading, SignInStuck } from '../RouteStates';
+import { PageHeader } from '../../shell/PageHeader';
+import { SectionHeader } from '../../shell/SectionHeader';
+import { Loading } from '../RouteStates';
 import { ApiKeys } from './ApiKeys';
 import { ConfigFile } from './ConfigFile';
 import { Connections, setupProgress } from './Connections';
 import { FailedDeliveries } from './FailedDeliveries';
 import { Webhooks } from './Webhooks';
 
-function LoadError({ onRetry }: { onRetry: () => void }) {
+export function LoadError({ onRetry, header = true }: { onRetry: () => void; header?: boolean }) {
   const t = useT();
   return (
-    <Card role="alert" className="items-start">
-      <h1 className="m-0 font-bold text-[17px]">{t('error.title')}</h1>
-      <p className="m-0 text-text2">{t('error.body')}</p>
-      <Button type="button" variant="outline" onClick={onRetry}>
-        {t('error.retry')}
-      </Button>
-    </Card>
+    <>
+      {header ? <SectionHeader /> : null}
+      <Card role="alert" className="items-start">
+        <h2 className="m-0 font-bold text-[17px]">{t('error.title')}</h2>
+        <p className="m-0 text-text2">{t('error.body')}</p>
+        <Button type="button" variant="outline" onClick={onRetry}>
+          {t('error.retry')}
+        </Button>
+      </Card>
+    </>
   );
 }
 
 export function ConfiguracaoPage({
   installationId,
   connected,
+  tab = 'general',
+  tabs,
 }: {
   installationId: number;
   connected?: 'slack' | 'linear';
+  tab?: 'general' | 'api';
+  tabs?: ReactNode;
 }) {
   const t = useT();
   const lang = useLang();
@@ -42,7 +51,6 @@ export function ConfiguracaoPage({
 
   if (setup.isPending) return <Loading />;
   if (setup.isError) {
-    if (isSignInStuck(setup.error)) return <SignInStuck />;
     if (setup.error instanceof ApiError && setup.error.status === 401) return <Loading />;
     return <LoadError onRetry={() => void setup.refetch()} />;
   }
@@ -51,37 +59,42 @@ export function ConfiguracaoPage({
   const progress = setupProgress(status);
   return (
     <>
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <p className="m-0 font-mono text-[12px] text-muted">{status.owner}</p>
-          <h1 className="m-0 font-bold text-[30px] leading-tight tracking-[-0.01em]">
-            {t('setup.heading')}
-          </h1>
-          <p className="m-0 text-text2">{t('setup.subtitle')}</p>
-          {connected === 'slack' ? (
-            <p role="status" className="m-0 text-text2">
-              {t('setup.connected.slack')}
-            </p>
-          ) : null}
-          {connected === 'linear' ? (
-            <p role="status" className="m-0 text-text2">
-              {t('setup.connected.linear')}
-            </p>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Badge variant={progress.done === progress.total ? 'ok' : 'neutral'}>
-            {t('setup.progress', { done: String(progress.done), total: String(progress.total) })}
-          </Badge>
-          <Button asChild variant="outline">
-            <a href={docsUrl(lang)}>{t('setup.docs')}</a>
-          </Button>
-        </div>
-      </header>
-      <Connections status={status} />
-      <ConfigFile status={status} />
-      <FailedDeliveries status={status} />
-      {status.apiKeys.manage ? (
+      <PageHeader
+        context={status.owner}
+        title={t('setup.heading')}
+        actions={
+          <>
+            {tabs}
+            <Badge variant={progress.done === progress.total ? 'ok' : 'neutral'}>
+              {t('setup.progress', { done: String(progress.done), total: String(progress.total) })}
+            </Badge>
+            <Button asChild variant="outline">
+              <a href={docsUrl(lang)}>{t('setup.docs')}</a>
+            </Button>
+          </>
+        }
+      />
+      <div className="flex flex-col gap-1">
+        <p className="m-0 text-text2">{t('setup.subtitle')}</p>
+        {connected === 'slack' ? (
+          <p role="status" className="m-0 text-text2">
+            {t('setup.connected.slack')}
+          </p>
+        ) : null}
+        {connected === 'linear' ? (
+          <p role="status" className="m-0 text-text2">
+            {t('setup.connected.linear')}
+          </p>
+        ) : null}
+      </div>
+      {tab === 'general' ? (
+        <>
+          <Connections status={status} />
+          <ConfigFile status={status} />
+          <FailedDeliveries status={status} />
+        </>
+      ) : null}
+      {tab === 'api' && status.apiKeys.manage ? (
         <ApiKeys
           installationId={installationId}
           apiKeys={status.apiKeys}
@@ -90,7 +103,7 @@ export function ConfiguracaoPage({
           onDismiss={() => setNewKey(null)}
         />
       ) : null}
-      {status.webhooks.manage ? (
+      {tab === 'api' && status.webhooks.manage ? (
         <Webhooks
           installationId={installationId}
           webhooks={status.webhooks}
@@ -102,7 +115,7 @@ export function ConfiguracaoPage({
       <p className="m-0 text-[12px] text-muted">
         {t('setup.support')}{' '}
         <a
-          className="text-accent-text hover:text-accent-ink"
+          className="text-accent-text underline underline-offset-[3px] hover:text-accent-ink"
           href={`mailto:${status.supportEmail}`}
         >
           {status.supportEmail}

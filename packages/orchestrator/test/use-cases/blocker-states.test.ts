@@ -5,6 +5,7 @@ import {
   listCurrentOpenBlockerStates,
   type MemberRow,
   setMemberInstallations,
+  upsertDaily,
   upsertMember,
 } from '@standcast/db';
 import { db, useCleanDb } from '../../../db/test/setup';
@@ -232,6 +233,13 @@ describe('recordBlockers', () => {
 describe('setBlockerResolved', () => {
   async function opened(...args: Parameters<typeof setup>) {
     const ctx = await setup(...args);
+    await upsertDaily(db, {
+      installationId: INST,
+      memberId: ctx.bob.id,
+      date: '2026-10-28',
+      payload: { org: 'acme', yesterday: [], today: [], blockers: [access], support: [] },
+      submittedAt: new Date('2026-10-28T12:00:00Z'),
+    });
     await recordBlockers(ctx.deps, {
       installationId: INST,
       memberId: ctx.bob.id,
@@ -362,6 +370,26 @@ describe('setBlockerResolved', () => {
       resolved: true,
     });
     await expect(attempt).rejects.toMatchObject({ code: 'forbidden' });
+  });
+
+  test('a reopen of an open blocker keeps a resolve that lands while it is checked', async () => {
+    const { deps, isMember, alice, bob, id } = await opened();
+    const resolvingMeanwhile: typeof isMember = async (installation, member) => {
+      await setBlockerResolved(deps, isMember, alice, {
+        installationId: INST,
+        blockerStateId: id,
+        resolved: true,
+      });
+      return isMember(installation, member);
+    };
+    await setBlockerResolved(deps, resolvingMeanwhile, bob, {
+      installationId: INST,
+      blockerStateId: id,
+      resolved: false,
+    });
+    const row = await getBlockerState(db, INST, id);
+    expect(row?.resolvedAt?.toISOString()).toBe('2026-10-28T15:00:00.000Z');
+    expect(row?.resolvedByMemberId).toBe(alice.id);
   });
 
   test('other installation id is not found', async () => {

@@ -1,16 +1,20 @@
 import type { TeamToday, TodayBlocker } from '@standcast/orchestrator';
+import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ApiError, isSignInStuck } from '../../api/client';
+import { ApiError } from '../../api/client';
 import { useRemindNow, useReopenBlocker, useResolveBlocker } from '../../api/mutations';
-import { useSession, useTeamToday } from '../../api/queries';
+import { setupStatusQuery, useSession, useTeamToday } from '../../api/queries';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { useLang, useT } from '../../i18n';
+import { PageHeader } from '../../shell/PageHeader';
+import { SectionHeader } from '../../shell/SectionHeader';
 import { errorMessage } from '../configuracao/labels';
-import { Loading, SignInStuck } from '../RouteStates';
+import { Loading } from '../RouteStates';
 import { Dailies, type DailyFilter, type RemindStatus } from './DailyCard';
 import { DailyDrawer } from './DailyDrawer';
+import { chatConnectedFor, FirstSteps } from './FirstSteps';
 import { formatDay, formatTime } from './format';
 import { NeedsYou } from './NeedsYou';
 import { SentToday } from './SentToday';
@@ -76,15 +80,18 @@ function LoadError({ error, onRetry }: { error: unknown; onRetry: () => void }) 
   const body =
     status === 403 ? t('hoje.forbidden') : status === 404 ? t('hoje.notFound') : t('error.body');
   return (
-    <Card role="alert" className="items-start">
-      <h1 className="m-0 font-bold text-[17px]">{t('error.title')}</h1>
-      <p className="m-0 text-text2">{body}</p>
-      {status === 403 || status === 404 ? null : (
-        <Button type="button" variant="outline" onClick={onRetry}>
-          {t('error.retry')}
-        </Button>
-      )}
-    </Card>
+    <>
+      <SectionHeader />
+      <Card role="alert" className="items-start">
+        <h2 className="m-0 font-bold text-[17px]">{t('error.title')}</h2>
+        <p className="m-0 text-text2">{body}</p>
+        {status === 403 || status === 404 ? null : (
+          <Button type="button" variant="outline" onClick={onRetry}>
+            {t('error.retry')}
+          </Button>
+        )}
+      </Card>
+    </>
   );
 }
 
@@ -113,6 +120,10 @@ function TodayView({ installationId, today }: { installationId: number; today: T
   const resolve = useResolveBlocker(installationId, team);
   const reopen = useReopenBlocker(installationId, team);
   const remind = useRemindNow(installationId, team);
+  const setup = useQuery({
+    ...setupStatusQuery(installationId),
+    enabled: today.digest.everSent === false,
+  });
   const [filter, setFilter] = useState<DailyFilter>('all');
   const [viewing, setViewing] = useState<string | null>(null);
   const [resolved, setResolved] = useState<Record<string, TodayBlocker>>({});
@@ -165,20 +176,29 @@ function TodayView({ installationId, today }: { installationId: number; today: T
 
   return (
     <>
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <p className="m-0 font-mono text-[12px] text-muted">
-            {today.team.name} · {today.team.timezone}
-          </p>
-          <h1 className="m-0 font-bold text-[30px] leading-tight tracking-[-0.01em]">
-            {formatDay(lang, today.date)}
-          </h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline">{t('hoje.remindAt', { time: today.team.remindAt })}</Badge>
-          <DigestPill today={today} />
-        </div>
-      </header>
+      <PageHeader
+        context={`${today.team.name} · ${today.team.timezone}`}
+        title={formatDay(lang, today.date)}
+        actions={
+          <>
+            <Badge variant="outline">{t('hoje.remindAt', { time: today.team.remindAt })}</Badge>
+            <DigestPill today={today} />
+            {today.chat?.url ? (
+              <Button asChild variant="outline">
+                <a href={today.chat.url} target="_blank" rel="noreferrer">
+                  {t(today.chat.provider === 'slack' ? 'chat.openSlack' : 'chat.openGoogleChat')}
+                </a>
+              </Button>
+            ) : null}
+          </>
+        }
+      />
+      <FirstSteps
+        installationId={installationId}
+        today={today}
+        chatConnected={chatConnectedFor(setup.data, today)}
+        onRetryChat={setup.isError ? () => void setup.refetch() : undefined}
+      />
       <SummaryTiles today={{ ...today, blockers: open }} />
       <div className="flex flex-wrap items-start gap-6">
         <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-6">
@@ -220,7 +240,6 @@ export function HojePage({ installationId, team }: { installationId: number; tea
   const today = useTeamToday(installationId, team);
   if (today.isPending) return <Loading />;
   if (today.isError) {
-    if (isSignInStuck(today.error)) return <SignInStuck />;
     if (today.error instanceof ApiError && today.error.status === 401) return <Loading />;
     return <LoadError error={today.error} onRetry={() => void today.refetch()} />;
   }

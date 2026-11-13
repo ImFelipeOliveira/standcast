@@ -102,7 +102,11 @@ describe('getTeamToday', () => {
       remindAt: '09:00',
       digestAt: '10:00',
     });
-    expect(today.digest).toEqual({ status: 'sent', sentAt: '2026-10-28T13:00:00.000Z' });
+    expect(today.digest).toEqual({
+      status: 'sent',
+      sentAt: '2026-10-28T13:00:00.000Z',
+      everSent: true,
+    });
     expect(today.people).toEqual([
       { login: 'alice', status: 'missing', submittedAt: null, daily: null },
       {
@@ -323,13 +327,44 @@ teams:
   test('manager can remind only before the digest', async () => {
     const { deps, isMember, alice } = await setup();
     const before = await getTeamToday(deps, isMember, alice, team);
-    expect(before.digest).toEqual({ status: 'scheduled', sentAt: null });
+    expect(before.digest).toEqual({ status: 'scheduled', sentAt: null, everSent: false });
     expect(before).toMatchObject({ canRemind: true, canResolve: true });
     deps.now = () => new Date('2026-10-28T13:00:00Z');
     expect(await getTeamToday(deps, isMember, alice, team)).toMatchObject({
       canRemind: false,
       canResolve: true,
     });
+  });
+
+  test('an earlier digest counts as ever sent, while another team digest does not', async () => {
+    const { deps, isMember, alice } = await setup();
+    await db.insert(deliveries).values({
+      installationId: INST,
+      teamName: 'Beta',
+      date: '2026-10-27',
+      kind: 'digest',
+      subject: '',
+      status: 'sent',
+      attempts: 1,
+    });
+    expect((await getTeamToday(deps, isMember, alice, team)).digest.everSent).toBe(false);
+    await digestSent('2026-10-27', new Date('2026-10-27T13:00:00Z'));
+    expect((await getTeamToday(deps, isMember, alice, team)).digest).toEqual({
+      status: 'scheduled',
+      sentAt: null,
+      everSent: true,
+    });
+  });
+
+  test('a daily from an earlier day counts as the first daily, one from outside the team does not', async () => {
+    const { deps, isMember, alice, bob, dave } = await setup();
+    expect((await getTeamToday(deps, isMember, alice, team)).everSubmitted).toBe(false);
+    await store(dave, '2026-10-27', {});
+    expect((await getTeamToday(deps, isMember, alice, team)).everSubmitted).toBe(false);
+    await store(bob, '2026-10-27', {});
+    const today = await getTeamToday(deps, isMember, alice, team);
+    expect(today.people.every((person) => person.status === 'missing')).toBe(true);
+    expect(today.everSubmitted).toBe(true);
   });
 
   test('a weekend now cannot remind', async () => {
