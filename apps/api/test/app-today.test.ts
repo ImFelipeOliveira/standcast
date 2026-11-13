@@ -306,6 +306,9 @@ describe('/v1/app blockers permissions', () => {
       true,
     );
     expect((await (await get(app, carol, `${INST}/blockers`)).json()).resolved).toEqual([]);
+  });
+});
+
 describe('/v1/app today chat link', () => {
   test('names the provider and links only once the digest is sent', async () => {
     const { app, bob } = await harness();
