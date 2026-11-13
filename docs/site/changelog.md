@@ -9,6 +9,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 ## Product
 
 ### Unreleased
+- The web app has a **History** page for each team: past digests by day with the full digest, search over confirmed dailies (text, pull request or card), and the week's shipped pull requests and cards with copy as Markdown and Markdown/CSV export. It never shows who did not send on past days.
+- **Today** and **History** open the digest in the team's chat, with a button named after it (Open in Slack or Open in Google Chat) once the digest is sent.
 - The web app has a **Blockers** page: every open blocker of the teams you follow, oldest first, with its age, the teams it belongs to and who it was routed to, plus the ones resolved in the last 14 days. Filter by team, and resolve or reopen where you can.
 
 - The web app has its own sign-in page. Opening the app without a session shows it instead of jumping straight to GitHub, and **Continue with GitHub** brings you back to the page you asked for.

@@ -17,7 +17,7 @@ export const SECTION_LABELS = {
   settings: 'nav.setup',
 } as const satisfies Record<Section, MessageKey>;
 
-export const SOON_SECTIONS: ReadonlySet<Section> = new Set<Section>(['history']);
+export const SOON_SECTIONS: ReadonlySet<Section> = new Set<Section>([]);
 
 export function sectionOf(pathname: string): Section {
   const last = pathname.replace(/\/+$/, '').split('/').pop() ?? '';

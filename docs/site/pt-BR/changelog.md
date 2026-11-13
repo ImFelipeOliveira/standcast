@@ -9,6 +9,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 ## Produto
 
 ### Não lançado
+- O app web tem a página **Histórico** de cada time: consolidados anteriores por dia com o consolidado completo, busca nas dailies confirmadas (texto, pull request ou card) e os pull requests e cards entregues na semana, com cópia em Markdown e exportação em Markdown ou CSV. Ela nunca mostra quem não enviou nos dias anteriores.
+- **Hoje** e **Histórico** abrem o consolidado no chat do time, com um botão com o nome dele (Abrir no Slack ou Abrir no Google Chat) depois que o consolidado é enviado.
 - O app web tem a página **Impedimentos**: todos os impedimentos abertos dos times que você acompanha, do mais antigo para o mais novo, com a idade, os times e para quem foram encaminhados, além dos resolvidos nos últimos 14 dias. Dá para filtrar por time e resolver ou reabrir quando você pode.
 
 - O app web tem a própria página de login. Abrir o app sem sessão mostra essa página em vez de ir direto para o GitHub, e **Continuar com GitHub** devolve você à página que tinha pedido.

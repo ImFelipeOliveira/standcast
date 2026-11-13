@@ -106,7 +106,6 @@ describe('shell', () => {
     expect(current).toHaveLength(1);
     expect(current[0]).toContain('href="/orgs/11/history"');
     expect(html).toContain('Histórico');
-    expect(html).toContain('em breve');
     expect(html).toContain('gestor · backend');
   });
 

@@ -16,9 +16,10 @@ import {
   signInUrl,
 } from './api/client';
 import { orgContextQuery, sessionQuery } from './api/queries';
+import { useT } from './i18n';
 import { BlockersPage } from './pages/blockers/BlockersPage';
-import { ComingSoon } from './pages/ComingSoon';
 import { ConfiguracaoPage } from './pages/configuracao/ConfiguracaoPage';
+import { HistoryPage, type HistorySearch } from './pages/history/HistoryPage';
 import { HojePage } from './pages/hoje/HojePage';
 import { NoInstallations } from './pages/NoInstallations';
 import { Loading, NotFound, RouteError } from './pages/RouteStates';
@@ -26,6 +27,7 @@ import { SetupPending } from './pages/SetupPending';
 import { SignIn } from './pages/SignIn';
 import { AppShell } from './shell/AppShell';
 import { teamsOf } from './shell/roles';
+import { SectionHeader } from './shell/SectionHeader';
 
 type RouterContext = { queryClient: QueryClient };
 
@@ -224,12 +226,61 @@ const blockersRoute = createRoute({
   },
 });
 
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+function parseHistorySearch(search: Record<string, unknown>): Partial<HistorySearch> {
+  const text = (value: unknown) =>
+    typeof value === 'string' && value.length > 0 ? value : undefined;
+  const day = (value: unknown) =>
+    typeof value === 'string' && DAY.test(value) ? value : undefined;
+  const tab = search.tab === 'search' || search.tab === 'shipped' ? search.tab : undefined;
+  const parsed = {
+    team: text(search.team),
+    tab,
+    date: day(search.date),
+    q: text(search.q),
+    from: day(search.from),
+    to: day(search.to),
+  };
+  return Object.fromEntries(
+    Object.entries(parsed).filter(([, value]) => value !== undefined),
+  ) as Partial<HistorySearch>;
+}
+
 const historicoRoute = createRoute({
   getParentRoute: () => orgRoute,
   path: 'history',
-  component: function Historico() {
+  validateSearch: parseHistorySearch,
+  beforeLoad: async ({ context, params, search }) => {
+    if (parseHistorySearch(search).team) return;
+    const team = await firstTeam(context.queryClient, params.installationId);
+    if (!team) return;
+    throw redirect({
+      to: '/orgs/$installationId/history',
+      params,
+      search: { team },
+      replace: true,
+    });
+  },
+  component: function History() {
+    const t = useT();
     const { installationId } = orgRoute.useParams();
-    return <ComingSoon section="history" installationId={installationId} />;
+    const search = parseHistorySearch(historicoRoute.useSearch());
+    if (!search.team) {
+      return (
+        <>
+          <SectionHeader />
+          <p className="m-0 text-muted">{t('history.noTeams')}</p>
+        </>
+      );
+    }
+    return (
+      <HistoryPage
+        key={`${installationId}:${search.team}`}
+        installationId={installationId}
+        search={{ ...search, team: search.team, tab: search.tab ?? 'digests' }}
+      />
+    );
   },
 });
 
