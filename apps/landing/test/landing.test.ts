@@ -918,6 +918,21 @@ describe('landing v2', () => {
     }
   });
 
+  test('configuration names .github-private first and .github as the fallback', () => {
+    for (const page of [...pagesOf('home'), ...pagesOf('how')]) {
+      const markdown = read(`${page.path.slice(1)}index.md`);
+      const config =
+        markdown.split(/\n## /).find((part) => /^Configura(?:tion|ção)/.test(part)) ?? '';
+      const html = decode(block(read(page.file), /<section\b[^>]*\sid="config"/, '</section>'));
+      for (const text of [html, config]) {
+        const privateAt = text.indexOf('.github-private');
+        expect(privateAt, page.file).toBeGreaterThanOrEqual(0);
+        expect(text.indexOf('.github'), page.file).toBe(privateAt);
+        expect(text.slice(privateAt + 1), page.file).toMatch(/\.github(?!-private)/);
+      }
+    }
+  });
+
   test('footer columns shrink to a phone instead of widening the page', () => {
     const css = read('styles.css');
     const footer = cssBlock(css, '.foot-nav');

@@ -110,8 +110,8 @@
     <div>
       <div class="head tight">
         <span class="eyebrow">Configuração como código</span>
-        <h2>Um arquivo no seu repositório .github.</h2>
-        <p class="lede">Times, horários, canais de chat e gestores ficam no <code>standcast.yml</code>. Toda mudança passa por review, como código.</p>
+        <h2>Um arquivo no seu repositório .github-private.</h2>
+        <p class="lede">Ou no <code>.github</code>, quando o <code>.github-private</code> não tem o <code>standcast.yml</code>. Times, horários, canais de chat e gestores ficam nesse arquivo. Toda mudança passa por review, como código.</p>
       </div>
       <ul class="list">
         <li><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span><b>Validado a cada push.</b> Um check run <code>Standcast config</code> aponta a linha com erro.</span></li>
@@ -121,7 +121,7 @@
       <p class="list-more"><a class="more" href="https://docs.standcast.app/pt-BR/admin/configuration">Referência do standcast.yml →</a></p>
     </div>
     <div class="code">
-<pre><span class="t-dim"># .github/standcast.yml</span>
+<pre><span class="t-dim"># .github-private/standcast.yml</span>
 teams:
   - name: Backend
     timezone: America/Sao_Paulo

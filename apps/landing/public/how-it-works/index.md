@@ -24,7 +24,7 @@ Collects, consolidates and delivers. You only write.
 
 ## Configuration as code
 
-One file in your .github repository. Teams, times, chat channels and managers live in `standcast.yml`. Every change is reviewed like code.
+One file in your .github-private repository, or in .github when .github-private has no `standcast.yml`. Teams, times, chat channels and managers live in that file. Every change is reviewed like code.
 
 - **Checked on every push.** A `Standcast config` check run points to the line with the error.
 - **Never breaks the team.** An invalid push keeps the last valid config in effect.

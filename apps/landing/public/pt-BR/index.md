@@ -67,7 +67,7 @@ Sem métricas de produtividade. Sem rankings. Sem contagem de commits. Nada envi
 
 ## Configuração como código
 
-Um arquivo no seu repositório .github. Times, horários, canais de chat e gestores ficam no `standcast.yml`. Toda mudança passa por review, como código.
+Um arquivo no seu repositório .github-private, ou no .github quando o .github-private não tem o `standcast.yml`. Times, horários, canais de chat e gestores ficam nesse arquivo. Toda mudança passa por review, como código.
 
 - **Validado a cada push.** Um check run `Standcast config` aponta a linha com erro.
 - **Nunca quebra o time.** Um push inválido mantém a última configuração válida em vigor.

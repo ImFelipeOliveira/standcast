@@ -240,8 +240,8 @@ standcast submit</pre>
     <div>
       <div class="head tight">
         <p class="eyebrow">Configuração como código</p>
-        <h2 id="config-title">Um arquivo no seu repositório .github.</h2>
-        <p class="lede">Times, horários, canais de chat e gestores ficam no <code>standcast.yml</code>. Toda mudança passa por review, como código.</p>
+        <h2 id="config-title">Um arquivo no seu repositório .github-private.</h2>
+        <p class="lede">Ou no <code>.github</code>, quando o <code>.github-private</code> não tem o <code>standcast.yml</code>. Times, horários, canais de chat e gestores ficam nesse arquivo. Toda mudança passa por review, como código.</p>
       </div>
       <ul class="list">
         <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 12l5 5 9-10"></path></svg><span><b>Validado a cada push.</b> Um check run <code>Standcast config</code> aponta a linha com erro.</span></li>
@@ -251,7 +251,7 @@ standcast submit</pre>
       <p class="list-more"><a class="more" href="https://docs.standcast.app/pt-BR/admin/configuration">Referência do standcast.yml</a></p>
     </div>
     <div class="code">
-      <p class="code-head">.github/standcast.yml</p>
+      <p class="code-head">.github-private/standcast.yml</p>
 <pre><span class="t-acc">teams</span>:
   - <span class="t-acc">name</span>: Backend
     <span class="t-acc">timezone</span>: America/Sao_Paulo

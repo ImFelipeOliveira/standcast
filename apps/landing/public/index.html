@@ -240,8 +240,8 @@ standcast submit</pre>
     <div>
       <div class="head tight">
         <p class="eyebrow">Configuration as code</p>
-        <h2 id="config-title">One file in your .github repository.</h2>
-        <p class="lede">Teams, times, chat channels and managers live in <code>standcast.yml</code>. Every change is reviewed like code.</p>
+        <h2 id="config-title">One file in your .github-private repository.</h2>
+        <p class="lede">Or in <code>.github</code> when <code>.github-private</code> has no <code>standcast.yml</code>. Teams, times, chat channels and managers live in that file. Every change is reviewed like code.</p>
       </div>
       <ul class="list">
         <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 12l5 5 9-10"></path></svg><span><b>Checked on every push.</b> A <code>Standcast config</code> check run points to the line with the error.</span></li>
@@ -251,7 +251,7 @@ standcast submit</pre>
       <p class="list-more"><a class="more" href="https://docs.standcast.app/admin/configuration">standcast.yml reference</a></p>
     </div>
     <div class="code">
-      <p class="code-head">.github/standcast.yml</p>
+      <p class="code-head">.github-private/standcast.yml</p>
 <pre><span class="t-acc">teams</span>:
   - <span class="t-acc">name</span>: Backend
     <span class="t-acc">timezone</span>: America/Sao_Paulo
