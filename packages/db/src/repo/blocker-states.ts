@@ -134,6 +134,7 @@ export async function listCurrentOpenBlockerStates(
 }
 
 export type StaleBlockerQuery = {
+  teamName: string;
   authorMemberIds: string[];
   openedOnOrBefore: string;
   limit: number;
@@ -152,7 +153,7 @@ export async function listStaleBlockerStates(
     .where(
       and(
         ...currentOpenFilters(installationId, query.authorMemberIds),
-        isNull(blockerStates.alertedAt),
+        sql`not (${query.teamName} = any(${blockerStates.alertedTeams}))`,
         lte(blockerStates.openedOn, query.openedOnOrBefore),
       ),
     )
@@ -165,16 +166,19 @@ export async function markBlockerStateAlerted(
   db: Db,
   installationId: number,
   id: string,
-  at: Date,
+  alert: { teamName: string; at: Date },
 ): Promise<boolean> {
   const rows = await db
     .update(blockerStates)
-    .set({ alertedAt: at })
+    .set({
+      alertedAt: sql`coalesce(${blockerStates.alertedAt}, ${alert.at.toISOString()}::timestamptz)`,
+      alertedTeams: sql`array_append(${blockerStates.alertedTeams}, ${alert.teamName})`,
+    })
     .where(
       and(
         eq(blockerStates.id, id),
         eq(blockerStates.installationId, installationId),
-        isNull(blockerStates.alertedAt),
+        sql`not (${alert.teamName} = any(${blockerStates.alertedTeams}))`,
       ),
     )
     .returning({ id: blockerStates.id });

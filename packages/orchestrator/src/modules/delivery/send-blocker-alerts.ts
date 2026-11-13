@@ -98,12 +98,13 @@ async function routesOf(
 async function staleStates(
   deps: WorkerDeps,
   installationId: number,
-  memberLogins: string[],
+  team: { name: string; memberLogins: string[] },
   date: string,
   alertDays: number,
 ): Promise<OpenBlockerState[]> {
-  const memberIds = await getInstallationMemberIds(deps.db, installationId, memberLogins);
+  const memberIds = await getInstallationMemberIds(deps.db, installationId, team.memberLogins);
   return listStaleBlockerStates(deps.db, installationId, {
+    teamName: team.name,
     authorMemberIds: [...memberIds.values()],
     openedOnOrBefore: addCalendarDays(date, -alertDays),
     limit: MAX_BLOCKER_ALERTS_PER_SCAN,
@@ -156,7 +157,7 @@ export async function sendBlockerAlerts(
     }
     const states =
       team.managerLogins.length > 0
-        ? await staleStates(deps, installation.id, team.memberLogins, job.date, alertDays)
+        ? await staleStates(deps, installation.id, team, job.date, alertDays)
         : [];
     if (states.length > 0) {
       const managers = await managerPeople(
@@ -187,7 +188,10 @@ export async function sendBlockerAlerts(
             routedTo: routes.get(`${state.authorMemberId}:${state.blockerId}`) ?? [],
           }),
         );
-        await markBlockerStateAlerted(deps.db, installation.id, state.id, deps.now());
+        await markBlockerStateAlerted(deps.db, installation.id, state.id, {
+          teamName: job.teamName,
+          at: deps.now(),
+        });
       }
     }
   } catch (error) {

@@ -175,7 +175,13 @@ describe('stale blocker states', () => {
     });
   }
 
-  const query = (authorMemberIds: string[], openedOnOrBefore = '2026-10-25', limit = 10) => ({
+  const query = (
+    authorMemberIds: string[],
+    openedOnOrBefore = '2026-10-25',
+    limit = 10,
+    teamName = 'Alpha',
+  ) => ({
+    teamName,
     authorMemberIds,
     openedOnOrBefore,
     limit,
@@ -205,7 +211,9 @@ describe('stale blocker states', () => {
       on: '2026-10-22',
     });
     const alerted = await open(ana.id, 'alerted', '2026-10-20');
-    expect(await markBlockerStateAlerted(db, INST, alerted.id, new Date())).toBe(true);
+    expect(
+      await markBlockerStateAlerted(db, INST, alerted.id, { teamName: 'Alpha', at: new Date() }),
+    ).toBe(true);
     await open(bob.id, 'gone', '2026-10-20');
     await upsertDaily(db, {
       installationId: INST,
@@ -233,9 +241,11 @@ describe('stale blocker states', () => {
     const { ana, bob } = await seed();
     const row = await open(ana.id, 'b1', '2026-10-20');
     const at = new Date('2026-10-26T13:00:00Z');
-    expect(await markBlockerStateAlerted(db, 200, row.id, at)).toBe(false);
-    expect(await markBlockerStateAlerted(db, INST, row.id, at)).toBe(true);
-    expect(await markBlockerStateAlerted(db, INST, row.id, new Date())).toBe(false);
+    expect(await markBlockerStateAlerted(db, 200, row.id, { teamName: 'Alpha', at })).toBe(false);
+    expect(await markBlockerStateAlerted(db, INST, row.id, { teamName: 'Alpha', at })).toBe(true);
+    expect(
+      await markBlockerStateAlerted(db, INST, row.id, { teamName: 'Alpha', at: new Date() }),
+    ).toBe(false);
     expect((await getBlockerState(db, INST, row.id))?.alertedAt?.toISOString()).toBe(
       at.toISOString(),
     );
@@ -248,5 +258,33 @@ describe('stale blocker states', () => {
     expect(reopened.id).toBe(row.id);
     expect(reopened.resolvedAt).toBeNull();
     expect(reopened.alertedAt?.toISOString()).toBe(at.toISOString());
+  });
+
+  test('tracks the alert per team, so each team that turns it on is alerted once', async () => {
+    const { ana } = await seed();
+    const row = await open(ana.id, 'shared', '2026-10-20');
+    const first = new Date('2026-10-26T13:00:00Z');
+    expect(await markBlockerStateAlerted(db, INST, row.id, { teamName: 'Alpha', at: first })).toBe(
+      true,
+    );
+    expect(await listStaleBlockerStates(db, INST, query([ana.id]))).toEqual([]);
+    const forBeta = await listStaleBlockerStates(
+      db,
+      INST,
+      query([ana.id], '2026-10-25', 10, 'Beta'),
+    );
+    expect(forBeta.map((r) => r.id)).toEqual([row.id]);
+    const later = new Date('2026-10-26T14:00:00Z');
+    expect(await markBlockerStateAlerted(db, INST, row.id, { teamName: 'Beta', at: later })).toBe(
+      true,
+    );
+    expect(await markBlockerStateAlerted(db, INST, row.id, { teamName: 'Beta', at: later })).toBe(
+      false,
+    );
+    expect(
+      await listStaleBlockerStates(db, INST, query([ana.id], '2026-10-25', 10, 'Beta')),
+    ).toEqual([]);
+    const state = await getBlockerState(db, INST, row.id);
+    expect(state?.alertedAt?.toISOString()).toBe(first.toISOString());
   });
 });

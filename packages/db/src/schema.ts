@@ -204,6 +204,7 @@ export const blockerStates = pgTable(
     }),
     resolvedOn: date('resolved_on', { mode: 'string' }),
     alertedAt: timestamp('alerted_at', { withTimezone: true }),
+    alertedTeams: text('alerted_teams').array().notNull().default(sql`'{}'::text[]`),
   },
   (t) => [unique().on(t.installationId, t.authorMemberId, t.blockerId)],
 );

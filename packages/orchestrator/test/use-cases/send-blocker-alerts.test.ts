@@ -286,4 +286,46 @@ describe('sendBlockerAlerts', () => {
     await sendBlockerAlerts(deps, job);
     expect(posted).toHaveLength(2);
   });
+
+  test('a blocker that left the daily and came back is the same blocker and is not alerted again', async () => {
+    const { deps, posted, alice, setNow } = await setup();
+    await store(alice, '2026-10-23', [staging]);
+    await sendBlockerAlerts(deps, job);
+    await store(alice, '2026-10-29', []);
+    await store(alice, '2026-11-02', [staging]);
+    setNow(new Date('2026-11-03T13:05:00Z'));
+    await sendBlockerAlerts(deps, { ...job, date: '2026-11-03' });
+    expect(posted).toHaveLength(1);
+  });
+
+  test('a member in two teams with the alert on is alerted once in each team', async () => {
+    const parsed = parseConfig(`
+teams:
+  - name: Alpha
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [carol]
+    members: [alice, bob]
+    chat: { provider: slack, channel: "#alpha" }
+    signals: { blocker_alert_days: 5 }
+  - name: Beta
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [carol]
+    members: [alice]
+    chat: { provider: slack, channel: "#beta" }
+    signals: { blocker_alert_days: 5 }
+`);
+    if (!parsed.ok) throw new Error(JSON.stringify(parsed.errors));
+    const { deps, posted, alice } = await setup(parsed.config);
+    await store(alice, '2026-10-23', [staging]);
+    const beta = { ...job, teamName: 'Beta' };
+    await sendBlockerAlerts(deps, job);
+    await sendBlockerAlerts(deps, beta);
+    await sendBlockerAlerts(deps, { ...job, date: '2026-10-29' });
+    await sendBlockerAlerts(deps, { ...beta, date: '2026-10-29' });
+    expect(posted.map((p) => p.channel).sort()).toEqual(['#alpha', '#beta']);
+  });
 });
