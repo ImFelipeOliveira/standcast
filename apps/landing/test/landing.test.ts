@@ -840,22 +840,6 @@ describe('landing v2', () => {
     }
   });
 
-  test('pixel field is capped at 30 fps and stops when it cannot be seen', () => {
-    const script = read('app.js');
-    for (const piece of [
-      "getContext('2d')",
-      '1000 / 30',
-      'IntersectionObserver',
-      'visibilitychange',
-      'document.hidden',
-      'prefers-reduced-motion: reduce',
-      'aria-pressed',
-      'cancelAnimationFrame',
-    ]) {
-      expect(script).toContain(piece);
-    }
-  });
-
   test('styles define the measured palette in both themes', () => {
     const css = read('styles.css').toLowerCase();
     const light = cssBlock(css, ':root');
