@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
-import { parseConfig } from '@standcast/core';
+import { LINK_CHAT_ACCOUNT_ACTION, parseConfig } from '@standcast/core';
 import {
   createSession,
+  getIdentities,
   issueGoogleChatLinkCode,
   listGoogleChatSpaces,
   type MemberRow,
@@ -18,7 +19,7 @@ import {
   signJwt,
   type TestKeys,
 } from '../../../packages/adapters/google-chat/test/keys';
-import { googleChatSpaces, rateLimits } from '../../../packages/db/src/schema';
+import { googleChatSpaces, memberIdentities, rateLimits } from '../../../packages/db/src/schema';
 import { db, useCleanDb } from '../../../packages/db/test/setup';
 import { FAILED_AUTH_LIMIT, LINK_CODE_LIMIT } from '../src/middleware/rate-limit';
 import { createTestApp, type FakeRequest, TEST_IP } from './support';
@@ -456,6 +457,133 @@ describe('POST /webhooks/google-chat', () => {
     );
     expect(badSpace.status).toBe(400);
     expect(await db.select().from(googleChatSpaces)).toEqual([]);
+  });
+});
+
+const clicked = (email: string, parameters: Record<string, string> = linkParameters) => ({
+  type: 'CARD_CLICKED',
+  space: room,
+  user: { name: 'users/123', email, displayName: 'Alice' },
+  message: { name: 'spaces/AAAA/messages/m1' },
+  action: { actionMethodName: ENDPOINT, parameters: [{ key: 'action', value: 'x' }] },
+  common: { invokedFunction: ENDPOINT, parameters },
+});
+
+const linkParameters = { action: LINK_CHAT_ACCOUNT_ACTION };
+
+async function withLinkedSpace(h: Harness, email = 'alice@acme.com') {
+  expect((await linkSpace(h, h.alice, await issueCode(h))).status).toBe(201);
+  await upsertMember(db, { githubUserId: 1, login: 'alice', email });
+}
+
+describe('google chat link button', () => {
+  test('a click on the link button links the member and answers only to them', async () => {
+    const h = await harness();
+    await withLinkedSpace(h);
+    const res = await event(h, clicked('alice@acme.com'), `Bearer ${await token(h, h.keys)}`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      text: "You're linked, @alice.",
+      privateMessageViewer: { name: 'users/123' },
+    });
+    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
+  });
+
+  test('clicking twice keeps one identity', async () => {
+    const h = await harness();
+    await withLinkedSpace(h);
+    const authorization = `Bearer ${await token(h, h.keys)}`;
+    for (let i = 0; i < 2; i++) {
+      const res = await event(h, clicked('alice@acme.com'), authorization);
+      expect(((await res.json()) as { text: string }).text).toBe("You're linked, @alice.");
+    }
+    const rows = await db.select().from(memberIdentities);
+    expect(rows.map((row) => [row.provider, row.externalId])).toEqual([
+      ['google-chat', 'users/123'],
+    ]);
+  });
+
+  test('a click with an email no account uses answers the guidance and stores nothing', async () => {
+    const h = await harness();
+    await withLinkedSpace(h, 'alice@personal.com');
+    const res = await event(h, clicked('alice@acme.com'), `Bearer ${await token(h, h.keys)}`);
+    const body = (await res.json()) as { text: string; privateMessageViewer: unknown };
+    expect(body.privateMessageViewer).toEqual({ name: 'users/123' });
+    expect(body.text).toContain('No Standcast account uses this email');
+    expect(body.text).toContain('google_chat: users/123');
+    expect(body.text).toContain('Nenhuma conta do Standcast usa este e-mail');
+    expect(await db.select().from(memberIdentities)).toEqual([]);
+  });
+
+  test('a click on another button answers nothing and stores nothing', async () => {
+    const h = await harness();
+    await withLinkedSpace(h);
+    const res = await event(
+      h,
+      clicked('alice@acme.com', { action: 'something-else' }),
+      `Bearer ${await token(h, h.keys)}`,
+    );
+    expect(await res.json()).toEqual({});
+    expect(await db.select().from(memberIdentities)).toEqual([]);
+  });
+
+  test('an add-on click on the link button answers with a private create message action', async () => {
+    const h = await harness();
+    await withLinkedSpace(h);
+    const res = await event(
+      h,
+      {
+        ...addOn({
+          user: { name: 'users/123', email: 'alice@acme.com' },
+          space: room,
+          buttonClickedPayload: {
+            space: room,
+            message: { name: 'spaces/AAAA/messages/m1' },
+            isDialogEvent: false,
+          },
+        }),
+        commonEventObject: {
+          hostApp: 'CHAT',
+          platform: 'WEB',
+          invokedFunction: ENDPOINT,
+          parameters: linkParameters,
+        },
+      },
+      `Bearer ${await addOnToken(h, h.oidcKeys)}`,
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      hostAppDataAction: {
+        chatDataAction: {
+          createMessageAction: {
+            message: {
+              text: "You're linked, @alice.",
+              privateMessageViewer: { name: 'users/123' },
+            },
+          },
+        },
+      },
+    });
+    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
+  });
+
+  test('a mention of the app in a space links the member and answers only to them', async () => {
+    const h = await harness();
+    await withLinkedSpace(h);
+    const res = await event(
+      h,
+      {
+        type: 'MESSAGE',
+        space: room,
+        user: { name: 'users/123', email: 'alice@acme.com' },
+        message: { name: 'spaces/AAAA/messages/m2', text: '@Standcast hi' },
+      },
+      `Bearer ${await token(h, h.keys)}`,
+    );
+    expect(await res.json()).toEqual({
+      text: "You're linked, @alice.",
+      privateMessageViewer: { name: 'users/123' },
+    });
   });
 });
 

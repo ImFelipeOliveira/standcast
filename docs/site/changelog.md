@@ -15,6 +15,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 - Web app addresses are in English: `/orgs/<id>/today`, `/history` and `/settings`. Old links to `/hoje`, `/historico` and `/configuracao` still work and keep their query string.
 - The web app shows the Standcast icon in the browser tab.
 - The web app has a new look: higher contrast colors that meet WCAG 2.2 AA in light and dark themes, cards without borders, status shown as a colored dot with text, a page header that stays at the top and shrinks a little as you scroll, and on phones the side menu opens from a menu button.
+- Google Chat: while someone in a team's digest is not linked to Google Chat and shows as `@login`, the digest ends with a **Link my account** button. A click links the person who clicked, by the same email match as a direct message to the app, and the answer is visible only to them. Mentioning the app in a space links the person the same way. The worker needs `PUBLIC_URL` for the button. See [Google Chat](/admin/google-chat#how-people-are-linked).
 
 ### 0.9.4 — 2026-11-12
 
