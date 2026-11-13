@@ -16,6 +16,7 @@ describe('getUserProfile', () => {
       githubUserId: 42,
       login: 'alice',
       email: 'alice@acme.com',
+      verifiedEmails: ['old@x.com', 'alice@acme.com'],
       installationIds: [1, 2, 3],
     });
     expect(calls.length).toBe(3);
@@ -29,6 +30,8 @@ describe('getUserProfile', () => {
 
   test('email is null when none is primary and verified', async () => {
     const { fetch } = fakeFetch({ ...routes, 'GET /user/emails': { body: '[]' } });
-    expect((await getUserProfile('ghu_token', { fetch })).email).toBeNull();
+    const profile = await getUserProfile('ghu_token', { fetch });
+    expect(profile.email).toBeNull();
+    expect(profile.verifiedEmails).toEqual([]);
   });
 });

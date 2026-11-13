@@ -37,6 +37,7 @@ export function createTestApp(
           githubUserId: id,
           login: `user${id}`,
           email: `user${id}@acme.com`,
+          verifiedEmails: [`user${id}@acme.com`],
           installationIds: [],
         };
       },

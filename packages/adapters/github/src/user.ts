@@ -4,6 +4,7 @@ export type UserProfile = {
   githubUserId: number;
   login: string;
   email: string | null;
+  verifiedEmails: string[];
   installationIds: number[];
 };
 
@@ -20,15 +21,16 @@ export async function getUserProfile(
     octokit.request('GET /user/emails', { per_page: 100 }),
     octokit.request('GET /user/installations', { per_page: 100 }),
   ]);
-  const primary = (emails.data as { email: string; primary: boolean; verified: boolean }[]).find(
-    (entry) => entry.primary && entry.verified,
-  );
+  const entries = emails.data as { email: string; primary: boolean; verified: boolean }[];
+  const verified = entries.filter((entry) => entry.verified);
+  const primary = verified.find((entry) => entry.primary);
   const ours = (installations.data as { installations: { id: number; app_id: number }[] })
     .installations;
   return {
     githubUserId: (user.data as { id: number }).id,
     login: (user.data as { login: string }).login,
     email: primary?.email ?? null,
+    verifiedEmails: verified.map((entry) => entry.email),
     installationIds: ours
       .filter((installation) => opts.appId === undefined || installation.app_id === opts.appId)
       .map((installation) => installation.id),

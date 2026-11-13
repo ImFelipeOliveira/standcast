@@ -60,6 +60,7 @@ export function found(source: string, repository: Partial<ConfigRepository> = {}
 
 export type FakeOptions = {
   profileError?: unknown;
+  verifiedEmails?: string[];
   findUserError?: Error;
   source?: Source;
   installationIds?: number[];
@@ -228,6 +229,7 @@ export function fakeDeps(opts: FakeOptions = {}) {
           githubUserId: 1,
           login: 'Alice',
           email: 'alice@acme.com',
+          verifiedEmails: opts.verifiedEmails ?? ['alice@acme.com'],
           installationIds: opts.installationIds ?? [INST, 999],
         };
       },
