@@ -45,6 +45,20 @@ describe('shipped export', () => {
     );
   });
 
+  test('csv neutralizes spreadsheet formulas', () => {
+    const csv = shippedCsv({
+      from: '2026-10-26',
+      to: '2026-11-01',
+      days: [
+        {
+          date: '2026-10-27',
+          items: [{ author: 'ana', text: '=HYPERLINK("x")', ref: null }],
+        },
+      ],
+    });
+    expect(csv).toContain(`"'=HYPERLINK(""x"")"`);
+  });
+
   test('csv escapes quotes, commas and newlines', () => {
     expect(shippedCsv(shipped)).toBe(
       [

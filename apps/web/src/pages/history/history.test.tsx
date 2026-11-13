@@ -133,6 +133,8 @@ describe('history page', () => {
     expect(html).toContain('Waiting on the Partner contract');
     expect(html).toContain('Impedimento');
     expect(html).toContain('name="q"');
+    expect(html).toContain('name="from"');
+    expect(html).toContain('name="to"');
   });
 
   test('shipped offers copy and exports', async () => {
@@ -141,5 +143,7 @@ describe('history page', () => {
     expect(html).toContain('Copiar como markdown');
     expect(html).toContain('Exportar Markdown');
     expect(html).toContain('Exportar CSV');
+    expect(html).toContain('name="from"');
+    expect(html).toContain('name="to"');
   });
 });

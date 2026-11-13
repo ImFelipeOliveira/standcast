@@ -272,12 +272,17 @@ function SearchTab({ installationId, search }: { installationId: number; search:
     ...teamSearchQuery(installationId, search.team, search.q ?? '', search.from, search.to),
     enabled: ready,
   });
-  const submit = (event: FormEvent) => {
+  const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     void navigate({
       to: '/orgs/$installationId/history',
       params: { installationId },
-      search: { team: search.team, tab: 'search', q: text.trim() },
+      search: {
+        team: search.team,
+        tab: 'search',
+        q: text.trim(),
+        ...readRange(event.currentTarget),
+      },
     });
   };
   return (
@@ -285,7 +290,7 @@ function SearchTab({ installationId, search }: { installationId: number; search:
       <form
         aria-label={t('history.searchLabel')}
         onSubmit={submit}
-        className="flex flex-wrap gap-2"
+        className="flex flex-wrap items-end gap-2"
       >
         <label htmlFor="history-q" className="sr-only">
           {t('history.searchLabel')}
@@ -299,6 +304,7 @@ function SearchTab({ installationId, search }: { installationId: number; search:
           placeholder={t('history.searchPlaceholder')}
           className="min-h-11 min-w-0 flex-[1_1_280px] rounded-md border border-border-strong bg-surface px-3 text-base text-text desk:min-h-9 desk:text-[13px]"
         />
+        <RangeFields from={search.from} to={search.to} />
         <Button type="submit">{t('history.searchButton')}</Button>
       </form>
       {!ready ? (
@@ -346,15 +352,52 @@ function download(name: string, type: string, content: string) {
   const link = document.createElement('a');
   link.href = url;
   link.download = name;
+  link.style.display = 'none';
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function RangeFields({ from, to }: { from?: string; to?: string }) {
+  const t = useT();
+  const field =
+    'min-h-11 rounded-md border border-border-strong bg-surface px-2.5 font-mono text-base text-text desk:min-h-9 desk:text-[13px]';
+  return (
+    <>
+      <label className="flex flex-col gap-1 text-[12px] text-muted">
+        {t('history.from')}
+        <input type="date" name="from" defaultValue={from} className={field} />
+      </label>
+      <label className="flex flex-col gap-1 text-[12px] text-muted">
+        {t('history.to')}
+        <input type="date" name="to" defaultValue={to} className={field} />
+      </label>
+    </>
+  );
+}
+
+function readRange(form: HTMLFormElement): { from?: string; to?: string } {
+  const data = new FormData(form);
+  const from = String(data.get('from') ?? '');
+  const to = String(data.get('to') ?? '');
+  return { ...(from ? { from } : {}), ...(to ? { to } : {}) };
 }
 
 function Shipped({ installationId, search }: { installationId: number; search: HistorySearch }) {
   const t = useT();
   const lang = useLang();
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const query = useQuery(teamShippedQuery(installationId, search.team, search.from, search.to));
+  const applyRange = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    void navigate({
+      to: '/orgs/$installationId/history',
+      params: { installationId },
+      search: { team: search.team, tab: 'shipped', ...readRange(event.currentTarget) },
+    });
+  };
   if (query.isPending) return <Loading header={false} />;
   if (query.isError) return <p className="m-0 text-bad-ink">{t('error.body')}</p>;
   const shipped = query.data;
@@ -362,6 +405,16 @@ function Shipped({ installationId, search }: { installationId: number; search: H
   const file = `standcast-${search.team}-${shipped.from}-${shipped.to}`;
   return (
     <div className="flex flex-col gap-3">
+      <form
+        aria-label={t('history.range')}
+        onSubmit={applyRange}
+        className="flex flex-wrap items-end gap-2"
+      >
+        <RangeFields from={shipped.from} to={shipped.to} />
+        <Button type="submit" variant="outline">
+          {t('history.apply')}
+        </Button>
+      </form>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="font-semibold text-[14px]">
           {t('history.shippedRange', {

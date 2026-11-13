@@ -195,6 +195,10 @@ describe('/v1/app team history', () => {
     ]);
     const byRef = await (await get(app, bob, 'Alpha/history/search?q=pull%2F8366')).json();
     expect(byRef.results).toHaveLength(1);
+    const byLabel = await (await get(app, bob, 'Alpha/history/search?q=api%238371')).json();
+    expect(byLabel.results.map((r: { text: string }) => r.text)).toEqual([
+      'Webhook queue with retries',
+    ]);
   });
 
   test('search rejects short queries and wide ranges', async () => {

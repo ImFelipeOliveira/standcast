@@ -401,10 +401,14 @@ export const ptBR = {
   'history.noResults': 'Nada encontrado.',
   'history.shippedRange': '{from} a {to}',
   'history.shippedNote':
-    'PRs mergeados e cards concluídos citados nas dailies confirmadas do time.',
+    'Pull requests e cards citados em "Ontem" nas dailies confirmadas do time.',
   'history.copyMarkdown': 'Copiar como markdown',
   'history.copied': 'Copiado',
   'history.exportMarkdown': 'Exportar Markdown',
   'history.exportCsv': 'Exportar CSV',
   'history.noTeams': 'Você ainda não faz parte de nenhum time.',
+  'history.from': 'De',
+  'history.to': 'Até',
+  'history.range': 'Período',
+  'history.apply': 'Aplicar',
 } as const;

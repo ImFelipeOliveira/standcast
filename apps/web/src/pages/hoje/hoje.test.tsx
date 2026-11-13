@@ -175,6 +175,11 @@ describe('hoje', () => {
     expect(fresh).not.toContain('Ver daily');
   });
 
+  test('a response without the chat field still renders', () => {
+    const { chat: _chat, ...older } = fixture();
+    expect(renderPage(older as TeamToday)).toContain('Precisa de você');
+  });
+
   test('the chat button names the provider and shows only with a link', () => {
     expect(renderPage(fixture())).not.toContain('Abrir no Slack');
     const slack = renderPage(

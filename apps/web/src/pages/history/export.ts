@@ -21,8 +21,10 @@ export function shippedMarkdown(shipped: TeamShipped, team: string, lang: Lang):
   return lines.join('\n');
 }
 
-const csvField = (value: string) =>
-  /[",\r\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
+const csvField = (raw: string) => {
+  const value = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+  return /[",\r\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
+};
 
 export function shippedCsv(shipped: TeamShipped): string {
   const rows = [['date', 'author', 'kind', 'text', 'url']];

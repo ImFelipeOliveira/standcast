@@ -61,6 +61,13 @@ type Input = { installationId: number; team: string };
 
 const SECTIONS: HistorySection[] = ['yesterday', 'today', 'blockers', 'support'];
 
+const GITHUB_REF = /^https:\/\/github\.com\/[\w.-]+\/([\w.-]+)\/(?:pull|issues)\/(\d+)/;
+
+function refLabelOf(ref: Ref | undefined): string | undefined {
+  const match = ref ? GITHUB_REF.exec(ref.url) : null;
+  return match ? `${match[1]}#${match[2]}` : undefined;
+}
+
 async function readableTeam(
   deps: Deps,
   isMember: MembershipCheck,
@@ -231,7 +238,7 @@ export async function searchTeamDailies(
   const { from, to } = range(access, input, HISTORY_DAYS);
   const records = (await teamDailies(deps, access, { from, to })).sort(byDateThenAuthor);
   const matches = (item: Item) =>
-    [item.text, item.ref?.url, item.ref?.title].some((value) =>
+    [item.text, item.ref?.url, item.ref?.title, refLabelOf(item.ref)].some((value) =>
       value?.toLowerCase().includes(query),
     );
   const results: SearchResult[] = [];

@@ -177,7 +177,7 @@ function TodayView({ installationId, today }: { installationId: number; today: T
           <>
             <Badge variant="outline">{t('hoje.remindAt', { time: today.team.remindAt })}</Badge>
             <DigestPill today={today} />
-            {today.chat.url ? (
+            {today.chat?.url ? (
               <Button asChild variant="outline">
                 <a href={today.chat.url} target="_blank" rel="noreferrer">
                   {t(today.chat.provider === 'slack' ? 'chat.openSlack' : 'chat.openGoogleChat')}

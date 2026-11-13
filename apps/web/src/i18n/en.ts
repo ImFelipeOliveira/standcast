@@ -394,10 +394,14 @@ export const en: Record<MessageKey, string> = {
   'history.noResults': 'Nothing found.',
   'history.shippedRange': '{from} to {to}',
   'history.shippedNote':
-    "Merged pull requests and done cards mentioned in the team's confirmed dailies.",
+    'Pull requests and cards mentioned under "Yesterday" in the team\'s confirmed dailies.',
   'history.copyMarkdown': 'Copy as Markdown',
   'history.copied': 'Copied',
   'history.exportMarkdown': 'Export Markdown',
   'history.exportCsv': 'Export CSV',
   'history.noTeams': 'You are not on a team yet.',
+  'history.from': 'From',
+  'history.to': 'To',
+  'history.range': 'Period',
+  'history.apply': 'Apply',
 };
