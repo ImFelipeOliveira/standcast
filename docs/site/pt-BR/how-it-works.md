@@ -75,6 +75,26 @@ Regras:
 
 Os impedimentos também aparecem no topo do consolidado, no webhook `blocker.opened` e nas tools de gestor.
 
+## Alerta de impedimento parado
+
+Um time pode pedir que o Standcast avise quando um impedimento fica aberto tempo demais. Defina [`signals.blocker_alert_days`](/pt-BR/admin/configuration#signals) no time, por exemplo `5`. Sem a chave, nada é enviado.
+
+Em cada dia útil, depois que o consolidado do dia é publicado, o Standcast olha os impedimentos abertos do time. Um impedimento conta quando ainda está na daily mais recente de quem o informou, ninguém o marcou como resolvido e passaram pelo menos esse número de dias desde o dia em que foi informado pela primeira vez. Para cada um, o Standcast publica uma mensagem no canal ou espaço do time, o mesmo do consolidado, com:
+
+- uma menção aos gestores do time (no máximo 20, em ordem de login), usando a identidade deles no Slack ou no Google Chat quando o Standcast a conhece;
+- o texto do impedimento e o link;
+- há quantos dias ele está aberto e quem o informou;
+- para quem ele foi encaminhado, quando foi [encaminhado](#encaminhamento-de-impedimentos) a alguém.
+
+Regras:
+
+- Cada impedimento recebe um alerta só uma vez. Ele não é alertado de novo nos dias seguintes, nem depois de ser marcado como resolvido e voltar. Um impedimento diferente, ou um que saiu da daily e voltou depois como impedimento novo, pode receber alerta.
+- No máximo 10 impedimentos por time por dia, os mais antigos primeiro. Os outros saem no próximo dia útil.
+- Nada é enviado quando o time não tem gestores que o Standcast consiga encontrar, por exemplo quando os gestores são um time do GitHub sem membros.
+- Se o consolidado do dia não é publicado, o alerta espera o próximo dia útil.
+
+O alerta é sobre o impedimento, para destravá-lo. Ele nunca conta impedimentos por pessoa nem compara pessoas.
+
 ## Pedidos de apoio
 
 Um pedido de apoio é algo que você precisa de outra pessoa sem estar travado: um review, uma decisão, um pareamento. É uma seção opcional da daily, perguntada logo depois dos impedimentos, e vai exatamente como você escreveu.
