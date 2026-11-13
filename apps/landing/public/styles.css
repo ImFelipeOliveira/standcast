@@ -1578,7 +1578,7 @@ select {
     padding-right: max(20px, env(safe-area-inset-right, 0px));
   }
 
-  .nav ul {
+  .nav nav {
     display: none;
   }
 
@@ -1638,8 +1638,18 @@ select {
     padding: 0 12px;
   }
 
+  .nav .wrap {
+    gap: 12px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+
+  .nav .wordmark {
+    font-size: 17px;
+  }
+
   .nav-end {
-    gap: 8px;
+    gap: 4px;
   }
 
   .way-panel pre,
@@ -1648,6 +1658,12 @@ select {
     font-size: 12px;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 359px) {
+  .nav .wordmark {
+    display: none;
   }
 }
 

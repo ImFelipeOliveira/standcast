@@ -749,6 +749,17 @@ function cssBlock(css: string, selector: string): string {
   return css.slice(at, css.indexOf('}', at));
 }
 
+function mediaBlock(css: string, query: string): string {
+  const start = css.indexOf(`@media ${query} {`);
+  if (start === -1) return '';
+  let depth = 0;
+  for (let i = css.indexOf('{', start); i < css.length; i++) {
+    if (css[i] === '{') depth++;
+    if (css[i] === '}' && --depth === 0) return css.slice(start, i + 1);
+  }
+  return '';
+}
+
 describe('landing v2', () => {
   test('every page opens with a skip link to the main landmark', () => {
     for (const file of htmlFiles()) {
@@ -912,5 +923,19 @@ describe('landing v2', () => {
     const footer = cssBlock(css, '.foot-nav');
     expect(footer).toContain('min-width: 0;');
     expect(footer).toContain('minmax(min(160px, 100%), 1fr)');
+  });
+
+  test('header keeps the beta button inside a 320px phone', () => {
+    const css = read('styles.css');
+    const tablet = mediaBlock(css, '(max-width: 960px)');
+    expect(cssBlock(tablet, '  .nav nav')).toContain('display: none;');
+    const phone = mediaBlock(css, '(max-width: 640px)');
+    const wrap = cssBlock(phone, '  .nav .wrap');
+    expect(wrap).toContain('gap: 12px;');
+    expect(wrap).toContain('max(16px, env(safe-area-inset-left, 0px))');
+    expect(cssBlock(phone, '  .nav-end')).toContain('gap: 4px;');
+    expect(cssBlock(phone, '  .nav .wordmark')).toContain('font-size: 17px;');
+    const narrow = mediaBlock(css, '(max-width: 359px)');
+    expect(cssBlock(narrow, '  .nav .wordmark')).toContain('display: none;');
   });
 });
