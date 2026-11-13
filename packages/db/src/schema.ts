@@ -53,6 +53,7 @@ export const members = pgTable(
     login: text('login').notNull(),
     email: text('email'),
     verifiedEmails: text('verified_emails').array().notNull().default(sql`'{}'::text[]`),
+    verifiedEmailsSyncedAt: timestamp('verified_emails_synced_at', { withTimezone: true }),
   },
   (t) => [
     uniqueIndex('members_login_lower_idx').on(sql`lower(${t.login})`),

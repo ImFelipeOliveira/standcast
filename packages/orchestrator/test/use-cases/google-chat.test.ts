@@ -15,7 +15,7 @@ import {
   upsertDaily,
   upsertMember,
 } from '@standcast/db';
-import { googleChatSpaces, memberIdentities } from '../../../db/src/schema';
+import { googleChatSpaces, memberIdentities, members } from '../../../db/src/schema';
 import { db, useCleanDb } from '../../../db/test/setup';
 import {
   chatUserIdFor,
@@ -548,6 +548,23 @@ describe('handleGoogleChatEvent in a direct message', () => {
       email: 'alice@personal.dev',
       verifiedEmails: ['alice@personal.dev'],
     });
+    await bindElsewhere('spaces/AAAA', INST);
+    const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
+    expect(reply?.text).toContain('No Standcast account uses this email');
+    expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
+  });
+
+  test('a secondary email from a sign-in over 30 days ago links nobody', async () => {
+    const { deps } = await setup();
+    await upsertMember(db, {
+      githubUserId: 1,
+      login: 'Alice',
+      email: 'alice@personal.dev',
+      verifiedEmails: ['alice@personal.dev', 'alice@acme.com'],
+    });
+    await db
+      .update(members)
+      .set({ verifiedEmailsSyncedAt: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000) });
     await bindElsewhere('spaces/AAAA', INST);
     const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
     expect(reply?.text).toContain('No Standcast account uses this email');

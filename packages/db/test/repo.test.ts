@@ -444,6 +444,31 @@ describe('member logins', () => {
     expect(await findMembersByEmail(db, 'someone@else.io')).toEqual([]);
   });
 
+  test('findMembersByEmail ignores secondary emails synced over 30 days ago', async () => {
+    const ana = await upsertMember(db, {
+      githubUserId: 1,
+      login: 'ana',
+      email: 'ana@acme.io',
+      verifiedEmails: ['ana@acme.io', 'ana@home.dev'],
+    });
+    await db.execute(
+      sql`UPDATE members SET verified_emails_synced_at = now() - interval '29 days' WHERE id = ${ana.id}`,
+    );
+    expect((await findMembersByEmail(db, 'ana@home.dev')).map((m) => m.id)).toEqual([ana.id]);
+    await db.execute(
+      sql`UPDATE members SET verified_emails_synced_at = now() - interval '31 days' WHERE id = ${ana.id}`,
+    );
+    expect(await findMembersByEmail(db, 'ana@home.dev')).toEqual([]);
+    expect((await findMembersByEmail(db, 'ana@acme.io')).map((m) => m.id)).toEqual([ana.id]);
+    await upsertMember(db, {
+      githubUserId: 1,
+      login: 'ana',
+      email: 'ana@acme.io',
+      verifiedEmails: ['ana@acme.io', 'ana@home.dev'],
+    });
+    expect((await findMembersByEmail(db, 'ana@home.dev')).map((m) => m.id)).toEqual([ana.id]);
+  });
+
   test('updateMemberLogin returns null for an unknown github id', async () => {
     expect(await updateMemberLogin(db, 99, 'nobody')).toBeNull();
   });

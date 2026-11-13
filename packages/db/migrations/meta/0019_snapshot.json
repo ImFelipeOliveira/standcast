@@ -1,5 +1,5 @@
 {
-  "id": "60f3d48d-2365-4152-b83f-0c11c6d9afbc",
+  "id": "132f0ff6-813b-464e-8c06-1720a2b5b269",
   "prevId": "7cbfbd82-0797-4b51-9c26-4b6c42a89a32",
   "version": "7",
   "dialect": "postgresql",
@@ -929,6 +929,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'{}'::text[]"
+        },
+        "verified_emails_synced_at": {
+          "name": "verified_emails_synced_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
