@@ -29,6 +29,18 @@ Keep Docker. Testcontainers starts one disposable PostgreSQL 17 for the complete
 
 Also run `bun run lint` and `bun run typecheck` before opening a PR.
 
+## Documentation link preview images
+
+Every page of the documentation site (`docs/site`) has its own link preview image, committed under `docs/site/public/og`. The file name carries a hash of the page's title, sidebar section and path and of the `og-docs` template, so changing a page's title, adding a page or editing `docs/marketplace/brand/html/og-docs.html` needs new images. `bun test` and `bun run docs:build` fail until they exist, and the error names the page. Render them with Playwright's Chromium and commit the result:
+
+```sh
+bunx playwright install chromium
+bun run docs:og
+git add docs/site/public/og
+```
+
+`docs:og` renders only the missing images and removes the ones no page uses.
+
 ## Code style
 
 Do not write comments in code. Make names and structure carry the meaning.

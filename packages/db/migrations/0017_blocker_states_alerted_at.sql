@@ -1,0 +1,1 @@
+ALTER TABLE "blocker_states" ADD COLUMN "alerted_at" timestamp with time zone;

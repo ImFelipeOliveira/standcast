@@ -26,10 +26,23 @@ Standcast does not read messages.
 
 ## Channels
 
-Set the channel in `standcast.yml` under `chat.channel`:
+Set the channel in `standcast.yml` under `chat.channel`, by name or by id. Quote a channel name, because `#` starts a comment in YAML. For the id, open the channel details in Slack; the id is at the bottom.
 
-- `"#daily-backend"`: a channel name. Quote it.
-- `C0123456789`: a channel id. In Slack, open the channel details; the id is at the bottom.
+::: code-group
+
+```text [Channel name]
+chat:
+  provider: slack
+  channel: "#daily-backend"
+```
+
+```text [Channel id]
+chat:
+  provider: slack
+  channel: C0123456789
+```
+
+:::
 
 **Public channels** work right away: the bot posts without being invited.
 

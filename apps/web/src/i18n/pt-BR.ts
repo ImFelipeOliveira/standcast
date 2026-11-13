@@ -451,4 +451,5 @@ export const ptBR = {
   'people.cliNone': 'não conectada',
   'people.managerOf': 'gestor de {team}',
   'people.note': 'Sem métricas por pessoa: esta tela só mostra se a configuração está completa.',
+  'history.exportTitle': '{team} · entregas de {from} a {to}',
 } as const;

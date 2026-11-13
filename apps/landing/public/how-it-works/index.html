@@ -12,8 +12,8 @@
 <link rel="alternate" hreflang="x-default" href="https://standcast.app/how-it-works/">
 <link rel="alternate" type="text/markdown" href="/how-it-works/index.md">
 <link rel="icon" type="image/png" href="/favicon.png" sizes="96x96">
-<meta name="theme-color" content="#F6F7FB" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0E1022" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E0E10" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Standcast">
@@ -38,18 +38,19 @@
 </script>
 </head>
 <body>
+<a class="skip" href="#top">Skip to content</a>
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
+    <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="wordmark">Standcast</span></a>
     <nav aria-label="Main"><ul>
       <li><a href="/how-it-works/" aria-current="page">How it works</a></li>
       <li><a href="/privacy/">Privacy</a></li>
       <li><a href="/pricing/">Pricing</a></li>
       <li><a href="/faq/">FAQ</a></li>
       <li><a href="https://docs.standcast.app/">Docs</a></li>
-      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
     </ul></nav>
     <div class="nav-end">
+      <a class="nav-link" href="https://github.com/ImFelipeOliveira/standcast">GitHub</a>
       <a class="lang" href="/pt-BR/como-funciona/" hreflang="pt-BR" lang="pt-BR">Português</a>
       <a class="btn btn-primary" href="/beta/">Join the beta</a>
     </div>
@@ -57,9 +58,7 @@
 </header>
 
 <main id="top">
-<div class="field-stage">
-<canvas class="hero-field" aria-hidden="true"></canvas>
-<section class="hero intro hero-home">
+<section class="hero intro">
   <div class="wrap">
     <div class="hero-copy">
       <nav class="crumbs" aria-label="Breadcrumb"><ol>
@@ -72,7 +71,6 @@
     </div>
   </div>
 </section>
-</div>
 
 <section class="flush" id="day">
   <div class="wrap day-grid">
@@ -112,8 +110,8 @@
     <div>
       <div class="head tight">
         <span class="eyebrow">Configuration as code</span>
-        <h2>One file in your .github repository.</h2>
-        <p class="lede">Teams, times, chat channels and managers live in <code>standcast.yml</code>. Every change is reviewed like code.</p>
+        <h2>One file in your .github-private repository.</h2>
+        <p class="lede">Or in <code>.github</code> when <code>.github-private</code> has no <code>standcast.yml</code>. Teams, times, chat channels and managers live in that file. Every change is reviewed like code.</p>
       </div>
       <ul class="list">
         <li><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span><b>Checked on every push.</b> A <code>Standcast config</code> check run points to the line with the error.</span></li>
@@ -123,7 +121,7 @@
       <p class="list-more"><a class="more" href="https://docs.standcast.app/admin/configuration">standcast.yml reference →</a></p>
     </div>
     <div class="code">
-<pre><span class="t-dim"># .github/standcast.yml</span>
+<pre><span class="t-dim"># .github-private/standcast.yml</span>
 teams:
   - name: Backend
     timezone: America/Sao_Paulo
@@ -172,8 +170,7 @@ standcast submit</pre></article>
   </div>
 </section>
 
-<section class="flush cta-field">
-<canvas class="hero-field field-cta" aria-hidden="true"></canvas>
+<section class="flush cta">
   <div class="wrap">
     <div class="beta">
       <div class="head tight">
@@ -194,20 +191,38 @@ standcast submit</pre></article>
 
 <footer class="site-footer">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
-    <ul aria-label="Footer">
-      <li><a href="/how-it-works/" aria-current="page">How it works</a></li>
-      <li><a href="/privacy/">Privacy</a></li>
-      <li><a href="/terms/">Terms</a></li>
-      <li><a href="/pricing/">Pricing</a></li>
-      <li><a href="/faq/">FAQ</a></li>
-      <li><a href="/beta/">Join the beta</a></li>
-      <li><a href="https://docs.standcast.app/">Documentation</a></li>
-      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
-      <li><a href="/llms.txt">llms.txt</a></li>
-      <li><a href="/pt-BR/como-funciona/" hreflang="pt-BR" lang="pt-BR">Português</a></li>
-    </ul>
-    <p>MIT · support@standcast.app</p>
+    <div class="foot-brand">
+      <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="wordmark">Standcast</span></a>
+      <p>Your daily standup, written in your AI agent. Open source, MIT license.</p>
+    </div>
+    <nav class="foot-nav" aria-label="Footer">
+      <div>
+        <p class="foot-h">Product</p>
+        <ul>
+          <li><a href="/how-it-works/" aria-current="page">How it works</a></li>
+          <li><a href="/pricing/">Pricing</a></li>
+          <li><a href="/faq/">FAQ</a></li>
+          <li><a href="/beta/">Join the beta</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="foot-h">Resources</p>
+        <ul>
+          <li><a href="https://docs.standcast.app/">Documentation</a></li>
+          <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="/pt-BR/como-funciona/" hreflang="pt-BR" lang="pt-BR">Português</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="foot-h">Legal</p>
+        <ul>
+          <li><a href="/terms/">Terms of use</a></li>
+          <li><a href="/privacy/">Privacy</a></li>
+          <li><a href="mailto:support@standcast.app">support@standcast.app</a></li>
+        </ul>
+      </div>
+    </nav>
   </div>
 </footer>
 </body>

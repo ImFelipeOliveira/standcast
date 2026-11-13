@@ -52,6 +52,7 @@ teams:
       pr_review_hours: 48
       card_stale_days: 5
       direct_message: false
+      blocker_alert_days: 5
 members:
   alice: { slack: U0123, linear: alice@acme.com }
 ```
@@ -84,6 +85,7 @@ No other keys are accepted. An unknown key fails validation with `Unrecognized k
 | `signals.pr_review_hours` | number greater than 0 | no | `48` | `24` |
 | `signals.card_stale_days` | number greater than 0 | no | `5` | `3` |
 | `signals.direct_message` | `true` or `false` | no | `false` | `true` |
+| `signals.blocker_alert_days` | whole number greater than 0 | no | off | `5` |
 
 ### `name`
 
@@ -152,6 +154,22 @@ Where the digest goes.
 - `channel` for Slack: the Slack channel, as `"#name"` (quoted, because `#` starts a comment in YAML) or as a channel id such as `C0123456789`. For a private channel, invite the Standcast bot first. See [Slack](/admin/slack).
 - `channel` for Google Chat: the space name, such as `spaces/AAAAbbbbCCC`. Any other format fails the `standcast.yml` check; if you paste the space link (`https://chat.google.com/room/AAAAbbbbCCC`), the error tells you the name to use. The space must have the Standcast app and be linked to your organization with a code, otherwise the digest fails with `space_not_linked`. See [Google Chat](/admin/google-chat).
 
+::: code-group
+
+```text [Slack]
+chat:
+  provider: slack
+  channel: "#daily-backend"
+```
+
+```text [Google Chat]
+chat:
+  provider: google-chat
+  channel: spaces/AAAAbbbbCCC
+```
+
+:::
+
 ### `tracker`
 
 The project tracker of the team: `provider` (`linear` or `jira`) and `team` (the team key).
@@ -175,6 +193,10 @@ Settings for suggested blockers, which show only to the person they are about:
 - `direct_message`: when `true`, a suggested blocker is also sent to the person by direct message, once per suggestion. Default `false`.
 
 CI failing on a pull request's head commit counts after 24 hours, and is not configurable.
+
+One setting is for managers instead:
+
+- `blocker_alert_days`: a whole number of days. When a blocker in a daily is still open this many days after the day it was first reported, Standcast posts one message about it in the team's channel or space, mentioning the team's managers. Leave it out to turn the alert off, which is the default. `0`, negative numbers and fractions fail the check. See [Stale blocker alert](/how-it-works#stale-blocker-alert).
 
 ## GitHub teams
 
@@ -279,6 +301,7 @@ These are the messages the setup page shows, as `path: message`. `teams.0` is th
 | `standcast.yml exposes personal data` (check run) | Identity overrides under `members` in a public repository | Move the file to `.github-private`, make the repository private, or remove the overrides |
 | `teams.1.name: duplicate team name "backend"` | Two teams with the same name | Rename one of them |
 | `teams.0.signals.pr_review_hours: Too small: expected number to be >0` | `0` or a negative number | Use a positive number |
+| `teams.0.signals.blocker_alert_days: blocker_alert_days must be a whole number of days greater than 0` | `0`, a negative number, a fraction or a quoted value | Use a whole number such as `5`, or remove the key to turn the alert off |
 | `teams: Too small: expected array to have >=1 items` | `teams: []` | Add a team |
 | `: Invalid input: expected object, received null` | The file is empty | Add at least one team |
 | A YAML syntax message with a line and column | Broken indentation, an unclosed `[` or quote | Fix the YAML at that line |
