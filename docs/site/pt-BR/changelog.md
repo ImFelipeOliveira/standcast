@@ -10,6 +10,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- A documentação atende ao WCAG 2.2 AA nos temas claro e escuro: os links no texto são sublinhados, o foco mostra um anel de 2px, e textos e códigos chegam a contraste de 4,5:1. A barra lateral agora se divide em Primeiros passos, Membros, Admin, API e Referência, os exemplos de instalação e configuração mostram cada opção numa aba, e cada página tem a sua imagem de prévia de link, um link para editá-la no GitHub e a data da última atualização. A página de membros *Primeiros passos* agora se chama *Escreva sua primeira daily*, no mesmo endereço.
 - Novas imagens do kit de marca do Standcast: ícones do app, avatar e banner do card no Google Chat, banner claro e escuro no README, imagens de prévia para redes e links, e cinco screenshots para os marketplaces.
 
 ### 0.9.4 — 12/11/2026

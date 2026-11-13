@@ -124,7 +124,7 @@ When a push to any branch of the `.github-private` or `.github` repository touch
 
 ## Next steps
 
-- Ask each member to follow [Getting started](/members/getting-started). People are matched to their Slack user when they sign in, so they should sign in after Slack is connected.
+- Ask each member to follow [Write your first daily](/members/getting-started). People are matched to their Slack user when they sign in, so they should sign in after Slack is connected.
 - On Google Chat, ask each member to sign in, then send the Standcast app a direct message once.
 - If you use Linear, ask each member to sign in after Linear is connected, so their Linear user is linked.
 - Create [API keys](/admin/api-keys) or [webhooks](/admin/webhooks) if other systems need the data.

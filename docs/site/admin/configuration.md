@@ -152,6 +152,22 @@ Where the digest goes.
 - `channel` for Slack: the Slack channel, as `"#name"` (quoted, because `#` starts a comment in YAML) or as a channel id such as `C0123456789`. For a private channel, invite the Standcast bot first. See [Slack](/admin/slack).
 - `channel` for Google Chat: the space name, such as `spaces/AAAAbbbbCCC`. Any other format fails the `standcast.yml` check; if you paste the space link (`https://chat.google.com/room/AAAAbbbbCCC`), the error tells you the name to use. The space must have the Standcast app and be linked to your organization with a code, otherwise the digest fails with `space_not_linked`. See [Google Chat](/admin/google-chat).
 
+::: code-group
+
+```text [Slack]
+chat:
+  provider: slack
+  channel: "#daily-backend"
+```
+
+```text [Google Chat]
+chat:
+  provider: google-chat
+  channel: spaces/AAAAbbbbCCC
+```
+
+:::
+
 ### `tracker`
 
 The project tracker of the team: `provider` (`linear` or `jira`) and `team` (the team key).

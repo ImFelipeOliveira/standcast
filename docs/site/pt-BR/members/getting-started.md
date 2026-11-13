@@ -1,4 +1,4 @@
-# Primeiros passos
+# Escreva sua primeira daily
 
 Envie a sua primeira daily em poucos minutos. Antes de começar, o admin precisa ter [instalado o Standcast](/pt-BR/admin/install) e colocado você num time do `standcast.yml`.
 
@@ -16,9 +16,15 @@ Baixe o binário do seu sistema na [última release](https://github.com/ImFelipe
 | Linux, ARM64 | `standcast-bun-linux-arm64` |
 | Windows, x64 | `standcast-bun-windows-x64.exe` |
 
-No macOS ou no Linux, coloque o binário no `PATH` com o nome `standcast`. Por exemplo, num Mac com Apple silicon:
+No macOS ou no Linux, o script de instalação baixa o binário certo, confere com o arquivo `SHA256SUMS` da release e instala em `~/.local/bin/standcast`. Para instalar à mão, baixe o binário, confira com o `SHA256SUMS` e coloque no `PATH` com o nome `standcast`; a aba manual mostra como fazer num Mac com Apple silicon.
 
-```bash
+::: code-group
+
+```bash [Script de instalação]
+curl -fsSL https://standcast.app/install.sh | sh
+```
+
+```bash [Manual, Mac com Apple silicon]
 mkdir -p ~/.local/bin
 curl -fsSL -o ~/.local/bin/standcast \
   https://github.com/ImFelipeOliveira/standcast/releases/latest/download/standcast-bun-darwin-arm64
@@ -26,11 +32,7 @@ chmod +x ~/.local/bin/standcast
 standcast --version
 ```
 
-Cada release também traz um arquivo `SHA256SUMS` para conferir o download. Ou use o script de instalação, que baixa o binário certo, confere com o `SHA256SUMS` e instala em `~/.local/bin/standcast`:
-
-```bash
-curl -fsSL https://standcast.app/install.sh | sh
-```
+:::
 
 ## 2. Entre
 

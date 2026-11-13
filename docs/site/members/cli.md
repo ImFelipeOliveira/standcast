@@ -4,7 +4,7 @@
 standcast <command> [options]
 ```
 
-Commands print their result as JSON on standard output and messages on standard error, so scripts and agents can read them. To install the CLI, see [Getting started](/members/getting-started#_1-install-the-cli).
+Commands print their result as JSON on standard output and messages on standard error, so scripts and agents can read them. To install the CLI, see [Write your first daily](/members/getting-started#_1-install-the-cli).
 
 ## Commands
 

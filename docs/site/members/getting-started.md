@@ -1,4 +1,4 @@
-# Getting started
+# Write your first daily
 
 Send your first daily in a few minutes. Before you start, your admin must have [installed Standcast](/admin/install) and listed you in a team in `standcast.yml`.
 
@@ -16,9 +16,15 @@ Download the binary for your system from the [latest release](https://github.com
 | Linux, ARM64 | `standcast-bun-linux-arm64` |
 | Windows, x64 | `standcast-bun-windows-x64.exe` |
 
-On macOS or Linux, put it on your `PATH` as `standcast`. For example, on a Mac with Apple silicon:
+On macOS or Linux, the install script downloads the right binary, checks it against the release's `SHA256SUMS` file and installs it to `~/.local/bin/standcast`. To install by hand, download the binary, check it against `SHA256SUMS` and put it on your `PATH` as `standcast`; the manual tab shows it for a Mac with Apple silicon.
 
-```bash
+::: code-group
+
+```bash [Install script]
+curl -fsSL https://standcast.app/install.sh | sh
+```
+
+```bash [Manual, Mac with Apple silicon]
 mkdir -p ~/.local/bin
 curl -fsSL -o ~/.local/bin/standcast \
   https://github.com/ImFelipeOliveira/standcast/releases/latest/download/standcast-bun-darwin-arm64
@@ -26,11 +32,7 @@ chmod +x ~/.local/bin/standcast
 standcast --version
 ```
 
-Each release also has a `SHA256SUMS` file to check the download. Or use the install script, which downloads the right binary, checks it against `SHA256SUMS` and installs it to `~/.local/bin/standcast`:
-
-```bash
-curl -fsSL https://standcast.app/install.sh | sh
-```
+:::
 
 ## 2. Sign in
 
