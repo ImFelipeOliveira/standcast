@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- Reabrir um impedimento que já está aberto não desfaz mais a resolução que outra pessoa faz no mesmo momento.
+- Quando um alerta de impedimento parado é publicado mas o Standcast não consegue registrá-lo, a nova tentativa no mesmo dia o registra, e o impedimento não recebe o alerta de novo no dia seguinte. Cada impedimento continua recebendo o alerta uma vez só em cada time.
 - Um impedimento resolvido só pode ser reaberto em **Hoje** ou **Impedimentos** enquanto ainda está na última daily de quem o escreveu. Depois que a pessoa envia uma daily sem ele, ele continua resolvido e **Reabrir** deixa de aparecer para ele; se ainda atrapalha, ela o lista de novo na próxima daily. Antes, dava para reabrir a qualquer momento. Veja [App web](/pt-BR/admin/web-app).
 - No celular, fechar a **Busca** aberta com ⌘K ou Ctrl K com o menu lateral fechado devolve o foco para onde você estava, ou para o botão de menu, em vez de perdê-lo dentro do menu escondido.
 - Quando o navegador recusa **Copiar como markdown** no **Histórico**, a página avisa que a cópia falhou e indica **Exportar Markdown**, que baixa o mesmo texto, em vez de não fazer nada.
