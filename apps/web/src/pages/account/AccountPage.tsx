@@ -168,9 +168,11 @@ function Sessions() {
   const t = useT();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
   const signOutEverywhere = async () => {
+    if (pending) return;
     setPending(true);
     setFailed(false);
     const ok = await signOut({
@@ -183,23 +185,20 @@ function Sessions() {
       setFailed(true);
     }
   };
+  const onOpenChange = (next: boolean) => {
+    if (pending) return;
+    setOpen(next);
+    if (!next) setFailed(false);
+  };
   return (
     <Card aria-labelledby="account-sessions">
       <div className="flex flex-col gap-0.5">
         <CardTitle id="account-sessions">{t('account.sessions')}</CardTitle>
         <CardDescription>{t('account.sessionsHint')}</CardDescription>
       </div>
-      {failed ? (
-        <p
-          role="alert"
-          className="m-0 rounded-[9px] border border-bad-line bg-bad-soft px-3 py-2 text-[13px] text-bad-ink2"
-        >
-          {t('account.signOutAll.failed')}
-        </p>
-      ) : null}
-      <Dialog>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogTrigger asChild>
-          <Button type="button" variant="destructive" className="w-fit" disabled={pending}>
+          <Button type="button" variant="destructive" className="w-fit">
             {t('account.signOutAll')}
           </Button>
         </DialogTrigger>
@@ -208,17 +207,29 @@ function Sessions() {
             <DialogTitle>{t('account.signOutAll.title')}</DialogTitle>
             <DialogDescription>{t('account.signOutAll.body')}</DialogDescription>
           </DialogHeader>
+          {failed ? (
+            <p
+              role="alert"
+              className="m-0 rounded-[9px] border border-bad-line bg-bad-soft px-3 py-2 text-[13px] text-bad-ink2"
+            >
+              {t('account.signOutAll.failed')}
+            </p>
+          ) : null}
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline">
                 {t('setup.cancel')}
               </Button>
             </DialogClose>
-            <DialogClose asChild>
-              <Button type="button" disabled={pending} onClick={() => void signOutEverywhere()}>
-                {t('account.signOutAll.confirm')}
-              </Button>
-            </DialogClose>
+            <Button
+              type="button"
+              aria-disabled={pending || undefined}
+              aria-busy={pending || undefined}
+              className="aria-disabled:cursor-wait aria-disabled:opacity-50"
+              onClick={() => void signOutEverywhere()}
+            >
+              {t('account.signOutAll.confirm')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
