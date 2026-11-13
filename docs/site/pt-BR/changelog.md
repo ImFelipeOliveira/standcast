@@ -10,11 +10,13 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- A landing em standcast.app tem um visual novo em português e em inglês: cores novas que atendem ao WCAG 2.2 AA nos temas claro e escuro, um link para pular para o conteúdo e uma página inicial com um dia com o Standcast, o que ele faz, três jeitos de escrever, integrações, privacidade, configuração, preços e perguntas frequentes. A onda do fundo virou uma grade de pixels tranquila. Ela tem um botão **Pausar animação**, para quando sai da tela ou quando a aba fica escondida, e mostra um quadro parado quando o sistema pede menos movimento.
 - O app web tem a própria página de login. Abrir o app sem sessão mostra essa página em vez de ir direto para o GitHub, e **Continuar com GitHub** devolve você à página que tinha pedido.
 - Quando o login falha (você cancela no GitHub, o link expira, o GitHub não confirma a conta ou o navegador descarta o cookie da sessão), você volta à página de login com uma mensagem dizendo o que aconteceu e um botão **Tentar de novo**, em vez de uma página de erro da API.
 - Os endereços do app web estão em inglês: `/orgs/<id>/today`, `/history` e `/settings`. Links antigos para `/hoje`, `/historico` e `/configuracao` continuam funcionando e mantêm a query string.
 - O app web mostra o ícone do Standcast na aba do navegador.
 - Alerta de impedimento parado: com `signals.blocker_alert_days` definido em um time, um impedimento que continua aberto esse número de dias depois de ser informado pela primeira vez recebe uma mensagem no canal ou espaço do time depois do consolidado, mencionando os gestores do time, com o impedimento, o link, há quanto tempo está aberto, quem o informou e para quem foi encaminhado. Cada impedimento recebe o alerta uma vez só em cada time. Sem a chave, nada muda. Veja [Alerta de impedimento parado](/pt-BR/how-it-works#alerta-de-impedimento-parado).
+- O app web tem um visual novo: cores com mais contraste, que atendem ao WCAG 2.2 AA nos temas claro e escuro, cards sem borda, estados mostrados com um ponto colorido e texto, um cabeçalho que fica no topo e diminui um pouco ao rolar a página e, no celular, o menu lateral abre por um botão de menu.
 - Google Chat: enquanto alguém no consolidado de um time não está vinculado ao Google Chat e aparece como `@login`, o consolidado termina com um botão **Vincular minha conta**. Um clique vincula quem clicou, pelo mesmo e-mail usado na mensagem direta para o app, e a resposta só aparece para essa pessoa. Mencionar o app num espaço vincula a pessoa do mesmo jeito. O worker precisa de `PUBLIC_URL` para o botão. Veja [Google Chat](/pt-BR/admin/google-chat#como-as-pessoas-sao-vinculadas).
 
 ### 0.9.4 — 12/11/2026

@@ -7,6 +7,8 @@ import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { useLang, useT } from '../../i18n';
 import { docsUrl } from '../../lib/links';
+import { PageHeader } from '../../shell/PageHeader';
+import { SectionHeader } from '../../shell/SectionHeader';
 import { Loading } from '../RouteStates';
 import { ApiKeys } from './ApiKeys';
 import { ConfigFile } from './ConfigFile';
@@ -17,13 +19,16 @@ import { Webhooks } from './Webhooks';
 function LoadError({ onRetry }: { onRetry: () => void }) {
   const t = useT();
   return (
-    <Card role="alert" className="items-start">
-      <h1 className="m-0 font-bold text-[17px]">{t('error.title')}</h1>
-      <p className="m-0 text-text2">{t('error.body')}</p>
-      <Button type="button" variant="outline" onClick={onRetry}>
-        {t('error.retry')}
-      </Button>
-    </Card>
+    <>
+      <SectionHeader />
+      <Card role="alert" className="items-start">
+        <h2 className="m-0 font-bold text-[17px]">{t('error.title')}</h2>
+        <p className="m-0 text-text2">{t('error.body')}</p>
+        <Button type="button" variant="outline" onClick={onRetry}>
+          {t('error.retry')}
+        </Button>
+      </Card>
+    </>
   );
 }
 
@@ -50,33 +55,33 @@ export function ConfiguracaoPage({
   const progress = setupProgress(status);
   return (
     <>
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <p className="m-0 font-mono text-[12px] text-muted">{status.owner}</p>
-          <h1 className="m-0 font-bold text-[30px] leading-tight tracking-[-0.01em]">
-            {t('setup.heading')}
-          </h1>
-          <p className="m-0 text-text2">{t('setup.subtitle')}</p>
-          {connected === 'slack' ? (
-            <p role="status" className="m-0 text-text2">
-              {t('setup.connected.slack')}
-            </p>
-          ) : null}
-          {connected === 'linear' ? (
-            <p role="status" className="m-0 text-text2">
-              {t('setup.connected.linear')}
-            </p>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Badge variant={progress.done === progress.total ? 'ok' : 'neutral'}>
-            {t('setup.progress', { done: String(progress.done), total: String(progress.total) })}
-          </Badge>
-          <Button asChild variant="outline">
-            <a href={docsUrl(lang)}>{t('setup.docs')}</a>
-          </Button>
-        </div>
-      </header>
+      <PageHeader
+        context={status.owner}
+        title={t('setup.heading')}
+        actions={
+          <>
+            <Badge variant={progress.done === progress.total ? 'ok' : 'neutral'}>
+              {t('setup.progress', { done: String(progress.done), total: String(progress.total) })}
+            </Badge>
+            <Button asChild variant="outline">
+              <a href={docsUrl(lang)}>{t('setup.docs')}</a>
+            </Button>
+          </>
+        }
+      />
+      <div className="flex flex-col gap-1">
+        <p className="m-0 text-text2">{t('setup.subtitle')}</p>
+        {connected === 'slack' ? (
+          <p role="status" className="m-0 text-text2">
+            {t('setup.connected.slack')}
+          </p>
+        ) : null}
+        {connected === 'linear' ? (
+          <p role="status" className="m-0 text-text2">
+            {t('setup.connected.linear')}
+          </p>
+        ) : null}
+      </div>
       <Connections status={status} />
       <ConfigFile status={status} />
       <FailedDeliveries status={status} />

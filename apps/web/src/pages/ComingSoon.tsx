@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { useT } from '../i18n';
+import { PageHeader } from '../shell/PageHeader';
 import { SECTION_LABELS, type Section } from '../shell/sections';
 
 export function ComingSoon({
@@ -15,7 +16,7 @@ export function ComingSoon({
   const title = t(SECTION_LABELS[section]);
   return (
     <>
-      <h1 className="m-0 font-bold text-[30px] leading-tight tracking-[-0.01em]">{title}</h1>
+      <PageHeader title={title} />
       <Card className="items-start">
         <h2 className="m-0 font-bold text-[17px]">{t('comingSoon.title', { section: title })}</h2>
         <p className="m-0 text-text2">{t('comingSoon.body')}</p>

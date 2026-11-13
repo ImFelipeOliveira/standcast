@@ -49,3 +49,38 @@ test('the app serves its favicon', async ({ page }) => {
   const response = await page.request.get('/favicon.svg');
   expect(response.status()).toBe(200);
 });
+
+test('the phone drawer moves focus, closes with Escape and on team change', async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`/orgs/${INSTALLATION_ID}/today?team=${TEAM_NAME}`);
+  const menu = page.getByRole('button', { name: 'Abrir menu' });
+  await menu.click();
+  const drawer = page.getByRole('dialog', { name: 'Menu' });
+  await expect(drawer).toBeVisible();
+  await expect(drawer.locator(':focus')).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await expect(drawer).toHaveCount(0);
+  await expect(menu).toBeFocused();
+  await menu.click();
+  await page.getByRole('dialog', { name: 'Menu' }).getByRole('link', { name: TEAM_NAME }).click();
+  await expect(page.getByRole('dialog', { name: 'Menu' })).toHaveCount(0);
+});
+
+test('widening past the desk breakpoint closes the phone drawer and frees the page', async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`/orgs/${INSTALLATION_ID}/today?team=${TEAM_NAME}`);
+  await page.getByRole('button', { name: 'Abrir menu' }).click();
+  await expect(page.getByRole('dialog', { name: 'Menu' })).toBeVisible();
+  await expect(page.locator('main')).toHaveAttribute('inert', '');
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await expect(page.locator('main')).not.toHaveAttribute('inert', /.*/);
+  await expect(page.getByRole('dialog', { name: 'Menu' })).toHaveCount(0);
+});

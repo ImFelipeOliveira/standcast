@@ -12,7 +12,7 @@ export function SupportCard({ support, date, onViewDaily }: Props) {
   const t = useT();
   const lang = useLang();
   return (
-    <article className="flex flex-col gap-2.5 rounded-xl border border-accent-line bg-accent-wash p-4">
+    <article className="flex flex-col gap-2.5 rounded-[10px] bg-accent-wash p-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge className="bg-accent text-on-accent">{t('hoje.support.kind')}</Badge>
         <Badge className="bg-accent-soft3 text-accent-ink">
