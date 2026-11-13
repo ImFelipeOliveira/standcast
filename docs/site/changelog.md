@@ -18,6 +18,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 - Stale blocker alert: with `signals.blocker_alert_days` set on a team, a blocker still open that many days after it was first reported gets one message in the team's channel or space after the digest, mentioning the team's managers, with the blocker, its link, its age, who reported it and who it was routed to. Each blocker is alerted once in each team. Without the key, nothing changes. See [Stale blocker alert](/how-it-works#stale-blocker-alert).
 - The web app has a new look: higher contrast colors that meet WCAG 2.2 AA in light and dark themes, cards without borders, status shown as a colored dot with text, a page header that stays at the top and shrinks a little as you scroll, and on phones the side menu opens from a menu button.
 - Google Chat: while someone in a team's digest is not linked to Google Chat and shows as `@login`, the digest ends with a **Link my account** button. A click links the person who clicked, by the same email match as a direct message to the app, and the answer is visible only to them. Mentioning the app in a space links the person the same way. The worker needs `PUBLIC_URL` for the button. See [Google Chat](/admin/google-chat#how-people-are-linked).
+- New images from the Standcast brand kit: app icons, the Google Chat avatar and card banner, a light and dark README banner, social and link preview images, and five marketplace screenshots.
 
 ### 0.9.4 — 2026-11-12
 
