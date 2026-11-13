@@ -39,7 +39,7 @@ export function UserMenu({ installationId }: { installationId: number }) {
     setFailed(false);
     const ok = await signOut({
       queryClient,
-      goToSignedOut: () => navigate({ to: '/signed-out', replace: true }),
+      goToSignedOut: () => navigate({ to: '/sign-in', search: { signed_out: 1 }, replace: true }),
     });
     if (!ok) setFailed(true);
   };

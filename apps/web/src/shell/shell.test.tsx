@@ -216,39 +216,29 @@ describe('shell', () => {
     expect(html).toContain('Organização');
   });
 
-  test('signed-out page makes no api calls', async () => {
-    const fetchMock = mock(async () => Response.json(session));
-    globalThis.fetch = fetchMock as unknown as typeof fetch;
-    const { html, router } = await renderWithCurrentFetch('/signed-out');
-    expect(router.state.location.pathname).toBe('/signed-out');
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(html).toContain('Você saiu do Standcast.');
-    expect(html).toContain(
-      `href="${apiUrl}/auth/github/login?target=app&amp;next=${encodeURIComponent('/')}"`,
-    );
-    expect(html).toContain('Entrar de novo');
-  });
-
-  test('sign out goes to the signed-out page', async () => {
+  test('sign out goes to the sign-in page with the signed-out notice', async () => {
     const { router, queryClient } = await renderAt('/orgs/11/today');
     const calls: string[] = [];
     globalThis.fetch = mock(async (input: RequestInfo | URL, init?: RequestInit) => {
       calls.push(`${init?.method ?? 'GET'} ${String(input)}`);
       if (String(input).endsWith('/v1/app/logout')) return new Response(null, { status: 204 });
-      return Response.json(session);
+      return Response.json(
+        { error: { code: 'unauthorized', message: 'sign in' } },
+        { status: 401 },
+      );
     }) as unknown as typeof fetch;
     const ok = await signOut({
       queryClient,
       goToSignedOut: () => {
-        void router.navigate({ to: '/signed-out', replace: true });
+        void router.navigate({ to: '/sign-in', search: { signed_out: 1 }, replace: true });
       },
     });
     expect(ok).toBe(true);
-    for (let i = 0; i < 50 && router.state.location.pathname !== '/signed-out'; i++) {
+    for (let i = 0; i < 50 && router.state.location.pathname !== '/sign-in'; i++) {
       await Bun.sleep(10);
     }
     expect(calls).toContain(`POST ${apiUrl}/v1/app/logout`);
-    expect(router.state.location.pathname).toBe('/signed-out');
+    expect(router.state.location.href).toBe('/sign-in?signed_out=1');
     expect(queryClient.getQueryData(sessionQuery.queryKey)).toBeUndefined();
   });
 
@@ -274,7 +264,7 @@ describe('shell', () => {
     expect(html).toContain('role="alert"');
     expect(html).toContain('Não foi possível sair agora.');
   });
-  test('logout with an expired session goes to the signed-out page without signing in', async () => {
+  test('logout with an expired session goes to the sign-in page without redirecting to GitHub', async () => {
     const { router, queryClient } = await renderAt('/orgs/11/today');
     const assigned: string[] = [];
     const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
@@ -297,7 +287,7 @@ describe('shell', () => {
         queryClient,
         goToSignedOut: () => {
           navigated = true;
-          void router.navigate({ to: '/signed-out', replace: true });
+          void router.navigate({ to: '/sign-in', search: { signed_out: 1 }, replace: true });
         },
       });
       expect(ok).toBe(true);

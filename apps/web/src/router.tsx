@@ -7,7 +7,14 @@ import {
   type RouterHistory,
   redirect,
 } from '@tanstack/react-router';
-import { signInUrl } from './api/client';
+import {
+  clearSignInMarker,
+  fetchSession,
+  SIGN_IN_ERRORS,
+  type SignInError,
+  safeNext,
+  signInUrl,
+} from './api/client';
 import { orgContextQuery, sessionQuery } from './api/queries';
 import { ComingSoon } from './pages/ComingSoon';
 import { ConfiguracaoPage } from './pages/configuracao/ConfiguracaoPage';
@@ -15,7 +22,7 @@ import { HojePage } from './pages/hoje/HojePage';
 import { NoInstallations } from './pages/NoInstallations';
 import { Loading, NotFound, RouteError } from './pages/RouteStates';
 import { SetupPending } from './pages/SetupPending';
-import { SignedOut } from './pages/SignedOut';
+import { SignIn } from './pages/SignIn';
 import { AppShell } from './shell/AppShell';
 import { teamsOf } from './shell/roles';
 
@@ -105,10 +112,45 @@ const setupRoute = createRoute({
   },
 });
 
+type SignInSearch = { next?: string; error?: SignInError; signed_out?: 1 };
+
+function parseSignInSearch(search: Record<string, unknown>): SignInSearch {
+  const next = safeNext(search.next);
+  const error = (SIGN_IN_ERRORS as readonly unknown[]).includes(search.error)
+    ? (search.error as SignInError)
+    : undefined;
+  const signedOut = search.signed_out === 1 || search.signed_out === '1';
+  return {
+    ...(next === '/' ? {} : { next }),
+    ...(error ? { error } : {}),
+    ...(signedOut ? { signed_out: 1 as const } : {}),
+  };
+}
+
+const signInRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/sign-in',
+  validateSearch: parseSignInSearch,
+  beforeLoad: async ({ context, search }) => {
+    const { next, error } = parseSignInSearch(search);
+    if (error) clearSignInMarker();
+    const session = await fetchSession({ skipAuthRedirect: true }).catch(() => null);
+    if (!session) return;
+    context.queryClient.setQueryData(sessionQuery.queryKey, session);
+    throw redirect({ href: next ?? '/', replace: true });
+  },
+  component: function SignInPage() {
+    const { next, error, signed_out: signedOut } = parseSignInSearch(signInRoute.useSearch());
+    return <SignIn next={next ?? '/'} error={error} signedOut={signedOut === 1} />;
+  },
+});
+
 const signedOutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/signed-out',
-  component: SignedOut,
+  beforeLoad: () => {
+    throw redirect({ to: '/sign-in', search: { signed_out: 1 }, replace: true });
+  },
 });
 
 const orgRoute = createRoute({
@@ -220,6 +262,7 @@ const legacySettingsRoute = createRoute({
 export const routeTree = rootRoute.addChildren([
   indexRoute,
   setupRoute,
+  signInRoute,
   signedOutRoute,
   orgRoute.addChildren([
     orgIndexRoute,
