@@ -7,6 +7,8 @@ import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { useLang, useT } from '../../i18n';
+import { PageHeader } from '../../shell/PageHeader';
+import { SectionHeader } from '../../shell/SectionHeader';
 import { errorMessage } from '../configuracao/labels';
 import { Loading } from '../RouteStates';
 import { Dailies, type DailyFilter, type RemindStatus } from './DailyCard';
@@ -76,15 +78,18 @@ function LoadError({ error, onRetry }: { error: unknown; onRetry: () => void }) 
   const body =
     status === 403 ? t('hoje.forbidden') : status === 404 ? t('hoje.notFound') : t('error.body');
   return (
-    <Card role="alert" className="items-start">
-      <h1 className="m-0 font-bold text-[17px]">{t('error.title')}</h1>
-      <p className="m-0 text-text2">{body}</p>
-      {status === 403 || status === 404 ? null : (
-        <Button type="button" variant="outline" onClick={onRetry}>
-          {t('error.retry')}
-        </Button>
-      )}
-    </Card>
+    <>
+      <SectionHeader />
+      <Card role="alert" className="items-start">
+        <h2 className="m-0 font-bold text-[17px]">{t('error.title')}</h2>
+        <p className="m-0 text-text2">{body}</p>
+        {status === 403 || status === 404 ? null : (
+          <Button type="button" variant="outline" onClick={onRetry}>
+            {t('error.retry')}
+          </Button>
+        )}
+      </Card>
+    </>
   );
 }
 
@@ -165,20 +170,16 @@ function TodayView({ installationId, today }: { installationId: number; today: T
 
   return (
     <>
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <p className="m-0 font-mono text-[12px] text-muted">
-            {today.team.name} · {today.team.timezone}
-          </p>
-          <h1 className="m-0 font-bold text-[30px] leading-tight tracking-[-0.01em]">
-            {formatDay(lang, today.date)}
-          </h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline">{t('hoje.remindAt', { time: today.team.remindAt })}</Badge>
-          <DigestPill today={today} />
-        </div>
-      </header>
+      <PageHeader
+        context={`${today.team.name} · ${today.team.timezone}`}
+        title={formatDay(lang, today.date)}
+        actions={
+          <>
+            <Badge variant="outline">{t('hoje.remindAt', { time: today.team.remindAt })}</Badge>
+            <DigestPill today={today} />
+          </>
+        }
+      />
       <SummaryTiles today={{ ...today, blockers: open }} />
       <div className="flex flex-wrap items-start gap-6">
         <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-6">

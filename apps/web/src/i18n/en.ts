@@ -353,4 +353,7 @@ export const en: Record<MessageKey, string> = {
   'signIn.preview.shipped': 'Shipped yesterday',
   'signIn.preview.item1': 'Webhook queue with retries',
   'signIn.preview.item2': 'Batch invoice issuing',
+  'nav.openMenu': 'Open menu',
+  'nav.closeMenu': 'Close menu',
+  'nav.menu': 'Menu',
 };

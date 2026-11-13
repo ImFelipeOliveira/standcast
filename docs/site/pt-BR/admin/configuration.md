@@ -53,6 +53,7 @@ teams:
       pr_review_hours: 48
       card_stale_days: 5
       direct_message: false
+      blocker_alert_days: 5
 members:
   alice: { slack: U0123, linear: alice@acme.com }
 ```
@@ -85,6 +86,7 @@ Nenhuma outra chave é aceita. Uma chave desconhecida falha na validação com `
 | `signals.pr_review_hours` | número maior que 0 | não | `48` | `24` |
 | `signals.card_stale_days` | número maior que 0 | não | `5` | `3` |
 | `signals.direct_message` | `true` ou `false` | não | `false` | `true` |
+| `signals.blocker_alert_days` | número inteiro maior que 0 | não | desligado | `5` |
 
 ### `name`
 
@@ -193,6 +195,10 @@ Ajustes dos impedimentos sugeridos, que aparecem só para a pessoa a quem se ref
 
 O CI falhando no commit head de um pull request conta depois de 24 horas, e não é configurável.
 
+Um ajuste é para os gestores:
+
+- `blocker_alert_days`: um número inteiro de dias. Quando um impedimento de uma daily continua aberto esse número de dias depois do dia em que foi informado pela primeira vez, o Standcast publica uma mensagem sobre ele no canal ou espaço do time, mencionando os gestores do time. Deixe a chave de fora para desligar o alerta, que é o padrão. `0`, números negativos e frações falham na verificação. Veja [Alerta de impedimento parado](/pt-BR/how-it-works#alerta-de-impedimento-parado).
+
 ## Times do GitHub
 
 Use um time do GitHub em vez de listar as pessoas uma a uma, em `members` e em `managers`. É o jeito recomendado: o time muda no GitHub sem editar o arquivo, e o arquivo não lista logins. O app precisa da permissão Members (read), que ele pede na instalação.
@@ -296,6 +302,7 @@ Estas são as mensagens que a página de setup mostra, no formato `caminho: mens
 | `standcast.yml expõe dados pessoais` (check run) | Overrides de identidade em `members` em um repositório público | Mova o arquivo para o `.github-private`, torne o repositório privado ou remova os overrides |
 | `teams.1.name: duplicate team name "backend"` | Dois times com o mesmo nome | Renomeie um deles |
 | `teams.0.signals.pr_review_hours: Too small: expected number to be >0` | `0` ou um número negativo | Use um número positivo |
+| `teams.0.signals.blocker_alert_days: blocker_alert_days must be a whole number of days greater than 0` | `0`, um número negativo, uma fração ou um valor entre aspas | Use um número inteiro como `5`, ou remova a chave para desligar o alerta |
 | `teams: Too small: expected array to have >=1 items` | `teams: []` | Adicione um time |
 | `: Invalid input: expected object, received null` | O arquivo está vazio | Adicione pelo menos um time |
 | Uma mensagem de sintaxe do YAML com linha e coluna | Indentação quebrada, `[` ou aspas sem fechar | Corrija o YAML nessa linha |

@@ -18,6 +18,7 @@ import {
 import type { WorkerDeps } from '../../deps';
 import { logError } from '../../log-error';
 import { resolveMemberTeams } from '../../teams';
+import { enqueueBlockerAlertsIfDue } from '../delivery/send-blocker-alerts';
 import { enqueueDigestIfOpen } from '../delivery/send-digest';
 import { enqueueScanJob } from './scan-member-signals';
 
@@ -164,11 +165,11 @@ export async function runTick(deps: WorkerDeps): Promise<void> {
       );
       const date = dueDigestDate(now, team);
       if (!date) continue;
-      await enqueueDigestIfOpen(deps, {
-        installationId: installation.id,
-        teamName: team.name,
-        date,
-      });
+      const job = { installationId: installation.id, teamName: team.name, date };
+      await enqueueDigestIfOpen(deps, job);
+      if (team.signals.blockerAlertDays) {
+        await isolated('blocker alert enqueue failed', () => enqueueBlockerAlertsIfDue(deps, job));
+      }
     }
   }
 }

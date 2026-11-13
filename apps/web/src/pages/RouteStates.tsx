@@ -3,13 +3,17 @@ import { ApiError } from '../api/client';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { useT } from '../i18n';
+import { SectionHeader } from '../shell/SectionHeader';
 
 export function Loading() {
   const t = useT();
   return (
-    <p role="status" className="m-0 p-6 text-muted">
-      {t('app.loading')}
-    </p>
+    <>
+      <SectionHeader />
+      <p role="status" className="m-0 p-6 text-muted">
+        {t('app.loading')}
+      </p>
+    </>
   );
 }
 
@@ -18,13 +22,16 @@ export function RouteError({ error }: ErrorComponentProps) {
   const router = useRouter();
   if (error instanceof ApiError && error.status === 401) return <Loading />;
   return (
-    <Card role="alert" className="m-4 items-start">
-      <h1 className="m-0 font-bold text-[17px]">{t('error.title')}</h1>
-      <p className="m-0 text-text2">{t('error.body')}</p>
-      <Button type="button" variant="outline" onClick={() => void router.invalidate()}>
-        {t('error.retry')}
-      </Button>
-    </Card>
+    <>
+      <SectionHeader />
+      <Card role="alert" className="m-4 items-start">
+        <h2 className="m-0 font-bold text-[17px]">{t('error.title')}</h2>
+        <p className="m-0 text-text2">{t('error.body')}</p>
+        <Button type="button" variant="outline" onClick={() => void router.invalidate()}>
+          {t('error.retry')}
+        </Button>
+      </Card>
+    </>
   );
 }
 

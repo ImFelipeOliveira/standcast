@@ -52,6 +52,7 @@ teams:
       pr_review_hours: 48
       card_stale_days: 5
       direct_message: false
+      blocker_alert_days: 5
 members:
   alice: { slack: U0123, linear: alice@acme.com }
 ```
@@ -84,6 +85,7 @@ No other keys are accepted. An unknown key fails validation with `Unrecognized k
 | `signals.pr_review_hours` | number greater than 0 | no | `48` | `24` |
 | `signals.card_stale_days` | number greater than 0 | no | `5` | `3` |
 | `signals.direct_message` | `true` or `false` | no | `false` | `true` |
+| `signals.blocker_alert_days` | whole number greater than 0 | no | off | `5` |
 
 ### `name`
 
@@ -192,6 +194,10 @@ Settings for suggested blockers, which show only to the person they are about:
 
 CI failing on a pull request's head commit counts after 24 hours, and is not configurable.
 
+One setting is for managers instead:
+
+- `blocker_alert_days`: a whole number of days. When a blocker in a daily is still open this many days after the day it was first reported, Standcast posts one message about it in the team's channel or space, mentioning the team's managers. Leave it out to turn the alert off, which is the default. `0`, negative numbers and fractions fail the check. See [Stale blocker alert](/how-it-works#stale-blocker-alert).
+
 ## GitHub teams
 
 Use a GitHub team instead of listing people one by one, in `members` and in `managers`. This is the recommended way: the team changes on GitHub without editing the file, and the file lists no logins. The app needs the Members (read) permission, which it asks for on install.
@@ -295,6 +301,7 @@ These are the messages the setup page shows, as `path: message`. `teams.0` is th
 | `standcast.yml exposes personal data` (check run) | Identity overrides under `members` in a public repository | Move the file to `.github-private`, make the repository private, or remove the overrides |
 | `teams.1.name: duplicate team name "backend"` | Two teams with the same name | Rename one of them |
 | `teams.0.signals.pr_review_hours: Too small: expected number to be >0` | `0` or a negative number | Use a positive number |
+| `teams.0.signals.blocker_alert_days: blocker_alert_days must be a whole number of days greater than 0` | `0`, a negative number, a fraction or a quoted value | Use a whole number such as `5`, or remove the key to turn the alert off |
 | `teams: Too small: expected array to have >=1 items` | `teams: []` | Add a team |
 | `: Invalid input: expected object, received null` | The file is empty | Add at least one team |
 | A YAML syntax message with a line and column | Broken indentation, an unclosed `[` or quote | Fix the YAML at that line |
