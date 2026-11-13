@@ -14,9 +14,9 @@ export async function signOut({
 }: SignOutDeps): Promise<boolean> {
   const path = everywhere ? '/v1/app/sessions/revoke-all' : '/v1/app/logout';
   try {
-    await apiPost<void>(path, undefined, { skipAuthRedirect: true });
+    await apiPost<void>(path, undefined, { skipAuthRedirect: !everywhere });
   } catch (error) {
-    if (!(error instanceof ApiError && error.status === 401)) return false;
+    if (everywhere || !(error instanceof ApiError && error.status === 401)) return false;
   }
   forgetSession();
   await goToSignedOut();

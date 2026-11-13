@@ -172,4 +172,39 @@ describe('account page', () => {
     expect(navigated).toBe(false);
     expect(router.state.location.pathname).toBe('/orgs/11/account');
   });
+
+  test('an expired session never counts as signed out everywhere and asks to sign in again', async () => {
+    const { queryClient } = await renderAt('/orgs/11/account');
+    const assigned: string[] = [];
+    const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: {
+        location: {
+          pathname: '/orgs/11/account',
+          search: '',
+          assign: (url: string) => assigned.push(url),
+        },
+      },
+    });
+    globalThis.fetch = mock(async () =>
+      Response.json({ error: { code: 'unauthorized', message: 'sign in' } }, { status: 401 }),
+    ) as unknown as typeof fetch;
+    let navigated = false;
+    try {
+      const ok = await signOut({
+        queryClient,
+        everywhere: true,
+        goToSignedOut: () => {
+          navigated = true;
+        },
+      });
+      expect(ok).toBe(false);
+    } finally {
+      if (originalWindow) Object.defineProperty(globalThis, 'window', originalWindow);
+      else Reflect.deleteProperty(globalThis, 'window');
+    }
+    expect(navigated).toBe(false);
+    expect(assigned).toEqual(['/sign-in?next=%2Forgs%2F11%2Faccount']);
+  });
 });

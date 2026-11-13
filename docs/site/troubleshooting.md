@@ -55,7 +55,7 @@ The team's `chat.channel` names a Google Chat space that is not linked to your o
 
 Use **Sign out** at the top of the setup page. It ends the web session on the server. The CLI session is separate: run `standcast logout`.
 
-To end the web app in every browser at once (for example on a shared or lost computer), open **Account** from the menu under your name and choose **Sign out of every panel session**. The CLI and plugin stay connected.
+To end the web app in every browser at once (for example on a shared or lost computer), open **Account** from the menu under your name and choose **Sign out of every panel session**. The CLI and plugin stay connected. If your session in this browser has already expired, the web app asks you to sign in again first, and nothing is signed out until you try again.
 
 ## Slack stopped finding me
 
