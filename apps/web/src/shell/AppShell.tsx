@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from '../api/queries';
 import { NavDrawerContext } from './nav-drawer';
 import { Sidebar } from './Sidebar';
-import { SECTION_PATHS, sectionOf } from './sections';
+import { PAGE_PATHS, sectionOf } from './sections';
 
 export function AppShell({ installationId }: { installationId: number }) {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export function AppShell({ installationId }: { installationId: number }) {
           section={section}
           team={section === 'today' && typeof search.team === 'string' ? search.team : null}
           onOrgChange={(next) =>
-            void navigate({ to: SECTION_PATHS[section], params: { installationId: next } })
+            void navigate({ to: PAGE_PATHS[section], params: { installationId: next } })
           }
         />
         <main

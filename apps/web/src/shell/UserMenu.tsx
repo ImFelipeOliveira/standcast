@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useOrgContext, useSession } from '../api/queries';
 import {
@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
-import { setLang, useLang, useT } from '../i18n';
+import { useLang, useT } from '../i18n';
 import { docsUrl } from '../lib/links';
 import { roleLabel } from './roles';
 import { signOut } from './sign-out';
@@ -70,15 +70,14 @@ export function UserMenu({ installationId }: { installationId: number }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" side="top">
           <DropdownMenuItem asChild>
+            <Link to="/orgs/$installationId/account" params={{ installationId }}>
+              {t('user.account')}
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
             <a href={docsUrl(lang)} target="_blank" rel="noreferrer">
               {t('user.docs')}
             </a>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            lang={lang === 'pt-BR' ? 'en' : 'pt-BR'}
-            onSelect={() => setLang(lang === 'pt-BR' ? 'en' : 'pt-BR')}
-          >
-            {t('lang.switch')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => void onSignOut()}>{t('user.signOut')}</DropdownMenuItem>

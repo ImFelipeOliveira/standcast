@@ -10,7 +10,14 @@ import { Logo } from './Logo';
 import { useNavDrawer } from './nav-drawer';
 import { OrgSelect } from './OrgSelect';
 import { teamsOf } from './roles';
-import { SECTION_LABELS, SECTION_PATHS, SECTIONS, type Section, SOON_SECTIONS } from './sections';
+import {
+  SECTION_LABELS,
+  SECTION_PATHS,
+  SECTIONS,
+  type Section,
+  type ShellPage,
+  SOON_SECTIONS,
+} from './sections';
 import { ThemeToggle } from './ThemeToggle';
 import { UserMenu } from './UserMenu';
 
@@ -46,7 +53,7 @@ const ICONS: Record<Section, ReactNode> = {
 type Props = {
   installations: Installation[];
   installationId: number;
-  section: Section;
+  section: ShellPage;
   team: string | null;
   onOrgChange: (installationId: number) => void;
 };

@@ -55,6 +55,8 @@ The team's `chat.channel` names a Google Chat space that is not linked to your o
 
 Use **Sign out** at the top of the setup page. It ends the web session on the server. The CLI session is separate: run `standcast logout`.
 
+To end the web app in every browser at once (for example on a shared or lost computer), open **Account** from the menu under your name and choose **Sign out of every panel session**. The CLI and plugin stay connected.
+
 ## Slack stopped finding me
 
 When Slack answers `user_not_found` or `user_disabled` for a person, Standcast removes the stored Slack identity automatically, so it does not keep sending messages to the wrong place. Sign in again with `standcast login` to link your current Slack user.

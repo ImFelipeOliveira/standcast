@@ -1,5 +1,101 @@
 import { afterEach, describe, expect, test } from 'bun:test';
-import { applyTheme, chooseTheme, getTheme, initialTheme } from './theme';
+import {
+  applyTheme,
+  chooseTheme,
+  followSystemTheme,
+  getTheme,
+  getThemeChoice,
+  initialTheme,
+  watchSystemTheme,
+} from './theme';
+
+describe('theme choice', () => {
+  const originalDocument = globalThis.document;
+  const originalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  const originalMatchMedia = Object.getOwnPropertyDescriptor(globalThis, 'matchMedia');
+
+  afterEach(() => {
+    globalThis.document = originalDocument;
+    for (const [name, original] of [
+      ['localStorage', originalStorage],
+      ['matchMedia', originalMatchMedia],
+    ] as const) {
+      if (original) Object.defineProperty(globalThis, name, original);
+      else Reflect.deleteProperty(globalThis, name);
+    }
+  });
+
+  function stub(prefersDark: boolean): Map<string, string> {
+    globalThis.document = {
+      documentElement: { setAttribute: () => undefined },
+    } as unknown as Document;
+    const store = new Map<string, string>();
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: (key: string) => store.get(key) ?? null,
+        setItem: (key: string, value: string) => store.set(key, value),
+        removeItem: (key: string) => store.delete(key),
+      },
+    });
+    Object.defineProperty(globalThis, 'matchMedia', {
+      configurable: true,
+      value: () => ({ matches: prefersDark }),
+    });
+    return store;
+  }
+
+  function fakeMedia(initial: boolean) {
+    const listeners = new Set<() => void>();
+    const media = {
+      matches: initial,
+      addEventListener: (_: 'change', listener: () => void) => {
+        listeners.add(listener);
+      },
+      removeEventListener: (_: 'change', listener: () => void) => {
+        listeners.delete(listener);
+      },
+    };
+    const flip = (next: boolean) => {
+      media.matches = next;
+      for (const listener of listeners) listener();
+    };
+    return { media, flip, listeners };
+  }
+
+  test('a stored light or dark is the choice, anything else follows the system', () => {
+    const store = stub(false);
+    expect(getThemeChoice()).toBe('system');
+    store.set('standcast.theme', 'dark');
+    expect(getThemeChoice()).toBe('dark');
+    store.set('standcast.theme', 'purple');
+    expect(getThemeChoice()).toBe('system');
+  });
+
+  test('following the system clears the stored choice and applies the system theme', () => {
+    const store = stub(true);
+    chooseTheme('light');
+    expect(getThemeChoice()).toBe('light');
+    followSystemTheme();
+    expect(store.has('standcast.theme')).toBe(false);
+    expect(getThemeChoice()).toBe('system');
+    expect(getTheme()).toBe('dark');
+  });
+
+  test('a live system change applies only while nothing is stored', () => {
+    const store = stub(false);
+    const { media, flip, listeners } = fakeMedia(false);
+    applyTheme('light');
+    const stop = watchSystemTheme(media);
+    flip(true);
+    expect(getTheme()).toBe('dark');
+    store.set('standcast.theme', 'dark');
+    flip(false);
+    expect(getTheme()).toBe('dark');
+    stop();
+    expect(listeners.size).toBe(0);
+  });
+});
 
 describe('initialTheme', () => {
   test('stored value wins over the system preference', () => {

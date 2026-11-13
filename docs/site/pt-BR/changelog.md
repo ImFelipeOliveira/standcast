@@ -9,6 +9,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 ## Produto
 
 ### Não lançado
+- O app web tem a página **Conta**, aberta pelo menu com o seu nome: foto e login do GitHub com o seu papel em cada organização, idioma (Português, English ou seguir o navegador) e tema (claro, escuro ou seguir o sistema) para este navegador, e **Sair de todas as sessões do painel**, que encerra o app web em todos os navegadores enquanto a CLI e o plugin continuam conectados. A troca de idioma saiu do menu, que agora tem Conta, Documentação e Sair.
 - **Configuração** no app web tem abas: Geral, Pessoas e vínculos, e API e webhooks. **Pessoas e vínculos** (admins) mostra, para cada pessoa do standcast.yml, se o Standcast a encontra no chat e no rastreador do time, de onde vem o vínculo e se ela usa a CLI ou o plugin, com o que fazer quando falta um vínculo. Uma entrega de webhook que falhou pode ser enviada de novo com **Reenviar**.
 - O app web tem a página **Histórico** de cada time: consolidados anteriores por dia com o consolidado completo, busca nas dailies confirmadas (texto, pull request ou card) e os pull requests e cards entregues na semana, com cópia em Markdown e exportação em Markdown ou CSV. Ela nunca mostra quem não enviou nos dias anteriores.
 - **Hoje** e **Histórico** abrem o consolidado no chat do time, com um botão com o nome dele (Abrir no Slack ou Abrir no Google Chat) depois que o consolidado é enviado.

@@ -17,6 +17,7 @@ import {
 } from './api/client';
 import { orgContextQuery, sessionQuery } from './api/queries';
 import { useT } from './i18n';
+import { AccountPage } from './pages/account/AccountPage';
 import { BlockersPage } from './pages/blockers/BlockersPage';
 import { ConfiguracaoPage } from './pages/configuracao/ConfiguracaoPage';
 import { PeopleTab } from './pages/configuracao/PeopleTab';
@@ -182,6 +183,34 @@ const orgIndexRoute = createRoute({
   getParentRoute: () => orgRoute,
   path: '/',
   beforeLoad: ({ context, params }) => landing(context.queryClient, params.installationId),
+});
+
+const accountRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/account',
+  beforeLoad: async ({ context }) => {
+    const session = await context.queryClient.ensureQueryData(sessionQuery);
+    const first = session.installations[0];
+    if (!first) return;
+    throw redirect({
+      to: '/orgs/$installationId/account',
+      params: { installationId: first.id },
+      replace: true,
+    });
+  },
+  component: function StandaloneAccount() {
+    return (
+      <main className="mx-auto box-border flex min-h-screen max-w-[808px] flex-col gap-6 px-4 pb-12 text-sm leading-normal">
+        <AccountPage />
+      </main>
+    );
+  },
+});
+
+const orgAccountRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: 'account',
+  component: AccountPage,
 });
 
 const hojeRoute = createRoute({
@@ -381,8 +410,10 @@ export const routeTree = rootRoute.addChildren([
   setupRoute,
   signInRoute,
   signedOutRoute,
+  accountRoute,
   orgRoute.addChildren([
     orgIndexRoute,
+    orgAccountRoute,
     hojeRoute,
     blockersRoute,
     historicoRoute,

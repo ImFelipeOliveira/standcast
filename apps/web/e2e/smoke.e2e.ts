@@ -21,6 +21,36 @@ test('setup route lands on Configuração and the theme toggles', async ({ page,
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 });
 
+test('the account page sets theme and language for this browser', async ({ page, context }) => {
+  await signIn(context);
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto(`/orgs/${INSTALLATION_ID}/today?team=${TEAM_NAME}`);
+  await page.getByRole('button', { name: 'Menu da conta de alice' }).click();
+  await expect(page.getByRole('menuitem', { name: 'Read in English' })).toHaveCount(0);
+  await page.getByRole('menuitem', { name: 'Conta' }).click();
+  await expect(page).toHaveURL(`/orgs/${INSTALLATION_ID}/account`);
+  await expect(page.getByRole('heading', { name: 'Conta', level: 1 })).toBeVisible();
+  await expect(page.getByText('@alice')).toBeVisible();
+
+  const theme = page.getByRole('group', { name: 'Tema' });
+  await expect(theme.getByRole('radio', { name: 'Sistema' })).toBeChecked();
+  await theme.getByText('Escuro').click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await theme.getByText('Sistema').click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  expect(await page.evaluate(() => localStorage.getItem('standcast.theme'))).toBeNull();
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+
+  await page.getByRole('group', { name: 'Idioma' }).getByText('English').click();
+  await expect(page.getByRole('heading', { name: 'Account', level: 1 })).toBeVisible();
+  await page.getByRole('group', { name: 'Language' }).getByText('Follow the browser').click();
+  await expect(page.getByRole('heading', { name: 'Conta', level: 1 })).toBeVisible();
+
+  await page.goto('/account');
+  await expect(page).toHaveURL(`/orgs/${INSTALLATION_ID}/account`);
+});
+
 test('hoje shows the team blocker and who sent today', async ({ page, context }) => {
   await signIn(context);
   await page.goto(`/orgs/${INSTALLATION_ID}/today?team=${TEAM_NAME}`);
