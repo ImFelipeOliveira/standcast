@@ -15,7 +15,7 @@ export function AppShell({ installationId }: { installationId: number }) {
         installations={session.data?.installations ?? []}
         installationId={installationId}
         section={section}
-        team={section === 'hoje' && typeof search.team === 'string' ? search.team : null}
+        team={section === 'today' && typeof search.team === 'string' ? search.team : null}
         onOrgChange={(next) =>
           void navigate({ to: SECTION_PATHS[section], params: { installationId: next } })
         }

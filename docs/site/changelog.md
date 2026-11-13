@@ -11,6 +11,10 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 ### Unreleased
 
 - The documentation meets WCAG 2.2 AA in the light and dark themes: links in the text are underlined, focus shows a 2px ring, and text and code reach 4.5:1 contrast. The sidebar is grouped into Getting started, Members, Admin, API and Reference, install and setup examples show each option in its own tab, and every page has its own link preview image, a link to edit it on GitHub and the date it was last updated. The members page *Getting started* is now *Write your first daily*, at the same address.
+- The web app has its own sign-in page. Opening the app without a session shows it instead of jumping straight to GitHub, and **Continue with GitHub** brings you back to the page you asked for.
+- When signing in fails (you cancel on GitHub, the link expires, GitHub does not confirm the account or the browser drops the session cookie), you return to the sign-in page with a message saying what happened and a **Try again** button, instead of an error page on the API.
+- Web app addresses are in English: `/orgs/<id>/today`, `/history` and `/settings`. Old links to `/hoje`, `/historico` and `/configuracao` still work and keep their query string.
+- The web app shows the Standcast icon in the browser tab.
 - New images from the Standcast brand kit: app icons, the Google Chat avatar and card banner, a light and dark README banner, social and link preview images, and five marketplace screenshots.
 
 ### 0.9.4 — 2026-11-12

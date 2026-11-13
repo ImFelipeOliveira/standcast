@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { textLayerFromCairoSvg } from './brand/html-to-svg';
 
 const ROOT = join(import.meta.dir, '..');
 const BRAND = 'docs/marketplace/brand';
@@ -184,6 +185,13 @@ describe('readme', () => {
     expect(quickStart).toBeGreaterThan(-1);
     expect(features).toBeGreaterThan(quickStart);
   });
+
+  test('makes the slack step of the admin quick start conditional', () => {
+    const admins = readme.slice(readme.indexOf('\n### For admins\n'));
+    const step = admins.match(/\n2\. [^\n]*/)?.[0] ?? '';
+    expect(step).toContain('If your teams post to Slack, click **Connect Slack**');
+    expect(step).toContain('If they post to Google Chat');
+  });
 });
 
 describe('github marketplace copy', () => {
@@ -201,7 +209,54 @@ describe('github marketplace copy', () => {
     expect(detailed.length).toBeLessThanOrEqual(1000);
   });
 
+  test('states what the github app reads and writes', () => {
+    const manifest = JSON.parse(text('docs/github-app-manifest.json')) as {
+      default_permissions: Record<string, string>;
+    };
+    const writes = Object.entries(manifest.default_permissions)
+      .filter(([, access]) => access === 'write')
+      .map(([name]) => name);
+    expect(writes).toEqual(['checks']);
+    const detailed = section(listing, '### Detailed description (GitHub)');
+    expect(detailed).toContain('Standcast config check run');
+    expect(detailed).toMatch(/reads[^.]*standcast\.yml and CODEOWNERS/);
+    expect(detailed).toMatch(/team membership/);
+  });
+
+  test('does not show history as shipped in the team panel screenshot', () => {
+    const row = listing.split('\n').find((line) => line.includes('5-team-panel.png')) ?? '';
+    expect(row).not.toBe('');
+    expect(row).not.toMatch(/blockers and history in one panel/);
+    expect(row).toContain('History is coming soon');
+  });
+
   test('names the badge color', () => {
     expect(listing).toContain('#3B4BC8');
+  });
+});
+
+describe('cairo text layer', () => {
+  const defs = '<defs><g><g id="glyph-0-1"><path d="M 1 2 L 3 4 Z"/></g></g></defs>';
+
+  test('reads glyph groups that use fill attributes', () => {
+    const layer = textLayerFromCairoSvg(
+      `<svg>${defs}<g fill="rgb(100%, 0%, 0%)" fill-opacity="1"><use xlink:href="#glyph-0-1" x="3" y="6"/></g></svg>`,
+    );
+    expect(layer.defs).toContain('<path id="g1"');
+    expect(layer.body).toContain('<use href="#g1" x="4" y="8"/>');
+  });
+
+  test('reads glyph groups that use a fill style', () => {
+    const layer = textLayerFromCairoSvg(
+      `<svg>${defs}<g style="fill:rgb(100%,0%,0%);fill-opacity:0.5;"><use xlink:href="#glyph-0-1" x="3" y="6"/></g></svg>`,
+    );
+    expect(layer.body).toContain('<use href="#g1" x="4" y="8"/>');
+    expect(layer.body).toMatch(/fill="#FF0000" fill-opacity="0\.5"/);
+  });
+
+  test('fails when the converter output has no text layer', () => {
+    expect(() => textLayerFromCairoSvg('<svg><defs></defs><g><path d="M 0 0"/></g></svg>')).toThrow(
+      /no text layer/,
+    );
   });
 });

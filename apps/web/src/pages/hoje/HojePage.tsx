@@ -1,6 +1,6 @@
 import type { TeamToday, TodayBlocker } from '@standcast/orchestrator';
 import { useState } from 'react';
-import { ApiError, isSignInStuck } from '../../api/client';
+import { ApiError } from '../../api/client';
 import { useRemindNow, useReopenBlocker, useResolveBlocker } from '../../api/mutations';
 import { useSession, useTeamToday } from '../../api/queries';
 import { Badge } from '../../components/ui/badge';
@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { useLang, useT } from '../../i18n';
 import { errorMessage } from '../configuracao/labels';
-import { Loading, SignInStuck } from '../RouteStates';
+import { Loading } from '../RouteStates';
 import { Dailies, type DailyFilter, type RemindStatus } from './DailyCard';
 import { DailyDrawer } from './DailyDrawer';
 import { formatDay, formatTime } from './format';
@@ -220,7 +220,6 @@ export function HojePage({ installationId, team }: { installationId: number; tea
   const today = useTeamToday(installationId, team);
   if (today.isPending) return <Loading />;
   if (today.isError) {
-    if (isSignInStuck(today.error)) return <SignInStuck />;
     if (today.error instanceof ApiError && today.error.status === 401) return <Loading />;
     return <LoadError error={today.error} onRetry={() => void today.refetch()} />;
   }

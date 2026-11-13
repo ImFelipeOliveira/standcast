@@ -11,6 +11,10 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 ### Não lançado
 
 - A documentação atende ao WCAG 2.2 AA nos temas claro e escuro: os links no texto são sublinhados, o foco mostra um anel de 2px, e textos e códigos chegam a contraste de 4,5:1. A barra lateral agora se divide em Primeiros passos, Membros, Admin, API e Referência, os exemplos de instalação e configuração mostram cada opção numa aba, e cada página tem a sua imagem de prévia de link, um link para editá-la no GitHub e a data da última atualização. A página de membros *Primeiros passos* agora se chama *Escreva sua primeira daily*, no mesmo endereço.
+- O app web tem a própria página de login. Abrir o app sem sessão mostra essa página em vez de ir direto para o GitHub, e **Continuar com GitHub** devolve você à página que tinha pedido.
+- Quando o login falha (você cancela no GitHub, o link expira, o GitHub não confirma a conta ou o navegador descarta o cookie da sessão), você volta à página de login com uma mensagem dizendo o que aconteceu e um botão **Tentar de novo**, em vez de uma página de erro da API.
+- Os endereços do app web estão em inglês: `/orgs/<id>/today`, `/history` e `/settings`. Links antigos para `/hoje`, `/historico` e `/configuracao` continuam funcionando e mantêm a query string.
+- O app web mostra o ícone do Standcast na aba do navegador.
 - Novas imagens do kit de marca do Standcast: ícones do app, avatar e banner do card no Google Chat, banner claro e escuro no README, imagens de prévia para redes e links, e cinco screenshots para os marketplaces.
 
 ### 0.9.4 — 12/11/2026

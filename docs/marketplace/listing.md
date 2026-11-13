@@ -37,7 +37,7 @@ Every image has an SVG source in [brand/](brand/) with its text outlined as path
 | Screenshot 2: one digest per team, delivered to Slack | 1280×800 | `mock/2-digest-in-slack.html` | `docs/marketplace/screenshots/2-digest-in-slack.png` | upload the file |
 | Screenshot 3: the same digest in Google Chat | 1280×800 | `mock/3-digest-in-google-chat.html` | `docs/marketplace/screenshots/3-digest-in-google-chat.png` | upload the file |
 | Screenshot 4: blockers reach the people who can help | 1280×800 | `mock/4-blocker-routing.html` | `docs/marketplace/screenshots/4-blocker-routing.png` | upload the file |
-| Screenshot 5: your team's day, blockers and history in one panel | 1280×800 | `mock/5-team-panel.html` | `docs/marketplace/screenshots/5-team-panel.png` | upload the file |
+| Screenshot 5: your team's day and blockers in one panel (History is coming soon) | 1280×800 | `mock/5-team-panel.html` | `docs/marketplace/screenshots/5-team-panel.png` | upload the file |
 
 The screenshots are mocks with example teams and names, without a browser frame. Upload them in this order, to both marketplaces. The landing still uses `og.png` (source `brand/og.svg`) until the new landing ships.
 
@@ -243,7 +243,7 @@ Standcast drafts each person's daily standup from their GitHub and Linear activi
 
 ### Detailed description (GitHub)
 
-874 characters (up to 1,000). GitHub renders it as Markdown.
+949 characters (up to 1,000). GitHub renders it as Markdown.
 
 ```text
 ### Drafted from real work
@@ -259,7 +259,7 @@ The MCP submit tool requires confirmed: true, which the agent only passes after 
 Teams, schedules, chat channels and managers live in standcast.yml in your .github-private (or .github) repository, validated on every push.
 
 ### Built for teams, not surveillance
-No productivity metrics, no rankings, no commit counts. It reads pull requests, reviews, checks and commit metadata, and writes only its own standcast.yml check run; it never reads your code. Open source (MIT) and free during the public beta.
+No productivity metrics, no rankings, no commit counts. It reads pull request, review, check and commit metadata, team membership, and two files: standcast.yml and CODEOWNERS. It never reads your source code, and its only write is its own Standcast config check run. Open source (MIT) and free during the public beta.
 ```
 
 ## After approval

@@ -1,6 +1,6 @@
 import { githubAuthorizeUrl } from '@standcast/github';
 import type { Deps } from '../../deps';
-import { hashNonce, newNonce, signState } from '../../state-token';
+import { hashNonce, newNonce, signState, verifyState } from '../../state-token';
 
 const hasControlChars = (value: string) =>
   [...value].some((char) => char.charCodeAt(0) < 0x20 || char.charCodeAt(0) === 0x7f);
@@ -34,4 +34,13 @@ export function startWebLogin(
       state,
     }),
   };
+}
+
+export function readLoginState(
+  deps: Deps,
+  state: string | undefined,
+): { next: string; target: 'api' | 'app' } | null {
+  const payload = state ? verifyState(deps.env.sessionSecret, state, 'login', deps.now()) : null;
+  if (!payload) return null;
+  return { next: sanitizeNext(payload.next), target: payload.target === 'app' ? 'app' : 'api' };
 }
