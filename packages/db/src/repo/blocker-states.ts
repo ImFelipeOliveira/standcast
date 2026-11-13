@@ -127,7 +127,7 @@ export async function listCurrentOpenBlockerStates(
   authorMemberIds: string[],
 ): Promise<OpenBlockerState[]> {
   if (authorMemberIds.length === 0) return [];
-  const latest = sql`(select max(${dailies.date}) from ${dailies} where ${dailies.installationId} = ${blockerStates.installationId} and ${dailies.memberId} = ${blockerStates.authorMemberId})`;
+  const latest = latestDailyOfAuthor();
   const rows = await db
     .select({ state: blockerStates, authorLogin: members.login })
     .from(blockerStates)
@@ -147,7 +147,26 @@ export async function listCurrentOpenBlockerStates(
 export type ResolvedBlockerState = BlockerStateRow & {
   authorLogin: string;
   resolvedByLogin: string | null;
+  current: boolean;
 };
+
+function latestDailyOfAuthor(): SQL {
+  return sql`(select max(${dailies.date}) from ${dailies} where ${dailies.installationId} = ${blockerStates.installationId} and ${dailies.memberId} = ${blockerStates.authorMemberId})`;
+}
+
+export async function isBlockerStateCurrent(
+  db: Db,
+  installationId: number,
+  id: string,
+): Promise<boolean> {
+  const [row] = await db
+    .select({
+      current: sql<boolean>`coalesce(${blockerStates.lastSeenOn} = ${latestDailyOfAuthor()}, false)`,
+    })
+    .from(blockerStates)
+    .where(and(eq(blockerStates.id, id), eq(blockerStates.installationId, installationId)));
+  return row?.current === true;
+}
 
 export async function listResolvedBlockerStates(
   db: Db,
@@ -158,7 +177,12 @@ export async function listResolvedBlockerStates(
   if (authorMemberIds.length === 0) return [];
   const resolver = alias(members, 'resolver');
   const rows = await db
-    .select({ state: blockerStates, authorLogin: members.login, resolvedByLogin: resolver.login })
+    .select({
+      state: blockerStates,
+      authorLogin: members.login,
+      resolvedByLogin: resolver.login,
+      current: sql<boolean>`coalesce(${blockerStates.lastSeenOn} = ${latestDailyOfAuthor()}, false)`,
+    })
     .from(blockerStates)
     .innerJoin(members, eq(members.id, blockerStates.authorMemberId))
     .leftJoin(resolver, eq(resolver.id, blockerStates.resolvedByMemberId))
@@ -176,5 +200,6 @@ export async function listResolvedBlockerStates(
     ...r.state,
     authorLogin: r.authorLogin,
     resolvedByLogin: r.resolvedByLogin ?? null,
+    current: r.current === true,
   }));
 }

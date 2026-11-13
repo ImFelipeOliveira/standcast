@@ -1,5 +1,61 @@
 import { describe, expect, test } from 'bun:test';
+import { LINK_CHAT_ACCOUNT_ACTION, type Message } from '@standcast/core';
 import { GOOGLE_CHAT_TEXT_LIMIT, MARKUP_BREAKER, renderGoogleChat } from '../src';
+
+const ENDPOINT = 'https://api.test/webhooks/google-chat';
+
+const withLink: Message = {
+  fallbackText: 'fb',
+  blocks: [{ type: 'paragraph', content: ['Did not send: @carol'] }],
+  actions: [
+    { type: LINK_CHAT_ACCOUNT_ACTION, text: 'Shown as <@login>?', label: 'Link my account' },
+  ],
+};
+
+describe('renderGoogleChat actions', () => {
+  test('the link account action becomes a card button that calls the chat endpoint', () => {
+    expect(renderGoogleChat(withLink, { interactionUrl: ENDPOINT })).toEqual({
+      text: 'Did not send: @carol',
+      cardsV2: [
+        {
+          cardId: LINK_CHAT_ACCOUNT_ACTION,
+          card: {
+            sections: [
+              {
+                widgets: [
+                  { textParagraph: { text: 'Shown as &lt;@login&gt;?' } },
+                  {
+                    buttonList: {
+                      buttons: [
+                        {
+                          text: 'Link my account',
+                          onClick: {
+                            action: {
+                              function: ENDPOINT,
+                              parameters: [{ key: 'action', value: LINK_CHAT_ACCOUNT_ACTION }],
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      ],
+    });
+  });
+
+  test('without an interaction url or without actions there is no card', () => {
+    expect(renderGoogleChat(withLink)).toEqual({ text: 'Did not send: @carol' });
+    const { actions: _, ...plain } = withLink;
+    expect(renderGoogleChat(plain, { interactionUrl: ENDPOINT })).toEqual({
+      text: 'Did not send: @carol',
+    });
+  });
+});
 
 describe('renderGoogleChat', () => {
   test('renders heading, paragraph, list and divider as text', () => {

@@ -12,6 +12,7 @@ import {
   getInstallation,
   getMemberById,
   type InstallationRow,
+  isBlockerStateCurrent,
   type MemberRow,
   operationalConfig,
   retireMissingBlockerStates,
@@ -100,6 +101,16 @@ export async function setBlockerResolved(
       { installationId: String(installation.id) },
     ));
   if (!allowed) throw new DomainError('forbidden', 'you cannot change this blocker');
+  if (
+    !input.resolved &&
+    state.resolvedAt !== null &&
+    !(await isBlockerStateCurrent(deps.db, installation.id, state.id))
+  ) {
+    throw new DomainError(
+      'blocker_not_current',
+      "the blocker is no longer in the author's latest daily",
+    );
+  }
   const now = deps.now();
   const first = teams[0];
   const resolvedOn = first ? dailyDateFor(now, first) : localDate(now, 'UTC');

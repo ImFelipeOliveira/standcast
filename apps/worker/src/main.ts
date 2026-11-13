@@ -14,6 +14,7 @@ import {
   pullRequestMerged,
   resolveTeamMembers,
 } from '@standcast/github';
+import { googleChatEndpoint } from '@standcast/google-chat';
 import { exchangeLinearCode, refreshLinearToken } from '@standcast/linear';
 import {
   createChatFor,
@@ -94,7 +95,10 @@ const deps: WorkerDeps = {
   chatFor: createChatFor(
     db,
     env.STANDCAST_ENCRYPTION_KEY,
-    chatFactories(env.GOOGLE_CHAT_SERVICE_ACCOUNT),
+    chatFactories(
+      env.GOOGLE_CHAT_SERVICE_ACCOUNT,
+      env.PUBLIC_URL ? { interactionUrl: googleChatEndpoint(env.PUBLIC_URL) } : {},
+    ),
   ),
   trackerFor: (...args) => createTrackerFor(deps)(...args),
   linear: { exchangeCode: exchangeLinearCode, refreshToken: refreshLinearToken },

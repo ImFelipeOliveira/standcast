@@ -4,6 +4,8 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 
 ## Unreleased
 
+- No public API changes. The errors guide lists `blocker_not_current` (409), returned only by the web app route that reopens a blocker when the author sent a later daily without it.
+
 ## 0.9.4 — 2026-11-12
 
 - No public API changes.
