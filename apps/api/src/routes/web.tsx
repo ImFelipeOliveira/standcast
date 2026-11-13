@@ -30,6 +30,7 @@ const LOGIN_NONCE_SECONDS = 600;
 const SIGN_IN_CODES = ['unauthorized', 'forbidden', 'invalid_state', 'access_denied'];
 export const WEB_IP_LIMIT = 60;
 const RESYNC_CODES = ['forbidden', 'installation_pending'];
+const APP_SIGN_IN_CODES = ['access_denied', 'invalid_state', 'unauthorized'];
 const PAGE_PATHS = ['/setup/*', '/connect/*', '/auth/*', '/oauth/*', '/logout'];
 const STYLE_HASH = `'sha256-${new Bun.CryptoHasher('sha256').update(PAGE_CSS).digest('base64')}'`;
 
@@ -164,7 +165,8 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
     }).catch((error: unknown) => {
       if (state?.target === 'api') throw error;
       if (!(error instanceof DomainError)) logError('web login failed', error);
-      return { failed: error instanceof DomainError ? error.code : 'generic' };
+      const known = error instanceof DomainError && APP_SIGN_IN_CODES.includes(error.code);
+      return { failed: known ? error.code : 'generic' };
     });
     deleteCookie(c, LOGIN_COOKIE, { path: LOGIN_COOKIE_PATH, secure: true });
     if ('failed' in login) return c.redirect(appSignIn(login.failed, state?.next));

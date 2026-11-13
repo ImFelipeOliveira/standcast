@@ -10,7 +10,7 @@ import {
   upsertInstallation,
   upsertMember,
 } from '@standcast/db';
-import { csrfToken, type Deps, nullTracker } from '@standcast/orchestrator';
+import { csrfToken, type Deps, DomainError, nullTracker } from '@standcast/orchestrator';
 import { createMemoryQueue } from '@standcast/queue';
 import { ChatDeliveryError } from '@standcast/slack';
 import { db, useCleanDb } from '../../../packages/db/test/setup';
@@ -320,6 +320,19 @@ describe('web login', () => {
     const { state, loginCookie } = await beginLogin(app, '/orgs/11/today', 'app');
     const res = await callback(app, state, loginCookie);
     expect(res.status).toBe(302);
+    expect(location(res)).toBe(
+      `https://app.test/sign-in?error=generic&next=${encodeURIComponent('/orgs/11/today')}`,
+    );
+  });
+
+  test('an app login failure with an unlisted code is reported as generic', async () => {
+    const { app, deps } = harness();
+    await seed();
+    deps.github.exchangeWebCode = async () => {
+      throw new DomainError('rate_limited', 'slow down');
+    };
+    const { state, loginCookie } = await beginLogin(app, '/orgs/11/today', 'app');
+    const res = await callback(app, state, loginCookie);
     expect(location(res)).toBe(
       `https://app.test/sign-in?error=generic&next=${encodeURIComponent('/orgs/11/today')}`,
     );

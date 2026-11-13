@@ -42,7 +42,7 @@ export function Toast({
       data-slot="toast"
       role={tone === 'neutral' ? 'status' : 'alert'}
       aria-live={tone === 'neutral' ? 'polite' : 'assertive'}
-      className="pointer-events-auto box-border flex w-full max-w-[384px] items-start gap-3 rounded-[10px] bg-surface p-3.5 pl-4 text-text shadow-[0_16px_40px_-12px_rgba(24,24,27,0.25),0_2px_6px_rgba(24,24,27,0.08)]"
+      className="pointer-events-auto box-border flex w-full max-w-[384px] items-start gap-3 rounded-[10px] bg-surface p-3.5 pl-4 text-text ring-1 ring-border-strong shadow-[0_16px_40px_-12px_rgba(24,24,27,0.25),0_2px_6px_rgba(24,24,27,0.08)]"
     >
       <span
         aria-hidden="true"

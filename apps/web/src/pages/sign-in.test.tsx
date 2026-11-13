@@ -111,6 +111,13 @@ describe('sign-in page', () => {
     });
   }
 
+  test('the toast has a visible edge in both themes', async () => {
+    const { html } = await renderAt('/sign-in?error=generic', 401);
+    const toast = html.match(/<div data-slot="toast"[^>]*>/)?.[0] ?? '';
+    expect(toast).toContain('ring-1');
+    expect(toast).toContain('ring-border-strong');
+  });
+
   test('an unknown error code shows no toast', async () => {
     const { html } = await renderAt('/sign-in?error=oops', 401);
     expect(html).not.toContain('role="alert"');
