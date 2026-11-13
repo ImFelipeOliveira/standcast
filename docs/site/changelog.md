@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- The landing at standcast.app has a new look in English and Portuguese: new colors that meet WCAG 2.2 AA in light and dark themes, a skip link, and a home page with a day with Standcast, what it does, three ways to write, integrations, privacy, configuration, pricing and FAQ. The wave in the background is now a calm pixel grid. It has a **Pause animation** button, stops when it is off screen or the tab is hidden, and shows a still frame when your system asks for reduced motion.
+
 ### 0.9.4 — 2026-11-12
 
 - The `/daily` skill and the MCP server summarize yesterday in at most 5 lines, grouped by project or theme, instead of one line per pull request.

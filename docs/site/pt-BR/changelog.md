@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- A landing em standcast.app tem um visual novo em português e em inglês: cores novas que atendem ao WCAG 2.2 AA nos temas claro e escuro, um link para pular para o conteúdo e uma página inicial com um dia com o Standcast, o que ele faz, três jeitos de escrever, integrações, privacidade, configuração, preços e perguntas frequentes. A onda do fundo virou uma grade de pixels tranquila. Ela tem um botão **Pausar animação**, para quando sai da tela ou quando a aba fica escondida, e mostra um quadro parado quando o sistema pede menos movimento.
+
 ### 0.9.4 — 12/11/2026
 
 - A skill `/daily` e o servidor MCP resumem o ontem em até 5 linhas, agrupadas por projeto ou tema, em vez de uma linha por pull request.
