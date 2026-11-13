@@ -1,34 +1,32 @@
 <p align="center">
-  <a href="https://standcast.app"><img src="apps/landing/public/og.png" alt="Standcast: your daily standup, written in your AI agent" width="100%"></a>
+  <a href="https://standcast.app">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/marketplace/brand/readme-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="docs/marketplace/brand/readme-light.svg">
+      <img src="docs/marketplace/brand/readme-light.svg" alt="Standcast: the daily standup, written in your AI agent" width="700">
+    </picture>
+  </a>
 </p>
-
-<h1 align="center">Standcast</h1>
 
 <p align="center">
   <strong>Your team's daily standup, written with your AI agent and delivered to Slack or Google Chat.</strong>
 </p>
 
 <p align="center">
-  <em>Standcast was previously called Standwise.</em>
-</p>
-
-<p align="center">
-  <a href="https://github.com/ImFelipeOliveira/standcast/actions/workflows/ci.yml"><img src="https://github.com/ImFelipeOliveira/standcast/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/ImFelipeOliveira/standcast/releases"><img src="https://img.shields.io/github/v/release/ImFelipeOliveira/standcast?include_prereleases" alt="Latest release"></a>
-  <img src="https://img.shields.io/badge/status-public%20beta-orange.svg" alt="Status: public beta">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
-  <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-strict-3178C6.svg?logo=typescript&logoColor=white" alt="TypeScript"></a>
-  <a href="https://bun.sh"><img src="https://img.shields.io/badge/Bun-runtime-000000.svg?logo=bun&logoColor=white" alt="Bun"></a>
-  <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-server-6E56CF.svg" alt="MCP server"></a>
-</p>
-
-<p align="center">
+  <a href="https://docs.standcast.app/">Docs</a> ·
   <a href="#quick-start">Quick start</a> ·
-  <a href="https://standcast.app">Landing</a> ·
-  <a href="https://app.standcast.app">App</a> ·
-  <a href="https://docs.standcast.app/">Documentation</a> ·
-  <a href="https://docs.standcast.app/admin/configuration">Configuration</a> ·
-  <a href="#roadmap">Roadmap</a>
+  <a href="https://github.com/apps/standcast">GitHub App</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/ImFelipeOliveira/standcast/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/ImFelipeOliveira/standcast/ci.yml?branch=main&amp;label=CI&amp;labelColor=18181b" alt="CI"></a>
+  <a href="https://github.com/ImFelipeOliveira/standcast/releases"><img src="https://img.shields.io/github/v/release/ImFelipeOliveira/standcast?include_prereleases&amp;label=release&amp;labelColor=18181b&amp;color=3B4BC8" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/status-public%20beta-3B4BC8?labelColor=18181b" alt="Status: public beta">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-3B4BC8?labelColor=18181b" alt="License: MIT"></a>
+</p>
+
+<p align="center">
+  <em>Standcast was previously called Standwise.</em>
 </p>
 
 ---
@@ -42,10 +40,10 @@ It is built for teams, not for watching people: **no productivity metrics, no ra
 
 ## Table of contents
 
+- [Quick start](#quick-start)
 - [Why Standcast](#why-standcast)
 - [Features](#features)
 - [How it works](#how-it-works)
-- [Quick start](#quick-start)
 - [Configuration](#configuration)
 - [Privacy principles](#privacy-principles)
 - [Architecture](#architecture)
@@ -55,6 +53,39 @@ It is built for teams, not for watching people: **no productivity metrics, no ra
 - [Roadmap](#roadmap)
 - [Support](#support)
 - [License](#license)
+
+## Quick start
+
+New here? The [landing page](https://standcast.app) has the overview and the beta request form. Agents can read [llms.txt](https://standcast.app/llms.txt).
+
+### For admins
+
+You need to own the GitHub organization (or personal account).
+
+1. [Install the Standcast GitHub App](https://github.com/apps/standcast/installations/new) on your organization.
+2. GitHub sends you to [https://app.standcast.app/setup](https://app.standcast.app/setup). Sign in and click **Connect Slack**. For Google Chat, add the Standcast app to a space and paste the code it posts in the Google Chat step ([guide](https://docs.standcast.app/admin/google-chat)).
+3. Create `standcast.yml` at the root of your private `.github-private` repository (or of `.github`), from the template on the setup page.
+
+Step by step: [Install](https://docs.standcast.app/admin/install).
+
+### For members
+
+Install the CLI (macOS and Linux) and sign in:
+
+```sh
+curl -fsSL https://standcast.app/install.sh | sh
+standcast login
+```
+
+The script downloads the latest release for your system, checks it against `SHA256SUMS` and installs it to `~/.local/bin/standcast`. Windows binaries are on the [releases page](https://github.com/ImFelipeOliveira/standcast/releases/latest).
+
+Then pick how you write your daily:
+
+| Client                                     | Setup                                                                                                               |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **Claude Code**                            | `/plugin marketplace add ImFelipeOliveira/standcast`, then `/plugin install standcast@standcast`, then run `/daily` |
+| **Cursor, Codex, Claude Desktop, VS Code** | Add the MCP server (`standcast mcp`): [MCP guide](https://docs.standcast.app/members/mcp)                           |
+| **Terminal**                               | `standcast draft` and `standcast submit`: [CLI reference](https://docs.standcast.app/members/cli)                   |
 
 ## Why Standcast
 
@@ -116,39 +147,6 @@ A day with `remind_at: "09:30"` and `digest_at: "10:00"`:
 | 10:40 | Bob sends a late daily. It is posted as a reply in the digest thread.                                                                                                                                         |
 
 The full walkthrough is in [How it works](https://docs.standcast.app/how-it-works).
-
-## Quick start
-
-New here? The [landing page](https://standcast.app) has the overview and the beta request form. Agents can read [llms.txt](https://standcast.app/llms.txt).
-
-### For admins
-
-You need to own the GitHub organization (or personal account).
-
-1. [Install the Standcast GitHub App](https://github.com/apps/standcast/installations/new) on your organization.
-2. GitHub sends you to [https://app.standcast.app/setup](https://app.standcast.app/setup). Sign in and click **Connect Slack**. For Google Chat, add the Standcast app to a space and paste the code it posts in the Google Chat step ([guide](https://docs.standcast.app/admin/google-chat)).
-3. Create `standcast.yml` at the root of your private `.github-private` repository (or of `.github`), from the template on the setup page.
-
-Step by step: [Install](https://docs.standcast.app/admin/install).
-
-### For members
-
-Install the CLI (macOS and Linux) and sign in:
-
-```sh
-curl -fsSL https://standcast.app/install.sh | sh
-standcast login
-```
-
-The script downloads the latest release for your system, checks it against `SHA256SUMS` and installs it to `~/.local/bin/standcast`. Windows binaries are on the [releases page](https://github.com/ImFelipeOliveira/standcast/releases/latest).
-
-Then pick how you write your daily:
-
-| Client                                     | Setup                                                                                                               |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| **Claude Code**                            | `/plugin marketplace add ImFelipeOliveira/standcast`, then `/plugin install standcast@standcast`, then run `/daily` |
-| **Cursor, Codex, Claude Desktop, VS Code** | Add the MCP server (`standcast mcp`): [MCP guide](https://docs.standcast.app/members/mcp)                           |
-| **Terminal**                               | `standcast draft` and `standcast submit`: [CLI reference](https://docs.standcast.app/members/cli)                   |
 
 ## Configuration
 
