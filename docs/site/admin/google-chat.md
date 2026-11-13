@@ -8,7 +8,7 @@ Standcast can post a team's digest to a Google Chat space instead of a Slack cha
 
 One organization can use Slack for one team and Google Chat for another. You choose per team in `standcast.yml`.
 
-The app does not read messages in spaces. It has no cards or commands: the daily is still written in your AI agent or the CLI.
+The app does not read messages in spaces. It has no commands, and its only button is **Link my account** under the digest: the daily is still written in your AI agent or the CLI.
 
 ## Availability
 
@@ -73,9 +73,14 @@ When the organization has no linked space left, Google Chat is disconnected. Peo
 Google Chat does not let the app find a person by email, so each person links themselves once:
 
 1. Run `standcast login`, so Standcast knows your GitHub account.
-2. In Google Chat, send the Standcast app a direct message. Any text works.
+2. In Google Chat, do one of these:
+   - click **Link my account** under the team digest;
+   - mention the Standcast app in a space where it is, for example `@Standcast hi`;
+   - send the Standcast app a direct message. Any text works.
 
-Standcast matches the email of your Google account with the primary verified email of your GitHub account, and links you in every organization of yours that has a linked space. The app answers:
+The digest shows the **Link my account** button only while someone in it is not linked and shows as `@login`. The button works for whoever clicks it: it links the person who clicked, never the people named in the digest.
+
+All three ways do the same thing. Standcast matches the email of your Google account with the primary verified email of your GitHub account, and links you in every organization of yours that has a linked space. It stores only your Google Chat user id. Clicking again, or messaging the app again, keeps a single link. The app answers; after a click or a mention in a space, the answer is visible only to you:
 
 | Answer | What it means |
 | --- | --- |
@@ -101,9 +106,9 @@ The digest mentions each linked person with their Google Chat user, and shows `@
 
 ## What happens without a link
 
-- **The person is not linked.** Reminders, routed blockers and suggested blockers for them fail with `no_chat_identity`. The digest still goes out, with `@login`.
+- **The person is not linked.** Reminders, routed blockers and suggested blockers for them fail with `no_chat_identity`. The digest still goes out, with `@login` and the **Link my account** button.
 - **No one a blocker would go to can be reached.** When none of the people Standcast picked for a blocker, such as the reviewers, the code owners or the people on the card, has a Google Chat link or a confirmed mapping, the blocker goes to the team's managers instead. No failure is recorded for the people it first picked. The exception is a membership check that timed out: then the blocker does not go to the managers, and the delivery to that person fails with `timeout` and is retried.
-- **The person never opened a direct message with the app.** Google Chat sends a direct message only after the person has talked to the app once. Deliveries to them fail with `no_dm_space` and are not retried. Ask them to send the app a direct message.
+- **The person never opened a direct message with the app.** Google Chat sends a direct message only after the person has talked to the app once in a direct message. Linking with the button or a mention is not enough for that. Deliveries to them fail with `no_dm_space` and are not retried. Ask them to send the app a direct message.
 - **The space is not linked to your organization.** The digest and late dailies for the team fail with `space_not_linked`. Nothing is posted, and it is not retried. Link the space with a code.
 
 ## Delivery errors
@@ -128,8 +133,9 @@ When a post fails, the web app lists it under "Latest failed deliveries". Standc
 
 ## Limits worth knowing
 
-- Messages are plain text. A digest longer than 4,096 characters is cut and ends with "… see Standcast".
-- The app reacts only to being added to or removed from a space, and to direct messages. Mentioning it in a space does nothing.
+- Messages are plain text, plus the **Link my account** card under a digest. A digest longer than 4,096 characters is cut and ends with "… see Standcast".
+- The app reacts only to being added to or removed from a space, to direct messages, to mentions in a space and to the **Link my account** button. A mention in a space or a click only links the person; the app does not read the text.
+- The button needs the Standcast server to know its public address: on a server you run, set `PUBLIC_URL` on the worker. Without it, the digest has no button.
 - Link codes: 8 characters, valid for 24 hours, single use. Link attempts are limited to 10 per minute.
 - Standcast handles at most 120 Google Chat events per space per minute.
 

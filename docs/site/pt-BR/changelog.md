@@ -14,6 +14,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 - Quando o login falha (você cancela no GitHub, o link expira, o GitHub não confirma a conta ou o navegador descarta o cookie da sessão), você volta à página de login com uma mensagem dizendo o que aconteceu e um botão **Tentar de novo**, em vez de uma página de erro da API.
 - Os endereços do app web estão em inglês: `/orgs/<id>/today`, `/history` e `/settings`. Links antigos para `/hoje`, `/historico` e `/configuracao` continuam funcionando e mantêm a query string.
 - O app web mostra o ícone do Standcast na aba do navegador.
+- Google Chat: enquanto alguém no consolidado de um time não está vinculado ao Google Chat e aparece como `@login`, o consolidado termina com um botão **Vincular minha conta**. Um clique vincula quem clicou, pelo mesmo e-mail usado na mensagem direta para o app, e a resposta só aparece para essa pessoa. Mencionar o app num espaço vincula a pessoa do mesmo jeito. O worker precisa de `PUBLIC_URL` para o botão. Veja [Google Chat](/pt-BR/admin/google-chat#como-as-pessoas-sao-vinculadas).
 
 ### 0.9.4 — 12/11/2026
 

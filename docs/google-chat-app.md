@@ -53,6 +53,8 @@ Google renames its console labels from time to time. If a name below differs, lo
 
 Set the same `GOOGLE_CHAT_SERVICE_ACCOUNT` on both services. The api uses it to check spaces and answer events; the worker uses it to post digests, late dailies, reminders and direct messages.
 
+Also set `PUBLIC_URL` on the worker, the same value as on the api. A digest where someone is not linked ends with a **Link my account** button, and the button calls `<PUBLIC_URL>/webhooks/google-chat`, the same endpoint as every other event. Without `PUBLIC_URL` on the worker, digests have no button.
+
 For local development, put `GOOGLE_CHAT_SERVICE_ACCOUNT` and `GOOGLE_CHAT_PROJECT_NUMBER` in `.env` (see `.env.example`). Google cannot reach `localhost`, so events only arrive on a public `https` address.
 
 ## Check it works
@@ -64,6 +66,7 @@ For local development, put `GOOGLE_CHAT_SERVICE_ACCOUNT` and `GOOGLE_CHAT_PROJEC
    - for an app built without the add-on mode, the authentication audience is **Project number**.
 3. Paste the code in the Google Chat card, set a test team with `provider: google-chat` and the space name, and send the app a direct message to link yourself.
 4. Let a digest post, and check that links, mentions and text with `<` show as expected in Google Chat.
+5. With a team member who is not linked, check that the digest ends with **Link my account**, and that a click by that person answers "You're linked" visible only to them.
 
 ## Publish on the Google Workspace Marketplace
 

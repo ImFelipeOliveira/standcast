@@ -8,7 +8,7 @@ O Standcast pode publicar o consolidado de um time num espaço do Google Chat em
 
 Uma organização pode usar o Slack num time e o Google Chat em outro. A escolha é por time, no `standcast.yml`.
 
-O app não lê mensagens nos espaços. Ele não tem cards nem comandos: a daily continua sendo escrita no seu agente de IA ou na CLI.
+O app não lê mensagens nos espaços. Ele não tem comandos, e o único botão dele é **Vincular minha conta**, embaixo do consolidado: a daily continua sendo escrita no seu agente de IA ou na CLI.
 
 ## Disponibilidade
 
@@ -73,9 +73,14 @@ Quando a organização fica sem nenhum espaço vinculado, o Google Chat é desco
 O Google Chat não deixa o app achar uma pessoa pelo e-mail, então cada pessoa se vincula uma vez:
 
 1. Rode `standcast login`, para o Standcast conhecer a sua conta do GitHub.
-2. No Google Chat, mande uma mensagem direta para o app do Standcast. Qualquer texto serve.
+2. No Google Chat, faça uma destas coisas:
+   - clique em **Vincular minha conta** embaixo do consolidado do time;
+   - mencione o app do Standcast num espaço em que ele está, por exemplo `@Standcast oi`;
+   - mande uma mensagem direta para o app do Standcast. Qualquer texto serve.
 
-O Standcast compara o e-mail da sua conta do Google com o e-mail principal verificado da sua conta do GitHub, e vincula você em todas as suas organizações que têm um espaço vinculado. O app responde:
+O consolidado só mostra o botão **Vincular minha conta** enquanto alguém nele não está vinculado e aparece como `@login`. O botão vale para quem clica: ele vincula a pessoa que clicou, nunca as pessoas citadas no consolidado.
+
+Os três jeitos fazem a mesma coisa. O Standcast compara o e-mail da sua conta do Google com o e-mail principal verificado da sua conta do GitHub, e vincula você em todas as suas organizações que têm um espaço vinculado. Ele guarda só o seu id de usuário no Google Chat. Clicar de novo, ou mandar mensagem de novo, mantém um único vínculo. O app responde; depois de um clique ou de uma menção num espaço, a resposta só aparece para você:
 
 | Resposta | O que significa |
 | --- | --- |
@@ -101,9 +106,9 @@ O consolidado menciona cada pessoa vinculada com o usuário dela no Google Chat,
 
 ## O que acontece sem vínculo
 
-- **A pessoa não está vinculada.** Lembretes, impedimentos encaminhados e impedimentos sugeridos para ela falham com `no_chat_identity`. O consolidado sai mesmo assim, com `@login`.
+- **A pessoa não está vinculada.** Lembretes, impedimentos encaminhados e impedimentos sugeridos para ela falham com `no_chat_identity`. O consolidado sai mesmo assim, com `@login` e o botão **Vincular minha conta**.
 - **Ninguém para quem um impedimento iria pode ser alcançado.** Quando nenhuma das pessoas que o Standcast escolheu para um impedimento, como quem revisa, os donos do código ou as pessoas do card, tem vínculo com o Google Chat ou um mapeamento confirmado, o impedimento vai para os gestores do time. Nenhuma falha é registrada para as pessoas escolhidas antes. A exceção é uma conferência de participação que estourou o tempo: aí o impedimento não vai para os gestores, e a entrega para essa pessoa falha com `timeout` e é tentada de novo.
-- **A pessoa nunca abriu uma mensagem direta com o app.** O Google Chat só entrega mensagem direta depois que a pessoa falou com o app uma vez. As entregas para ela falham com `no_dm_space` e não são repetidas. Peça para ela mandar uma mensagem direta para o app.
+- **A pessoa nunca abriu uma mensagem direta com o app.** O Google Chat só entrega mensagem direta depois que a pessoa falou com o app uma vez numa mensagem direta. Vincular pelo botão ou por uma menção não basta para isso. As entregas para ela falham com `no_dm_space` e não são repetidas. Peça para ela mandar uma mensagem direta para o app.
 - **O espaço não está vinculado à sua organização.** O consolidado e as dailies atrasadas do time falham com `space_not_linked`. Nada é publicado, e não há nova tentativa. Vincule o espaço com um código.
 
 ## Erros de entrega
@@ -128,8 +133,9 @@ Quando uma publicação falha, o app web mostra a falha em "Últimas entregas co
 
 ## Limites que vale conhecer
 
-- As mensagens são texto simples. Um consolidado com mais de 4.096 caracteres é cortado e termina com "… see Standcast".
-- O app só reage quando é adicionado a um espaço ou removido dele, e a mensagens diretas. Mencionar o app num espaço não faz nada.
+- As mensagens são texto simples, mais o card **Vincular minha conta** embaixo de um consolidado. Um consolidado com mais de 4.096 caracteres é cortado e termina com "… see Standcast".
+- O app só reage quando é adicionado a um espaço ou removido dele, a mensagens diretas, a menções num espaço e ao botão **Vincular minha conta**. Uma menção num espaço ou um clique só vincula a pessoa; o app não lê o texto.
+- O botão precisa que o servidor do Standcast saiba o próprio endereço público: num servidor que você opera, defina `PUBLIC_URL` no worker. Sem ele, o consolidado sai sem o botão.
 - Códigos de vínculo: 8 caracteres, valem por 24 horas, uso único. As tentativas de vínculo são limitadas a 10 por minuto.
 - O Standcast trata no máximo 120 eventos do Google Chat por espaço por minuto.
 
