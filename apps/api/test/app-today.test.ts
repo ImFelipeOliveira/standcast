@@ -41,6 +41,12 @@ teams:
   return parsed.config;
 }
 
+async function useConfig(yml: string) {
+  const parsed = parseConfig(yml);
+  if (!parsed.ok) throw new Error('config');
+  await setInstallationConfig(db, INST, { status: 'configured', config: parsed.config });
+}
+
 type User = { cookie: string; csrf: string; member: MemberRow };
 
 async function harness(admins: string[] = []) {
@@ -303,5 +309,64 @@ describe('/v1/app blockers permissions', () => {
       true,
     );
     expect((await (await get(app, carol, `${INST}/blockers`)).json()).resolved).toEqual([]);
+  });
+
+  test('the team filter does not hide a resolve the server allows', async () => {
+    const { app, carol, blockerId } = await harness();
+    await useConfig(`
+teams:
+  - name: Alpha
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [alice]
+    members: [alice, bob, carol]
+    chat: { provider: slack, channel: "#alpha" }
+  - name: Beta
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [carol]
+    members: [carol, bob]
+    chat: { provider: slack, channel: "#beta" }
+`);
+    const filtered = await (await get(app, carol, `${INST}/blockers?team=Alpha`)).json();
+    expect(
+      filtered.open.map((b: { id: string; canResolve: boolean }) => [b.id, b.canResolve]),
+    ).toEqual([[blockerId, true]]);
+  });
+});
+
+describe('/v1/app blockers calendar', () => {
+  test("today follows the author's first configured team, whatever the filter", async () => {
+    const { app, alice, blockerId } = await harness();
+    await useConfig(`
+teams:
+  - name: Zeta
+    timezone: Pacific/Kiritimati
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [carol]
+    members: [bob]
+    chat: { provider: slack, channel: "#zeta" }
+  - name: Alpha
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [alice]
+    members: [alice, bob]
+    chat: { provider: slack, channel: "#alpha" }
+`);
+    for (const path of [`${INST}/blockers`, `${INST}/blockers?team=Alpha`]) {
+      const body = await (await get(app, alice, path)).json();
+      expect(
+        body.open.map((b: { id: string; timezone: string; today: string }) => [
+          b.id,
+          b.timezone,
+          b.today,
+        ]),
+        path,
+      ).toEqual([[blockerId, 'Pacific/Kiritimati', '2026-10-29']]);
+    }
   });
 });
