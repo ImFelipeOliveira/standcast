@@ -9,6 +9,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 ## Produto
 
 ### Não lançado
+- O app web tem a página **Impedimentos**: todos os impedimentos abertos dos times que você acompanha, do mais antigo para o mais novo, com a idade, os times e para quem foram encaminhados, além dos resolvidos nos últimos 14 dias. Dá para filtrar por time e resolver ou reabrir quando você pode.
 
 - O app web tem a própria página de login. Abrir o app sem sessão mostra essa página em vez de ir direto para o GitHub, e **Continuar com GitHub** devolve você à página que tinha pedido.
 - Quando o login falha (você cancela no GitHub, o link expira, o GitHub não confirma a conta ou o navegador descarta o cookie da sessão), você volta à página de login com uma mensagem dizendo o que aconteceu e um botão **Tentar de novo**, em vez de uma página de erro da API.

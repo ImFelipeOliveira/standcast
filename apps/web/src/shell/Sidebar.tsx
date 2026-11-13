@@ -21,6 +21,12 @@ const ICONS: Record<Section, ReactNode> = {
       <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
     </>
   ),
+  blockers: (
+    <>
+      <path d="M8.2 2h7.6L22 8.2v7.6L15.8 22H8.2L2 15.8V8.2z" />
+      <path d="M12 8v4M12 16v.01" />
+    </>
+  ),
   history: (
     <>
       <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />

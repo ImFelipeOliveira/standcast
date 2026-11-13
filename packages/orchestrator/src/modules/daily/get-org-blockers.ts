@@ -18,7 +18,12 @@ import { openTeamBlockers, type TodayBlocker } from './get-team-today';
 const ADMIN_CHECK_TIMEOUT_MS = 3000;
 const RESOLVED_WINDOW_DAYS = 14;
 
-export type OrgOpenBlocker = TodayBlocker & { teams: string[]; canResolve: boolean };
+export type OrgOpenBlocker = TodayBlocker & {
+  teams: string[];
+  canResolve: boolean;
+  timezone: string;
+  today: string;
+};
 
 export type OrgResolvedBlocker = {
   id: string;
@@ -89,7 +94,13 @@ export async function getOrgBlockers(
         existing.teams.push(access.team.name);
         existing.canResolve = existing.canResolve || canResolve;
       } else {
-        open.set(blocker.id, { ...blocker, teams: [access.team.name], canResolve });
+        open.set(blocker.id, {
+          ...blocker,
+          teams: [access.team.name],
+          canResolve,
+          timezone: access.team.timezone,
+          today: access.date,
+        });
       }
     }
   }
