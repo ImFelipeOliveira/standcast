@@ -302,3 +302,37 @@ export async function findMembersByEmail(db: Db, email: string): Promise<MemberR
     .where(sql`lower(${members.email}) = ${normalized}`)
     .orderBy(members.login);
 }
+
+export async function listMembersByLogins(db: Db, logins: string[]): Promise<MemberRow[]> {
+  if (logins.length === 0) return [];
+  return db
+    .select()
+    .from(members)
+    .where(
+      inArray(
+        sql`lower(${members.login})`,
+        logins.map((login) => login.toLowerCase()),
+      ),
+    );
+}
+
+export async function listMemberIdentities(
+  db: Db,
+  installationId: number,
+  memberIds: string[],
+): Promise<{ memberId: string; provider: Provider; externalId: string }[]> {
+  if (memberIds.length === 0) return [];
+  return db
+    .select({
+      memberId: memberIdentities.memberId,
+      provider: memberIdentities.provider,
+      externalId: memberIdentities.externalId,
+    })
+    .from(memberIdentities)
+    .where(
+      and(
+        eq(memberIdentities.installationId, installationId),
+        inArray(memberIdentities.memberId, memberIds),
+      ),
+    );
+}

@@ -71,3 +71,16 @@ export async function deleteExpiredSessions(db: Db, now: Date): Promise<number> 
     if (rows.length === 0) return total;
   }
 }
+
+export async function listMemberIdsWithSession(
+  db: Db,
+  memberIds: string[],
+  kind: 'cli' | 'web',
+): Promise<Set<string>> {
+  if (memberIds.length === 0) return new Set();
+  const rows = await db
+    .selectDistinct({ memberId: sessions.memberId })
+    .from(sessions)
+    .where(and(inArray(sessions.memberId, memberIds), eq(sessions.kind, kind)));
+  return new Set(rows.map((row) => row.memberId));
+}

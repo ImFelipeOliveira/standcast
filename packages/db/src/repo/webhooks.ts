@@ -369,3 +369,33 @@ export async function deleteWebhookDeliveriesBefore(db: Db, cutoff: Date): Promi
     if (rows.length === 0) return total;
   }
 }
+
+export async function redeliverWebhookDelivery(
+  db: Db,
+  installationId: number,
+  id: string,
+  now: Date,
+): Promise<boolean> {
+  const owned = db
+    .select({ id: webhookEndpoints.id })
+    .from(webhookEndpoints)
+    .where(eq(webhookEndpoints.installationId, installationId));
+  const rows = await db
+    .update(webhookDeliveries)
+    .set({
+      status: 'pending',
+      attempts: 0,
+      nextAttemptAt: now,
+      lastError: null,
+      lastStatusCode: null,
+    })
+    .where(
+      and(
+        eq(webhookDeliveries.id, id),
+        eq(webhookDeliveries.status, 'failed'),
+        inArray(webhookDeliveries.endpointId, owned),
+      ),
+    )
+    .returning({ id: webhookDeliveries.id });
+  return rows.length > 0;
+}
