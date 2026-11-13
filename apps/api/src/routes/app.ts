@@ -7,6 +7,7 @@ import {
   type Deps,
   DomainError,
   disableWebhookEndpoint,
+  getEditableConfig,
   getOrgBlockers,
   getOrgContext,
   getPeopleLinks,
@@ -25,6 +26,7 @@ import {
   sendTestEvent,
   setBlockerResolved,
   unlinkGoogleChatSpace,
+  validateConfigSource,
 } from '@standcast/orchestrator';
 import { type Context, Hono, type MiddlewareHandler } from 'hono';
 import { deleteCookie } from 'hono/cookie';
@@ -195,6 +197,22 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       200,
     ),
   );
+
+  app.get(`${ORG}/config`, async (c) =>
+    c.json(await getEditableConfig(deps, isMember, c.get('member'), installationIdOf(c)), 200),
+  );
+
+  app.post(`${ORG}/config/validate`, async (c) => {
+    const body: unknown = await c.req.json().catch(() => undefined);
+    const source =
+      typeof body === 'object' && body !== null && 'source' in body
+        ? (body as { source: unknown }).source
+        : undefined;
+    return c.json(
+      await validateConfigSource(deps, isMember, c.get('member'), installationIdOf(c), source),
+      200,
+    );
+  });
 
   app.get(`${ORG}/people`, async (c) =>
     c.json(await getPeopleLinks(deps, isMember, c.get('member'), installationIdOf(c)), 200),
