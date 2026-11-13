@@ -75,7 +75,6 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
         ref={asideRef}
         id="app-sidebar"
         role={drawer.open ? 'dialog' : undefined}
-        aria-modal={drawer.open ? true : undefined}
         aria-label={drawer.open ? t('nav.menu') : undefined}
         onKeyDown={(event) => {
           if (drawer.open && event.key === 'Escape') drawer.close(true);
