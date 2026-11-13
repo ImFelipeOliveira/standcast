@@ -6,6 +6,7 @@ import { useOrgContext, useTeamsSummary } from '../api/queries';
 import { Badge } from '../components/ui/badge';
 import { useT } from '../i18n';
 import { cn } from '../lib/utils';
+import { CommandPalette } from './CommandPalette';
 import { Logo } from './Logo';
 import { useNavDrawer } from './nav-drawer';
 import { OrgSelect } from './OrgSelect';
@@ -104,6 +105,12 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
           <ThemeToggle />
         </div>
         <OrgSelect installations={installations} current={installationId} onChange={onOrgChange} />
+        <CommandPalette
+          installationId={installationId}
+          teams={teams}
+          currentTeam={team}
+          admin={context.data?.admin === true}
+        />
         <nav aria-label={t('nav.label')} className="flex flex-col gap-1">
           {SECTIONS.map((item) => {
             const active = item === section;

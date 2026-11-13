@@ -24,6 +24,11 @@ function SearchForm({ installationId, search }: { installationId: number; search
   const t = useT();
   const navigate = useNavigate();
   const [text, setText] = useState(search.q ?? '');
+  const [syncedQ, setSyncedQ] = useState(search.q);
+  if (syncedQ !== search.q) {
+    setSyncedQ(search.q);
+    setText(search.q ?? '');
+  }
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     void navigate({
@@ -79,7 +84,7 @@ export function SearchTab({
   return (
     <div className="flex flex-col gap-3">
       <SearchForm
-        key={`${search.q ?? ''}|${search.from ?? ''}|${search.to ?? ''}`}
+        key={`${search.from ?? ''}|${search.to ?? ''}`}
         installationId={installationId}
         search={search}
       />

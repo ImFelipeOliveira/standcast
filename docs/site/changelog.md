@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- **Today** shows **First steps** until a team gets its first digest: install, standcast.yml, chat connection, first daily and first digest, each with its state in words and what to do next.
+- **Search** (⌘K or Ctrl K, or the Search button in the sidebar) jumps to any screen or team and searches the dailies of your teams by text, pull request or card.
 - Screen readers announce the account menu button with the name and role shown on it, the support email link in Settings is underlined, and wide tables in Settings can be scrolled with the keyboard. The sign-in, Today, Blockers, History and Settings pages of the web app are now checked with axe in light and dark themes and on phones on every change.
 - The web app has an **Account** page, opened from the menu under your name: your GitHub photo and login with your role in each organization, language (Português, English or follow the browser) and theme (light, dark or follow the system) for this browser, and **Sign out of every panel session**, which ends the web app in every browser while the CLI and plugin stay connected. The language switch left the menu, which now has Account, Documentation and Sign out.
 - **Settings** has a **standcast.yml** tab for admins: a form per team (times, managers and members, chat, tracker and signals, including the stale blocker alert days) builds the file, shows notes on what each chat and tracker needs, and checks it live with the same rules Standcast uses. The editor saves nothing: copy the YAML or open the file on GitHub and commit it.

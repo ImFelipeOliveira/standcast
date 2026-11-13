@@ -1,8 +1,9 @@
 import type { TeamToday, TodayBlocker } from '@standcast/orchestrator';
+import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ApiError } from '../../api/client';
 import { useRemindNow, useReopenBlocker, useResolveBlocker } from '../../api/mutations';
-import { useSession, useTeamToday } from '../../api/queries';
+import { setupStatusQuery, useSession, useTeamToday } from '../../api/queries';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
@@ -13,6 +14,7 @@ import { errorMessage } from '../configuracao/labels';
 import { Loading } from '../RouteStates';
 import { Dailies, type DailyFilter, type RemindStatus } from './DailyCard';
 import { DailyDrawer } from './DailyDrawer';
+import { chatConnectedFor, FirstSteps } from './FirstSteps';
 import { formatDay, formatTime } from './format';
 import { NeedsYou } from './NeedsYou';
 import { SentToday } from './SentToday';
@@ -118,6 +120,10 @@ function TodayView({ installationId, today }: { installationId: number; today: T
   const resolve = useResolveBlocker(installationId, team);
   const reopen = useReopenBlocker(installationId, team);
   const remind = useRemindNow(installationId, team);
+  const setup = useQuery({
+    ...setupStatusQuery(installationId),
+    enabled: today.digest.everSent === false,
+  });
   const [filter, setFilter] = useState<DailyFilter>('all');
   const [viewing, setViewing] = useState<string | null>(null);
   const [resolved, setResolved] = useState<Record<string, TodayBlocker>>({});
@@ -186,6 +192,12 @@ function TodayView({ installationId, today }: { installationId: number; today: T
             ) : null}
           </>
         }
+      />
+      <FirstSteps
+        installationId={installationId}
+        today={today}
+        chatConnected={chatConnectedFor(setup.data, today)}
+        onRetryChat={setup.isError ? () => void setup.refetch() : undefined}
       />
       <SummaryTiles today={{ ...today, blockers: open }} />
       <div className="flex flex-wrap items-start gap-6">

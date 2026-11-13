@@ -164,6 +164,102 @@ test('the phone drawer moves focus, closes with Escape and on team change', asyn
   await expect(page.getByRole('dialog', { name: 'Menu' })).toHaveCount(0);
 });
 
+test('⌘K opens the search, the keyboard picks a result and Enter opens it', async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.goto(`/orgs/${INSTALLATION_ID}/today?team=${TEAM_NAME}`);
+  await expect(page.getByRole('heading', { name: 'Precisa de você' })).toBeVisible();
+  await page.keyboard.press('ControlOrMeta+k');
+  const input = page.getByRole('combobox', { name: 'Buscar no painel' });
+  await expect(input).toBeFocused();
+  await expect(page.getByRole('option', { name: 'Hoje' })).toHaveAttribute('aria-selected', 'true');
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('option', { name: 'Impedimentos' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(`/orgs/${INSTALLATION_ID}/blockers`);
+  await expect(input).toBeHidden();
+
+  await page
+    .getByRole('button', { name: /Buscar/ })
+    .first()
+    .click();
+  await input.fill('deploy');
+  await expect(page.getByRole('option', { name: /nas dailies de/ }).first()).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/history\?.*tab=search/);
+  await expect(page).toHaveURL(/q=deploy/);
+  await expect(page.getByRole('searchbox', { name: 'Buscar nas dailies' })).toHaveValue('deploy');
+
+  await page.keyboard.press('ControlOrMeta+k');
+  await input.fill('reuniao');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/q=reuniao/);
+  await expect(page.getByRole('searchbox', { name: 'Buscar nas dailies' })).toHaveValue('reuniao');
+});
+
+test('the search keeps the active result in view and closes the phone drawer', async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.setViewportSize({ width: 1280, height: 400 });
+  await page.goto(`/orgs/${INSTALLATION_ID}/blockers`);
+  await expect(page.getByRole('heading', { name: 'Impedimentos', level: 1 })).toBeVisible();
+  await page.keyboard.press('ControlOrMeta+k');
+  const input = page.getByRole('combobox', { name: 'Buscar no painel' });
+  await expect(input).toBeFocused();
+  await page.keyboard.press('End');
+  const last = page.getByRole('option').last();
+  await expect(last).toHaveAttribute('aria-selected', 'true');
+  await expect(last).toBeInViewport();
+  await page.keyboard.press('Escape');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Abrir menu' }).click();
+  const drawer = page.getByRole('dialog', { name: 'Menu' });
+  await expect(drawer).toBeVisible();
+  await drawer.getByRole('button', { name: /Buscar/ }).click();
+  await input.fill('Impedimentos');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(`/orgs/${INSTALLATION_ID}/blockers`);
+  await expect(input).toBeHidden();
+  await expect(drawer).toHaveCount(0);
+});
+
+test('the search box keeps at most 100 characters, like the History search', async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.goto(`/orgs/${INSTALLATION_ID}/blockers`);
+  await expect(page.getByRole('heading', { name: 'Impedimentos', level: 1 })).toBeVisible();
+  await page.keyboard.press('ControlOrMeta+k');
+  const input = page.getByRole('combobox', { name: 'Buscar no painel' });
+  await expect(input).toBeFocused();
+  await input.fill('a'.repeat(101));
+  await expect(input).toHaveValue('a'.repeat(100));
+});
+
+test('a new search in History keeps the focus in the search box', async ({ page, context }) => {
+  await signIn(context);
+  await page.goto(`/orgs/${INSTALLATION_ID}/history?team=${TEAM_NAME}&tab=search&q=deploy`);
+  const box = page.getByRole('searchbox', { name: 'Buscar nas dailies' });
+  await expect(box).toHaveValue('deploy');
+  await box.fill('reuniao');
+  await box.press('Enter');
+  await expect(page).toHaveURL(/q=reuniao/);
+  await expect(box).toHaveValue('reuniao');
+  await expect(box).toBeFocused();
+});
+
 test('admins type the team in the standcast.yml editor and see it validated', async ({
   page,
   context,
