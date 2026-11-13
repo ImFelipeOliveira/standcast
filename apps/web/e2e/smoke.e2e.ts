@@ -140,4 +140,11 @@ test('⌘K opens the search, the keyboard picks a result and Enter opens it', as
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/history\?.*tab=search/);
   await expect(page).toHaveURL(/q=deploy/);
+  await expect(page.getByRole('searchbox', { name: 'Buscar nas dailies' })).toHaveValue('deploy');
+
+  await page.keyboard.press('ControlOrMeta+k');
+  await input.fill('reuniao');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/q=reuniao/);
+  await expect(page.getByRole('searchbox', { name: 'Buscar nas dailies' })).toHaveValue('reuniao');
 });

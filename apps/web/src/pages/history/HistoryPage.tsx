@@ -489,7 +489,7 @@ export function HistoryPage({
         }
       />
       {search.tab === 'search' ? (
-        <SearchTab installationId={installationId} search={search} />
+        <SearchTab key={search.q ?? ''} installationId={installationId} search={search} />
       ) : search.tab === 'shipped' ? (
         <Shipped installationId={installationId} search={search} />
       ) : (

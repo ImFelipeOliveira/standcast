@@ -3,7 +3,12 @@ import { Dialog as DialogPrimitive } from 'radix-ui';
 import { type KeyboardEvent, useEffect, useMemo, useState } from 'react';
 import { type MessageKey, useT } from '../i18n';
 import { cn } from '../lib/utils';
-import { type PaletteGroup, type PaletteItem, paletteItems } from './palette-items';
+import {
+  isPaletteShortcut,
+  type PaletteGroup,
+  type PaletteItem,
+  paletteItems,
+} from './palette-items';
 
 const GROUP_LABELS: Record<PaletteGroup, MessageKey> = {
   screens: 'palette.screens',
@@ -17,10 +22,12 @@ export function CommandPalette({
   installationId,
   teams,
   currentTeam,
+  admin,
 }: {
   installationId: number;
   teams: string[];
   currentTeam: string | null;
+  admin: boolean;
 }) {
   const t = useT();
   const navigate = useNavigate();
@@ -28,13 +35,13 @@ export function CommandPalette({
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const items = useMemo(
-    () => paletteItems({ query, installationId, teams, currentTeam, t }),
-    [query, installationId, teams, currentTeam, t],
+    () => paletteItems({ query, installationId, teams, currentTeam, admin, t }),
+    [query, installationId, teams, currentTeam, admin, t],
   );
 
   useEffect(() => {
     const onKey = (event: globalThis.KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      if (isPaletteShortcut(event, isMac())) {
         event.preventDefault();
         setOpen((value) => !value);
       }
@@ -57,6 +64,7 @@ export function CommandPalette({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing) return;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       setActive((index) => Math.min(index + 1, items.length - 1));

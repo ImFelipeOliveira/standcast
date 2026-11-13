@@ -98,7 +98,12 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
           <ThemeToggle />
         </div>
         <OrgSelect installations={installations} current={installationId} onChange={onOrgChange} />
-        <CommandPalette installationId={installationId} teams={teams} currentTeam={team} />
+        <CommandPalette
+          installationId={installationId}
+          teams={teams}
+          currentTeam={team}
+          admin={context.data?.admin === true}
+        />
         <nav aria-label={t('nav.label')} className="flex flex-col gap-1">
           {SECTIONS.map((item) => {
             const active = item === section;
