@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import {
   getBlockerState,
+  listResolvedBlockerStates,
   setBlockerStateResolved,
   upsertBlockerState,
   upsertInstallation,
@@ -148,5 +149,46 @@ describe('blocker states', () => {
     expect(await getBlockerState(db, 200, row.id)).toBeNull();
     expect(await setBlockerStateResolved(db, 200, row.id, null)).toBe(false);
     expect((await getBlockerState(db, INST, row.id))?.resolvedAt).toBeNull();
+  });
+});
+
+describe('resolved blocker states', () => {
+  test('lists blockers resolved since a date, newest first, with who resolved them', async () => {
+    const { ana, bob } = await seed();
+    const open = async (blockerId: string, date: string) =>
+      upsertBlockerState(db, {
+        installationId: INST,
+        authorMemberId: ana.id,
+        blockerId,
+        text: blockerId,
+        ref: null,
+        date,
+      });
+    const old = await open('old', '2026-10-01');
+    const recent = await open('recent', '2026-10-20');
+    const newest = await open('newest', '2026-10-25');
+    await open('still-open', '2026-10-26');
+    await setBlockerStateResolved(db, INST, old.id, {
+      by: bob.id,
+      at: new Date('2026-10-05T12:00:00Z'),
+      on: '2026-10-05',
+    });
+    await setBlockerStateResolved(db, INST, recent.id, {
+      by: bob.id,
+      at: new Date('2026-10-21T12:00:00Z'),
+      on: '2026-10-21',
+    });
+    await setBlockerStateResolved(db, INST, newest.id, {
+      by: ana.id,
+      at: new Date('2026-10-27T12:00:00Z'),
+      on: '2026-10-27',
+    });
+    const rows = await listResolvedBlockerStates(db, INST, [ana.id], '2026-10-14');
+    expect(rows.map((row) => [row.blockerId, row.authorLogin, row.resolvedByLogin])).toEqual([
+      ['newest', 'Ana', 'Ana'],
+      ['recent', 'Ana', 'Bob'],
+    ]);
+    expect(await listResolvedBlockerStates(db, INST, [], '2026-10-14')).toEqual([]);
+    expect(await listResolvedBlockerStates(db, 200, [ana.id], '2026-10-14')).toEqual([]);
   });
 });
