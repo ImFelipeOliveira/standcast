@@ -18,7 +18,7 @@ export const en: Record<MessageKey, string> = {
   'role.admin': 'admin',
   'role.manager': 'manager',
   'role.member': 'member',
-  'user.menu': 'Account menu for {login}',
+  'user.menu': 'Account menu',
   'user.account': 'Account',
   'user.docs': 'Documentation',
   'user.signOut': 'Sign out',

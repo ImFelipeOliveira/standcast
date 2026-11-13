@@ -48,10 +48,8 @@ export function UserMenu({ installationId }: { installationId: number }) {
     <>
       {failed ? <SignOutError /> : null}
       <DropdownMenu>
-        <DropdownMenuTrigger
-          aria-label={t('user.menu', { login })}
-          className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-[9px] border-0 bg-transparent px-2 py-2.5 text-left text-text hover:bg-hover"
-        >
+        <DropdownMenuTrigger className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-[9px] border-0 bg-transparent px-2 py-2.5 text-left text-text hover:bg-hover">
+          <span className="sr-only">{`${t('user.menu')}: `}</span>
           <img
             src={avatarUrl}
             alt=""

@@ -115,7 +115,7 @@ export function ConfiguracaoPage({
       <p className="m-0 text-[12px] text-muted">
         {t('setup.support')}{' '}
         <a
-          className="text-accent-text hover:text-accent-ink"
+          className="text-accent-text underline underline-offset-[3px] hover:text-accent-ink"
           href={`mailto:${status.supportEmail}`}
         >
           {status.supportEmail}

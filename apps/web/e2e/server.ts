@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 import { createApp } from '@standcast/api';
 import { type Deps, nullTracker } from '@standcast/orchestrator';
 import { createMemoryQueue } from '@standcast/queue';
-import { seed } from './seed';
+import { ENCRYPTION_KEY, seed } from './seed';
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
 const tokenFile = process.env.E2E_TOKEN_FILE;
@@ -22,7 +22,7 @@ const deps: Deps = {
   db,
   queue: createMemoryQueue(),
   now: () => new Date(),
-  encryptionKey: new Uint8Array(32).fill(7),
+  encryptionKey: ENCRYPTION_KEY,
   github: {
     app: {} as Deps['github']['app'],
     installationOctokit: async () =>
