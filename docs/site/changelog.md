@@ -10,6 +10,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- The landing at standcast.app has a new look in English and Portuguese: new colors that meet WCAG 2.2 AA in light and dark themes, a skip link, and a home page with a day with Standcast, what it does, three ways to write, integrations, privacy, configuration, pricing and FAQ. The wave in the background is now a calm pixel grid. It has a **Pause animation** button, stops when it is off screen or the tab is hidden, and shows a still frame when your system asks for reduced motion.
 - The web app has its own sign-in page. Opening the app without a session shows it instead of jumping straight to GitHub, and **Continue with GitHub** brings you back to the page you asked for.
 - When signing in fails (you cancel on GitHub, the link expires, GitHub does not confirm the account or the browser drops the session cookie), you return to the sign-in page with a message saying what happened and a **Try again** button, instead of an error page on the API.
 - Web app addresses are in English: `/orgs/<id>/today`, `/history` and `/settings`. Old links to `/hoje`, `/historico` and `/configuracao` still work and keep their query string.
