@@ -15,7 +15,13 @@ export {
   isGoogleChatSpace,
 } from './channel';
 export { ChatDeliveryError, GOOGLE_CHAT_REQUEST_TIMEOUT_MS } from './errors';
-export { GOOGLE_CHAT_TEXT_LIMIT, MARKUP_BREAKER, renderGoogleChat } from './render';
+export {
+  GOOGLE_CHAT_TEXT_LIMIT,
+  type GoogleChatPayload,
+  type GoogleChatRenderOptions,
+  MARKUP_BREAKER,
+  renderGoogleChat,
+} from './render';
 export {
   type AddOnAudience,
   addOnServiceAccountEmail,

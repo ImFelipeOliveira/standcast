@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { ChatDeliveryError, type Message } from '@standcast/core';
+import { ChatDeliveryError, LINK_CHAT_ACCOUNT_ACTION, type Message } from '@standcast/core';
 import { createGoogleChatChannel, GOOGLE_CHAT_REQUEST_TIMEOUT_MS } from '../src';
 
 type Call = { method: string; url: string; headers: Headers; body: unknown; signal?: AbortSignal };
@@ -7,7 +7,10 @@ type Call = { method: string; url: string; headers: Headers; body: unknown; sign
 const API = 'https://chat.test';
 const msg: Message = { fallbackText: 'fb', blocks: [{ type: 'paragraph', content: ['hi'] }] };
 
-function fake(handler: (call: Call) => Response | Promise<Response>) {
+function fake(
+  handler: (call: Call) => Response | Promise<Response>,
+  options: { interactionUrl?: string } = {},
+) {
   const calls: Call[] = [];
   const fetchImpl = (async (url: RequestInfo | URL, init?: RequestInit) => {
     const call: Call = {
@@ -23,6 +26,7 @@ function fake(handler: (call: Call) => Response | Promise<Response>) {
   const channel = createGoogleChatChannel(async () => 'ya29.token', {
     apiUrl: API,
     fetch: fetchImpl,
+    ...options,
   });
   return { calls, channel };
 }
@@ -64,6 +68,24 @@ describe('createGoogleChatChannel', () => {
     expect(calls[0]?.body).toEqual({ text: 'hi', markupSyntax: 'MARKUP_SYNTAX_CHAT' });
     expect(calls[0]?.signal).toBeInstanceOf(AbortSignal);
     expect(GOOGLE_CHAT_REQUEST_TIMEOUT_MS).toBe(15_000);
+  });
+
+  test('a message with the link action posts the card button when the endpoint is known', async () => {
+    const created = () =>
+      Response.json({ name: 'spaces/AAA/messages/m1', thread: { name: 'spaces/AAA/threads/t1' } });
+    const linking: Message = {
+      ...msg,
+      actions: [{ type: LINK_CHAT_ACCOUNT_ACTION, text: 'Link?', label: 'Link my account' }],
+    };
+    const endpoint = 'https://api.test/webhooks/google-chat';
+    const withUrl = fake(created, { interactionUrl: endpoint });
+    await withUrl.channel.postToChannel('spaces/AAA', linking);
+    const body = withUrl.calls[0]?.body as { text: string; cardsV2: unknown[] };
+    expect(body.text).toBe('hi');
+    expect(JSON.stringify(body.cardsV2)).toContain(endpoint);
+    const withoutUrl = fake(created);
+    await withoutUrl.channel.postToChannel('spaces/AAA', linking);
+    expect(withoutUrl.calls[0]?.body).toEqual({ text: 'hi', markupSyntax: 'MARKUP_SYNTAX_CHAT' });
   });
 
   test('reply uses the thread and fallback option', async () => {
