@@ -17,7 +17,7 @@ Standcast uses the permissions of its GitHub App: Metadata (read), Contents (rea
 - organization membership and role, to check who belongs to the organization and who is an admin;
 - for the person asking for a draft: titles, links, repositories and dates of the pull requests they opened, merged and reviewed, and of the commits they authored, in the organization;
 - for suggested blockers and blocker routing, on pull requests of the organization: title, url, draft state, the time it was ready for review, review states (only counted), the conclusions of check runs on the head commit, the paths of changed files (only to find code owners) and the `CODEOWNERS` file;
-- when you sign in: your GitHub user id, your login, your primary verified email and the installations you can access.
+- when you sign in: your GitHub user id, your login, your primary verified email, your other verified emails (only to link you in Google Chat) and the installations you can access.
 
 It does not read the contents of your code or your files other than `standcast.yml` and `CODEOWNERS`. Checks (write) is used only to create the `Standcast config` check run on `standcast.yml`. Standcast does not write to your repositories.
 
@@ -80,7 +80,7 @@ Standcast does not connect to Jira, ClickUp, Asana, GitHub Projects, Microsoft T
 | Data | What is kept | Protection |
 | --- | --- | --- |
 | Installation | GitHub installation id, account login, type and id, configuration status, the parsed `standcast.yml` and its validation errors | |
-| Person | GitHub user id, login and primary verified email | |
+| Person | GitHub user id, login and verified emails, with the primary one marked | |
 | Organization membership | Which installations each person belongs to | |
 | Slack identity | The Slack user id of each person, per installation | |
 | Slack connection | Workspace id and name, and the bot token | Bot token encrypted with AES-256-GCM |
@@ -153,7 +153,7 @@ CLI sessions stop working after 90 days without use, and web sessions after 7 da
 - **Uninstall the GitHub App.** Standcast deletes the installation and everything that belongs to it: configuration, dailies, blocker states, deliveries, Slack connection and identities, linked Google Chat spaces, the Google Chat connection and identities, API keys, webhook endpoints and their deliveries.
 - **Remove the app from a Google Chat space, or unlink it.** Standcast deletes that space. When the organization has no linked space left, it also deletes the Google Chat connection; the Google Chat identities are kept until you uninstall the GitHub App. A space that has the app but was never linked is deleted after its link code expires, or when the app is removed from it.
 - **Sign out.** `standcast logout` revokes your CLI session on the server and deletes the local credentials file.
-- **Your person record.** Your GitHub user id, login and email are not tied to one installation, so uninstalling does not remove them. To delete them, email support.
+- **Your person record.** Your GitHub user id, login and verified emails are not tied to one installation, so uninstalling does not remove them. To delete them, email support.
 
 ## Contact
 

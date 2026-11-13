@@ -17,7 +17,7 @@ O Standcast usa as permissões do GitHub App dele: Metadata (read), Contents (re
 - a participação e o papel na organização, para saber quem é membro e quem é admin;
 - para os impedimentos sugeridos e o encaminhamento de impedimentos, em pull requests da organização: título, url, estado de rascunho, o momento em que ficou pronto para revisão, o estado das revisões (só contadas), as conclusões dos check runs no commit head, os caminhos dos arquivos alterados (só para achar os donos do código) e o arquivo `CODEOWNERS`;
 - para a pessoa que pede o rascunho: títulos, links, repositórios e datas dos pull requests que ela abriu, mergeou e revisou, e dos commits de autoria dela, na organização;
-- quando você entra: o seu id de usuário no GitHub, o seu login, o seu e-mail principal verificado e as instalações que você acessa.
+- quando você entra: o seu id de usuário no GitHub, o seu login, o seu e-mail principal verificado, os seus outros e-mails verificados (só para vincular você no Google Chat) e as instalações que você acessa.
 
 Ele não lê o conteúdo do seu código nem outros arquivos além do `standcast.yml` e do `CODEOWNERS`. A permissão Checks (write) é usada só para criar o check run `Standcast config` no `standcast.yml`. O Standcast não escreve nos seus repositórios.
 
@@ -80,7 +80,7 @@ O Standcast ainda não se conecta ao Jira, ao ClickUp, ao Asana, ao GitHub Proje
 | Dado | O que fica guardado | Proteção |
 | --- | --- | --- |
 | Instalação | Id da instalação no GitHub, login, tipo e id da conta, estado da configuração, o `standcast.yml` interpretado e os erros de validação | |
-| Pessoa | Id de usuário no GitHub, login e e-mail principal verificado | |
+| Pessoa | Id de usuário no GitHub, login e e-mails verificados, com o principal marcado | |
 | Participação em organizações | A quais instalações cada pessoa pertence | |
 | Identidade no Slack | O id de usuário do Slack de cada pessoa, por instalação | |
 | Conexão com o Slack | Id e nome do workspace e o token do bot | Token do bot criptografado com AES-256-GCM |
@@ -153,7 +153,7 @@ As sessões da CLI param de funcionar depois de 90 dias sem uso, e as sessões d
 - **Desinstale o GitHub App.** O Standcast apaga a instalação e tudo o que pertence a ela: configuração, dailies, estados de impedimentos, entregas, conexão com o Slack e identidades, espaços vinculados do Google Chat, a conexão com o Google Chat e as identidades, API keys, endpoints de webhook e as entregas deles.
 - **Remova o app de um espaço do Google Chat, ou desvincule o espaço.** O Standcast apaga esse espaço. Quando a organização fica sem nenhum espaço vinculado, ele também apaga a conexão com o Google Chat; as identidades no Google Chat ficam até você desinstalar o GitHub App. Um espaço que tem o app mas nunca foi vinculado é apagado depois que o código de vínculo expira, ou quando o app é removido dele.
 - **Saia.** O `standcast logout` revoga a sua sessão da CLI no servidor e apaga o arquivo local de credenciais.
-- **O seu cadastro de pessoa.** O seu id de usuário no GitHub, o login e o e-mail não pertencem a uma instalação só, então desinstalar não os remove. Para apagá-los, mande um e-mail ao suporte.
+- **O seu cadastro de pessoa.** O seu id de usuário no GitHub, o login e os e-mails verificados não pertencem a uma instalação só, então desinstalar não os remove. Para apagá-los, mande um e-mail ao suporte.
 
 ## Contato
 

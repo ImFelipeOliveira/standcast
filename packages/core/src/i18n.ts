@@ -276,7 +276,7 @@ const ptBR = {
     'Aparece como @login em vez do seu nome? Vincule a sua conta do Google Chat para o Standcast mencionar você.',
   'googleChat.linkButton': 'Vincular minha conta',
   'googleChat.mapHint':
-    'O seu id no Google Chat é {userId}. Se o e-mail principal da sua conta do GitHub não é este, um admin pode vincular você à mão: em `members` no standcast.yml, defina `google_chat: {userId}` para o seu login do GitHub.',
+    'O seu id no Google Chat é {userId}. Se nenhum e-mail verificado da sua conta do GitHub é este, um admin pode vincular você à mão: em `members` no standcast.yml, defina `google_chat: {userId}` para o seu login do GitHub.',
 } as const;
 
 const en = {
@@ -555,7 +555,7 @@ const en = {
     'Shown as @login instead of your name? Link your Google Chat account so Standcast can mention you.',
   'googleChat.linkButton': 'Link my account',
   'googleChat.mapHint':
-    'Your Google Chat id is {userId}. If the primary email of your GitHub account is a different one, an admin can link you by hand: under `members` in standcast.yml, set `google_chat: {userId}` for your GitHub login.',
+    'Your Google Chat id is {userId}. If none of the verified emails of your GitHub account is this one, an admin can link you by hand: under `members` in standcast.yml, set `google_chat: {userId}` for your GitHub login.',
 } as const satisfies Record<keyof typeof ptBR, string>;
 
 const messages: {

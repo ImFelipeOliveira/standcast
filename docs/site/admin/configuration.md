@@ -245,7 +245,7 @@ teams:
 
 ## Identity mapping
 
-By default nobody needs an entry in the file. Standcast mentions people in Slack by matching the primary verified email of their GitHub account, captured when they sign in with `standcast login`, with the email of their Slack user. In Google Chat, people link themselves by sending the Standcast app a direct message, matched by the same email. Linear users are linked by the same GitHub email.
+By default nobody needs an entry in the file. Standcast mentions people in Slack by matching the primary verified email of their GitHub account, captured when they sign in with `standcast login`, with the email of their Slack user. In Google Chat, people link themselves by sending the Standcast app a direct message, matched with any verified email of their GitHub account. Linear users are linked by the same GitHub email.
 
 Only when the emails differ, map the person by hand under the top-level `members` key, using their GitHub login. Each entry puts the person's login next to a work email or a chat user id, so it is personal data: the mapping is accepted only when `standcast.yml` is in a private repository. In a public repository, the `Standcast config` check fails with "standcast.yml exposes personal data", annotated on the `members` key, and the setup page shows a warning. Move the file to `.github-private` (or make `.github` private), or remove the entries and let people link through the default above.
 

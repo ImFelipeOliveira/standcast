@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- Google Chat links you when your Google email is any verified email of your GitHub account, not only the primary one. Run `standcast login` or sign in to the web app again so Standcast gets your verified emails, then message the app. See [Google Chat](/admin/google-chat).
+
 ### 0.10.0 — 2026-11-13
 
 - Reopening a blocker that is already open no longer undoes a resolve someone else makes at the same moment.

@@ -246,7 +246,7 @@ teams:
 
 ## Mapeamento de identidades
 
-Por padrão, ninguém precisa de item no arquivo. O Standcast menciona as pessoas no Slack comparando o e-mail principal verificado da conta do GitHub, capturado quando a pessoa entra com `standcast login`, com o e-mail do usuário no Slack. No Google Chat, cada pessoa se vincula mandando uma mensagem direta para o app do Standcast, comparada pelo mesmo e-mail. O usuário do Linear é vinculado pelo mesmo e-mail do GitHub.
+Por padrão, ninguém precisa de item no arquivo. O Standcast menciona as pessoas no Slack comparando o e-mail principal verificado da conta do GitHub, capturado quando a pessoa entra com `standcast login`, com o e-mail do usuário no Slack. No Google Chat, cada pessoa se vincula mandando uma mensagem direta para o app do Standcast, comparada com qualquer e-mail verificado da conta do GitHub. O usuário do Linear é vinculado pelo mesmo e-mail do GitHub.
 
 Só quando os e-mails são diferentes, mapeie a pessoa à mão na chave `members` do nível de cima, pelo login do GitHub. Cada item põe o login da pessoa ao lado de um e-mail de trabalho ou de um id de usuário do chat, então é dado pessoal: o mapeamento só é aceito quando o `standcast.yml` está em um repositório privado. Em repositório público, o check `Standcast config` falha com "standcast.yml expõe dados pessoais", com anotação na chave `members`, e a página de configuração mostra um aviso. Mova o arquivo para o `.github-private` (ou torne o `.github` privado), ou remova os itens e deixe as pessoas se vincularem pelo padrão acima.
 

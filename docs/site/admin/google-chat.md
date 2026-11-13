@@ -80,18 +80,20 @@ Google Chat does not let the app find a person by email, so each person links th
 
 The digest shows the **Link my account** button only while someone in it is not linked and shows as `@login`. The button works for whoever clicks it: it links the person who clicked, never the people named in the digest.
 
-All three ways do the same thing. Standcast matches the email of your Google account with the primary verified email of your GitHub account, and links you in every organization of yours that has a linked space. It stores only your Google Chat user id. Clicking again, or messaging the app again, keeps a single link. The app answers; after a click or a mention in a space, the answer is visible only to you:
+All three ways do the same thing. Standcast matches the email of your Google account with any verified email of your GitHub account, primary or not, and links you in every organization of yours that has a linked space. It stores only your Google Chat user id. Clicking again, or messaging the app again, keeps a single link. The app answers; after a click or a mention in a space, the answer is visible only to you:
 
 | Answer | What it means |
 | --- | --- |
 | You're linked, @your-login. | Done. |
-| No Standcast account uses this email; run `standcast login` first, then message me again. | Standcast has no account with this email. Sign in first. If your GitHub email is different, see below. |
+| No Standcast account uses this email; run `standcast login` first, then message me again. | Standcast has no account with this email. Sign in first. If none of your verified GitHub emails is this one, see below. |
 | I found your account, but none of your organizations has connected Google Chat to Standcast yet. Ask an admin to link a space, then message me again. | Link a space first, then message the app again. |
 | This email belongs to more than one GitHub account on Standcast, so I linked none of them. Ask an admin to set `google_chat` for you under `members` in standcast.yml, or keep the email only on your own GitHub account and run `standcast login` again. | Two or more GitHub accounts signed in to Standcast share this email, so Standcast links none of them. In each of their organizations that use Google Chat, it also removes the Google Chat links of those accounts and any link to this Google Chat user. Map the person by hand, as below, or remove the email from the other accounts. |
 
 The answer is in the team's language when Standcast knows it, otherwise in English and Portuguese. When no account or more than one account has the email, the app also tells the person their Google Chat id (`users/` followed by digits), ready for the mapping below.
 
-When the emails differ, for example when the primary GitHub email is a personal one and the Google email is the company one, an admin maps the person by hand in `standcast.yml`, with their Google Chat user id:
+GitHub sends Standcast your verified emails when you run `standcast login` or sign in to the web app. After you add and verify your Google email on GitHub, sign in again in one of these ways before you message the app.
+
+When the Google email is not a verified email of the GitHub account, an admin maps the person by hand in `standcast.yml`, with their Google Chat user id:
 
 ```text
 members:
