@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'bun:test';
 import { ChatDeliveryError, LINK_CHAT_ACCOUNT_ACTION, type Message } from '@standcast/core';
-import { createGoogleChatChannel, GOOGLE_CHAT_REQUEST_TIMEOUT_MS } from '../src';
+import {
+  createGoogleChatChannel,
+  GOOGLE_CHAT_REQUEST_TIMEOUT_MS,
+  googleChatEndpoint,
+} from '../src';
 
 type Call = { method: string; url: string; headers: Headers; body: unknown; signal?: AbortSignal };
 
@@ -86,6 +90,10 @@ describe('createGoogleChatChannel', () => {
     const withoutUrl = fake(created);
     await withoutUrl.channel.postToChannel('spaces/AAA', linking);
     expect(withoutUrl.calls[0]?.body).toEqual({ text: 'hi', markupSyntax: 'MARKUP_SYNTAX_CHAT' });
+  });
+
+  test('the chat endpoint is the webhook path of the public url', () => {
+    expect(googleChatEndpoint('https://api.test/')).toBe('https://api.test/webhooks/google-chat');
   });
 
   test('reply uses the thread and fallback option', async () => {

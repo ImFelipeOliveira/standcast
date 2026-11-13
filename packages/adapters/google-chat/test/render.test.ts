@@ -7,7 +7,9 @@ const ENDPOINT = 'https://api.test/webhooks/google-chat';
 const withLink: Message = {
   fallbackText: 'fb',
   blocks: [{ type: 'paragraph', content: ['Did not send: @carol'] }],
-  actions: [{ type: LINK_CHAT_ACCOUNT_ACTION, text: 'Shown as <@login>?', label: 'Link my account' }],
+  actions: [
+    { type: LINK_CHAT_ACCOUNT_ACTION, text: 'Shown as <@login>?', label: 'Link my account' },
+  ],
 };
 
 describe('renderGoogleChat actions', () => {

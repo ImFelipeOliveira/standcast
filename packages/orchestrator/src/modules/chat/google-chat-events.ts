@@ -1,8 +1,8 @@
 import {
   GOOGLE_CHAT_SPACE,
   GOOGLE_CHAT_USER_ID,
-  LINK_CHAT_ACCOUNT_ACTION,
   type Language,
+  LINK_CHAT_ACCOUNT_ACTION,
   type MessageKey,
   type StandcastConfig,
   t,

@@ -27,6 +27,10 @@ function trimTrailingSlashes(url: string): string {
   return url.slice(0, end);
 }
 
+export function googleChatEndpoint(publicUrl: string): string {
+  return `${trimTrailingSlashes(publicUrl)}/webhooks/google-chat`;
+}
+
 export function isGoogleChatSpace(name: string): boolean {
   return SPACE_NAME.test(name);
 }

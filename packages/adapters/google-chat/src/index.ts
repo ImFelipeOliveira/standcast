@@ -12,6 +12,7 @@ export {
   createGoogleChatChannel,
   GOOGLE_CHAT_API_URL,
   type GoogleChatChannelOptions,
+  googleChatEndpoint,
   isGoogleChatSpace,
 } from './channel';
 export { ChatDeliveryError, GOOGLE_CHAT_REQUEST_TIMEOUT_MS } from './errors';
