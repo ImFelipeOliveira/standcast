@@ -306,6 +306,31 @@ describe('sendBlockerAlerts', () => {
     expect((await getDelivery(db, scanKey()))?.status).toBe('sent');
   });
 
+  test('a retry records the last alert of the day when recording it failed after the post', async () => {
+    const { deps, posted, alice, hooks, setNow } = await setup();
+    const flaky = flakyDb();
+    deps.db = flaky.db;
+    const many = Array.from({ length: MAX_BLOCKER_ALERTS_PER_SCAN }, (_, i) => ({
+      text: `blocker ${String(i).padStart(2, '0')}`,
+    }));
+    await store(alice, '2026-10-20', many);
+    hooks.afterSend = async () => {
+      if (posted.length === MAX_BLOCKER_ALERTS_PER_SCAN) flaky.failNextUpdate(blockerStates);
+    };
+    await expect(sendBlockerAlerts(deps, job)).rejects.toThrow('db down');
+    hooks.afterSend = undefined;
+    await sendBlockerAlerts(deps, job);
+    expect(posted).toHaveLength(MAX_BLOCKER_ALERTS_PER_SCAN);
+    expect((await getDelivery(db, scanKey()))?.status).toBe('sent');
+    const alerted = (await db.select().from(blockerStates)).filter((row) =>
+      row.alertedTeams.includes('Alpha'),
+    );
+    expect(alerted).toHaveLength(MAX_BLOCKER_ALERTS_PER_SCAN);
+    setNow(new Date('2026-10-29T13:05:00Z'));
+    await sendBlockerAlerts(deps, { ...job, date: '2026-10-29' });
+    expect(posted).toHaveLength(MAX_BLOCKER_ALERTS_PER_SCAN);
+  });
+
   test('a failure to complete the scan records it as failed', async () => {
     const { deps, alice } = await setup();
     const flaky = flakyDb();
