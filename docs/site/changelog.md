@@ -10,6 +10,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- **History** keeps daily text that starts with `1.`, `2)`, `#`, `-`, `+` or `~` as written in copy as Markdown and the Markdown export, instead of turning it into a list, a heading or a code block.
 - **Today** shows **First steps** until a team gets its first digest: install, standcast.yml, chat connection, first daily and first digest, each with its state in words and what to do next.
 - **Search** (⌘K or Ctrl K, or the Search button in the sidebar) jumps to any screen or team and searches the dailies of your teams by text, pull request or card.
 - Screen readers announce the account menu button with the name and role shown on it, the support email link in Settings is underlined, and wide tables in Settings can be scrolled with the keyboard. The sign-in, Today, Blockers, History and Settings pages of the web app are now checked with axe in light and dark themes and on phones on every change.

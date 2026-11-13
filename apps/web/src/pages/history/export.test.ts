@@ -77,6 +77,41 @@ describe('shipped export', () => {
     );
   });
 
+  test('markdown keeps leading list, heading and quote markers literal', () => {
+    const texts = [
+      '1. Ship invoices',
+      '2) Close the sprint',
+      '# Release day',
+      '- Dropped the cache',
+      '+ Added retries',
+      '> Quoted the spec',
+      '~~~ fenced',
+    ];
+    const md = shippedMarkdown(
+      {
+        from: '2026-10-26',
+        to: '2026-11-01',
+        days: [
+          {
+            date: '2026-10-27',
+            items: texts.map((text) => ({ author: 'ana', text, ref: null })),
+          },
+        ],
+      },
+      'backend',
+      'en',
+    );
+    expect(md.split('\n').filter((line) => line.endsWith('@ana'))).toEqual([
+      '- 1\\. Ship invoices — @ana',
+      '- 2\\) Close the sprint — @ana',
+      '- \\# Release day — @ana',
+      '- \\- Dropped the cache — @ana',
+      '- \\+ Added retries — @ana',
+      '- \\> Quoted the spec — @ana',
+      '- \\~~~ fenced — @ana',
+    ]);
+  });
+
   test('csv neutralizes spreadsheet formulas', () => {
     const csv = shippedCsv({
       from: '2026-10-26',

@@ -10,6 +10,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- **Histórico** mantém como foi escrito o texto da daily que começa com `1.`, `2)`, `#`, `-`, `+` ou `~` na cópia em Markdown e na exportação em Markdown, em vez de virar lista, título ou bloco de código.
 - **Hoje** mostra **Primeiros passos** até o time receber o primeiro consolidado: instalação, standcast.yml, conexão do chat, primeira daily e primeiro consolidado, cada um com o estado escrito e o que fazer a seguir.
 - **Busca** (⌘K ou Ctrl K, ou o botão Buscar na barra lateral) leva a qualquer tela ou time e busca nas dailies dos seus times por texto, pull request ou card.
 - Leitores de tela anunciam o botão do menu da conta com o nome e o papel mostrados nele, o link do e-mail de suporte em Configuração é sublinhado e as tabelas largas de Configuração rolam pelo teclado. As páginas de login, Hoje, Impedimentos, Histórico e Configuração do app web agora passam pelo axe nos temas claro e escuro e no celular a cada mudança.
