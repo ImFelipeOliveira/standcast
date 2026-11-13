@@ -20,10 +20,14 @@ function isShallow(git: GitRunner): boolean | null {
   return result.stdout === 'true';
 }
 
-export function fullGitHistory(git: GitRunner): boolean {
+export function fullGitHistory(
+  git: GitRunner,
+  { fetch = true }: { fetch?: boolean } = {},
+): boolean {
   const shallow = isShallow(git);
   if (shallow === null) return false;
   if (!shallow) return true;
+  if (!fetch) return false;
   git(['fetch', '--quiet', '--unshallow']);
   return isShallow(git) === false;
 }

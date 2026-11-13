@@ -152,7 +152,7 @@ describe('built site', () => {
     outDir = join(await mkdtemp(join(tmpdir(), 'standcast-og-')), 'dist');
     const build = Bun.spawnSync(['bun', 'run', 'docs:build', '--outDir', outDir], {
       cwd: ROOT,
-      env: { ...process.env, SUPPORT_EMAIL: 'test@example.com' },
+      env: { ...process.env, SUPPORT_EMAIL: 'test@example.com', DOCS_FETCH_HISTORY: 'false' },
       stdout: 'pipe',
       stderr: 'pipe',
     });

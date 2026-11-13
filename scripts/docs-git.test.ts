@@ -75,6 +75,26 @@ describe('full git history for last updated dates', () => {
     }
   });
 
+  test('a shallow clone is not fetched when fetching is off', async () => {
+    const { root, origin } = await originWithTwoCommits();
+    try {
+      const clone = shallowClone(root, origin);
+      expect(fullGitHistory(gitRunner(clone), { fetch: false })).toBe(false);
+      expect(git(clone, 'rev-parse', '--is-shallow-repository')).toBe('true');
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test('a full clone has full history even when fetching is off', async () => {
+    const { root, origin } = await originWithTwoCommits();
+    try {
+      expect(fullGitHistory(gitRunner(origin), { fetch: false })).toBe(true);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   test('a folder outside git reports no full history', async () => {
     const root = await mkdtemp(join(tmpdir(), 'standcast-nogit-'));
     try {

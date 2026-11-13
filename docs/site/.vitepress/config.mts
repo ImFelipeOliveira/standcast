@@ -35,7 +35,9 @@ const codeContrast = shikiContrastTransformer(
 
 const ogDigest = await templateDigest();
 
-const lastUpdated = fullGitHistory(gitRunner(fileURLToPath(new URL('.', import.meta.url))));
+const lastUpdated = fullGitHistory(gitRunner(fileURLToPath(new URL('.', import.meta.url))), {
+  fetch: process.env.DOCS_FETCH_HISTORY !== 'false',
+});
 if (!lastUpdated) {
   console.warn('docs: the git history is shallow or missing, so pages leave out the last updated date');
 }

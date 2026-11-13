@@ -23,7 +23,12 @@ const outDir = join(temp, 'dist');
 function buildSite(supportEmail: string, out: string) {
   return Bun.spawnSync(['bun', 'run', 'docs:build', '--outDir', out], {
     cwd: ROOT,
-    env: { ...process.env, SUPPORT_EMAIL: supportEmail, STANDCAST_PUBLIC_URL: PUBLIC_URL },
+    env: {
+      ...process.env,
+      SUPPORT_EMAIL: supportEmail,
+      STANDCAST_PUBLIC_URL: PUBLIC_URL,
+      DOCS_FETCH_HISTORY: 'false',
+    },
     stdout: 'pipe',
     stderr: 'pipe',
   });
