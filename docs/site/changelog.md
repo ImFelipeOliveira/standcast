@@ -10,6 +10,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- On phones, closing **Search** opened with ⌘K or Ctrl K while the side menu is closed puts focus back on what you were on before, or on the menu button, instead of losing it inside the hidden menu.
 - When the browser refuses **Copy as Markdown** in **History**, the page says the copy failed and points to **Export Markdown**, which downloads the same text, instead of doing nothing.
 - **History** keeps daily text that starts with `1.`, `2)`, `#`, `-`, `+` or `~` as written in copy as Markdown and the Markdown export, instead of turning it into a list, a heading or a code block.
 - **Today** shows **First steps** until a team gets its first digest: install, standcast.yml, chat connection, first daily and first digest, each with its state in words and what to do next.

@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import { Dialog as DialogPrimitive } from 'radix-ui';
-import { type KeyboardEvent, useEffect, useMemo, useState } from 'react';
+import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { type MessageKey, useT } from '../i18n';
 import { cn } from '../lib/utils';
 import { useNavDrawer } from './nav-drawer';
@@ -8,6 +8,7 @@ import {
   isPaletteShortcut,
   type PaletteGroup,
   type PaletteItem,
+  paletteCloseFocus,
   paletteItems,
   paletteOptionId,
 } from './palette-items';
@@ -37,6 +38,8 @@ export function CommandPalette({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const items = useMemo(
     () => paletteItems({ query, installationId, teams, currentTeam, admin, t }),
     [query, installationId, teams, currentTeam, admin, t],
@@ -103,6 +106,7 @@ export function CommandPalette({
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       <DialogPrimitive.Trigger asChild>
         <button
+          ref={triggerRef}
           type="button"
           aria-keyshortcuts="Meta+K Control+K"
           className="flex min-h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-[9px] border-0 bg-hover px-3 text-[13px] text-muted hover:text-text desk:min-h-9"
@@ -115,6 +119,22 @@ export function CommandPalette({
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-overlay" />
         <DialogPrimitive.Content
           aria-describedby="palette-hint"
+          onOpenAutoFocus={() => {
+            const previous = document.activeElement;
+            returnFocusRef.current =
+              previous instanceof HTMLElement && previous !== document.body ? previous : null;
+          }}
+          onCloseAutoFocus={(event) => {
+            const target = paletteCloseFocus(
+              triggerRef.current,
+              returnFocusRef.current,
+              document.getElementById('app-menu-button'),
+            );
+            returnFocusRef.current = null;
+            if (!target) return;
+            event.preventDefault();
+            target.focus();
+          }}
           className="fixed top-[12vh] left-1/2 z-50 flex max-h-[70vh] w-[calc(100%-32px)] max-w-xl -translate-x-1/2 flex-col overflow-hidden rounded-[14px] bg-surface text-text shadow-xl ring-1 ring-border-strong"
         >
           <DialogPrimitive.Title className="sr-only">{t('palette.title')}</DialogPrimitive.Title>
