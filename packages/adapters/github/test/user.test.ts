@@ -28,6 +28,40 @@ describe('getUserProfile', () => {
     expect(profile.installationIds).toEqual([1, 3]);
   });
 
+  test('reads every page of emails', async () => {
+    const firstPage = Array.from({ length: 100 }, (_, i) => ({
+      email: `alias${i}@x.com`,
+      primary: false,
+      verified: false,
+    }));
+    const secondPage = [{ email: 'work@acme.com', primary: false, verified: true }];
+    const { fetch } = fakeFetch({
+      ...routes,
+      'GET /user/emails': (url) => ({
+        body: JSON.stringify(url.searchParams.get('page') === '2' ? secondPage : firstPage),
+      }),
+    });
+    expect((await getUserProfile('ghu_token', { fetch })).verifiedEmails).toEqual([
+      'work@acme.com',
+    ]);
+  });
+
+  test('verified emails are unknown when the list reaches the page cap', async () => {
+    const full = Array.from({ length: 100 }, (_, i) => ({
+      email: `alias${i}@x.com`,
+      primary: i === 0,
+      verified: true,
+    }));
+    const { fetch, calls } = fakeFetch({
+      ...routes,
+      'GET /user/emails': { body: JSON.stringify(full) },
+    });
+    const profile = await getUserProfile('ghu_token', { fetch });
+    expect(profile.verifiedEmails).toBeNull();
+    expect(profile.email).toBe('alias0@x.com');
+    expect(calls.filter((call) => call.url.pathname === '/user/emails').length).toBe(10);
+  });
+
   test('email is null when none is primary and verified', async () => {
     const { fetch } = fakeFetch({ ...routes, 'GET /user/emails': { body: '[]' } });
     const profile = await getUserProfile('ghu_token', { fetch });

@@ -37,7 +37,7 @@ export async function syncMemberFromGitHub(
     githubUserId: profile.githubUserId,
     login: profile.login,
     email: profile.email,
-    verifiedEmails: profile.verifiedEmails,
+    verifiedEmails: profile.verifiedEmails ?? undefined,
   });
   rememberGitHubInstallations(deps, member.id, profile.installationIds);
   const known: { id: number; accountLogin: string }[] = [];

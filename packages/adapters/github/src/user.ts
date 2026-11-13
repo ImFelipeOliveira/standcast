@@ -1,12 +1,30 @@
 import { Octokit } from '@octokit/core';
 
+const PER_PAGE = 100;
+const MAX_EMAIL_PAGES = 10;
+
 export type UserProfile = {
   githubUserId: number;
   login: string;
   email: string | null;
-  verifiedEmails: string[];
+  verifiedEmails: string[] | null;
   installationIds: number[];
 };
+
+type EmailEntry = { email: string; primary: boolean; verified: boolean };
+
+async function listEmails(
+  octokit: Octokit,
+): Promise<{ entries: EmailEntry[]; truncated: boolean }> {
+  const entries: EmailEntry[] = [];
+  for (let page = 1; page <= MAX_EMAIL_PAGES; page++) {
+    const response = await octokit.request('GET /user/emails', { per_page: PER_PAGE, page });
+    const batch = response.data as EmailEntry[];
+    entries.push(...batch);
+    if (batch.length < PER_PAGE) return { entries, truncated: false };
+  }
+  return { entries, truncated: true };
+}
 
 export async function getUserProfile(
   userToken: string,
@@ -18,11 +36,10 @@ export async function getUserProfile(
   });
   const [user, emails, installations] = await Promise.all([
     octokit.request('GET /user'),
-    octokit.request('GET /user/emails', { per_page: 100 }),
-    octokit.request('GET /user/installations', { per_page: 100 }),
+    listEmails(octokit),
+    octokit.request('GET /user/installations', { per_page: PER_PAGE }),
   ]);
-  const entries = emails.data as { email: string; primary: boolean; verified: boolean }[];
-  const verified = entries.filter((entry) => entry.verified);
+  const verified = emails.entries.filter((entry) => entry.verified);
   const primary = verified.find((entry) => entry.primary);
   const ours = (installations.data as { installations: { id: number; app_id: number }[] })
     .installations;
@@ -30,7 +47,7 @@ export async function getUserProfile(
     githubUserId: (user.data as { id: number }).id,
     login: (user.data as { login: string }).login,
     email: primary?.email ?? null,
-    verifiedEmails: verified.map((entry) => entry.email),
+    verifiedEmails: emails.truncated ? null : verified.map((entry) => entry.email),
     installationIds: ours
       .filter((installation) => opts.appId === undefined || installation.app_id === opts.appId)
       .map((installation) => installation.id),
