@@ -137,6 +137,25 @@ export async function markDeliverySent(db: Db, k: DeliveryKey): Promise<void> {
     });
 }
 
+export async function countSentDeliveries(
+  db: Db,
+  k: Omit<DeliveryKey, 'subject'>,
+): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(deliveries)
+    .where(
+      and(
+        eq(deliveries.installationId, k.installationId),
+        eq(deliveries.teamName, k.teamName),
+        eq(deliveries.date, k.date),
+        eq(deliveries.kind, k.kind),
+        eq(deliveries.status, 'sent'),
+      ),
+    );
+  return row?.count ?? 0;
+}
+
 export async function getDelivery(db: Db, k: DeliveryKey): Promise<DeliveryRow | null> {
   const [row] = await db.select().from(deliveries).where(keyFilter(k));
   return row ?? null;

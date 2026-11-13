@@ -11,6 +11,7 @@ import {
 import {
   claimDelivery,
   completeDelivery,
+  countSentDeliveries,
   type DeliveryKey,
   type DeliveryRow,
   failDelivery,
@@ -39,6 +40,11 @@ export const ALERT_POST_DEADLINE_MS = 5 * 60 * 1000;
 export type SendBlockerAlertsJob = { installationId: number; teamName: string; date: string };
 
 const scanKey = (job: SendBlockerAlertsJob): DeliveryKey => ({ ...job, kind: 'blocker_alert' });
+const postKey = (job: SendBlockerAlertsJob, stateId: string): DeliveryKey => ({
+  ...job,
+  kind: 'blocker_alert_post',
+  subject: stateId,
+});
 
 function settled(row: DeliveryRow | null): boolean {
   if (row?.status === 'sent') return true;
@@ -97,18 +103,44 @@ async function routesOf(
 
 async function staleStates(
   deps: WorkerDeps,
-  installationId: number,
-  team: { name: string; memberLogins: string[] },
-  date: string,
+  job: SendBlockerAlertsJob,
+  memberLogins: string[],
   alertDays: number,
 ): Promise<OpenBlockerState[]> {
-  const memberIds = await getInstallationMemberIds(deps.db, installationId, team.memberLogins);
-  return listStaleBlockerStates(deps.db, installationId, {
-    teamName: team.name,
+  const sent = await countSentDeliveries(deps.db, { ...job, kind: 'blocker_alert_post' });
+  const limit = MAX_BLOCKER_ALERTS_PER_SCAN - sent;
+  if (limit <= 0) return [];
+  const memberIds = await getInstallationMemberIds(deps.db, job.installationId, memberLogins);
+  return listStaleBlockerStates(deps.db, job.installationId, {
+    teamName: job.teamName,
     authorMemberIds: [...memberIds.values()],
-    openedOnOrBefore: addCalendarDays(date, -alertDays),
-    limit: MAX_BLOCKER_ALERTS_PER_SCAN,
+    openedOnOrBefore: addCalendarDays(job.date, -alertDays),
+    limit,
   });
+}
+
+async function postOnce(
+  deps: WorkerDeps,
+  job: SendBlockerAlertsJob,
+  stateId: string,
+  provider: ChatProvider,
+  post: () => Promise<MessageRef>,
+): Promise<MessageRef | null | 'skip'> {
+  const key = postKey(job, stateId);
+  const claim = await claimDelivery(deps.db, key);
+  if (claim.status === 'in_progress') throw new Error('blocker_alert_post_in_progress');
+  if (claim.status === 'already_sent') {
+    const row = await getDelivery(deps.db, key);
+    return row?.status === 'sent' ? row.ref : 'skip';
+  }
+  try {
+    const ref = await post();
+    await completeDelivery(deps.db, key, claim.token, ref);
+    return ref;
+  } catch (error) {
+    await failDelivery(deps.db, key, claim.token, describeDeliveryError(error, provider));
+    throw error;
+  }
 }
 
 export async function sendBlockerAlerts(
@@ -157,7 +189,7 @@ export async function sendBlockerAlerts(
     }
     const states =
       team.managerLogins.length > 0
-        ? await staleStates(deps, installation.id, team, job.date, alertDays)
+        ? await staleStates(deps, job, team.memberLogins, alertDays)
         : [];
     if (states.length > 0) {
       const managers = await managerPeople(
@@ -175,28 +207,32 @@ export async function sendBlockerAlerts(
             'blocker alert attempt ran past its deadline',
           );
         }
-        lastRef = await chat.postToChannel(
-          team.chat.channel,
-          buildBlockerAlert({
-            lang: team.language,
-            team: team.name,
-            managers,
-            author: state.authorLogin,
-            blocker: state.ref ? { text: state.text, ref: state.ref } : { text: state.text },
-            ageDays: calendarDaysBetween(state.openedOn, job.date),
-            openedOn: state.openedOn,
-            routedTo: routes.get(`${state.authorMemberId}:${state.blockerId}`) ?? [],
-          }),
+        const ref = await postOnce(deps, job, state.id, provider, () =>
+          chat.postToChannel(
+            team.chat.channel,
+            buildBlockerAlert({
+              lang: team.language,
+              team: team.name,
+              managers,
+              author: state.authorLogin,
+              blocker: state.ref ? { text: state.text, ref: state.ref } : { text: state.text },
+              ageDays: calendarDaysBetween(state.openedOn, job.date),
+              openedOn: state.openedOn,
+              routedTo: routes.get(`${state.authorMemberId}:${state.blockerId}`) ?? [],
+            }),
+          ),
         );
+        if (ref === 'skip') continue;
+        lastRef = ref ?? lastRef;
         await markBlockerStateAlerted(deps.db, installation.id, state.id, {
           teamName: job.teamName,
           at: deps.now(),
         });
       }
     }
+    await completeDelivery(deps.db, key, claim.token, lastRef);
   } catch (error) {
     await failDelivery(deps.db, key, claim.token, describeDeliveryError(error, provider));
     throw error;
   }
-  await completeDelivery(deps.db, key, claim.token, lastRef);
 }

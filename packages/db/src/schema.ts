@@ -148,7 +148,8 @@ export type DeliveryKind =
   | 'blocker_route'
   | 'suggestion_dm'
   | 'signal_scan'
-  | 'blocker_alert';
+  | 'blocker_alert'
+  | 'blocker_alert_post';
 
 export const deliveries = pgTable(
   'deliveries',

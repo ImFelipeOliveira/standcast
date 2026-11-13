@@ -20,7 +20,16 @@ import {
   recordBlockers,
   sendBlockerAlerts,
 } from '../../src';
-import { daily, type FakeOptions, fakeChat, fakeDeps, INST, linkSpace, seedOrg } from './fakes';
+import {
+  daily,
+  type FakeOptions,
+  fakeChat,
+  fakeDeps,
+  flakyDb,
+  INST,
+  linkSpace,
+  seedOrg,
+} from './fakes';
 
 useCleanDb();
 
@@ -257,6 +266,56 @@ describe('sendBlockerAlerts', () => {
     expect(posted).toHaveLength(2);
     expect(posted.map((p) => p.msg.fallbackText.includes('prod logs'))).toEqual([true, false]);
     expect((await getDelivery(db, scanKey()))?.status).toBe('sent');
+  });
+
+  test('a retry keeps the daily limit when a post fails midway', async () => {
+    const { deps, posted, alice, hooks, failWith } = await setup();
+    const many = Array.from({ length: MAX_BLOCKER_ALERTS_PER_SCAN + 1 }, (_, i) => ({
+      text: `blocker ${String(i).padStart(2, '0')}`,
+    }));
+    await store(alice, '2026-10-20', many);
+    hooks.afterSend = async () => {
+      if (posted.length === MAX_BLOCKER_ALERTS_PER_SCAN - 1) {
+        failWith(new ChatDeliveryError('rate_limited', 'slow down'));
+      }
+    };
+    await expect(sendBlockerAlerts(deps, job)).rejects.toBeInstanceOf(ChatDeliveryError);
+    expect(posted).toHaveLength(MAX_BLOCKER_ALERTS_PER_SCAN - 1);
+    hooks.afterSend = undefined;
+    failWith(null);
+    await sendBlockerAlerts(deps, job);
+    expect(posted).toHaveLength(MAX_BLOCKER_ALERTS_PER_SCAN);
+    expect((await getDelivery(db, scanKey()))?.status).toBe('sent');
+  });
+
+  test('a retry does not post again a blocker whose alert was posted but not recorded', async () => {
+    const { deps, posted, alice, hooks } = await setup();
+    const flaky = flakyDb();
+    deps.db = flaky.db;
+    await store(alice, '2026-10-20', [staging]);
+    hooks.afterSend = async () => {
+      flaky.failNextUpdate(blockerStates);
+    };
+    await expect(sendBlockerAlerts(deps, job)).rejects.toThrow('db down');
+    expect((await getDelivery(db, scanKey()))?.status).toBe('failed');
+    expect((await stateOf(alice, staging)).alertedAt).toBeNull();
+    hooks.afterSend = undefined;
+    await sendBlockerAlerts(deps, job);
+    expect(posted).toHaveLength(1);
+    expect((await stateOf(alice, staging)).alertedAt).not.toBeNull();
+    expect((await getDelivery(db, scanKey()))?.status).toBe('sent');
+  });
+
+  test('a failure to complete the scan records it as failed', async () => {
+    const { deps, alice } = await setup();
+    const flaky = flakyDb();
+    deps.db = flaky.db;
+    await store(alice, '2026-10-24', [staging]);
+    flaky.failNextUpdate(deliveries);
+    await expect(sendBlockerAlerts(deps, job)).rejects.toThrow('db down');
+    const row = await getDelivery(db, scanKey());
+    expect(row?.status).toBe('failed');
+    expect(row?.error?.startsWith('internal_error')).toBe(true);
   });
 
   test('a missing chat connection fails the scan without retry', async () => {
