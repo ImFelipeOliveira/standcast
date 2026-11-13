@@ -170,7 +170,12 @@ describe('shell', () => {
         }}
       />,
     );
-    expect(html).not.toContain('bg-warn-soft');
+    const tile =
+      html.match(/<div[^>]*>(?:(?!<div).)*Impedimentos abertos(?:(?!<\/div>).)*<\/div>/)?.[0] ?? '';
+    expect(tile).toContain('Impedimentos abertos');
+    expect(tile).toMatch(/>1<\/span>/);
+    expect(tile).toContain('text-warn-ink');
+    expect(tile).not.toContain('bg-warn-soft');
   });
 
   test('no installations', async () => {
