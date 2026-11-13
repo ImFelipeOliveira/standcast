@@ -72,8 +72,8 @@ describe('site build', () => {
     for (const page of await htmlFiles(outDir)) {
       if (page === '404.html' || page === 'pt-BR/404.html') continue;
       const html = await readFile(join(outDir, page), 'utf8');
-      expect(html, page).toContain(
-        'property="og:image" content="https://docs.standcast.app/og.png"',
+      expect(html, page).toMatch(
+        /property="og:image" content="https:\/\/docs\.standcast\.app\/og\/[\w/-]+\.[0-9a-f]{10}\.png"/,
       );
       expect(html, page).toMatch(/property="og:title" content="[^"]+"/);
       expect(html, page).toMatch(/property="og:url" content="https:\/\/docs\.standcast\.app\//);
@@ -100,7 +100,9 @@ describe('site build', () => {
     const html = await readFile(join(outDir, 'index.html'), 'utf8');
     expect(html).toContain('<html lang="en"');
     expect(html).toMatch(/(?:src|href)="\/assets\//);
-    expect(html).not.toContain('/docs/');
+    expect(
+      html.replaceAll('github.com/ImFelipeOliveira/standcast/edit/main/docs/', ''),
+    ).not.toContain('/docs/');
     expect(html).toContain('href="/favicon.png"');
     const pt = await readFile(join(outDir, 'pt-BR/index.html'), 'utf8');
     expect(pt).toContain('<html lang="pt-BR"');
