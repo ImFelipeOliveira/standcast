@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- Novas imagens do kit de marca do Standcast: ícones do app, avatar e banner do card no Google Chat, banner claro e escuro no README, imagens de prévia para redes e links, e cinco screenshots para os marketplaces.
+
 ### 0.9.4 — 12/11/2026
 
 - A skill `/daily` e o servidor MCP resumem o ontem em até 5 linhas, agrupadas por projeto ou tema, em vez de uma linha por pull request.

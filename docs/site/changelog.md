@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- New images from the Standcast brand kit: app icons, the Google Chat avatar and card banner, a light and dark README banner, social and link preview images, and five marketplace screenshots.
+
 ### 0.9.4 — 2026-11-12
 
 - The `/daily` skill and the MCP server summarize yesterday in at most 5 lines, grouped by project or theme, instead of one line per pull request.
