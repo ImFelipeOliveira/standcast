@@ -131,6 +131,17 @@ describe('shell', () => {
     }
   });
 
+  test('phones get a menu button that controls the sidebar drawer', async () => {
+    const { html } = await renderAt('/orgs/11/today?team=backend');
+    const button = html.match(/<button[^>]*aria-controls="app-sidebar"[^>]*>/)?.[0] ?? '';
+    expect(button).toContain('aria-expanded="false"');
+    expect(button).toContain('desk:hidden');
+    expect(button).toContain('aria-label="Abrir menu"');
+    const aside = html.match(/<aside[^>]*id="app-sidebar"[^>]*>/)?.[0] ?? '';
+    expect(aside).toContain('hidden');
+    expect(aside).toContain('desk:flex');
+  });
+
   test('no installations', async () => {
     const { html } = await renderAt('/', { ...session, installations: [] });
     expect(html).toContain('href="https://github.com/apps/standcast/installations/new"');

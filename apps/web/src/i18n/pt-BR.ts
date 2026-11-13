@@ -359,4 +359,6 @@ export const ptBR = {
   'signIn.preview.shipped': 'Entregue ontem',
   'signIn.preview.item1': 'Fila de webhooks com retentativa',
   'signIn.preview.item2': 'Emissão fiscal em lote',
+  'nav.openMenu': 'Abrir menu',
+  'nav.closeMenu': 'Fechar menu',
 } as const;

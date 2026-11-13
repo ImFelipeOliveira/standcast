@@ -14,6 +14,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 - Quando o login falha (você cancela no GitHub, o link expira, o GitHub não confirma a conta ou o navegador descarta o cookie da sessão), você volta à página de login com uma mensagem dizendo o que aconteceu e um botão **Tentar de novo**, em vez de uma página de erro da API.
 - Os endereços do app web estão em inglês: `/orgs/<id>/today`, `/history` e `/settings`. Links antigos para `/hoje`, `/historico` e `/configuracao` continuam funcionando e mantêm a query string.
 - O app web mostra o ícone do Standcast na aba do navegador.
+- O app web tem um visual novo: cores com mais contraste, que atendem ao WCAG 2.2 AA nos temas claro e escuro, cards sem borda, estados mostrados com um ponto colorido e texto, um cabeçalho que fica no topo e diminui um pouco ao rolar a página e, no celular, o menu lateral abre por um botão de menu.
 
 ### 0.9.4 — 12/11/2026
 

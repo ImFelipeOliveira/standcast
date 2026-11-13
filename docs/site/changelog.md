@@ -14,6 +14,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 - When signing in fails (you cancel on GitHub, the link expires, GitHub does not confirm the account or the browser drops the session cookie), you return to the sign-in page with a message saying what happened and a **Try again** button, instead of an error page on the API.
 - Web app addresses are in English: `/orgs/<id>/today`, `/history` and `/settings`. Old links to `/hoje`, `/historico` and `/configuracao` still work and keep their query string.
 - The web app shows the Standcast icon in the browser tab.
+- The web app has a new look: higher contrast colors that meet WCAG 2.2 AA in light and dark themes, cards without borders, status shown as a colored dot with text, a page header that stays at the top and shrinks a little as you scroll, and on phones the side menu opens from a menu button.
 
 ### 0.9.4 — 2026-11-12
 
