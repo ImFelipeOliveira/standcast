@@ -404,5 +404,46 @@ export const en: Record<MessageKey, string> = {
   'history.to': 'To',
   'history.range': 'Period',
   'history.apply': 'Apply',
+  'settings.tabs': 'Settings sections',
+  'settings.tab.general': 'General',
+  'settings.tab.people': 'People and links',
+  'settings.tab.api': 'API and webhooks',
+  'setup.webhooks.redeliver': 'Redeliver',
+  'setup.webhooks.redeliverQueued': 'Delivery queued again.',
+  'setup.webhooks.actions': 'Actions',
+  'people.issue.one': '{count} person not linked to {provider}',
+  'people.issue.other': '{count} people not linked to {provider}',
+  'people.issue.body':
+    'They are not mentioned in the digest and get no reminder. Their daily still works from the CLI and the plugin.',
+  'people.option.self': 'Each person fixes it',
+  'people.option.selfGoogleChat':
+    'After signing in to Standcast once, the person sends a direct message to the Standcast app in Google Chat. The link uses their primary GitHub email.',
+  'people.option.selfSlack':
+    'Linking is automatic when the primary GitHub email matches the Slack email. The person can run standcast login to try again.',
+  'people.option.admin': 'An admin maps it',
+  'people.option.adminGoogleChat':
+    'Set members.<login>.google_chat (users/…) in standcast.yml when the GitHub email differs from the Google email.',
+  'people.option.adminSlack':
+    'Set members.<login>.slack (the user id, like U0123ABCD) in standcast.yml when the email differs.',
+  'people.title': 'People',
+  'people.subtitle':
+    'Who is in standcast.yml and how Standcast finds each of them in the chat and the tracker.',
+  'people.filter': 'Filter',
+  'people.all': 'All',
+  'people.onlyIssues': 'Needs attention',
+  'people.person': 'Person',
+  'people.teams': 'Teams',
+  'people.chat': 'Chat',
+  'people.tracker': 'Tracker',
+  'people.cli': 'CLI and plugin',
+  'people.linked': 'linked',
+  'people.missing': 'Not linked',
+  'people.source.config': 'from standcast.yml',
+  'people.source.identity': 'from sign-in',
+  'people.cliConnected': 'connected',
+  'people.cliNone': 'not connected',
+  'people.managerOf': 'manager of {team}',
+  'people.note':
+    'No per-person metrics: this page only shows whether the configuration is complete.',
   'history.exportTitle': '{team} · shipped {from} to {to}',
 };

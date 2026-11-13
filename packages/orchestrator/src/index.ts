@@ -12,6 +12,7 @@ export * from './modules/github';
 export * from './modules/history';
 export * from './modules/linear';
 export * from './modules/org';
+export * from './modules/people';
 export * from './modules/retention';
 export * from './modules/session';
 export * from './modules/setup';

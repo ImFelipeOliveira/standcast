@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { ApiError } from '../../api/client';
 import type { CreatedApiKey, CreatedWebhook } from '../../api/mutations';
 import { useSetupStatus } from '../../api/queries';
@@ -35,9 +35,13 @@ function LoadError({ onRetry }: { onRetry: () => void }) {
 export function ConfiguracaoPage({
   installationId,
   connected,
+  tab = 'general',
+  tabs,
 }: {
   installationId: number;
   connected?: 'slack' | 'linear';
+  tab?: 'general' | 'api';
+  tabs?: ReactNode;
 }) {
   const t = useT();
   const lang = useLang();
@@ -60,6 +64,7 @@ export function ConfiguracaoPage({
         title={t('setup.heading')}
         actions={
           <>
+            {tabs}
             <Badge variant={progress.done === progress.total ? 'ok' : 'neutral'}>
               {t('setup.progress', { done: String(progress.done), total: String(progress.total) })}
             </Badge>
@@ -82,10 +87,14 @@ export function ConfiguracaoPage({
           </p>
         ) : null}
       </div>
-      <Connections status={status} />
-      <ConfigFile status={status} />
-      <FailedDeliveries status={status} />
-      {status.apiKeys.manage ? (
+      {tab === 'general' ? (
+        <>
+          <Connections status={status} />
+          <ConfigFile status={status} />
+          <FailedDeliveries status={status} />
+        </>
+      ) : null}
+      {tab === 'api' && status.apiKeys.manage ? (
         <ApiKeys
           installationId={installationId}
           apiKeys={status.apiKeys}
@@ -94,7 +103,7 @@ export function ConfiguracaoPage({
           onDismiss={() => setNewKey(null)}
         />
       ) : null}
-      {status.webhooks.manage ? (
+      {tab === 'api' && status.webhooks.manage ? (
         <Webhooks
           installationId={installationId}
           webhooks={status.webhooks}

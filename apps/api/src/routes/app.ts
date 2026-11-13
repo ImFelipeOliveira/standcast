@@ -9,6 +9,7 @@ import {
   disableWebhookEndpoint,
   getOrgBlockers,
   getOrgContext,
+  getPeopleLinks,
   getSetupStatus,
   getTeamDigest,
   getTeamHistory,
@@ -17,6 +18,7 @@ import {
   getTeamToday,
   linkGoogleChatSpace,
   logoutWebSession,
+  redeliverWebhook,
   remindNow,
   revokeInstallationApiKey,
   searchTeamDailies,
@@ -193,6 +195,21 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       200,
     ),
   );
+
+  app.get(`${ORG}/people`, async (c) =>
+    c.json(await getPeopleLinks(deps, isMember, c.get('member'), installationIdOf(c)), 200),
+  );
+
+  app.post(`${ORG}/webhooks/deliveries/:deliveryId/redeliver`, async (c) => {
+    await redeliverWebhook(
+      deps,
+      isMember,
+      c.get('member'),
+      installationIdOf(c),
+      c.req.param('deliveryId'),
+    );
+    return c.body(null, 204);
+  });
 
   app.get(`${ORG}/blockers`, async (c) => {
     const team = c.req.query('team');

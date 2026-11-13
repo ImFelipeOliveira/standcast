@@ -302,3 +302,24 @@ export async function findMembersByEmail(db: Db, email: string): Promise<MemberR
     .where(sql`lower(${members.email}) = ${normalized}`)
     .orderBy(members.login);
 }
+
+export async function listMemberIdentities(
+  db: Db,
+  installationId: number,
+  memberIds: string[],
+): Promise<{ memberId: string; provider: Provider; externalId: string }[]> {
+  if (memberIds.length === 0) return [];
+  return db
+    .select({
+      memberId: memberIdentities.memberId,
+      provider: memberIdentities.provider,
+      externalId: memberIdentities.externalId,
+    })
+    .from(memberIdentities)
+    .where(
+      and(
+        eq(memberIdentities.installationId, installationId),
+        inArray(memberIdentities.memberId, memberIds),
+      ),
+    );
+}

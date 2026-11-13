@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { and, eq, inArray, lt, or, sql } from 'drizzle-orm';
+import { and, eq, gt, inArray, lt, or, sql } from 'drizzle-orm';
 import type { Db } from '../client';
-import { type MemberRow, members, sessions } from '../schema';
+import { type MemberRow, memberInstallations, members, sessions } from '../schema';
 import { PRUNE_BATCH } from './prune-batch';
 
 const WEB_TTL_DAYS = 7;
@@ -70,4 +70,27 @@ export async function deleteExpiredSessions(db: Db, now: Date): Promise<number> 
     total += rows.length;
     if (rows.length === 0) return total;
   }
+}
+
+export async function listMemberIdsWithActiveCliSession(
+  db: Db,
+  installationId: number,
+  memberIds: string[],
+  now: Date,
+): Promise<Set<string>> {
+  if (memberIds.length === 0) return new Set();
+  const cutoff = new Date(now.getTime() - CLI_IDLE_DAYS * 86_400_000);
+  const rows = await db
+    .selectDistinct({ memberId: sessions.memberId })
+    .from(sessions)
+    .innerJoin(memberInstallations, eq(memberInstallations.memberId, sessions.memberId))
+    .where(
+      and(
+        eq(memberInstallations.installationId, installationId),
+        inArray(sessions.memberId, memberIds),
+        eq(sessions.kind, 'cli'),
+        gt(sessions.lastUsedAt, cutoff),
+      ),
+    );
+  return new Set(rows.map((row) => row.memberId));
 }
