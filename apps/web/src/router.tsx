@@ -15,9 +15,10 @@ import {
   safeNext,
   signInUrl,
 } from './api/client';
-import { orgContextQuery, sessionQuery } from './api/queries';
+import { orgContextQuery, sessionQuery, useSetupStatus } from './api/queries';
 import { useT } from './i18n';
 import { BlockersPage } from './pages/blockers/BlockersPage';
+import { ConfigEditor, configEditUrl } from './pages/configuracao/ConfigEditor';
 import { ConfiguracaoPage } from './pages/configuracao/ConfiguracaoPage';
 import { PeopleTab } from './pages/configuracao/PeopleTab';
 import { SettingsTabs } from './pages/configuracao/SettingsTabs';
@@ -326,6 +327,42 @@ const settingsPeopleRoute = createRoute({
   },
 });
 
+const settingsConfigRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: 'settings/config',
+  component: function SettingsConfig() {
+    const t = useT();
+    const { installationId } = orgRoute.useParams();
+    const setup = useSetupStatus(installationId);
+    const status = setup.data;
+    return (
+      <>
+        <PageHeader
+          title={t('setup.heading')}
+          actions={<SettingsTabs installationId={installationId} current="config" />}
+        />
+        {status ? (
+          <ConfigEditor
+            installationId={installationId}
+            editUrl={
+              status.configRepo.exists
+                ? configEditUrl(
+                    status.owner,
+                    status.configRepo.name,
+                    status.configRepo.defaultBranch,
+                    status.config.status !== 'unconfigured',
+                  )
+                : null
+            }
+          />
+        ) : (
+          <Loading header={false} />
+        )}
+      </>
+    );
+  },
+});
+
 const settingsApiRoute = createRoute({
   getParentRoute: () => orgRoute,
   path: 'settings/api',
@@ -389,6 +426,7 @@ export const routeTree = rootRoute.addChildren([
     configuracaoRoute,
     settingsPeopleRoute,
     settingsApiRoute,
+    settingsConfigRoute,
     legacyTodayRoute,
     legacyHistoryRoute,
     legacySettingsRoute,

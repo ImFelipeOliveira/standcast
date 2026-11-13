@@ -1,4 +1,6 @@
 import type {
+  ConfigValidation,
+  EditableConfig,
   OrgBlockers,
   PeopleLinks,
   SearchResult,
@@ -10,7 +12,7 @@ import type {
   TeamToday,
 } from '@standcast/orchestrator';
 import { QueryClient, queryOptions, useQuery } from '@tanstack/react-query';
-import { ApiError, apiGet, fetchSession, type OrgContext } from './client';
+import { ApiError, apiGet, apiPost, fetchSession, type OrgContext } from './client';
 
 export function createQueryClient(): QueryClient {
   return new QueryClient({
@@ -163,5 +165,22 @@ export function peopleQuery(installationId: number) {
   return queryOptions({
     queryKey: ['org', installationId, 'people'],
     queryFn: () => apiGet<PeopleLinks>(`/v1/app/orgs/${installationId}/people`),
+  });
+}
+
+export function configQuery(installationId: number) {
+  return queryOptions({
+    queryKey: ['org', installationId, 'config'],
+    queryFn: () => apiGet<EditableConfig>(`/v1/app/orgs/${installationId}/config`),
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+}
+
+export function configValidationQuery(installationId: number, source: string) {
+  return queryOptions({
+    queryKey: ['org', installationId, 'config', 'validate', source],
+    queryFn: () =>
+      apiPost<ConfigValidation>(`/v1/app/orgs/${installationId}/config/validate`, { source }),
+    staleTime: Number.POSITIVE_INFINITY,
   });
 }

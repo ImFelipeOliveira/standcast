@@ -92,12 +92,6 @@ type App = Awaited<ReturnType<typeof harness>>['app'];
 const get = (app: App, user: User, path: string) =>
   app.request(`/v1/app/orgs/${path}`, { headers: { cookie: user.cookie, origin: APP } });
 
-const post = (app: App, user: User, path: string) =>
-  app.request(`/v1/app/orgs/${path}`, {
-    method: 'POST',
-    headers: { cookie: user.cookie, origin: APP, 'x-standcast-csrf': user.csrf },
-  });
-
 const postJson = (app: App, user: User, path: string, body: unknown) =>
   app.request(`/v1/app/orgs/${path}`, {
     method: 'POST',
