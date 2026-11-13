@@ -55,7 +55,7 @@ jobs:
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
         working-directory: apps/web
-      - name: Web smoke test
+      - name: Web e2e (smoke and accessibility)
         run: bun run --cwd apps/web test:e2e
       - name: Build docs site
         env:
