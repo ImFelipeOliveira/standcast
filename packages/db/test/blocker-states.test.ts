@@ -1,10 +1,11 @@
 import { describe, expect, test } from 'bun:test';
 import {
   getBlockerState,
-  isBlockerStateCurrent,
+  listLatestDailies,
   listResolvedBlockerStates,
   listStaleBlockerStates,
   markBlockerStateAlerted,
+  reopenBlockerState,
   setBlockerStateResolved,
   upsertBlockerState,
   upsertDaily,
@@ -196,15 +197,51 @@ describe('resolved blocker states', () => {
     expect(await listResolvedBlockerStates(db, 200, [ana.id], '2026-10-14')).toEqual([]);
   });
 
-  test('a resolved blocker is current only while it is in the author latest daily', async () => {
+  test('latest dailies give each author their newest daily only', async () => {
+    const { ana, bob } = await seed();
+    const payload = { org: 'acme', yesterday: [], today: [], blockers: [], support: [] };
+    for (const [memberId, date] of [
+      [ana.id, '2026-10-27'],
+      [ana.id, '2026-10-28'],
+      [bob.id, '2026-10-26'],
+    ] as const) {
+      await upsertDaily(db, {
+        installationId: INST,
+        memberId,
+        date,
+        payload: { ...payload, blockers: [{ text: date }] },
+        submittedAt: new Date(`${date}T12:00:00.123Z`),
+      });
+    }
+    const latest = await listLatestDailies(db, INST, [ana.id, bob.id]);
+    expect(
+      [...latest.entries()].map(([id, d]) => [
+        id,
+        d.date,
+        d.submittedAt.toISOString(),
+        d.payload.blockers,
+      ]),
+    ).toEqual(
+      expect.arrayContaining([
+        [ana.id, '2026-10-28', '2026-10-28T12:00:00.123Z', [{ text: '2026-10-28' }]],
+        [bob.id, '2026-10-26', '2026-10-26T12:00:00.123Z', [{ text: '2026-10-26' }]],
+      ]),
+    );
+    expect(latest.size).toBe(2);
+    expect((await listLatestDailies(db, 200, [ana.id])).size).toBe(0);
+    expect((await listLatestDailies(db, INST, [])).size).toBe(0);
+  });
+
+  test('reopen succeeds only while the daily it was checked against is still the latest', async () => {
     const { ana } = await seed();
-    const daily = (date: string) =>
+    const payload = { org: 'acme', yesterday: [], today: [], blockers: [], support: [] };
+    const submit = (date: string, at: string) =>
       upsertDaily(db, {
         installationId: INST,
         memberId: ana.id,
         date,
-        payload: { org: 'acme', yesterday: [], today: [], blockers: [], support: [] },
-        submittedAt: new Date(`${date}T12:00:00Z`),
+        payload,
+        submittedAt: new Date(at),
       });
     const row = await upsertBlockerState(db, {
       installationId: INST,
@@ -214,23 +251,31 @@ describe('resolved blocker states', () => {
       ref: null,
       date: '2026-10-28',
     });
-    expect(await isBlockerStateCurrent(db, INST, row.id)).toBe(false);
-    await daily('2026-10-28');
-    await setBlockerStateResolved(db, INST, row.id, {
-      by: ana.id,
-      at: new Date('2026-10-28T13:00:00Z'),
-      on: '2026-10-28',
+    const resolve = () =>
+      setBlockerStateResolved(db, INST, row.id, {
+        by: ana.id,
+        at: new Date('2026-10-28T13:00:00Z'),
+        on: '2026-10-28',
+      });
+    await submit('2026-10-28', '2026-10-28T12:00:00.123Z');
+    await resolve();
+    const checked = { date: '2026-10-28', submittedAt: new Date('2026-10-28T12:00:00.123Z') };
+    expect(await reopenBlockerState(db, 200, row.id, checked)).toBe(false);
+    await submit('2026-10-28', '2026-10-28T14:00:00Z');
+    expect(await reopenBlockerState(db, INST, row.id, checked)).toBe(false);
+    expect((await getBlockerState(db, INST, row.id))?.resolvedAt).not.toBeNull();
+    const resubmitted = { date: '2026-10-28', submittedAt: new Date('2026-10-28T14:00:00Z') };
+    await submit('2026-10-29', '2026-10-29T12:00:00Z');
+    expect(await reopenBlockerState(db, INST, row.id, resubmitted)).toBe(false);
+    expect((await getBlockerState(db, INST, row.id))?.resolvedAt).not.toBeNull();
+    const latest = { date: '2026-10-29', submittedAt: new Date('2026-10-29T12:00:00Z') };
+    expect(await reopenBlockerState(db, INST, row.id, latest)).toBe(true);
+    expect(await getBlockerState(db, INST, row.id)).toMatchObject({
+      resolvedAt: null,
+      resolvedByMemberId: null,
+      resolvedOn: null,
     });
-    expect(await isBlockerStateCurrent(db, INST, row.id)).toBe(true);
-    expect((await listResolvedBlockerStates(db, INST, [ana.id], '2026-10-14'))[0]?.current).toBe(
-      true,
-    );
-    await daily('2026-10-29');
-    expect(await isBlockerStateCurrent(db, INST, row.id)).toBe(false);
-    expect(await isBlockerStateCurrent(db, 200, row.id)).toBe(false);
-    expect((await listResolvedBlockerStates(db, INST, [ana.id], '2026-10-14'))[0]?.current).toBe(
-      false,
-    );
+    expect(await reopenBlockerState(db, INST, row.id, latest)).toBe(false);
   });
 });
 

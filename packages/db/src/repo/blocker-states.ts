@@ -203,21 +203,30 @@ export async function markBlockerStateAlerted(
 export type ResolvedBlockerState = BlockerStateRow & {
   authorLogin: string;
   resolvedByLogin: string | null;
-  current: boolean;
 };
 
-export async function isBlockerStateCurrent(
+export async function reopenBlockerState(
   db: Db,
   installationId: number,
   id: string,
+  latest: { date: string; submittedAt: Date },
 ): Promise<boolean> {
-  const [row] = await db
-    .select({
-      current: sql<boolean>`coalesce(${blockerStates.lastSeenOn} = ${latestDailyOfAuthor}, false)`,
-    })
-    .from(blockerStates)
-    .where(and(eq(blockerStates.id, id), eq(blockerStates.installationId, installationId)));
-  return row?.current === true;
+  const sameDaily = sql`exists (select 1 from ${dailies} where ${dailies.installationId} = ${blockerStates.installationId} and ${dailies.memberId} = ${blockerStates.authorMemberId} and ${dailies.date} = ${latest.date} and date_trunc('milliseconds', ${dailies.submittedAt}) = ${latest.submittedAt.toISOString()}::timestamptz)`;
+  const noLaterDaily = sql`not exists (select 1 from ${dailies} where ${dailies.installationId} = ${blockerStates.installationId} and ${dailies.memberId} = ${blockerStates.authorMemberId} and ${dailies.date} > ${latest.date})`;
+  const rows = await db
+    .update(blockerStates)
+    .set({ resolvedAt: null, resolvedByMemberId: null, resolvedOn: null })
+    .where(
+      and(
+        eq(blockerStates.id, id),
+        eq(blockerStates.installationId, installationId),
+        isNotNull(blockerStates.resolvedAt),
+        sameDaily,
+        noLaterDaily,
+      ),
+    )
+    .returning({ id: blockerStates.id });
+  return rows.length > 0;
 }
 
 export async function listResolvedBlockerStates(
@@ -233,7 +242,6 @@ export async function listResolvedBlockerStates(
       state: blockerStates,
       authorLogin: members.login,
       resolvedByLogin: resolver.login,
-      current: sql<boolean>`coalesce(${blockerStates.lastSeenOn} = ${latestDailyOfAuthor}, false)`,
     })
     .from(blockerStates)
     .innerJoin(members, eq(members.id, blockerStates.authorMemberId))
@@ -252,6 +260,5 @@ export async function listResolvedBlockerStates(
     ...r.state,
     authorLogin: r.authorLogin,
     resolvedByLogin: r.resolvedByLogin ?? null,
-    current: r.current === true,
   }));
 }
