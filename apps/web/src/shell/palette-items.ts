@@ -40,7 +40,7 @@ const SCREENS: { id: string; label: MessageKey; to: string; adminOnly?: boolean 
 const MIN_SEARCH_LENGTH = 2;
 
 export type ShortcutKey = {
-  key: string;
+  key: string | undefined;
   metaKey: boolean;
   ctrlKey: boolean;
   altKey: boolean;
@@ -48,9 +48,12 @@ export type ShortcutKey = {
 };
 
 export function isPaletteShortcut(event: ShortcutKey, mac: boolean): boolean {
-  if (event.key.toLowerCase() !== 'k' || event.altKey || event.shiftKey) return false;
+  if (event.key?.toLowerCase() !== 'k' || event.altKey || event.shiftKey) return false;
   return mac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
 }
+
+export const paletteOptionId = (item: PaletteItem, items: PaletteItem[]) =>
+  `palette-option-${items.indexOf(item)}`;
 
 const fold = (value: string) =>
   value

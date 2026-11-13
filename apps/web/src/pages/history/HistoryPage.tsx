@@ -267,6 +267,11 @@ function SearchTab({ installationId, search }: { installationId: number; search:
   const lang = useLang();
   const navigate = useNavigate();
   const [text, setText] = useState(search.q ?? '');
+  const [syncedQ, setSyncedQ] = useState(search.q);
+  if (syncedQ !== search.q) {
+    setSyncedQ(search.q);
+    setText(search.q ?? '');
+  }
   const ready = (search.q ?? '').trim().length >= 2;
   const query = useQuery({
     ...teamSearchQuery(installationId, search.team, search.q ?? '', search.from, search.to),
@@ -489,7 +494,7 @@ export function HistoryPage({
         }
       />
       {search.tab === 'search' ? (
-        <SearchTab key={search.q ?? ''} installationId={installationId} search={search} />
+        <SearchTab installationId={installationId} search={search} />
       ) : search.tab === 'shipped' ? (
         <Shipped installationId={installationId} search={search} />
       ) : (

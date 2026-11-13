@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { applyLang, translate } from '../i18n';
-import { isPaletteShortcut, paletteItems } from './palette-items';
+import { isPaletteShortcut, paletteItems, paletteOptionId } from './palette-items';
 
 const t = (key: Parameters<typeof translate>[1], vars?: Record<string, string>) =>
   translate('pt-BR', key, vars);
@@ -70,6 +70,14 @@ describe('command palette items', () => {
   });
 });
 
+describe('command palette option ids', () => {
+  test('every option gets its own id, whatever the team name', () => {
+    const items = paletteItems({ ...base, teams: ['開発', '営業', 'a b', 'a_b'], query: '' });
+    const ids = items.map((item) => paletteOptionId(item, items));
+    expect(new Set(ids).size).toBe(items.length);
+  });
+});
+
 describe('command palette shortcut', () => {
   const key = (overrides: Partial<Parameters<typeof isPaletteShortcut>[0]>) => ({
     key: 'k',
@@ -95,5 +103,9 @@ describe('command palette shortcut', () => {
     expect(isPaletteShortcut(key({ metaKey: true, altKey: true }), true)).toBe(false);
     expect(isPaletteShortcut(key({ metaKey: true, key: 'j' }), true)).toBe(false);
     expect(isPaletteShortcut(key({}), false)).toBe(false);
+  });
+
+  test('a keydown without a key, as Chromium sends on autofill, is ignored', () => {
+    expect(isPaletteShortcut(key({ key: undefined, ctrlKey: true }), false)).toBe(false);
   });
 });

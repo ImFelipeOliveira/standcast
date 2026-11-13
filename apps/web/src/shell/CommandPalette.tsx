@@ -3,11 +3,13 @@ import { Dialog as DialogPrimitive } from 'radix-ui';
 import { type KeyboardEvent, useEffect, useMemo, useState } from 'react';
 import { type MessageKey, useT } from '../i18n';
 import { cn } from '../lib/utils';
+import { useNavDrawer } from './nav-drawer';
 import {
   isPaletteShortcut,
   type PaletteGroup,
   type PaletteItem,
   paletteItems,
+  paletteOptionId,
 } from './palette-items';
 
 const GROUP_LABELS: Record<PaletteGroup, MessageKey> = {
@@ -31,6 +33,7 @@ export function CommandPalette({
 }) {
   const t = useT();
   const navigate = useNavigate();
+  const drawer = useNavDrawer();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
@@ -60,6 +63,7 @@ export function CommandPalette({
   const choose = (item: PaletteItem | undefined) => {
     if (!item) return;
     setOpen(false);
+    drawer.close();
     void navigate({ to: item.to, params: { installationId }, search: item.search ?? {} });
   };
 
@@ -86,8 +90,14 @@ export function CommandPalette({
   const groups = (['screens', 'teams', 'search'] as const)
     .map((group) => ({ group, entries: items.filter((item) => item.group === group) }))
     .filter((entry) => entry.entries.length > 0);
-  const optionId = (item: PaletteItem) => `palette-${item.id.replace(/[^\w-]/g, '_')}`;
+  const optionId = (item: PaletteItem) => paletteOptionId(item, items);
   const activeItem = items[active];
+  const activeId = activeItem ? optionId(activeItem) : undefined;
+
+  useEffect(() => {
+    if (!open || !activeId) return;
+    document.getElementById(activeId)?.scrollIntoView({ block: 'nearest' });
+  }, [open, activeId]);
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
@@ -114,7 +124,7 @@ export function CommandPalette({
             aria-expanded="true"
             aria-controls="palette-list"
             aria-autocomplete="list"
-            aria-activedescendant={activeItem ? optionId(activeItem) : undefined}
+            aria-activedescendant={activeId}
             placeholder={t('palette.placeholder')}
             value={query}
             onChange={(event) => {
