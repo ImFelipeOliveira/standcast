@@ -433,6 +433,7 @@ export const en: Record<MessageKey, string> = {
   'settings.tab.people': 'People and links',
   'settings.tab.api': 'API and webhooks',
   'setup.webhooks.redeliver': 'Redeliver',
+  'setup.webhooks.redeliverQueued': 'Delivery queued again.',
   'setup.webhooks.actions': 'Actions',
   'people.issue.one': '{count} person not linked to {provider}',
   'people.issue.other': '{count} people not linked to {provider}',
@@ -440,7 +441,7 @@ export const en: Record<MessageKey, string> = {
     'They are not mentioned in the digest and get no reminder. Their daily still works from the CLI and the plugin.',
   'people.option.self': 'Each person fixes it',
   'people.option.selfGoogleChat':
-    'The person taps "Link my account" on the digest in the space or sends a direct message to the Standcast app. The link uses their primary GitHub email.',
+    'After signing in to Standcast once, the person sends a direct message to the Standcast app in Google Chat. The link uses their primary GitHub email.',
   'people.option.selfSlack':
     'Linking is automatic when the primary GitHub email matches the Slack email. The person can run standcast login to try again.',
   'people.option.admin': 'An admin maps it',
@@ -464,7 +465,7 @@ export const en: Record<MessageKey, string> = {
   'people.source.config': 'from standcast.yml',
   'people.source.identity': 'from sign-in',
   'people.cliConnected': 'connected',
-  'people.cliNever': 'never signed in',
+  'people.cliNone': 'not connected',
   'people.managerOf': 'manager of {team}',
   'people.note':
     'No per-person metrics: this page only shows whether the configuration is complete.',

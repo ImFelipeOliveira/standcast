@@ -441,6 +441,7 @@ export const ptBR = {
   'settings.tab.people': 'Pessoas e vínculos',
   'settings.tab.api': 'API e webhooks',
   'setup.webhooks.redeliver': 'Reenviar',
+  'setup.webhooks.redeliverQueued': 'Entrega colocada na fila de novo.',
   'setup.webhooks.actions': 'Ações',
   'people.issue.one': '{count} pessoa sem vínculo com o {provider}',
   'people.issue.other': '{count} pessoas sem vínculo com o {provider}',
@@ -448,7 +449,7 @@ export const ptBR = {
     'Elas não são marcadas no consolidado e não recebem lembrete. A daily delas continua funcionando pela CLI e pelo plugin.',
   'people.option.self': 'Cada pessoa resolve',
   'people.option.selfGoogleChat':
-    'A pessoa toca em "Vincular minha conta" no consolidado do espaço ou manda uma mensagem direta para o app Standcast. O vínculo usa o e-mail principal do GitHub.',
+    'Depois de entrar no Standcast uma vez, a pessoa manda uma mensagem direta para o app Standcast no Google Chat. O vínculo usa o e-mail principal do GitHub.',
   'people.option.selfSlack':
     'O vínculo é automático quando o e-mail principal do GitHub é o mesmo do Slack. A pessoa pode rodar standcast login para tentar de novo.',
   'people.option.admin': 'Admin mapeia',
@@ -472,7 +473,7 @@ export const ptBR = {
   'people.source.config': 'pelo standcast.yml',
   'people.source.identity': 'pelo login',
   'people.cliConnected': 'conectada',
-  'people.cliNever': 'nunca entrou',
+  'people.cliNone': 'não conectada',
   'people.managerOf': 'gestor de {team}',
   'people.note': 'Sem métricas por pessoa: esta tela só mostra se a configuração está completa.',
 } as const;

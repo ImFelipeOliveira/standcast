@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { parseConfig } from '@standcast/core';
 import {
   createSession,
+  deactivateWebhookEndpoint,
   getWebhookDelivery,
   insertWebhookDeliveries,
   insertWebhookEndpoint,
@@ -74,7 +75,7 @@ async function harness() {
     }
     throw Object.assign(new Error('not found'), { status: 404 });
   };
-  const { app } = createTestApp({ request });
+  const { app, deps, queue } = createTestApp({ request });
   await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
   await upsertInstallation(db, { id: FOREIGN, accountLogin: 'other', accountType: 'Organization' });
   await setInstallationConfig(db, INST, { status: 'configured', config: config() });
@@ -90,7 +91,7 @@ async function harness() {
   const carol = await session(3);
   await setIdentity(db, INST, bob.member.id, 'slack', 'U0BOB');
   await createSession(db, bob.member.id, 'cli');
-  return { app, alice, bob, carol };
+  return { app, deps, queue, alice, bob, carol };
 }
 
 type App = Awaited<ReturnType<typeof harness>>['app'];
@@ -165,6 +166,58 @@ describe('/v1/app people and links', () => {
     expect(people.find((p) => p.login === 'carol')?.cli).toBe(false);
   });
 
+  test('a member listed only through a GitHub team shows up by login', async () => {
+    const { app, deps, alice } = await harness();
+    deps.github.resolveTeamMembers = async (_octokit, _owner, members) => ({
+      logins: members.flatMap((entry) => (entry === '@acme/platform' ? ['Erin'] : [entry])),
+      missingTeams: [],
+      truncatedTeams: [],
+    });
+    const parsed = parseConfig(`
+teams:
+  - name: Platform
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [alice]
+    members: ["@acme/platform"]
+    chat: { provider: slack, channel: "#platform" }
+`);
+    if (!parsed.ok) throw new Error(JSON.stringify(parsed.errors));
+    await setInstallationConfig(db, INST, { status: 'configured', config: parsed.config });
+    const people = (await (await get(app, alice, `${INST}/people`)).json()).people as {
+      login: string;
+      teams: string[];
+    }[];
+    expect(people.map((p) => p.login)).toEqual(['alice', 'erin']);
+    expect(people.find((p) => p.login === 'erin')?.teams).toEqual(['Platform']);
+  });
+
+  test('a Jira team shows no tracker link because Jira is not integrated yet', async () => {
+    const { app, alice } = await harness();
+    const parsed = parseConfig(`
+teams:
+  - name: Gamma
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [alice]
+    members: [alice]
+    chat: { provider: slack, channel: "#gamma" }
+    tracker: { provider: jira, team: GAM }
+members:
+  alice:
+    jira: alice@acme.dev
+`);
+    if (!parsed.ok) throw new Error(JSON.stringify(parsed.errors));
+    await setInstallationConfig(db, INST, { status: 'configured', config: parsed.config });
+    const people = (await (await get(app, alice, `${INST}/people`)).json()).people as {
+      login: string;
+      tracker: unknown[];
+    }[];
+    expect(people.find((p) => p.login === 'alice')?.tracker).toEqual([]);
+  });
+
   test('people and links is admin only', async () => {
     const { app, bob } = await harness();
     expect((await get(app, bob, `${INST}/people`)).status).toBe(403);
@@ -173,7 +226,7 @@ describe('/v1/app people and links', () => {
 });
 
 describe('/v1/app webhook redelivery', () => {
-  async function delivery(status: 'failed' | 'delivered', installationId = INST) {
+  async function delivery(status: 'failed' | 'delivered', installationId = INST, active = true) {
     const endpoint = await insertWebhookEndpoint(
       db,
       {
@@ -194,6 +247,7 @@ describe('/v1/app webhook redelivery', () => {
       },
     ]);
     if (!id) throw new Error('delivery');
+    if (!active) await deactivateWebhookEndpoint(db, installationId, endpoint.id, 'failures');
     const row = { id };
     if (status !== 'failed') {
       await db.execute(
@@ -219,6 +273,25 @@ describe('/v1/app webhook redelivery', () => {
       lastError: null,
       lastStatusCode: null,
     });
+  });
+
+  test('a redelivered delivery is queued for the worker right away', async () => {
+    const { app, alice, queue } = await harness();
+    const id = await delivery('failed');
+    expect((await post(app, alice, `${INST}/webhooks/deliveries/${id}/redeliver`)).status).toBe(
+      204,
+    );
+    expect(queue.enqueued).toContainEqual({ name: 'deliver-webhook', data: { deliveryId: id } });
+  });
+
+  test('a failed delivery of a disabled endpoint is not redelivered', async () => {
+    const { app, alice, queue } = await harness();
+    const id = await delivery('failed', INST, false);
+    expect((await post(app, alice, `${INST}/webhooks/deliveries/${id}/redeliver`)).status).toBe(
+      404,
+    );
+    expect(await getWebhookDelivery(db, id)).toMatchObject({ status: 'failed', attempts: 5 });
+    expect(queue.enqueued.filter((job) => job.name === 'deliver-webhook')).toEqual([]);
   });
 
   test('delivered, foreign and non-admin redeliveries are refused', async () => {

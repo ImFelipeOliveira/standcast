@@ -15,11 +15,7 @@ export type LinkStatus = 'linked' | 'missing';
 export type LinkSource = 'config' | 'identity' | null;
 
 export type PersonChatLink = { provider: ChatProvider; status: LinkStatus; source: LinkSource };
-export type PersonTrackerLink = {
-  provider: 'linear' | 'jira';
-  status: LinkStatus;
-  source: LinkSource;
-};
+export type PersonTrackerLink = { provider: 'linear'; status: LinkStatus; source: LinkSource };
 
 export type PersonLinks = {
   login: string;
@@ -33,6 +29,12 @@ export type PersonLinks = {
 export type PeopleLinks = { people: PersonLinks[] };
 
 const CHAT_OVERRIDE = { slack: 'slack', 'google-chat': 'googleChat' } as const;
+
+function linearLink(override: boolean, identity: boolean): PersonTrackerLink {
+  if (override) return { provider: 'linear', status: 'linked', source: 'config' };
+  if (identity) return { provider: 'linear', status: 'linked', source: 'identity' };
+  return { provider: 'linear', status: 'missing', source: null };
+}
 
 export async function getPeopleLinks(
   deps: Deps,
@@ -64,9 +66,7 @@ export async function getPeopleLinks(
       const related = [...new Set([...inTeams, ...managed])];
       const hasIdentity = (provider: string) => (row ? linked.has(`${row.id}:${provider}`) : false);
       const providers = [...new Set(related.map((team) => team.chat.provider))].sort();
-      const trackers = [
-        ...new Set(related.flatMap((team) => (team.tracker ? [team.tracker.provider] : []))),
-      ].sort();
+      const linear = related.some((team) => team.tracker?.provider === 'linear');
       return {
         login,
         teams: inTeams.map((team) => team.name).sort((a, b) => a.localeCompare(b)),
@@ -79,14 +79,7 @@ export async function getPeopleLinks(
             ? { provider, status: 'linked' as const, source: 'identity' as const }
             : { provider, status: 'missing' as const, source: null };
         }),
-        tracker: trackers.map((provider) => {
-          if (overrides[provider]) {
-            return { provider, status: 'linked' as const, source: 'config' as const };
-          }
-          return provider === 'linear' && hasIdentity('linear')
-            ? { provider, status: 'linked' as const, source: 'identity' as const }
-            : { provider, status: 'missing' as const, source: null };
-        }),
+        tracker: linear ? [linearLink(overrides.linear !== undefined, hasIdentity('linear'))] : [],
         cli: row ? cli.has(row.id) : false,
       };
     }),

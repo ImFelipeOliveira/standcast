@@ -140,6 +140,6 @@ export function useRedeliverWebhook(installationId: number) {
       apiPost<void>(
         `${orgPath(installationId)}/webhooks/deliveries/${encodeURIComponent(deliveryId)}/redeliver`,
       ),
-    onSuccess: () => queryClient.invalidateQueries(setupStatusQuery(installationId)),
+    onSettled: () => queryClient.invalidateQueries(setupStatusQuery(installationId)),
   });
 }

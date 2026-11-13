@@ -192,14 +192,17 @@ function lastDelivery(deliveries: WebhookDelivery[], endpointId: string): Date |
 function Deliveries({
   t,
   deliveries,
-  installationId,
+  activeEndpoints,
+  redeliveringId,
+  onRedeliver,
 }: {
   t: Translate;
   deliveries: WebhookDelivery[];
-  installationId: number;
+  activeEndpoints: ReadonlySet<string>;
+  redeliveringId: string | null;
+  onRedeliver: (delivery: WebhookDelivery) => void;
 }) {
   const lang = useLang();
-  const redeliver = useRedeliverWebhook(installationId);
   return (
     <div className="flex flex-col gap-2.5">
       <h3 className="m-0 font-semibold text-[11px] text-muted uppercase tracking-[0.06em]">
@@ -254,12 +257,13 @@ function Deliveries({
                   ) : null}
                 </TableCell>
                 <TableCell className="text-right">
-                  {delivery.status === 'failed' ? (
+                  {delivery.status === 'failed' && activeEndpoints.has(delivery.endpointId) ? (
                     <Button
                       type="button"
                       variant="outline"
-                      disabled={redeliver.isPending}
-                      onClick={() => redeliver.mutate(delivery.id)}
+                      size="sm"
+                      disabled={redeliveringId === delivery.id}
+                      onClick={() => onRedeliver(delivery)}
                     >
                       {t('setup.webhooks.redeliver')}
                     </Button>
@@ -291,20 +295,34 @@ export function Webhooks({
   const lang = useLang();
   const disable = useDisableWebhook(installationId);
   const sendTest = useTestWebhook(installationId);
+  const redeliver = useRedeliverWebhook(installationId);
   const [problem, setProblem] = useState<string | null>(null);
-  const [queued, setQueued] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const onError = (error: Error) => setProblem(errorMessage(t, error));
+  const clear = () => {
+    setProblem(null);
+    setNotice(null);
+  };
 
   const disableEndpoint = (endpoint: WebhookEndpoint) => {
-    setProblem(null);
-    setQueued(null);
+    clear();
     disable.mutate(endpoint.id, { onError });
   };
 
   const testEndpoint = (endpoint: WebhookEndpoint) => {
-    setProblem(null);
-    setQueued(null);
-    sendTest.mutate(endpoint.id, { onError, onSuccess: () => setQueued(endpoint.url) });
+    clear();
+    sendTest.mutate(endpoint.id, {
+      onError,
+      onSuccess: () => setNotice(t('setup.webhooks.testQueued', { url: endpoint.url })),
+    });
+  };
+
+  const redeliverDelivery = (delivery: WebhookDelivery) => {
+    clear();
+    redeliver.mutate(delivery.id, {
+      onError,
+      onSuccess: () => setNotice(t('setup.webhooks.redeliverQueued')),
+    });
   };
 
   return (
@@ -330,9 +348,9 @@ export function Webhooks({
           {problem}
         </p>
       ) : null}
-      {queued ? (
+      {notice ? (
         <p role="status" className="m-0 text-[13px] text-ok-ink">
-          {t('setup.webhooks.testQueued', { url: queued })}
+          {notice}
         </p>
       ) : null}
       {webhooks.endpoints.length === 0 ? (
@@ -388,7 +406,15 @@ export function Webhooks({
           })}
         </ul>
       )}
-      <Deliveries t={t} deliveries={webhooks.deliveries} installationId={installationId} />
+      <Deliveries
+        t={t}
+        deliveries={webhooks.deliveries}
+        activeEndpoints={
+          new Set(webhooks.endpoints.filter((endpoint) => endpoint.active).map((e) => e.id))
+        }
+        redeliveringId={redeliver.isPending ? (redeliver.variables ?? null) : null}
+        onRedeliver={redeliverDelivery}
+      />
     </Card>
   );
 }

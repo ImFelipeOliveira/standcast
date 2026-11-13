@@ -252,6 +252,39 @@ describe('configuração', () => {
     expect(html).toContain('Reenviar');
   });
 
+  test('a failed delivery of a disabled endpoint offers no redelivery', () => {
+    const status = adminStatus();
+    if (!status.webhooks.manage) throw new Error('admin');
+    const [endpoint] = status.webhooks.endpoints;
+    if (!endpoint) throw new Error('endpoint');
+    const html = renderPage(
+      {
+        ...status,
+        webhooks: {
+          ...status.webhooks,
+          endpoints: [{ ...endpoint, active: false, disabledReason: 'failures' }],
+          deliveries: [
+            {
+              id: 'del-1',
+              endpointId: 'hook-1',
+              endpointUrl: 'https://hooks.acme.dev/standcast',
+              event: 'daily.submitted',
+              status: 'failed',
+              attempts: 8,
+              lastStatusCode: null,
+              lastError: 'endpoint_disabled',
+              createdAt,
+            },
+          ],
+        },
+      },
+      adminContext,
+      undefined,
+      'api',
+    );
+    expect(html).not.toContain('Reenviar');
+  });
+
   test('admin sees keys and webhooks on the API tab', () => {
     const html = renderPage(adminStatus(), adminContext, undefined, 'api');
     expect(html).toContain('API keys');

@@ -17,7 +17,6 @@ const PROVIDER_LABELS: Record<Provider, string> = {
   slack: 'Slack',
   'google-chat': 'Google Chat',
   linear: 'Linear',
-  jira: 'Jira',
 };
 
 const SOURCE_LABELS: Record<'config' | 'identity', MessageKey> = {
@@ -185,7 +184,7 @@ export function PeopleTab({ installationId }: { installationId: number }) {
                   {person.cli ? (
                     <span className="font-mono text-text2">{t('people.cliConnected')}</span>
                   ) : (
-                    <span className="text-muted">{t('people.cliNever')}</span>
+                    <span className="text-muted">{t('people.cliNone')}</span>
                   )}
                 </td>
               </tr>

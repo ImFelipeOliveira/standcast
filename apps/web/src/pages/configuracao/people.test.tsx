@@ -51,7 +51,7 @@ describe('people and links', () => {
   test('summarizes missing chat links per provider with what to do', () => {
     const html = render();
     expect(html).toContain('2 pessoas sem vínculo com o Google Chat');
-    expect(html).toContain('Vincular minha conta');
+    expect(html).toContain('mensagem direta para o app Standcast');
     expect(html).toContain('google_chat');
   });
 
@@ -61,6 +61,18 @@ describe('people and links', () => {
     expect(html).toContain('Sem vínculo');
     expect(html).toContain('pelo login');
     expect(html).toContain('conectada');
+  });
+
+  test('the Google Chat option only names ways to link that exist today', () => {
+    const html = render();
+    expect(html).not.toContain('Vincular minha conta');
+    expect(html).toContain('Depois de entrar no Standcast');
+  });
+
+  test('a person without an active CLI session is not said to have never signed in', () => {
+    const html = render();
+    expect(html).not.toContain('nunca entrou');
+    expect(html).toContain('não conectada');
   });
 
   test('no issues means no callout', () => {

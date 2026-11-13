@@ -29,6 +29,8 @@ const deps: Deps = {
       ({
         request: async (route: string) => {
           if (route.startsWith('GET /user/')) return { data: { login: 'alice' } };
+          if (route.startsWith('GET /orgs/{org}/memberships/'))
+            return { data: { role: 'admin', state: 'active' }, status: 200 };
           if (!route.startsWith('GET /repos/')) return { data: {}, status: 204 };
           throw Object.assign(new Error('not found'), { status: 404 });
         },
