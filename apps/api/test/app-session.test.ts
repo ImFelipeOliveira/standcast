@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import {
   createSession,
+  resolveSession,
   setMemberInstallations,
   upsertInstallation,
   upsertMember,
@@ -18,7 +19,7 @@ async function seed() {
   const member = await upsertMember(db, { githubUserId: 1, login: 'alice', email: 'a@acme.com' });
   await setMemberInstallations(db, member.id, [21, 22, 23]);
   const token = await createSession(db, member.id, 'web');
-  return { token, cookie: `sc_web=${token}`, csrf: csrfToken('sess', token) };
+  return { member, token, cookie: `sc_web=${token}`, csrf: csrfToken('sess', token) };
 }
 
 describe('/v1/app session', () => {
@@ -132,5 +133,49 @@ describe('/v1/app session', () => {
     expect(cleared).toContain('Path=/');
     const after = await app.request('/v1/app/session', { headers: { cookie } });
     expect(after.status).toBe(401);
+  });
+  test('revoke-all ends every panel session and keeps the CLI and other people', async () => {
+    const { app } = createTestApp();
+    const { member, token, cookie, csrf } = await seed();
+    const otherBrowser = await createSession(db, member.id, 'web');
+    const cli = await createSession(db, member.id, 'cli');
+    const bruno = await upsertMember(db, { githubUserId: 2, login: 'bruno', email: null });
+    const brunoWeb = await createSession(db, bruno.id, 'web');
+    const res = await app.request('/v1/app/sessions/revoke-all', {
+      method: 'POST',
+      headers: { cookie, origin: APP, 'x-standcast-csrf': csrf },
+    });
+    expect(res.status).toBe(204);
+    expect(res.headers.get('access-control-allow-origin')).toBe(APP);
+    const cleared = res.headers.get('set-cookie') ?? '';
+    expect(cleared).toContain('sc_web=;');
+    expect(cleared).toContain('Max-Age=0');
+    expect(await resolveSession(db, token, 'web')).toBeNull();
+    expect(await resolveSession(db, otherBrowser, 'web')).toBeNull();
+    expect((await resolveSession(db, cli, 'cli'))?.id).toBe(member.id);
+    expect((await resolveSession(db, brunoWeb, 'web'))?.id).toBe(bruno.id);
+    const after = await app.request('/v1/app/session', { headers: { cookie } });
+    expect(after.status).toBe(401);
+  });
+
+  test('revoke-all rejects cross-origin writes and missing csrf', async () => {
+    const { app } = createTestApp();
+    const { token, cookie, csrf } = await seed();
+    const post = (headers: Record<string, string>) =>
+      app.request('/v1/app/sessions/revoke-all', {
+        method: 'POST',
+        headers: { cookie, ...headers },
+      });
+    expect((await post({ origin: 'https://evil.test', 'x-standcast-csrf': csrf })).status).toBe(
+      403,
+    );
+    expect((await post({ origin: APP })).status).toBe(403);
+    expect((await post({ origin: APP, 'x-standcast-csrf': 'nope' })).status).toBe(403);
+    expect(await resolveSession(db, token, 'web')).not.toBeNull();
+    const anonymous = await app.request('/v1/app/sessions/revoke-all', {
+      method: 'POST',
+      headers: { origin: APP, 'x-standcast-csrf': csrf },
+    });
+    expect(anonymous.status).toBe(401);
   });
 });

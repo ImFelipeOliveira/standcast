@@ -43,6 +43,18 @@ export async function revokeSession(db: Db, token: string): Promise<void> {
   await db.delete(sessions).where(eq(sessions.tokenHash, hash(token)));
 }
 
+export async function deleteMemberSessions(
+  db: Db,
+  memberId: string,
+  kind: 'cli' | 'web',
+): Promise<number> {
+  const rows = await db
+    .delete(sessions)
+    .where(and(eq(sessions.memberId, memberId), eq(sessions.kind, kind)))
+    .returning({ tokenHash: sessions.tokenHash });
+  return rows.length;
+}
+
 export async function deleteExpiredSessions(db: Db, now: Date): Promise<number> {
   const day = 24 * 60 * 60 * 1000;
   const webCutoff = new Date(now.getTime() - WEB_TTL_DAYS * day);
