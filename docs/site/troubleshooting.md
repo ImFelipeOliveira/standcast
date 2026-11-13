@@ -10,7 +10,7 @@ Reminders go only to people who have not sent the daily, at most once per day, a
 
 Standcast has no Slack user for you, so it cannot send you a reminder or a routed blocker. The failed delivery shows on the setup page. Sign in again with `standcast login` after Slack was connected, or ask your admin to add `members.<your-login>.slack` to `standcast.yml`. See [My name shows as @login](#my-name-shows-as-login).
 
-On Google Chat, Standcast has no Google Chat user for you. Click **Link my account** under your team digest, send the Standcast app a direct message in Google Chat, or ask your admin to add `members.<your-login>.google_chat`. See [Google Chat does not link me](#google-chat-does-not-link-me).
+On Google Chat, Standcast has no Google Chat user for you. Click **Link my account** under your team digest, send the Standcast app a direct message in Google Chat, or ask your admin to add `members.<your-login>.google_chat`. Linking does not open a direct message, so send the Standcast app a direct message to receive reminders. See [Google Chat does not link me](#google-chat-does-not-link-me).
 
 ## `no_route_target`
 

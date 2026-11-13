@@ -106,7 +106,7 @@ The digest mentions each linked person with their Google Chat user, and shows `@
 
 ## What happens without a link
 
-- **The person is not linked.** Reminders, routed blockers and suggested blockers for them fail with `no_chat_identity`. The digest still goes out, with `@login` and the **Link my account** button.
+- **The person is not linked.** Reminders, routed blockers and suggested blockers for them fail with `no_chat_identity`. The digest still goes out, with `@login`. The **Link my account** button appears only when the worker has `PUBLIC_URL` set.
 - **No one a blocker would go to can be reached.** When none of the people Standcast picked for a blocker, such as the reviewers, the code owners or the people on the card, has a Google Chat link or a confirmed mapping, the blocker goes to the team's managers instead. No failure is recorded for the people it first picked. The exception is a membership check that timed out: then the blocker does not go to the managers, and the delivery to that person fails with `timeout` and is retried.
 - **The person never opened a direct message with the app.** Google Chat sends a direct message only after the person has talked to the app once in a direct message. Linking with the button or a mention is not enough for that. Deliveries to them fail with `no_dm_space` and are not retried. Ask them to send the app a direct message.
 - **The space is not linked to your organization.** The digest and late dailies for the team fail with `space_not_linked`. Nothing is posted, and it is not retried. Link the space with a code.

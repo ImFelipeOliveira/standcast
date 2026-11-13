@@ -106,7 +106,7 @@ O consolidado menciona cada pessoa vinculada com o usuário dela no Google Chat,
 
 ## O que acontece sem vínculo
 
-- **A pessoa não está vinculada.** Lembretes, impedimentos encaminhados e impedimentos sugeridos para ela falham com `no_chat_identity`. O consolidado sai mesmo assim, com `@login` e o botão **Vincular minha conta**.
+- **A pessoa não está vinculada.** Lembretes, impedimentos encaminhados e impedimentos sugeridos para ela falham com `no_chat_identity`. O consolidado sai mesmo assim, com `@login`. O botão **Vincular minha conta** aparece só quando `PUBLIC_URL` está definido no worker.
 - **Ninguém para quem um impedimento iria pode ser alcançado.** Quando nenhuma das pessoas que o Standcast escolheu para um impedimento, como quem revisa, os donos do código ou as pessoas do card, tem vínculo com o Google Chat ou um mapeamento confirmado, o impedimento vai para os gestores do time. Nenhuma falha é registrada para as pessoas escolhidas antes. A exceção é uma conferência de participação que estourou o tempo: aí o impedimento não vai para os gestores, e a entrega para essa pessoa falha com `timeout` e é tentada de novo.
 - **A pessoa nunca abriu uma mensagem direta com o app.** O Google Chat só entrega mensagem direta depois que a pessoa falou com o app uma vez numa mensagem direta. Vincular pelo botão ou por uma menção não basta para isso. As entregas para ela falham com `no_dm_space` e não são repetidas. Peça para ela mandar uma mensagem direta para o app.
 - **O espaço não está vinculado à sua organização.** O consolidado e as dailies atrasadas do time falham com `space_not_linked`. Nada é publicado, e não há nova tentativa. Vincule o espaço com um código.
