@@ -22,7 +22,7 @@
 
 1. A member of another team gets 403 on every history route; unknown team 404.
 2. A day without a digest delivery but with dailies still shows (status `none`), and a digest that failed shows `failed` without a link.
-3. `q` shorter than 2 characters and ranges over 92 days are rejected with 400, not silently widened.
+3. `q` shorter than 2 characters and ranges over 92 days are rejected with 422 (the repo convention for invalid_request), not silently widened.
 4. CSV export escapes quotes, commas and newlines in item text.
 5. The Today header's chat button uses the provider name and hides when the digest is not sent.
 
