@@ -46,6 +46,34 @@ describe('getUserProfile', () => {
     ]);
   });
 
+  test('every email page request carries a timeout signal', async () => {
+    const firstPage = Array.from({ length: 100 }, (_, i) => ({
+      email: `alias${i}@x.com`,
+      primary: false,
+      verified: false,
+    }));
+    const signals: (AbortSignal | undefined)[] = [];
+    const fake = fakeFetch({
+      ...routes,
+      'GET /user/emails': (url) => ({
+        body: JSON.stringify(url.searchParams.get('page') === '2' ? [] : firstPage),
+      }),
+    });
+    const recording = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : String(input));
+      if (url.pathname === '/user/emails') {
+        signals.push(init?.signal ?? (input instanceof Request ? input.signal : undefined));
+      }
+      return fake.fetch(input, init);
+    }) as typeof fetch;
+    await getUserProfile('ghu_token', { fetch: recording });
+    expect(signals).toHaveLength(2);
+    for (const signal of signals) {
+      expect(signal).toBeInstanceOf(AbortSignal);
+      expect(signal?.aborted).toBe(false);
+    }
+  });
+
   test('verified emails are unknown when the list reaches the page cap', async () => {
     const full = Array.from({ length: 100 }, (_, i) => ({
       email: `alias${i}@x.com`,

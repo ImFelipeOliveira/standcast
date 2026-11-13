@@ -2,6 +2,7 @@ import { Octokit } from '@octokit/core';
 
 const PER_PAGE = 100;
 const MAX_EMAIL_PAGES = 10;
+const EMAIL_PAGE_TIMEOUT_MS = 5000;
 
 export type UserProfile = {
   githubUserId: number;
@@ -18,7 +19,11 @@ async function listEmails(
 ): Promise<{ entries: EmailEntry[]; truncated: boolean }> {
   const entries: EmailEntry[] = [];
   for (let page = 1; page <= MAX_EMAIL_PAGES; page++) {
-    const response = await octokit.request('GET /user/emails', { per_page: PER_PAGE, page });
+    const response = await octokit.request('GET /user/emails', {
+      per_page: PER_PAGE,
+      page,
+      request: { signal: AbortSignal.timeout(EMAIL_PAGE_TIMEOUT_MS) },
+    });
     const batch = response.data as EmailEntry[];
     entries.push(...batch);
     if (batch.length < PER_PAGE) return { entries, truncated: false };
