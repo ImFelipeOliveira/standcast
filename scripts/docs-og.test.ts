@@ -203,13 +203,18 @@ describe('built site', () => {
       .map(String)
       .filter((file) => file.endsWith('.html'));
     const failures = new Set<string>();
+    const checked = { light: 0, dark: 0 };
     for (const file of files) {
       const html = await readFile(join(outDir, file), 'utf8');
       for (const match of html.matchAll(/--shiki-(light|dark):(#[0-9A-Fa-f]{6})/g)) {
-        const bg = match[1] === 'light' ? light : dark;
-        if (contrast(match[2] ?? '', bg) < 4.5) failures.add(`${match[1]} ${match[2]}`);
+        const theme = match[1] === 'light' ? 'light' : 'dark';
+        checked[theme] += 1;
+        const bg = theme === 'light' ? light : dark;
+        if (contrast(match[2] ?? '', bg) < 4.5) failures.add(`${theme} ${match[2]}`);
       }
     }
+    expect(checked.light).toBeGreaterThan(0);
+    expect(checked.dark).toBeGreaterThan(0);
     expect([...failures]).toEqual([]);
   });
 });
