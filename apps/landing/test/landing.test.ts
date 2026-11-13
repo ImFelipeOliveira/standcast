@@ -906,4 +906,11 @@ describe('landing v2', () => {
       expect(html).not.toContain('id="replay"');
     }
   });
+
+  test('footer columns shrink to a phone instead of widening the page', () => {
+    const css = read('styles.css');
+    const footer = cssBlock(css, '.foot-nav');
+    expect(footer).toContain('min-width: 0;');
+    expect(footer).toContain('minmax(min(160px, 100%), 1fr)');
+  });
 });
