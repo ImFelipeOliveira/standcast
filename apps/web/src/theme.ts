@@ -27,6 +27,7 @@ export function applyTheme(theme: Theme): void {
 }
 
 export function chooseTheme(theme: Theme): void {
+  choice = theme;
   try {
     localStorage.setItem(STORAGE_KEY, theme);
   } catch {}
@@ -42,6 +43,7 @@ function systemPrefersDark(): boolean {
 }
 
 export function followSystemTheme(): void {
+  choice = 'system';
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch {}
@@ -68,9 +70,14 @@ export function getTheme(): Theme {
   return current;
 }
 
-export function getThemeChoice(): ThemeChoice {
-  const stored = readStoredTheme();
+export function themeChoiceFrom(stored: string | null): ThemeChoice {
   return stored === 'light' || stored === 'dark' ? stored : 'system';
+}
+
+let choice: ThemeChoice = themeChoiceFrom(readStoredTheme());
+
+export function getThemeChoice(): ThemeChoice {
+  return choice;
 }
 
 function subscribe(listener: () => void): () => void {

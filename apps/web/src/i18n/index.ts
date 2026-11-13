@@ -34,9 +34,14 @@ export function getLang(): Lang {
   return current;
 }
 
-export function getLangChoice(): LangChoice {
-  const stored = readStoredLang();
+export function langChoiceFrom(stored: string | null): LangChoice {
   return stored === 'pt-BR' || stored === 'en' ? stored : 'browser';
+}
+
+let choice: LangChoice = langChoiceFrom(readStoredLang());
+
+export function getLangChoice(): LangChoice {
+  return choice;
 }
 
 export function applyLang(lang: Lang): void {
@@ -46,6 +51,7 @@ export function applyLang(lang: Lang): void {
 }
 
 export function setLang(lang: Lang): void {
+  choice = lang;
   try {
     localStorage.setItem(STORAGE_KEY, lang);
   } catch {}
@@ -53,6 +59,7 @@ export function setLang(lang: Lang): void {
 }
 
 export function followBrowserLang(): void {
+  choice = 'browser';
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch {}

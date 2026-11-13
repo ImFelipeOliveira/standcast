@@ -6,6 +6,7 @@ import {
   getTheme,
   getThemeChoice,
   initialTheme,
+  themeChoiceFrom,
   watchSystemTheme,
 } from './theme';
 
@@ -64,12 +65,10 @@ describe('theme choice', () => {
   }
 
   test('a stored light or dark is the choice, anything else follows the system', () => {
-    const store = stub(false);
-    expect(getThemeChoice()).toBe('system');
-    store.set('standcast.theme', 'dark');
-    expect(getThemeChoice()).toBe('dark');
-    store.set('standcast.theme', 'purple');
-    expect(getThemeChoice()).toBe('system');
+    expect(themeChoiceFrom(null)).toBe('system');
+    expect(themeChoiceFrom('dark')).toBe('dark');
+    expect(themeChoiceFrom('light')).toBe('light');
+    expect(themeChoiceFrom('purple')).toBe('system');
   });
 
   test('following the system clears the stored choice and applies the system theme', () => {
@@ -85,15 +84,45 @@ describe('theme choice', () => {
   test('a live system change applies only while nothing is stored', () => {
     const store = stub(false);
     const { media, flip, listeners } = fakeMedia(false);
-    applyTheme('light');
+    followSystemTheme();
     const stop = watchSystemTheme(media);
     flip(true);
     expect(getTheme()).toBe('dark');
-    store.set('standcast.theme', 'dark');
+    chooseTheme('dark');
+    expect(store.get('standcast.theme')).toBe('dark');
     flip(false);
     expect(getTheme()).toBe('dark');
     stop();
     expect(listeners.size).toBe(0);
+  });
+
+  test('an explicit choice stays active when storage throws', () => {
+    stub(false);
+    const { media, flip } = fakeMedia(false);
+    followSystemTheme();
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: () => {
+          throw new Error('blocked');
+        },
+        setItem: () => {
+          throw new Error('blocked');
+        },
+        removeItem: () => {
+          throw new Error('blocked');
+        },
+      },
+    });
+    const stop = watchSystemTheme(media);
+    chooseTheme('dark');
+    expect(getThemeChoice()).toBe('dark');
+    flip(false);
+    expect(getTheme()).toBe('dark');
+    followSystemTheme();
+    expect(getThemeChoice()).toBe('system');
+    expect(getTheme()).toBe('light');
+    stop();
   });
 });
 

@@ -6,6 +6,7 @@ import {
   followBrowserLang,
   getLang,
   getLangChoice,
+  langChoiceFrom,
   setLang,
   translate,
   watchBrowserLang,
@@ -45,12 +46,10 @@ describe('language choice', () => {
   }
 
   test('a stored language is the choice, otherwise it follows the browser', () => {
-    const { store } = stub(['pt-BR']);
-    expect(getLangChoice()).toBe('browser');
-    store.set('standcast.lang', 'en');
-    expect(getLangChoice()).toBe('en');
-    store.set('standcast.lang', 'xx');
-    expect(getLangChoice()).toBe('browser');
+    expect(langChoiceFrom(null)).toBe('browser');
+    expect(langChoiceFrom('en')).toBe('en');
+    expect(langChoiceFrom('pt-BR')).toBe('pt-BR');
+    expect(langChoiceFrom('xx')).toBe('browser');
   });
 
   test('following the browser clears the stored choice and applies its language', () => {
@@ -64,7 +63,7 @@ describe('language choice', () => {
 
   test('a browser language change applies only while nothing is stored', () => {
     const { store, nav } = stub(['en-US']);
-    applyLang('en');
+    followBrowserLang();
     const listeners = new Set<() => void>();
     const target = {
       addEventListener: (_: 'languagechange', listener: () => void) => {
@@ -78,12 +77,50 @@ describe('language choice', () => {
     nav.languages = ['pt-BR'];
     for (const listener of listeners) listener();
     expect(getLang()).toBe('pt-BR');
-    store.set('standcast.lang', 'pt-BR');
+    setLang('pt-BR');
+    expect(store.get('standcast.lang')).toBe('pt-BR');
     nav.languages = ['en-US'];
     for (const listener of listeners) listener();
     expect(getLang()).toBe('pt-BR');
     stop();
     expect(listeners.size).toBe(0);
+  });
+
+  test('an explicit choice stays active when storage throws', () => {
+    const { nav } = stub(['en-US']);
+    followBrowserLang();
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: () => {
+          throw new Error('blocked');
+        },
+        setItem: () => {
+          throw new Error('blocked');
+        },
+        removeItem: () => {
+          throw new Error('blocked');
+        },
+      },
+    });
+    const listeners = new Set<() => void>();
+    const stop = watchBrowserLang({
+      addEventListener: (_: 'languagechange', listener: () => void) => {
+        listeners.add(listener);
+      },
+      removeEventListener: (_: 'languagechange', listener: () => void) => {
+        listeners.delete(listener);
+      },
+    });
+    setLang('pt-BR');
+    expect(getLangChoice()).toBe('pt-BR');
+    nav.languages = ['en-US'];
+    for (const listener of listeners) listener();
+    expect(getLang()).toBe('pt-BR');
+    followBrowserLang();
+    expect(getLangChoice()).toBe('browser');
+    expect(getLang()).toBe('en');
+    stop();
   });
 });
 
