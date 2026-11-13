@@ -26,10 +26,23 @@ O Standcast não lê mensagens.
 
 ## Canais
 
-Defina o canal no `standcast.yml`, em `chat.channel`:
+Defina o canal no `standcast.yml`, em `chat.channel`, pelo nome ou pelo id. Use aspas no nome do canal, porque `#` começa um comentário no YAML. Para o id, abra os detalhes do canal no Slack; o id fica no fim.
 
-- `"#daily-backend"`: o nome do canal. Use aspas.
-- `C0123456789`: o id do canal. No Slack, abra os detalhes do canal; o id fica no fim.
+::: code-group
+
+```text [Nome do canal]
+chat:
+  provider: slack
+  channel: "#daily-backend"
+```
+
+```text [Id do canal]
+chat:
+  provider: slack
+  channel: C0123456789
+```
+
+:::
 
 **Canais públicos** funcionam direto: o bot publica sem ser convidado.
 

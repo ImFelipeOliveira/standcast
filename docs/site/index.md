@@ -21,7 +21,7 @@ It solves three problems that show up once a team writes dailies with AI:
 
 ## Who it is for
 
-- **Members** write their own daily through their AI agent. Start with [Getting started](/members/getting-started).
+- **Members** write their own daily through their AI agent. Start with [Write your first daily](/members/getting-started).
 - **Managers** get the team digest in Slack or Google Chat and can read their team's dailies, digests and blockers from their own AI agent. Start with [MCP server](/members/mcp).
 - **Admins** install the GitHub App, connect Slack or Google Chat and write `standcast.yml`. Start with [Install](/admin/install).
 - **Integrators** read organization data with an API key and receive webhooks. Start with the [API overview](/api/overview).
@@ -72,7 +72,7 @@ Read [How it works](/how-it-works) for the full cycle of a day.
 | You are | Read |
 | --- | --- |
 | An admin setting up your organization | [Install](/admin/install), then the [standcast.yml reference](/admin/configuration) |
-| A member writing your first daily | [Getting started](/members/getting-started) |
+| A member writing your first daily | [Write your first daily](/members/getting-started) |
 | A Claude Code user | [Claude Code skill](/members/claude-code) |
 | A Cursor, Codex, Claude Desktop or VS Code user | [MCP server](/members/mcp) |
 | A manager | [MCP server](/members/mcp#manager-tools) and [How it works](/how-it-works) |

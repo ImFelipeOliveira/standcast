@@ -4,7 +4,7 @@
 standcast <comando> [opções]
 ```
 
-Os comandos imprimem o resultado em JSON na saída padrão e as mensagens na saída de erro, para scripts e agentes conseguirem ler. Para instalar a CLI, veja [Primeiros passos](/pt-BR/members/getting-started#_1-instale-a-cli).
+Os comandos imprimem o resultado em JSON na saída padrão e as mensagens na saída de erro, para scripts e agentes conseguirem ler. Para instalar a CLI, veja [Escreva sua primeira daily](/pt-BR/members/getting-started#_1-instale-a-cli).
 
 ## Comandos
 
