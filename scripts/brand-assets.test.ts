@@ -223,11 +223,11 @@ describe('github marketplace copy', () => {
     expect(detailed).toMatch(/team membership/);
   });
 
-  test('does not show history as shipped in the team panel screenshot', () => {
+  test('captions the team panel screenshot with history, which the web app has', () => {
     const row = listing.split('\n').find((line) => line.includes('5-team-panel.png')) ?? '';
     expect(row).not.toBe('');
-    expect(row).not.toMatch(/blockers and history in one panel/);
-    expect(row).toContain('History is coming soon');
+    expect(row).toContain("your team's day, blockers and history in one panel");
+    expect(row).not.toMatch(/coming soon/i);
   });
 
   test('names the badge color', () => {

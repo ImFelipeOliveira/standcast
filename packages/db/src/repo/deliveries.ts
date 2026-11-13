@@ -137,12 +137,12 @@ export async function markDeliverySent(db: Db, k: DeliveryKey): Promise<void> {
     });
 }
 
-export async function countSentDeliveries(
+export async function listSentDeliverySubjects(
   db: Db,
   k: Omit<DeliveryKey, 'subject'>,
-): Promise<number> {
-  const [row] = await db
-    .select({ count: sql<number>`count(*)::int` })
+): Promise<string[]> {
+  const rows = await db
+    .select({ subject: deliveries.subject })
     .from(deliveries)
     .where(
       and(
@@ -153,7 +153,7 @@ export async function countSentDeliveries(
         eq(deliveries.status, 'sent'),
       ),
     );
-  return row?.count ?? 0;
+  return rows.map((row) => row.subject);
 }
 
 export async function getDelivery(db: Db, k: DeliveryKey): Promise<DeliveryRow | null> {

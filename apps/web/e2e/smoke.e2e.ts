@@ -205,6 +205,34 @@ test('⌘K opens the search, the keyboard picks a result and Enter opens it', as
   await expect(page.getByRole('searchbox', { name: 'Buscar nas dailies' })).toHaveValue('reuniao');
 });
 
+test('closing the search on a phone puts focus back on something visible', async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`/orgs/${INSTALLATION_ID}/today?team=${TEAM_NAME}`);
+  const menu = page.getByRole('button', { name: 'Abrir menu' });
+  await expect(menu).toBeVisible();
+  const input = page.getByRole('combobox', { name: 'Buscar no painel' });
+  await page.keyboard.press('ControlOrMeta+k');
+  await expect(input).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(input).toBeHidden();
+  await expect(menu).toBeFocused();
+
+  await page.goto(`/orgs/${INSTALLATION_ID}/blockers`);
+  const resolved = page
+    .getByRole('navigation', { name: 'Estado' })
+    .getByRole('link', { name: /Resolvidos/ });
+  await resolved.focus();
+  await page.keyboard.press('ControlOrMeta+k');
+  await expect(input).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(input).toBeHidden();
+  await expect(resolved).toBeFocused();
+});
+
 test('the search keeps the active result in view and closes the phone drawer', async ({
   page,
   context,

@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { applyLang, translate } from '../i18n';
-import { isPaletteShortcut, paletteItems, paletteOptionId } from './palette-items';
+import {
+  isPaletteShortcut,
+  paletteCloseFocus,
+  paletteItems,
+  paletteOptionId,
+} from './palette-items';
 
 const t = (key: Parameters<typeof translate>[1], vars?: Record<string, string>) =>
   translate('pt-BR', key, vars);
@@ -107,5 +112,39 @@ describe('command palette shortcut', () => {
 
   test('a keydown without a key, as Chromium sends on autofill, is ignored', () => {
     expect(isPaletteShortcut(key({ key: undefined, ctrlKey: true }), false)).toBe(false);
+  });
+});
+
+describe('focus after the palette closes', () => {
+  const element = (name: string, shown: boolean, isConnected = true) => ({
+    name,
+    isConnected,
+    getClientRects: () => ({ length: shown ? 1 : 0 }),
+  });
+
+  test('a visible trigger keeps the default return to the trigger', () => {
+    expect(
+      paletteCloseFocus(element('trigger', true), element('field', true), element('menu', true)),
+    ).toBeNull();
+  });
+
+  test('a hidden trigger returns focus to what was focused before opening', () => {
+    expect(
+      paletteCloseFocus(element('trigger', false), element('field', true), element('menu', true))
+        ?.name,
+    ).toBe('field');
+  });
+
+  test('a hidden trigger with nothing visible focused before falls back to the menu button', () => {
+    expect(paletteCloseFocus(element('trigger', false), null, element('menu', true))?.name).toBe(
+      'menu',
+    );
+    expect(
+      paletteCloseFocus(
+        element('trigger', false),
+        element('gone', true, false),
+        element('menu', true),
+      )?.name,
+    ).toBe('menu');
   });
 });

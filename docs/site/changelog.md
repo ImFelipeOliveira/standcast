@@ -10,6 +10,12 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- Reopening a blocker that is already open no longer undoes a resolve someone else makes at the same moment.
+- When a stale blocker alert is posted but Standcast fails to record it, the retry that same day records it, so the blocker is not alerted again the next day. Each blocker is still alerted once in each team.
+- A resolved blocker can be reopened on **Today** or **Blockers** only while it is still in the latest daily of the person who wrote it. Once they send a daily without it, it stays resolved and **Reopen** no longer shows for it; if it still blocks them, they list it again in their next daily. Before, it could be reopened at any time. See [Web app](/admin/web-app).
+- On phones, closing **Search** opened with ⌘K or Ctrl K while the side menu is closed puts focus back on what you were on before, or on the menu button, instead of losing it inside the hidden menu.
+- When the browser refuses **Copy as Markdown** in **History**, the page says the copy failed and points to **Export Markdown**, which downloads the same text, instead of doing nothing.
+- **History** keeps daily text that starts with `1.`, `2)`, `#`, `-`, `+` or `~` as written in copy as Markdown and the Markdown export, instead of turning it into a list, a heading or a code block.
 - **Today** shows **First steps** until a team gets its first digest: install, standcast.yml, chat connection, first daily and first digest, each with its state in words and what to do next.
 - **Search** (⌘K or Ctrl K, or the Search button in the sidebar) jumps to any screen or team and searches the dailies of your teams by text, pull request or card.
 - Screen readers announce the account menu button with the name and role shown on it, the support email link in Settings is underlined, and wide tables in Settings can be scrolled with the keyboard. The sign-in, Today, Blockers, History and Settings pages of the web app are now checked with axe in light and dark themes and on phones on every change.

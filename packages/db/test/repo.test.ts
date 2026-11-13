@@ -5,7 +5,6 @@ import { sql } from 'drizzle-orm';
 import {
   claimDelivery,
   completeDelivery,
-  countSentDeliveries,
   createSession,
   deleteInstallation,
   deleteMemberSessions,
@@ -25,6 +24,7 @@ import {
   listMemberIdsWithActiveCliSession,
   listOperationalInstallations,
   listPersonDeliveries,
+  listSentDeliverySubjects,
   markConnectionInvalid,
   markDeliverySent,
   resolveSession,
@@ -204,7 +204,7 @@ describe('delivery markers', () => {
     expect(await claimDelivery(db, key)).toEqual({ status: 'already_sent' });
   });
 
-  test('countSentDeliveries counts only sent rows of one team, day and kind', async () => {
+  test('listSentDeliverySubjects lists only sent rows of one team, day and kind', async () => {
     await upsertInstallation(db, { id: 1, accountLogin: 'acme', accountType: 'Organization' });
     const base = {
       installationId: 1,
@@ -220,7 +220,7 @@ describe('delivery markers', () => {
     const claim = await claimDelivery(db, { ...base, subject: 'e' });
     if (claim.status !== 'claimed') throw new Error('not claimed');
     await failDelivery(db, { ...base, subject: 'e' }, claim.token, 'rate_limited');
-    expect(await countSentDeliveries(db, base)).toBe(2);
+    expect((await listSentDeliverySubjects(db, base)).sort()).toEqual(['a', 'b']);
   });
 });
 

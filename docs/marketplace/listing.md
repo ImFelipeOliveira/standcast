@@ -37,7 +37,7 @@ Every image has an SVG source in [brand/](brand/) with its text outlined as path
 | Screenshot 2: one digest per team, delivered to Slack | 1280×800 | `mock/2-digest-in-slack.html` | `docs/marketplace/screenshots/2-digest-in-slack.png` | upload the file |
 | Screenshot 3: the same digest in Google Chat | 1280×800 | `mock/3-digest-in-google-chat.html` | `docs/marketplace/screenshots/3-digest-in-google-chat.png` | upload the file |
 | Screenshot 4: blockers reach the people who can help | 1280×800 | `mock/4-blocker-routing.html` | `docs/marketplace/screenshots/4-blocker-routing.png` | upload the file |
-| Screenshot 5: your team's day and blockers in one panel (History is coming soon) | 1280×800 | `mock/5-team-panel.html` | `docs/marketplace/screenshots/5-team-panel.png` | upload the file |
+| Screenshot 5: your team's day, blockers and history in one panel | 1280×800 | `mock/5-team-panel.html` | `docs/marketplace/screenshots/5-team-panel.png` | upload the file |
 
 The screenshots are mocks with example teams and names, without a browser frame. Upload them in this order, to both marketplaces. The landing still uses `og.png` (source `brand/og.svg`) until the new landing ships.
 

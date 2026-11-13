@@ -8,7 +8,7 @@ import { Card } from '../../components/ui/card';
 import { useLang, useT } from '../../i18n';
 import { formatShortDate } from '../hoje/format';
 import { Loading } from '../RouteStates';
-import { shippedCsv, shippedMarkdown } from './export';
+import { copyText, shippedCsv, shippedMarkdown } from './export';
 import { Entry, entryKey, type HistorySearch, keyed, RangeFields, readRange } from './shared';
 
 function download(name: string, type: string, content: string) {
@@ -61,7 +61,7 @@ function RangeForm({
 function ShippedList({ shipped, team }: { shipped: TeamShipped; team: string }) {
   const t = useT();
   const lang = useLang();
-  const [copied, setCopied] = useState(false);
+  const [copy, setCopy] = useState<'idle' | 'copied' | 'failed'>('idle');
   const markdown = () => shippedMarkdown(shipped, team, lang);
   const file = `standcast-${team}-${shipped.from}-${shipped.to}`;
   return (
@@ -77,10 +77,12 @@ function ShippedList({ shipped, team }: { shipped: TeamShipped; team: string }) 
           <Button
             type="button"
             onClick={() => {
-              void navigator.clipboard.writeText(markdown()).then(() => setCopied(true));
+              void copyText(navigator.clipboard, markdown()).then((copied) =>
+                setCopy(copied ? 'copied' : 'failed'),
+              );
             }}
           >
-            {copied ? t('history.copied') : t('history.copyMarkdown')}
+            {copy === 'copied' ? t('history.copied') : t('history.copyMarkdown')}
           </Button>
           <Button
             type="button"
@@ -98,6 +100,11 @@ function ShippedList({ shipped, team }: { shipped: TeamShipped; team: string }) 
           </Button>
         </span>
       </div>
+      {copy === 'failed' ? (
+        <p role="alert" className="m-0 text-[13px] text-bad-ink">
+          {t('history.copyFailed')}
+        </p>
+      ) : null}
       <p className="m-0 text-[12px] text-muted">{t('history.shippedNote')}</p>
       {shipped.days.length === 0 ? (
         <p className="m-0 text-muted">{t('history.none')}</p>

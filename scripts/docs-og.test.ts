@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, test } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -147,18 +147,27 @@ describe('committed og images', () => {
 });
 
 describe('built site', () => {
+  let buildRoot = '';
   let outDir = '';
 
   beforeAll(async () => {
-    outDir = join(await mkdtemp(join(tmpdir(), 'standcast-og-')), 'dist');
+    buildRoot = await mkdtemp(join(tmpdir(), 'standcast-og-'));
+    outDir = join(buildRoot, 'dist');
     const build = Bun.spawnSync(['bun', 'run', 'docs:build', '--outDir', outDir], {
       cwd: ROOT,
       env: { ...process.env, SUPPORT_EMAIL: 'test@example.com', DOCS_FETCH_HISTORY: 'false' },
       stdout: 'pipe',
       stderr: 'pipe',
     });
-    if (build.exitCode !== 0) throw new Error(build.stderr.toString() + build.stdout.toString());
+    if (build.exitCode !== 0) {
+      await rm(buildRoot, { recursive: true, force: true });
+      throw new Error(build.stderr.toString() + build.stdout.toString());
+    }
   }, 120_000);
+
+  afterAll(async () => {
+    if (buildRoot) await rm(buildRoot, { recursive: true, force: true });
+  });
 
   test('every page points og:image and twitter:image at its own image', async () => {
     const digest = await templateDigest();

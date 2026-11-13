@@ -111,3 +111,18 @@ export function paletteItems({
         }));
   return [...screens, ...teamItems, ...searches];
 }
+
+type FocusCandidate = { isConnected: boolean; getClientRects: () => { length: number } };
+
+const isShown = <T extends FocusCandidate>(element: T | null): element is T =>
+  element?.isConnected === true && element.getClientRects().length > 0;
+
+export function paletteCloseFocus<T extends FocusCandidate>(
+  trigger: T | null,
+  previous: T | null,
+  fallback: T | null,
+): T | null {
+  if (isShown(trigger)) return null;
+  if (isShown(previous)) return previous;
+  return isShown(fallback) ? fallback : null;
+}

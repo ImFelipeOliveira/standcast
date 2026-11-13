@@ -11,7 +11,6 @@ import {
 import {
   claimDelivery,
   completeDelivery,
-  countSentDeliveries,
   type DeliveryKey,
   type DeliveryRow,
   failDelivery,
@@ -20,6 +19,7 @@ import {
   getInstallationMemberIds,
   getMemberLogins,
   listBlockerRouteRecipients,
+  listSentDeliverySubjects,
   listStaleBlockerStates,
   MAX_DELIVERY_ATTEMPTS,
   markBlockerStateAlerted,
@@ -107,8 +107,14 @@ async function staleStates(
   memberLogins: string[],
   alertDays: number,
 ): Promise<OpenBlockerState[]> {
-  const sent = await countSentDeliveries(deps.db, { ...job, kind: 'blocker_alert_post' });
-  const limit = MAX_BLOCKER_ALERTS_PER_SCAN - sent;
+  const sent = await listSentDeliverySubjects(deps.db, { ...job, kind: 'blocker_alert_post' });
+  for (const stateId of sent) {
+    await markBlockerStateAlerted(deps.db, job.installationId, stateId, {
+      teamName: job.teamName,
+      at: deps.now(),
+    });
+  }
+  const limit = MAX_BLOCKER_ALERTS_PER_SCAN - sent.length;
   if (limit <= 0) return [];
   const memberIds = await getInstallationMemberIds(deps.db, job.installationId, memberLogins);
   return listStaleBlockerStates(deps.db, job.installationId, {

@@ -6,6 +6,9 @@ const oneLine = (text: string) => text.replace(/\s+/g, ' ').trim();
 
 const escapeMarkdown = (text: string) => text.replace(/[\\`*_[\]<>]/g, '\\$&');
 
+const escapeBlockStart = (text: string) =>
+  text.replace(/^(\d+)([.)])/, '$1\\$2').replace(/^[#+\-~]/, '\\$&');
+
 export function shippedMarkdown(shipped: TeamShipped, team: string, lang: Lang): string {
   const title = translate(lang, 'history.exportTitle', {
     team: escapeMarkdown(team),
@@ -17,7 +20,9 @@ export function shippedMarkdown(shipped: TeamShipped, team: string, lang: Lang):
     lines.push(`### ${day.date}`);
     for (const item of day.items) {
       const link = item.ref ? ` ([${refLabel(item.ref)}](${item.ref.url}))` : '';
-      lines.push(`- ${escapeMarkdown(oneLine(item.text))}${link} — @${item.author}`);
+      lines.push(
+        `- ${escapeBlockStart(escapeMarkdown(oneLine(item.text)))}${link} — @${item.author}`,
+      );
     }
     lines.push('');
   }
@@ -37,4 +42,17 @@ export function shippedCsv(shipped: TeamShipped): string {
     }
   }
   return `${rows.map((row) => row.map(csvField).join(',')).join('\r\n')}\r\n`;
+}
+
+export async function copyText(
+  clipboard: Pick<Clipboard, 'writeText'> | undefined,
+  text: string,
+): Promise<boolean> {
+  if (!clipboard) return false;
+  try {
+    await clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
 }

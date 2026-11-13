@@ -429,6 +429,8 @@ export const ptBR = {
     'Pull requests e cards citados em "Ontem" nas dailies confirmadas do time.',
   'history.copyMarkdown': 'Copiar como markdown',
   'history.copied': 'Copiado',
+  'history.copyFailed':
+    'Não foi possível copiar para a área de transferência. Use Exportar Markdown para baixar o mesmo texto em um arquivo.',
   'history.exportMarkdown': 'Exportar Markdown',
   'history.exportCsv': 'Exportar CSV',
   'history.noTeams': 'Você ainda não faz parte de nenhum time.',

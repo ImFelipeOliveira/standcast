@@ -106,7 +106,8 @@ export async function setBlockerResolved(
       { installationId: String(installation.id) },
     ));
   if (!allowed) throw new DomainError('forbidden', 'you cannot change this blocker');
-  if (!input.resolved && state.resolvedAt !== null) {
+  if (!input.resolved) {
+    if (state.resolvedAt === null) return;
     const latest = (await listLatestDailies(deps.db, installation.id, [state.authorMemberId])).get(
       state.authorMemberId,
     );
