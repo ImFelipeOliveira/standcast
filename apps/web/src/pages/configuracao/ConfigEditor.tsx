@@ -1,3 +1,4 @@
+import type { ConfigValidation } from '@standcast/orchestrator';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { configQuery, configValidationQuery } from '../../api/queries';
@@ -63,6 +64,34 @@ function Field({
   );
 }
 
+function ListField({
+  id,
+  label,
+  values,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  values: string[];
+  onChange: (values: string[]) => void;
+}) {
+  const t = useT();
+  const [text, setText] = useState(() => values.join(', '));
+  return (
+    <Field id={id} label={label} hint={t('editor.listHint')}>
+      <input
+        id={id}
+        className={cn(field, 'font-mono')}
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          onChange(splitList(e.target.value));
+        }}
+      />
+    </Field>
+  );
+}
+
 function Choice<T extends string>({
   label,
   value,
@@ -84,7 +113,9 @@ function Choice<T extends string>({
             type="button"
             aria-pressed={option.value === value}
             disabled={option.disabled}
-            onClick={() => onChange(option.value)}
+            onClick={() => {
+              if (option.value !== value) onChange(option.value);
+            }}
             className={cn(
               'min-h-11 cursor-pointer rounded-md border-0 px-3 font-medium text-[13px] disabled:cursor-not-allowed disabled:opacity-60 desk:min-h-8',
               option.value === value
@@ -100,10 +131,10 @@ function Choice<T extends string>({
   );
 }
 
-function notesFor(
-  team: TeamDraft,
-): { tag: string; key: MessageKey; vars?: Record<string, string> }[] {
-  const notes: { tag: string; key: MessageKey; vars?: Record<string, string> }[] = [];
+type Note = { tag: string; key: MessageKey; vars?: Record<string, string> };
+
+function notesFor(team: TeamDraft, alertTag: string): Note[] {
+  const notes: Note[] = [];
   if (team.chat.provider === 'google-chat') {
     notes.push({ tag: 'Google Chat', key: 'editor.note.googleChat' });
     notes.push({ tag: 'Google Chat', key: 'editor.note.space' });
@@ -114,7 +145,7 @@ function notesFor(
   if (team.tracker?.provider === 'jira') notes.push({ tag: 'Jira', key: 'editor.note.jira' });
   if (team.signals.blockerAlertDays !== undefined) {
     notes.push({
-      tag: 'Alerta',
+      tag: alertTag,
       key: 'editor.note.alert',
       vars: { days: String(team.signals.blockerAlertDays) },
     });
@@ -171,22 +202,18 @@ function TeamForm({
             onChange={(e) => set({ digestAt: e.target.value })}
           />
         </Field>
-        <Field id={id('managers')} label={t('editor.managers')} hint={t('editor.listHint')}>
-          <input
-            id={id('managers')}
-            className={cn(field, 'font-mono')}
-            value={team.managers.join(', ')}
-            onChange={(e) => set({ managers: splitList(e.target.value) })}
-          />
-        </Field>
-        <Field id={id('members')} label={t('editor.members')} hint={t('editor.listHint')}>
-          <input
-            id={id('members')}
-            className={cn(field, 'font-mono')}
-            value={team.members.join(', ')}
-            onChange={(e) => set({ members: splitList(e.target.value) })}
-          />
-        </Field>
+        <ListField
+          id={id('managers')}
+          label={t('editor.managers')}
+          values={team.managers}
+          onChange={(managers) => set({ managers })}
+        />
+        <ListField
+          id={id('members')}
+          label={t('editor.members')}
+          values={team.members}
+          onChange={(members) => set({ members })}
+        />
       </div>
       <div className="flex flex-col gap-3 border-border border-t p-4">
         <Choice
@@ -315,6 +342,31 @@ function TeamForm({
   );
 }
 
+export function ValidationStatus({
+  pending,
+  failed,
+  result,
+}: {
+  pending: boolean;
+  failed: boolean;
+  result: ConfigValidation | undefined;
+}) {
+  const t = useT();
+  return (
+    <span role="status" className="inline-flex">
+      {pending ? (
+        <Badge variant="neutral">{t('editor.validating')}</Badge>
+      ) : failed ? (
+        <Badge variant="warn">{t('editor.validationFailed')}</Badge>
+      ) : result?.ok ? (
+        <Badge variant="ok">{t('editor.valid')}</Badge>
+      ) : result ? (
+        <Badge variant="warn">{t('editor.errors', { count: String(result.errors.length) })}</Badge>
+      ) : null}
+    </span>
+  );
+}
+
 function Editor({
   installationId,
   initial,
@@ -329,7 +381,7 @@ function Editor({
   const [selected, setSelected] = useState(0);
   const nextId = useRef(initial.teams.length);
   const [ids, setIds] = useState(() => initial.teams.map((_, index) => index));
-  const [copied, setCopied] = useState(false);
+  const [copiedYaml, setCopiedYaml] = useState<string | null>(null);
   const yaml = useMemo(() => toYaml(draft), [draft]);
   const debounced = useDebounced(yaml, DEBOUNCE_MS);
   const validation = useQuery(configValidationQuery(installationId, debounced));
@@ -415,24 +467,24 @@ function Editor({
           <h2 id="editor-yaml" className="m-0 font-semibold text-[15px]">
             standcast.yml
           </h2>
-          <span className="flex flex-wrap items-center gap-2" aria-live="polite">
-            {pending ? (
-              <Badge variant="neutral">{t('editor.validating')}</Badge>
-            ) : validation.data?.ok ? (
-              <Badge variant="ok">{t('editor.valid')}</Badge>
-            ) : validation.data ? (
-              <Badge variant="warn">
-                {t('editor.errors', { count: String(validation.data.errors.length) })}
-              </Badge>
-            ) : null}
+          <span className="flex flex-wrap items-center gap-2">
+            <ValidationStatus
+              pending={pending}
+              failed={validation.isError}
+              result={validation.data}
+            />
             <Button
               type="button"
               variant="outline"
+              aria-live="polite"
               onClick={() => {
-                void navigator.clipboard?.writeText(yaml).then(() => setCopied(true));
+                navigator.clipboard
+                  ?.writeText(yaml)
+                  .then(() => setCopiedYaml(yaml))
+                  .catch(() => setCopiedYaml(null));
               }}
             >
-              {copied ? t('history.copied') : t('editor.copy')}
+              {copiedYaml === yaml ? t('history.copied') : t('editor.copy')}
             </Button>
             {editUrl ? (
               <Button asChild>
@@ -449,7 +501,7 @@ function Editor({
           </pre>
         </Card>
         {validation.data && !validation.data.ok && !pending ? (
-          <Card className="gap-2 p-4" role="alert">
+          <Card className="gap-2 p-4">
             <h3 className="m-0 font-semibold text-[13px] text-warn-ink">
               {t('editor.errorsTitle')}
             </h3>
@@ -467,11 +519,8 @@ function Editor({
           <Card className="gap-2 p-4">
             <h3 className="m-0 font-semibold text-[13px]">{t('editor.notesTitle')}</h3>
             <ul className="m-0 flex list-none flex-col gap-2 p-0">
-              {notesFor(team).map((note) => (
-                <li
-                  key={`${note.tag}:${note.key}`}
-                  className="flex items-start gap-2 text-[13px] text-text2"
-                >
+              {notesFor(team, t('editor.alertTag')).map((note) => (
+                <li key={note.key} className="flex items-start gap-2 text-[13px] text-text2">
                   <Badge variant="neutral" className="flex-none">
                     {note.tag}
                   </Badge>
@@ -499,5 +548,12 @@ export function ConfigEditor({
   if (query.isPending) return <Loading header={false} />;
   if (query.isError) return <p className="m-0 text-bad-ink">{t('error.body')}</p>;
   const initial: ConfigDraft = query.data.config ?? { teams: [emptyTeam('backend')], members: {} };
-  return <Editor installationId={installationId} initial={initial} editUrl={editUrl} />;
+  return (
+    <Editor
+      key={installationId}
+      installationId={installationId}
+      initial={initial}
+      editUrl={editUrl}
+    />
+  );
 }

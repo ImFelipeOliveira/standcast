@@ -29,6 +29,7 @@ import {
   validateConfigSource,
 } from '@standcast/orchestrator';
 import { type Context, Hono, type MiddlewareHandler } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
 import { deleteCookie } from 'hono/cookie';
 import { z } from 'zod';
 import {
@@ -60,6 +61,8 @@ const createWebhookBody = z.object({
 const linkSpaceBody = z.object({ code: z.string() });
 
 const ORG = '/v1/app/orgs/:installationId';
+
+export const CONFIG_BODY_LIMIT_BYTES = 512 * 1024;
 
 function installationIdOf(c: Context): number {
   const raw = c.req.param('installationId') ?? '';
@@ -202,17 +205,25 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
     c.json(await getEditableConfig(deps, isMember, c.get('member'), installationIdOf(c)), 200),
   );
 
-  app.post(`${ORG}/config/validate`, async (c) => {
-    const body: unknown = await c.req.json().catch(() => undefined);
-    const source =
-      typeof body === 'object' && body !== null && 'source' in body
-        ? (body as { source: unknown }).source
-        : undefined;
-    return c.json(
-      await validateConfigSource(deps, isMember, c.get('member'), installationIdOf(c), source),
-      200,
-    );
-  });
+  app.post(
+    `${ORG}/config/validate`,
+    bodyLimit({
+      maxSize: CONFIG_BODY_LIMIT_BYTES,
+      onError: (c) =>
+        c.json({ error: { code: 'payload_too_large', message: 'payload too large' } }, 413),
+    }),
+    async (c) => {
+      const body: unknown = await c.req.json().catch(() => undefined);
+      const source =
+        typeof body === 'object' && body !== null && 'source' in body
+          ? (body as { source: unknown }).source
+          : undefined;
+      return c.json(
+        await validateConfigSource(deps, isMember, c.get('member'), installationIdOf(c), source),
+        200,
+      );
+    },
+  );
 
   app.get(`${ORG}/people`, async (c) =>
     c.json(await getPeopleLinks(deps, isMember, c.get('member'), installationIdOf(c)), 200),

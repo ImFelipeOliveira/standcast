@@ -158,4 +158,13 @@ describe('/v1/app config editor', () => {
         .status,
     ).toBe(422);
   });
+
+  test('validation refuses oversized bodies before reading them', async () => {
+    const { app, alice } = await harness();
+    const res = await postJson(app, alice, `${INST}/config/validate`, {
+      source: 'x'.repeat(2 * 1024 * 1024),
+    });
+    expect(res.status).toBe(413);
+    expect((await res.json()).error.code).toBe('payload_too_large');
+  });
 });

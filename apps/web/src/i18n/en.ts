@@ -472,7 +472,7 @@ export const en: Record<MessageKey, string> = {
   'editor.cardDays': 'Card idle after (days)',
   'editor.alert': 'Alert on stale blockers',
   'editor.alertHint':
-    'One message in the team channel when a blocker passes the limit. The author is not pinged.',
+    'After the digest, one message in the team channel mentions the managers when a blocker stays open past the limit.',
   'editor.alertDays': 'Alert after (days)',
   'editor.validating': 'Validating…',
   'editor.valid': 'Valid',
@@ -482,15 +482,17 @@ export const en: Record<MessageKey, string> = {
   'editor.openGitHub': 'Open on GitHub',
   'editor.notesTitle': 'What these choices change',
   'editor.note.googleChat':
-    'To be mentioned, people need a link: each one uses "Link my account" in the app DM, or an admin sets members.<login>.google_chat when the GitHub email differs from Google.',
+    'To be mentioned, people need a link: each one signs in to Standcast and sends a direct message to the app in Google Chat with the same email as on GitHub. If the email differs, the app replies with the id and an admin sets members.<login>.google_chat: users/<id>.',
   'editor.note.space': 'The app must be in the space to post reminders and digests.',
   'editor.note.slack':
-    'People are found in Slack by their GitHub email. If it differs, set members.<login>.slack.',
+    'People are found in Slack by their GitHub email when they sign in to Standcast. If it differs, set members.<login>.slack to their Slack user id, like U0123ABCD.',
   'editor.note.linear':
-    'Linear cards reach the draft through the GitHub email. If it differs, set members.<login>.linear.',
+    'Linear cards reach the draft when the Linear account uses the GitHub email. If it differs, set members.<login>.linear to the Linear email.',
   'editor.note.jira':
     'Jira is not integrated yet: the team is in the file, but cards do not reach the draft.',
   'editor.note.alert': 'Blockers open for {days} days post one alert in the channel, only once.',
+  'editor.validationFailed': 'Could not validate',
+  'editor.alertTag': 'Alert',
   'editor.readOnly':
     'The editor saves nothing: copy the YAML or open the file on GitHub and commit it to the organization .github repository.',
 };

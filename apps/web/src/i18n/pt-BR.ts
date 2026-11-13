@@ -461,7 +461,7 @@ export const ptBR = {
   'editor.name': 'Nome do time',
   'editor.timezone': 'Fuso horário',
   'editor.remindAt': 'Lembrete',
-  'editor.digestAt': 'Resumo',
+  'editor.digestAt': 'Consolidado',
   'editor.managers': 'Gestores',
   'editor.members': 'Membros',
   'editor.listHint': 'Logins do GitHub ou @org/time, separados por vírgula.',
@@ -478,7 +478,7 @@ export const ptBR = {
   'editor.cardDays': 'Card parado após (dias)',
   'editor.alert': 'Alertar impedimentos parados',
   'editor.alertHint':
-    'Uma mensagem no canal do time quando um impedimento passa do prazo. Sem marcar quem relatou.',
+    'Depois do consolidado, uma mensagem no canal do time menciona os gestores quando um impedimento passa do prazo.',
   'editor.alertDays': 'Alertar após (dias)',
   'editor.validating': 'Validando…',
   'editor.valid': 'Válido',
@@ -488,16 +488,18 @@ export const ptBR = {
   'editor.openGitHub': 'Abrir no GitHub',
   'editor.notesTitle': 'O que muda com essas escolhas',
   'editor.note.googleChat':
-    'Para serem mencionadas, as pessoas precisam de vínculo: cada uma usa "Vincular minha conta" na DM do app, ou o admin informa members.<login>.google_chat quando o e-mail do GitHub for diferente do Google.',
-  'editor.note.space': 'O app precisa estar no espaço para publicar lembretes e resumos.',
+    'Para serem mencionadas, as pessoas precisam de vínculo: cada uma entra no Standcast e manda uma mensagem direta para o app no Google Chat com o mesmo e-mail do GitHub. Se o e-mail for diferente, o app responde com o id e o admin informa members.<login>.google_chat: users/<id>.',
+  'editor.note.space': 'O app precisa estar no espaço para publicar lembretes e consolidados.',
   'editor.note.slack':
-    'As pessoas são encontradas no Slack pelo e-mail do GitHub. Se for diferente, informe members.<login>.slack.',
+    'As pessoas são encontradas no Slack pelo e-mail do GitHub ao entrar no Standcast. Se for diferente, informe em members.<login>.slack o id de usuário do Slack, como U0123ABCD.',
   'editor.note.linear':
-    'Cards do Linear entram no rascunho pelo e-mail do GitHub. Se for diferente, informe members.<login>.linear.',
+    'Cards do Linear entram no rascunho quando a conta do Linear usa o e-mail do GitHub. Se for diferente, informe em members.<login>.linear o e-mail do Linear.',
   'editor.note.jira':
     'O Jira ainda não está integrado: o time aparece no arquivo, mas os cards não entram no rascunho.',
   'editor.note.alert':
     'Impedimentos abertos há {days} dias geram um alerta no canal, uma única vez.',
+  'editor.validationFailed': 'Não foi possível validar',
+  'editor.alertTag': 'Alerta',
   'editor.readOnly':
     'O editor não grava nada: copie o YAML ou abra o arquivo no GitHub e faça o commit no repositório .github da organização.',
 } as const;

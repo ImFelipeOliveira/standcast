@@ -9,6 +9,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 ## Product
 
 ### Unreleased
+- **Settings** has a **standcast.yml** tab for admins: a form per team (times, managers and members, chat, tracker and signals, including the stale blocker alert days) builds the file, shows notes on what each chat and tracker needs, and checks it live with the same rules Standcast uses. The editor saves nothing: copy the YAML or open the file on GitHub and commit it.
 - **Settings** in the web app has tabs: General, People and links, and API and webhooks. **People and links** (admins) shows, for each person in standcast.yml, whether Standcast can find them in the team's chat and tracker, where the link comes from, and whether they use the CLI or plugin, with what to do when a link is missing. A failed webhook delivery can be sent again with **Redeliver**.
 - The web app has a **History** page for each team: past digests by day with the full digest, search over confirmed dailies (text, pull request or card), and the week's shipped pull requests and cards with copy as Markdown and Markdown/CSV export. It never shows who did not send on past days.
 - **Today** and **History** open the digest in the team's chat, with a button named after it (Open in Slack or Open in Google Chat) once the digest is sent.
