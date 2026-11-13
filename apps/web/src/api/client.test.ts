@@ -6,9 +6,9 @@ import {
   apiUrl,
   fetchSession,
   forgetSession,
-  retrySignIn,
-  SIGN_IN_DID_NOT_STICK,
+  markSignInStarted,
   SIGN_IN_MARKER,
+  safeNext,
 } from './client';
 
 const originalFetch = globalThis.fetch;
@@ -83,22 +83,18 @@ afterEach(() => {
 });
 
 describe('api client', () => {
-  test('401 redirects to sign-in', async () => {
-    const assigned = stubWindow('/orgs/11/configuracao');
-    stubFetch(() => json(401, { error: { code: 'unauthorized', message: 'sign in' } }));
+  test('401 sends the browser to the sign-in page with next', async () => {
+    const assigned = stubWindow('/orgs/11/settings');
+    stubFetch(unauthorized);
     await expect(apiGet('/v1/app/orgs/11/setup')).rejects.toBeInstanceOf(ApiError);
-    expect(assigned).toEqual([
-      `${apiUrl}/auth/github/login?target=app&next=${encodeURIComponent('/orgs/11/configuracao')}`,
-    ]);
+    expect(assigned).toEqual(['/sign-in?next=%2Forgs%2F11%2Fsettings']);
   });
 
   test('401 keeps the query string in next', async () => {
-    const assigned = stubWindow('/orgs/11/historico', '?team=core');
-    stubFetch(() => json(401, { error: { code: 'unauthorized', message: 'sign in' } }));
+    const assigned = stubWindow('/orgs/11/history', '?team=core');
+    stubFetch(unauthorized);
     await expect(apiPost('/v1/app/logout')).rejects.toBeInstanceOf(ApiError);
-    expect(assigned).toEqual([
-      `${apiUrl}/auth/github/login?target=app&next=%2Forgs%2F11%2Fhistorico%3Fteam%3Dcore`,
-    ]);
+    expect(assigned).toEqual(['/sign-in?next=%2Forgs%2F11%2Fhistory%3Fteam%3Dcore']);
   });
 
   test('post sends csrf and credentials', async () => {
@@ -190,7 +186,7 @@ describe('api client', () => {
     expect(error.code).toBe('http_error');
   });
   test('logout with an expired session does not redirect to sign-in', async () => {
-    const assigned = stubWindow('/orgs/11/hoje');
+    const assigned = stubWindow('/orgs/11/today');
     stubFetch(unauthorized);
     const error = await apiPost('/v1/app/logout', undefined, { skipAuthRedirect: true }).catch(
       (caught: unknown) => caught,
@@ -200,33 +196,51 @@ describe('api client', () => {
     expect(assigned).toEqual([]);
   });
 
-  test('a second 401 within a minute stops redirecting', async () => {
-    const assigned = stubWindow('/orgs/11/hoje');
+  test('401 within a minute of starting GitHub sign-in reports that it did not stick', async () => {
+    const assigned = stubWindow('/orgs/11/today', '?team=core');
+    storage.setItem(SIGN_IN_MARKER, String(Date.now()));
     stubFetch(unauthorized);
     await expect(apiGet('/v1/app/session')).rejects.toBeInstanceOf(ApiError);
-    const error = (await apiGet('/v1/app/session').catch((caught: unknown) => caught)) as ApiError;
-    expect(error).toBeInstanceOf(ApiError);
-    expect(error.status).toBe(401);
-    expect(error.code).toBe(SIGN_IN_DID_NOT_STICK);
-    expect(assigned).toHaveLength(1);
+    expect(assigned).toEqual([
+      '/sign-in?error=sign_in_did_not_stick&next=%2Forgs%2F11%2Ftoday%3Fteam%3Dcore',
+    ]);
+    expect(storage.getItem(SIGN_IN_MARKER)).toBeNull();
   });
 
-  test('a 401 more than a minute after the last sign-in redirects again', async () => {
-    const assigned = stubWindow('/orgs/11/hoje');
+  test('a 401 more than a minute after starting sign-in is a plain redirect', async () => {
+    const assigned = stubWindow('/orgs/11/today');
     storage.setItem(SIGN_IN_MARKER, String(Date.now() - 61_000));
     stubFetch(unauthorized);
     await expect(apiGet('/v1/app/session')).rejects.toBeInstanceOf(ApiError);
-    expect(assigned).toHaveLength(1);
+    expect(assigned).toEqual(['/sign-in?next=%2Forgs%2F11%2Ftoday']);
   });
 
-  test('try again clears the marker and signs in', async () => {
-    const assigned = stubWindow('/orgs/11/hoje');
-    storage.setItem(SIGN_IN_MARKER, String(Date.now()));
-    retrySignIn();
-    expect(storage.getItem(SIGN_IN_MARKER)).toBeNull();
-    expect(assigned).toEqual([
-      `${apiUrl}/auth/github/login?target=app&next=${encodeURIComponent('/orgs/11/hoje')}`,
-    ]);
+  test('401 on the sign-in page does not redirect', async () => {
+    const assigned = stubWindow('/sign-in');
+    stubFetch(unauthorized);
+    await expect(apiGet('/v1/app/session')).rejects.toBeInstanceOf(ApiError);
+    expect(assigned).toEqual([]);
+  });
+
+  test('marking the sign-in start writes the marker', () => {
+    stubWindow('/sign-in');
+    markSignInStarted();
+    expect(storage.getItem(SIGN_IN_MARKER)).not.toBeNull();
+  });
+
+  test('safeNext keeps relative paths only', () => {
+    for (const bad of [
+      'https://evil.test',
+      '//evil.test',
+      '/\\evil.test',
+      'evil',
+      '/sign-in?next=/x',
+      42,
+      undefined,
+    ]) {
+      expect(safeNext(bad)).toBe('/');
+    }
+    expect(safeNext('/orgs/11/today?team=core')).toBe('/orgs/11/today?team=core');
   });
 
   test('a working session clears the marker', async () => {
@@ -238,12 +252,15 @@ describe('api client', () => {
   });
 
   test('a broken sessionStorage still redirects', async () => {
-    const assigned = stubWindow('/orgs/11/hoje', '', () => {
+    const assigned = stubWindow('/orgs/11/today', '', () => {
       throw new Error('denied');
     });
     stubFetch(unauthorized);
     await expect(apiGet('/v1/app/session')).rejects.toBeInstanceOf(ApiError);
     await expect(apiGet('/v1/app/session')).rejects.toBeInstanceOf(ApiError);
-    expect(assigned).toHaveLength(2);
+    expect(assigned).toEqual([
+      '/sign-in?next=%2Forgs%2F11%2Ftoday',
+      '/sign-in?next=%2Forgs%2F11%2Ftoday',
+    ]);
   });
 });

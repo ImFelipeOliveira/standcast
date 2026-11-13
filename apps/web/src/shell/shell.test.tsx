@@ -13,7 +13,6 @@ import {
   teamTodayQuery,
 } from '../api/queries';
 import { applyLang } from '../i18n';
-import { SignInStuck } from '../pages/RouteStates';
 import { createAppRouter } from '../router';
 import { OrgSelect } from './OrgSelect';
 import { signOut } from './sign-out';
@@ -300,12 +299,5 @@ describe('shell', () => {
     expect(navigated).toBe(true);
     expect(assigned).toEqual([]);
     expect(queryClient.getQueryData(sessionQuery.queryKey)).toBeUndefined();
-  });
-
-  test('sign-in that did not stick explains and offers to try again', () => {
-    const html = renderToStaticMarkup(<SignInStuck />);
-    expect(html).toContain('role="alert"');
-    expect(html).toContain('O login não se manteve');
-    expect(html).toContain('Tentar de novo');
   });
 });
