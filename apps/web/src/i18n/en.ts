@@ -421,6 +421,8 @@ export const en: Record<MessageKey, string> = {
     'Pull requests and cards mentioned under "Yesterday" in the team\'s confirmed dailies.',
   'history.copyMarkdown': 'Copy as Markdown',
   'history.copied': 'Copied',
+  'history.copyFailed':
+    'Could not copy to the clipboard. Use Export Markdown to download the same text as a file.',
   'history.exportMarkdown': 'Export Markdown',
   'history.exportCsv': 'Export CSV',
   'history.noTeams': 'You are not on a team yet.',

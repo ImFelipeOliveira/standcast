@@ -30,3 +30,26 @@ test('going back after two searches shows the earlier query in the search field'
   await expect(page).toHaveURL(/q=alpha/);
   await expect(field).toHaveValue('alpha');
 });
+
+test('a refused clipboard write says so and points to the Markdown export', async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: () => Promise.reject(new DOMException('denied', 'NotAllowedError')) },
+    });
+  });
+  await page.route(
+    `**/v1/app/orgs/${INSTALLATION_ID}/teams/${TEAM_NAME}/history/shipped**`,
+    (route) => route.fulfill({ json: { from: '2026-11-02', to: '2026-11-08', days: [] } }),
+  );
+  await page.goto(`/orgs/${INSTALLATION_ID}/history?team=${TEAM_NAME}&tab=shipped`);
+  await page.getByRole('button', { name: 'Copiar como markdown' }).click();
+  await expect(
+    page.getByRole('alert').filter({ hasText: 'Não foi possível copiar' }),
+  ).toContainText('Exportar Markdown');
+  await expect(page.getByRole('button', { name: 'Copiado' })).toHaveCount(0);
+});

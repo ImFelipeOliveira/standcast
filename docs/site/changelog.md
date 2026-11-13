@@ -10,6 +10,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- When the browser refuses **Copy as Markdown** in **History**, the page says the copy failed and points to **Export Markdown**, which downloads the same text, instead of doing nothing.
 - **History** keeps daily text that starts with `1.`, `2)`, `#`, `-`, `+` or `~` as written in copy as Markdown and the Markdown export, instead of turning it into a list, a heading or a code block.
 - **Today** shows **First steps** until a team gets its first digest: install, standcast.yml, chat connection, first daily and first digest, each with its state in words and what to do next.
 - **Search** (⌘K or Ctrl K, or the Search button in the sidebar) jumps to any screen or team and searches the dailies of your teams by text, pull request or card.
