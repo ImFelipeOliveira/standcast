@@ -12,8 +12,8 @@
 <link rel="alternate" hreflang="x-default" href="https://standcast.app/">
 <link rel="alternate" type="text/markdown" href="/pt-BR/index.md">
 <link rel="icon" type="image/png" href="/favicon.png" sizes="96x96">
-<meta name="theme-color" content="#F6F7FB" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0E1022" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E0E10" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Standcast">
@@ -47,18 +47,19 @@
 </script>
 </head>
 <body>
+<a class="skip" href="#top">Pular para o conteúdo</a>
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="/pt-BR/" aria-label="Standcast, início"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
+    <a class="brand" href="/pt-BR/" aria-label="Standcast, início"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="wordmark">Standcast</span></a>
     <nav aria-label="Principal"><ul>
       <li><a href="/pt-BR/como-funciona/">Como funciona</a></li>
       <li><a href="/pt-BR/privacidade/">Privacidade</a></li>
       <li><a href="/pt-BR/precos/">Preços</a></li>
       <li><a href="/pt-BR/perguntas-frequentes/">FAQ</a></li>
       <li><a href="https://docs.standcast.app/pt-BR/">Documentação</a></li>
-      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
     </ul></nav>
     <div class="nav-end">
+      <a class="nav-link" href="https://github.com/ImFelipeOliveira/standcast">GitHub</a>
       <a class="lang" href="/" hreflang="en" lang="en">English</a>
       <a class="btn btn-primary" href="/pt-BR/beta/">Entrar no beta</a>
     </div>
@@ -66,188 +67,296 @@
 </header>
 
 <main id="top">
-<div class="field-stage">
-<canvas class="hero-field" aria-hidden="true"></canvas>
-<section class="hero hero-home">
+<section class="hero" aria-labelledby="hero-title">
+  <canvas class="field" aria-hidden="true"></canvas>
   <div class="wrap hero-grid">
     <div class="hero-copy">
-      <span class="pill"><b>Beta</b> Código aberto · MIT · grátis durante o beta</span>
-      <h1>A daily do seu time, escrita no <em>seu agente de IA</em>.</h1>
+      <p class="pill">Código aberto (MIT) · grátis durante o beta público</p>
+      <h1 id="hero-title">A daily do seu time, escrita no seu agente de IA.</h1>
       <p class="lede">O Standcast é uma ferramenta de código aberto para a daily de times de software. Rode <code>/daily</code> no Claude Code, no Cursor ou no terminal. O Standcast rascunha o seu ontem a partir da sua atividade no GitHub e no Linear, você confirma e o seu time recebe um consolidado no Slack ou no Google Chat.</p>
-      <div class="install">
-        <code id="cmd" data-copy="curl -fsSL https://standcast.app/install.sh | sh"><span>$</span> curl -fsSL https://standcast.app/install.sh | sh</code>
-        <button class="copy" id="copy" type="button" aria-describedby="cmd" data-done="Copiado">Copiar</button>
-      </div>
       <div class="cta-row">
         <a class="btn btn-primary" href="/pt-BR/beta/">Entrar no beta</a>
-        <a class="btn btn-ghost" href="https://docs.standcast.app/pt-BR/admin/install">Instalar na sua organização</a>
+        <a class="btn" href="https://docs.standcast.app/pt-BR/admin/install">Instalar na sua organização</a>
       </div>
-      <p class="fine">GitHub, Linear, Slack e Google Chat hoje. <a href="#integrations">Jira, ClickUp e outros vêm a seguir.</a></p>
+      <div class="install">
+        <code id="cmd" data-copy="curl -fsSL https://standcast.app/install.sh | sh"><span aria-hidden="true">$</span> curl -fsSL https://standcast.app/install.sh | sh</code>
+        <button class="copy" id="copy" type="button" data-target="cmd" data-done="Copiado" aria-describedby="cmd" hidden>Copiar</button>
+      </div>
     </div>
-
-    <figure class="stage" aria-label="Exemplo: uma daily rascunhada no terminal e o consolidado publicado no Slack">
+    <div class="stage" role="img" aria-label="Exemplo: no terminal, a Ana roda /daily e confirma o rascunho. Às 10:00, o canal #daily-backend recebe o consolidado do time com impedimentos e atualizações.">
       <div class="terminal">
-        <div class="term-bar"><i></i><i></i><i></i><span class="term-title">~/work · claude</span><button class="replay" id="replay" type="button" hidden>Repetir</button></div>
-        <div class="term-body"><pre id="term"><span class="ln"><span class="t-acc">&gt; </span><span class="typed t-acc">/daily</span></span>
-<span class="ln t-dim">Rascunhando do GitHub e do Linear desde seg 09:12<span class="dots"></span></span>
-<span class="ln"> </span>
-<span class="ln"><b>Ontem</b></span>
-<span class="ln">  • Mergeou <span class="t-acc">api#412</span> rate limit por API key</span>
-<span class="ln">  • Revisou <span class="t-acc">web#88</span> checklist de setup</span>
-<span class="ln">  • Moveu <span class="t-acc">BE-231</span> para In review</span>
-<span class="ln"><b>Hoje</b></span>
-<span class="ln">  • Retentativas de webhook com backoff</span>
-<span class="ln"><b>Impedimentos</b></span>
-<span class="ln">  <span class="t-warn">!</span> <span class="t-acc">api#415</span> esperando review desde qui</span>
-<span class="ln">    <span class="t-dim">sugerido só para você · confirme ou ignore</span></span>
-<span class="ln"> </span>
-<span class="ln"><span class="t-ok">✓</span> Confirmada. Enviada para #daily-backend às 10:00.</span></pre></div>
-      </div>
-      <div class="slack">
-        <div class="slack-head">
-          <div class="avatar"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span></div>
-          <div><b>Standcast</b><span class="tag">APP</span><br><small>#daily-backend · 10:00</small></div>
+        <div class="term-bar"><i></i><i></i><i></i><span class="term-title">claude · ana@backend</span></div>
+        <div class="term-body">
+          <div class="tl"><span class="t-acc">›</span> /daily</div>
+          <div class="tl t-dim">Rascunho de ontem, segunda, 2 nov</div>
+          <div class="tl row"><span><span class="t-ok">+</span> Mergeou o rate limit por API key</span><span class="t-acc">api#412</span></div>
+          <div class="tl row"><span><span class="t-ok">+</span> Revisou o checklist de setup</span><span class="t-acc">web#88</span></div>
+          <div class="tl t-dim gap">Hoje</div>
+          <div class="tl row"><span>• Retentativas de webhook com backoff</span><span class="t-acc">BE-231</span></div>
+          <div class="tl t-dim gap">Impedimento</div>
+          <div class="tl row"><span><span class="t-warn">!</span> Esperando review desde qui</span><span class="t-acc">api#415</span></div>
+          <div class="tl gap"><span class="t-dim">Enviar para backend?</span> <span class="t-ok">sim</span></div>
         </div>
-        <p class="title">Backend · ter, 3 de nov</p>
-        <p class="blk">1 impedimento</p>
-        <ul><li>Ana: api#415 esperando review → enviado para @bruno</li></ul>
-        <p class="title">Atualizações</p>
-        <ul><li>Ana: mergeou rate limit; hoje, retentativas de webhook</li><li>Caio: correções no sync do Linear; hoje, paginação</li></ul>
-        <p class="who">Ainda não enviou: Davi</p>
       </div>
-    </figure>
+      <div class="digest">
+        <div class="digest-head"><b># daily-backend</b><span class="mono">Standcast · 10:00</span></div>
+        <div class="digest-body">
+          <b>Consolidado de terça, 3 nov</b>
+          <div><span class="d-blk">Impedimentos · 1</span><span>Ana: esperando review <span class="ref">api#415</span>, enviado para <span class="mono">@bruno</span></span></div>
+          <div><span class="d-h">Atualizações</span><span>Ana · Caio</span></div>
+          <span class="d-who">Ainda não enviou: Davi</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="field-toggle" type="button" aria-pressed="false" hidden><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>Pausar animação</button>
+</section>
+
+<section class="agents" aria-labelledby="agents-title">
+  <div class="wrap">
+    <h2 id="agents-title">Escreva a sua daily onde você já trabalha</h2>
+    <ul><li>Claude Code</li><li>Cursor</li><li>Codex</li><li>Claude Desktop</li><li>VS Code</li><li class="mono">terminal</li></ul>
   </div>
 </section>
 
-<div class="agents">
+<section id="how" aria-labelledby="how-title">
   <div class="wrap">
-    <p>Escreva a sua daily onde você já trabalha</p>
-    <ul aria-label="Clientes compatíveis"><li>Claude Code</li><li>Cursor</li><li>Codex</li><li>Claude Desktop</li><li>VS Code</li><li>Terminal</li></ul>
-  </div>
-</div>
-
-<section id="how">
-  <div class="wrap day-grid">
     <div class="head">
-      <span class="eyebrow">Um dia com o Standcast</span>
-      <h2>Defina dois horários no standcast.yml. O Standcast cuida do resto.</h2>
+      <p class="eyebrow">Um dia com o Standcast</p>
+      <h2 id="how-title">Defina dois horários no standcast.yml. O Standcast cuida do resto.</h2>
       <p class="lede">Este time tem <code>remind_at: "09:30"</code> e <code>digest_at: "10:00"</code> no horário de São Paulo, de segunda a sexta.</p>
-      <p><a class="more" href="/pt-BR/como-funciona/">Veja como funciona →</a></p>
     </div>
-    <ol class="day" aria-label="Linha do tempo de um dia">
-      <li class="slot"><span class="k">Rascunho</span><time datetime="08:50">08:50</time><p><b>Ana roda /daily.</b> Ela edita o rascunho, adiciona um impedimento com link para um pull request e confirma. Quem revisa recebe uma mensagem direta.</p></li>
-      <li class="slot"><span class="k">remind_at</span><time datetime="09:30">09:30</time><p><b>Davi ainda não escreveu,</b> então recebe um lembrete. Nunca mais de um por dia.</p></li>
-      <li class="slot"><span class="k">digest_at</span><time datetime="10:00">10:00</time><p><b>Um consolidado por time</b> no #daily-backend: primeiro os impedimentos, depois as atualizações, depois quem não enviou.</p></li>
-      <li class="slot"><span class="k">Atrasada</span><time datetime="10:40">10:40</time><p><b>Davi envia atrasado.</b> A daily dele vai para a thread do consolidado, e ninguém perde nada.</p></li>
+    <ol class="timeline">
+      <li class="tile"><p class="tile-k"><time datetime="08:50">08:50</time> · rascunho</p><h3>Ana roda /daily</h3><p>Ela edita o rascunho, adiciona um impedimento com link para um pull request e confirma. Quem revisa recebe uma mensagem direta.</p></li>
+      <li class="tile"><p class="tile-k"><time datetime="09:30">09:30</time> · remind_at</p><h3>Davi recebe um lembrete</h3><p>Ele ainda não escreveu. Nunca mais de um lembrete por dia.</p></li>
+      <li class="tile tile-ink"><p class="tile-k"><time datetime="10:00">10:00</time> · digest_at</p><h3>O consolidado chega</h3><p>Um por time no #daily-backend: primeiro os impedimentos, depois as atualizações, depois quem não enviou.</p></li>
+      <li class="tile"><p class="tile-k"><time datetime="10:40">10:40</time> · atrasada</p><h3>Davi envia atrasado</h3><p>A daily dele vai para a thread do consolidado, e ninguém perde nada.</p></li>
     </ol>
+    <p class="list-more"><a class="more" href="/pt-BR/como-funciona/">Veja como funciona</a></p>
   </div>
 </section>
-</div>
 
-<section id="integrations">
+<section id="features" class="flush" aria-labelledby="features-title">
   <div class="wrap">
     <div class="head">
-      <span class="eyebrow">Integrações</span>
-      <h2>O que conecta hoje, e o que ainda vem.</h2>
-      <p class="lede">O GitHub é de onde sai o rascunho. Um tracker acrescenta os seus cards. Um chat é onde o consolidado do time chega. Cada time escolhe o próprio chat, e o Linear é opcional.</p>
+      <p class="eyebrow">O que ele faz</p>
+      <h2 id="features-title">Coleta, consolida e entrega. Você só escreve.</h2>
     </div>
-    <div class="connect">
-      <article>
-        <h3>Disponível agora</h3>
-        <ul>
-          <li><b>GitHub</b><span>Pull requests, reviews e commits no rascunho. Uma organização instala o Standcast como GitHub App.</span></li>
-          <li><b>Linear</b><span>Tracker opcional. Os seus cards aparecem no rascunho, e um impedimento de card vai para quem é dono do card que bloqueia.</span></li>
-          <li><b>Slack</b><span>Um consolidado por time, dailies atrasadas na thread, um lembrete e mensagens diretas.</span></li>
-          <li><b>Google Chat</b><span>O mesmo consolidado num espaço, pelo app do Standcast.</span></li>
-        </ul>
-      </article>
-      <article>
-        <h3>Em breve</h3>
-        <p class="note">Ainda não conectados, então o Standcast não lê nada deles.</p>
-        <ul>
-          <li><b>Jira</b><span>Tracker. O <code>standcast.yml</code> já aceita, e a página de setup avisa que ainda não está disponível.</span></li>
-          <li><b>ClickUp</b><span>Tracker, o mesmo papel do Linear.</span></li>
-          <li><b>Asana</b><span>Tracker, o mesmo papel do Linear.</span></li>
-          <li><b>GitHub Projects</b><span>Tracker, o mesmo papel do Linear.</span></li>
-          <li><b>Microsoft Teams</b><span>Chat, o mesmo papel do Slack.</span></li>
-          <li><b>Discord</b><span>Chat, o mesmo papel do Slack.</span></li>
-        </ul>
-      </article>
+    <div class="features">
+      <article class="feat"><h3>Um rascunho do trabalho real</h3><p>Pull requests abertos, mergeados e revisados, commits por repositório e cards do Linear que começaram ou terminaram. Na segunda, o rascunho cobre o fim de semana.</p></article>
+      <article class="feat"><h3>Impedimentos chegam a quem pode ajudar</h3><p>Um impedimento com link para um pull request vai para os reviewers, depois para o CODEOWNERS, depois para os gestores do time. Um card do Linear vai para o responsável pelo card que está bloqueando.</p></article>
+      <article class="feat"><h3>Nada sai sem você</h3><p>A tool de envio do MCP exige <code>confirmed: true</code>, que o agente só passa depois que você aprova o texto.</p></article>
+      <article class="feat"><h3>Vários times, uma daily</h3><p>Escreva uma vez e apareça no consolidado de todos os seus times, cada um no próprio fuso horário e nos próprios dias úteis.</p></article>
+      <article class="feat"><h3>Gestores leem pelo próprio agente</h3><p>Consolidados, dailies e impedimentos dos últimos 90 dias, pelas tools de leitura do MCP. Só conteúdo confirmado.</p></article>
+      <article class="feat"><h3>API e webhooks</h3><p>API keys somente leitura com escopos, uma referência OpenAPI e webhooks assinados <code>daily.submitted</code> e <code>blocker.opened</code>.</p></article>
     </div>
   </div>
 </section>
 
-<section class="band" id="privacy">
+<section id="ways" class="tinted" aria-labelledby="ways-title">
+  <div class="wrap ways-block">
+    <div class="head tight">
+      <p class="eyebrow">Três jeitos de escrever</p>
+      <h2 id="ways-title">Escolha o que combina com o seu jeito de trabalhar.</h2>
+      <p class="lede">O plugin do Claude Code, qualquer cliente MCP ou o terminal.</p>
+    </div>
+    <div class="ways-tabs">
+      <div class="tabs" role="tablist" aria-label="Jeitos de escrever" hidden>
+        <button type="button" role="tab" id="way-tab-plugin" aria-controls="way-plugin" aria-selected="true" tabindex="0">Plugin do Claude Code</button>
+        <button type="button" role="tab" id="way-tab-mcp" aria-controls="way-mcp" aria-selected="false" tabindex="-1">Qualquer cliente MCP</button>
+        <button type="button" role="tab" id="way-tab-cli" aria-controls="way-cli" aria-selected="false" tabindex="-1">Terminal</button>
+      </div>
+      <div class="way-panel" role="tabpanel" id="way-plugin" aria-labelledby="way-tab-plugin">
+        <div class="way-head"><h3 id="way-plugin-title">Plugin do Claude Code</h3><button class="copy" type="button" data-target="way-plugin-code" data-done="Copiado" aria-describedby="way-plugin-title" hidden>Copiar</button></div>
+        <p>A skill <code>/daily</code> rascunha, pergunta o plano de hoje e os impedimentos e confirma com você.</p>
+<pre id="way-plugin-code">/plugin marketplace add \
+  ImFelipeOliveira/standcast
+/plugin install standcast@standcast
+/daily</pre>
+      </div>
+      <div class="way-panel" role="tabpanel" id="way-mcp" aria-labelledby="way-tab-mcp">
+        <div class="way-head"><h3 id="way-mcp-title">Qualquer cliente MCP</h3><button class="copy" type="button" data-target="way-mcp-code" data-done="Copiado" aria-describedby="way-mcp-title" hidden>Copiar</button></div>
+        <p>Cursor, Codex, Claude Desktop e VS Code rodam o <a href="https://docs.standcast.app/pt-BR/members/mcp">servidor MCP</a> local.</p>
+<pre id="way-mcp-code">{
+  "mcpServers": {
+    "standcast": {
+      "command": "standcast",
+      "args": ["mcp"]
+    }
+  }
+}</pre>
+      </div>
+      <div class="way-panel" role="tabpanel" id="way-cli" aria-labelledby="way-tab-cli">
+        <div class="way-head"><h3 id="way-cli-title">Terminal</h3><button class="copy" type="button" data-target="way-cli-code" data-done="Copiado" aria-describedby="way-cli-title" hidden>Copiar</button></div>
+        <p>Um binário para macOS, Linux e Windows, conferido contra o SHA256SUMS.</p>
+<pre id="way-cli-code">standcast login
+standcast draft
+standcast submit</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="integrations" aria-labelledby="integrations-title">
   <div class="wrap">
     <div class="head">
-      <span class="eyebrow">Privacidade</span>
-      <h2>Feito para times, não para vigiar pessoas.</h2>
+      <p class="eyebrow">Integrações</p>
+      <h2 id="integrations-title">O GitHub faz o rascunho. O chat recebe o consolidado.</h2>
+      <p class="lede">Um tracker acrescenta os seus cards. Cada time escolhe o próprio chat, e o Linear é opcional.</p>
+    </div>
+    <ul class="tiles">
+      <li class="tile"><p class="tile-k">rascunho</p><h3>GitHub</h3><p>Pull requests, reviews e commits no rascunho. Uma organização instala o Standcast como GitHub App.</p></li>
+      <li class="tile"><p class="tile-k">tracker opcional</p><h3>Linear</h3><p>Os seus cards aparecem no rascunho, e um impedimento de card vai para quem é dono do card que bloqueia.</p></li>
+      <li class="tile"><p class="tile-k">chat</p><h3>Slack</h3><p>Um consolidado por time, dailies atrasadas na thread, um lembrete e mensagens diretas.</p></li>
+      <li class="tile"><p class="tile-k">chat</p><h3>Google Chat</h3><p>O mesmo consolidado num espaço, pelo app do Standcast.</p></li>
+    </ul>
+    <div class="coming">
+      <h3>Em breve</h3>
+      <ul class="chips"><li>Jira</li><li>ClickUp</li><li>Asana</li><li>GitHub Projects</li><li>Microsoft Teams</li><li>Discord</li></ul>
+      <p class="fine">Ainda não conectados, então o Standcast não lê nada deles.</p>
+    </div>
+  </div>
+</section>
+
+<section id="privacy" class="band" aria-labelledby="privacy-title">
+  <div class="wrap band-grid">
+    <div class="head tight">
+      <p class="eyebrow">Privacidade</p>
+      <h2 id="privacy-title">Feito para times, não para vigiar pessoas.</h2>
       <p class="lede">O Standcast sugere impedimentos a partir dos seus próprios sinais. Essas sugestões são suas. Um teste na CI garante que elas nunca saem do seu rascunho.</p>
+      <p><a class="more" href="/pt-BR/privacidade/">Entenda a privacidade</a></p>
     </div>
-    <div class="privacy-grid">
-      <div class="col"><h3>O seu time vê</h3><ul>
-        <li>As dailies que você confirmou, no consolidado do time</li>
-        <li>Os impedimentos que você confirmou, encaminhados para quem pode ajudar</li>
-        <li>Quem ainda não enviou a daily de hoje</li>
-      </ul></div>
-      <div class="col only"><h3>Só você vê</h3><ul>
-        <li>Um pull request esperando review há dias</li>
-        <li>A CI falhando na sua branch há um dia</li>
-        <li>Um card do Linear parado em andamento</li>
-      </ul></div>
-    </div>
-    <p class="never">Sem métricas de produtividade. Sem rankings. Sem contagem de commits. Nada enviado em nome de ninguém.</p>
-    <p class="band-more"><a class="more" href="/pt-BR/privacidade/">Entenda a privacidade →</a></p>
+    <ul class="nevers">
+      <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>Sem métricas de produtividade</li>
+      <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>Sem rankings</li>
+      <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>Sem contagem de commits</li>
+      <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>Nada enviado em nome de ninguém</li>
+    </ul>
   </div>
 </section>
 
-<section>
-  <div class="wrap">
-    <div class="ways">
-      <article class="way" id="ways"><h3>Três jeitos de escrever</h3><p>O plugin do Claude Code, qualquer cliente MCP ou o terminal. Escolha o que combina com o seu jeito de trabalhar.</p><a class="more" href="/pt-BR/como-funciona/#ways">Jeitos de escrever →</a></article>
-      <article class="way" id="pricing"><h3>Preços</h3><p>Grátis durante o beta público. Os preços serão anunciados antes do fim do beta.</p><a class="more" href="/pt-BR/precos/">Ver preços →</a></article>
-      <article class="way" id="faq"><h3>Perguntas frequentes</h3><p>O que o GitHub App lê, do que você precisa, quem vê os impedimentos sugeridos e se dá para hospedar por conta própria.</p><a class="more" href="/pt-BR/perguntas-frequentes/">Ler as perguntas →</a></article>
+<section id="config" aria-labelledby="config-title">
+  <div class="wrap split">
+    <div>
+      <div class="head tight">
+        <p class="eyebrow">Configuração como código</p>
+        <h2 id="config-title">Um arquivo no seu repositório .github.</h2>
+        <p class="lede">Times, horários, canais de chat e gestores ficam no <code>standcast.yml</code>. Toda mudança passa por review, como código.</p>
+      </div>
+      <ul class="list">
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 12l5 5 9-10"></path></svg><span><b>Validado a cada push.</b> Um check run <code>Standcast config</code> aponta a linha com erro.</span></li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 12l5 5 9-10"></path></svg><span><b>Nunca quebra o time.</b> Um push inválido mantém a última configuração válida em vigor.</span></li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 12l5 5 9-10"></path></svg><span><b>Times do GitHub.</b> Os membros podem ser logins ou <code>@org/team</code>.</span></li>
+      </ul>
+      <p class="list-more"><a class="more" href="https://docs.standcast.app/pt-BR/admin/configuration">Referência do standcast.yml</a></p>
+    </div>
+    <div class="code">
+      <p class="code-head">.github/standcast.yml</p>
+<pre><span class="t-acc">teams</span>:
+  - <span class="t-acc">name</span>: Backend
+    <span class="t-acc">timezone</span>: America/Sao_Paulo
+    <span class="t-acc">workdays</span>: [mon, tue, wed, thu, fri]
+    <span class="t-acc">remind_at</span>: <span class="t-ok">"09:30"</span>
+    <span class="t-acc">digest_at</span>: <span class="t-ok">"10:00"</span>
+    <span class="t-acc">chat</span>:
+      <span class="t-acc">provider</span>: slack
+      <span class="t-acc">channel</span>: <span class="t-ok">"#daily-backend"</span>
+    <span class="t-acc">tracker</span>:
+      <span class="t-acc">provider</span>: linear
+      <span class="t-acc">team</span>: BE
+    <span class="t-acc">managers</span>: [bruno]
+    <span class="t-acc">members</span>: [<span class="t-ok">"@acme/backend"</span>]</pre>
     </div>
   </div>
 </section>
 
-<section id="beta" class="flush cta-field">
-<canvas class="hero-field field-cta" aria-hidden="true"></canvas>
+<section id="pricing" class="tinted" aria-labelledby="pricing-title">
+  <div class="wrap price-row">
+    <div class="head tight">
+      <p class="eyebrow">Preços</p>
+      <h2 id="pricing-title">Grátis durante o beta público.</h2>
+      <p class="lede">Os preços serão anunciados antes do fim do beta. O Standcast é código aberto, com licença MIT, então dá para hospedar por conta própria.</p>
+      <p><a class="more" href="/pt-BR/precos/">Ver preços</a></p>
+    </div>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="/pt-BR/beta/">Entrar no beta</a>
+      <a class="btn" href="https://github.com/ImFelipeOliveira/standcast#self-hosting">Hospedar por conta própria</a>
+    </div>
+  </div>
+</section>
+
+<section id="faq" aria-labelledby="faq-title">
+  <div class="wrap faq">
+    <div class="head tight">
+      <p class="eyebrow">Perguntas frequentes</p>
+      <h2 id="faq-title">Antes de instalar.</h2>
+      <p class="lede">Outra dúvida? Escreva para <a href="mailto:support@standcast.app">support@standcast.app</a> ou leia a <a href="https://docs.standcast.app/pt-BR/">documentação</a>.</p>
+    </div>
+    <div>
+      <details open><summary>O Standcast lê o nosso código?</summary><p>Não. O GitHub App lê pull requests, reviews, checks, metadados de commits, o standcast.yml e o CODEOWNERS. Ele nunca lê arquivos de código.</p></details>
+      <details><summary>O meu gestor vê os impedimentos sugeridos para mim?</summary><p>Não. As sugestões aparecem só para você, no seu rascunho. Elas nunca chegam ao consolidado, à API, aos webhooks nem aos gestores.</p></details>
+      <details><summary>O Standcast pode enviar uma daily por mim?</summary><p>Não. A tool de envio do MCP exige <code>confirmed: true</code>, que o agente só passa depois que você aprova o texto.</p></details>
+      <details><summary>Do que eu preciso?</summary><p>Uma organização ou conta pessoal no GitHub, e um workspace no Slack ou o Google Chat do Google Workspace. O Linear é opcional.</p></details>
+      <details><summary>Dá para hospedar por conta própria?</summary><p>Sim. O Standcast tem licença MIT. A <a href="https://github.com/ImFelipeOliveira/standcast#self-hosting">seção de self-hosting do README</a> cobre a API, o worker e o Postgres.</p></details>
+      <p class="list-more"><a class="more" href="/pt-BR/perguntas-frequentes/">Todas as perguntas</a></p>
+    </div>
+  </div>
+</section>
+
+<section id="beta" class="flush" aria-labelledby="beta-title">
   <div class="wrap">
     <div class="beta">
       <div class="head tight">
-        <span class="eyebrow">Beta público</span>
-        <h2>Teste com o seu time.</h2>
+        <p class="eyebrow">Beta público</p>
+        <h2 id="beta-title">Teste com o seu time.</h2>
         <p class="lede">Procuramos times de 3 a 15 pessoas que usam GitHub e Slack ou Google Chat. Ajudamos você a configurar.</p>
       </div>
       <div class="beta-cta">
         <p class="invalid" id="beta-invalid" role="alert">Não conseguimos enviar o seu pedido. Abra o formulário de novo, confira o nome e o e-mail de trabalho, escolha uma opção em cada lista e tente de novo.</p>
         <div class="cta-row">
-          <a class="btn btn-primary" href="/pt-BR/beta/">Pedir acesso ao beta</a>
-          <a class="btn btn-ghost" href="https://docs.standcast.app/pt-BR/admin/install">Instalar na sua organização</a>
+          <a class="btn btn-primary btn-lg" href="/pt-BR/beta/">Pedir acesso ao beta</a>
         </div>
       </div>
     </div>
   </div>
 </section>
+<p class="sr-only" id="copy-status" role="status"></p>
 </main>
 
 <footer class="site-footer">
   <div class="wrap">
-    <a class="brand" href="/pt-BR/" aria-label="Standcast, início"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
-    <ul aria-label="Rodapé">
-      <li><a href="/pt-BR/como-funciona/">Como funciona</a></li>
-      <li><a href="/pt-BR/privacidade/">Privacidade</a></li>
-      <li><a href="/pt-BR/termos/">Termos</a></li>
-      <li><a href="/pt-BR/precos/">Preços</a></li>
-      <li><a href="/pt-BR/perguntas-frequentes/">Perguntas frequentes</a></li>
-      <li><a href="/pt-BR/beta/">Entrar no beta</a></li>
-      <li><a href="https://docs.standcast.app/pt-BR/">Documentação</a></li>
-      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
-      <li><a href="/llms.txt">llms.txt</a></li>
-      <li><a href="/" hreflang="en" lang="en">English</a></li>
-    </ul>
-    <p>MIT · support@standcast.app</p>
+    <div class="foot-brand">
+      <a class="brand" href="/pt-BR/" aria-label="Standcast, início"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="wordmark">Standcast</span></a>
+      <p>A daily do seu time, escrita no seu agente de IA. Código aberto, licença MIT.</p>
+    </div>
+    <nav class="foot-nav" aria-label="Rodapé">
+      <div>
+        <p class="foot-h">Produto</p>
+        <ul>
+          <li><a href="/pt-BR/como-funciona/">Como funciona</a></li>
+          <li><a href="/pt-BR/precos/">Preços</a></li>
+          <li><a href="/pt-BR/perguntas-frequentes/">Perguntas frequentes</a></li>
+          <li><a href="/pt-BR/beta/">Entrar no beta</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="foot-h">Recursos</p>
+        <ul>
+          <li><a href="https://docs.standcast.app/pt-BR/">Documentação</a></li>
+          <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="/" hreflang="en" lang="en">English</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="foot-h">Legal</p>
+        <ul>
+          <li><a href="/pt-BR/termos/">Termos de uso</a></li>
+          <li><a href="/pt-BR/privacidade/">Privacidade</a></li>
+          <li><a href="mailto:support@standcast.app">support@standcast.app</a></li>
+        </ul>
+      </div>
+    </nav>
   </div>
 </footer>
 </body>

@@ -695,3 +695,215 @@ describe('landing', () => {
     }
   });
 });
+
+const HOME_SECTIONS = [
+  'how',
+  'features',
+  'ways',
+  'integrations',
+  'privacy',
+  'config',
+  'pricing',
+  'faq',
+  'beta',
+] as const;
+
+const LIGHT = {
+  '--bg': '#ffffff',
+  '--surface': '#f4f4f5',
+  '--text': '#18181b',
+  '--text2': '#3f3f46',
+  '--muted': '#5b5b66',
+  '--divider': '#e7e7ea',
+  '--control': '#8a8a96',
+  '--ink': '#18181b',
+  '--accent-text': '#3446c2',
+  '--mark': '#3b4bc8',
+};
+
+const DARK = {
+  '--bg': '#0e0e10',
+  '--surface': '#18181b',
+  '--text': '#ededef',
+  '--text2': '#c9c9cf',
+  '--muted': '#a1a1aa',
+  '--divider': '#2a2a30',
+  '--control': '#6e6e78',
+  '--ink': '#ededef',
+  '--accent-text': '#a5aff7',
+  '--mark': '#8e9af5',
+};
+
+function headingLevels(html: string): number[] {
+  return [...html.matchAll(/<h([1-6])\b/g)].map((match) => Number(match[1]));
+}
+
+function sectionIds(html: string): string[] {
+  const main = block(html, /<main\b/, '</main>');
+  return [...main.matchAll(/<section\b[^>]*\sid="([^"]+)"/g)].map((match) => match[1] ?? '');
+}
+
+function cssBlock(css: string, selector: string): string {
+  const at = css.indexOf(`${selector} {`);
+  if (at === -1) return '';
+  return css.slice(at, css.indexOf('}', at));
+}
+
+describe('landing v2', () => {
+  test('every page opens with a skip link to the main landmark', () => {
+    for (const file of htmlFiles()) {
+      const html = read(file);
+      const body = html.slice(html.indexOf('<body>'));
+      const first = tags(body, 'a')[0] ?? '';
+      expect(attr(first, 'class'), file).toBe('skip');
+      expect(attr(first, 'href'), file).toBe('#top');
+      expect(
+        tags(html, 'main').some((tag) => attr(tag, 'id') === 'top'),
+        file,
+      ).toBe(true);
+      expect(html, file).toContain('<header class="nav">');
+      expect(html, file).toContain('<footer class="site-footer">');
+      const label = decode(block(body, /<a class="skip"/, '</a>'));
+      expect(label, file).toBe(
+        file.startsWith('pt-BR/') ? 'Pular para o conteúdo' : 'Skip to content',
+      );
+    }
+  });
+
+  test('every page has one h1 and headings never skip a level', () => {
+    for (const file of htmlFiles()) {
+      const levels = headingLevels(read(file));
+      expect(
+        levels.filter((level) => level === 1),
+        file,
+      ).toHaveLength(1);
+      expect(levels[0], file).toBe(1);
+      for (let i = 1; i < levels.length; i++) {
+        expect((levels[i] ?? 0) - (levels[i - 1] ?? 0), `${file} heading ${i}`).toBeLessThanOrEqual(
+          1,
+        );
+      }
+    }
+  });
+
+  test('both home pages have the same sections in the same order', () => {
+    for (const page of pagesOf('home')) {
+      expect(sectionIds(read(page.file)), page.file).toEqual([...HOME_SECTIONS]);
+    }
+  });
+
+  test('home faq uses details and links the faq page', () => {
+    for (const page of pagesOf('home')) {
+      const faq = block(read(page.file), /<section\b[^>]*\sid="faq"/, '</section>');
+      const summaries = [...faq.matchAll(/<details\b[^>]*><summary>([\s\S]*?)<\/summary>/g)];
+      expect(summaries.length, page.file).toBeGreaterThanOrEqual(5);
+      const target = pagesOf('faq').find((candidate) => candidate.locale === page.locale);
+      expect(hrefs(faq)).toContain(target?.path ?? '');
+    }
+  });
+
+  test('home hero has a decorative pixel field and a hidden pause button', () => {
+    for (const page of pagesOf('home')) {
+      const html = read(page.file);
+      const canvases = tags(html, 'canvas');
+      expect(canvases, page.file).toHaveLength(1);
+      expect(attr(canvases[0] ?? '', 'class')).toBe('field');
+      expect(attr(canvases[0] ?? '', 'aria-hidden')).toBe('true');
+      const toggle =
+        tags(html, 'button').find((tag) => attr(tag, 'class') === 'field-toggle') ?? '';
+      expect(attr(toggle, 'type')).toBe('button');
+      expect(attr(toggle, 'aria-pressed')).toBe('false');
+      expect(toggle).toMatch(/\shidden[\s>]/);
+      const label = decode(block(html, /<button class="field-toggle"/, '</button>'));
+      expect(label).toBe(page.locale === 'en' ? 'Pause animation' : 'Pausar animação');
+    }
+  });
+
+  test('no page loads the webgl wave', () => {
+    for (const file of htmlFiles()) {
+      expect(read(file), file).not.toContain('hero-field');
+    }
+    const script = read('app.js');
+    for (const word of ['webgl', 'gl_FragColor', 'precision mediump']) {
+      expect(script).not.toContain(word);
+    }
+  });
+
+  test('pixel field is capped at 30 fps and stops when it cannot be seen', () => {
+    const script = read('app.js');
+    for (const piece of [
+      "getContext('2d')",
+      '1000 / 30',
+      'IntersectionObserver',
+      'visibilitychange',
+      'document.hidden',
+      'prefers-reduced-motion: reduce',
+      'aria-pressed',
+      'cancelAnimationFrame',
+    ]) {
+      expect(script).toContain(piece);
+    }
+  });
+
+  test('styles define the measured palette in both themes', () => {
+    const css = read('styles.css').toLowerCase();
+    const light = cssBlock(css, ':root');
+    const dark = cssBlock(css, ':root[data-theme="dark"]');
+    const media = cssBlock(css, '  :root:not([data-theme="light"])');
+    for (const [name, value] of Object.entries(LIGHT)) {
+      expect(light, name).toContain(`${name}: ${value};`);
+    }
+    for (const [name, value] of Object.entries(DARK)) {
+      expect(dark, name).toContain(`${name}: ${value};`);
+      expect(media, name).toContain(`${name}: ${value};`);
+    }
+    expect(cssBlock(css, ':focus-visible')).toContain('outline: 2px solid');
+    expect(css).toContain('@media (forced-colors: active)');
+  });
+
+  test('theme color follows the new background', () => {
+    for (const file of htmlFiles()) {
+      const metas = tags(read(file), 'meta').filter((tag) => attr(tag, 'name') === 'theme-color');
+      expect(
+        metas.map((tag) => attr(tag, 'content')),
+        file,
+      ).toEqual(['#FFFFFF', '#0E0E10']);
+    }
+  });
+
+  test('ways to write read without javascript and enhance into tabs', () => {
+    for (const page of pagesOf('home')) {
+      const ways = block(read(page.file), /<section\b[^>]*\sid="ways"/, '</section>');
+      const list = tags(ways, 'div').find((tag) => attr(tag, 'role') === 'tablist') ?? '';
+      expect(list, page.file).toMatch(/\shidden[\s>]/);
+      const tabs = tags(ways, 'button').filter((tag) => attr(tag, 'role') === 'tab');
+      const panels = tags(ways, 'div').filter((tag) => attr(tag, 'role') === 'tabpanel');
+      expect(tabs).toHaveLength(3);
+      expect(panels).toHaveLength(3);
+      tabs.forEach((tab, index) => {
+        const panel = panels[index] ?? '';
+        expect(attr(tab, 'aria-controls')).toBe(attr(panel, 'id'));
+        expect(attr(panel, 'aria-labelledby')).toBe(attr(tab, 'id'));
+        expect(attr(tab, 'aria-selected')).toBe(index === 0 ? 'true' : 'false');
+        expect(panel).not.toMatch(/\shidden[\s>]/);
+      });
+      expect(headingLevels(ways).filter((level) => level === 3)).toHaveLength(3);
+    }
+  });
+
+  test('wordmark font is self-hosted', () => {
+    const css = read('styles.css');
+    expect(css).toContain('font-family: "Saira"');
+    expect(css).toContain('url("/fonts/saira-700-latin.3ea7fb14.woff2")');
+  });
+
+  test('home illustration is one labelled image without a replay button', () => {
+    for (const page of pagesOf('home')) {
+      const html = read(page.file);
+      const stage = tags(html, 'div').find((tag) => attr(tag, 'class') === 'stage') ?? '';
+      expect(attr(stage, 'role')).toBe('img');
+      expect(attr(stage, 'aria-label')?.length).toBeGreaterThan(40);
+      expect(html).not.toContain('id="replay"');
+    }
+  });
+});

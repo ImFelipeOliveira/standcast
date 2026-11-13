@@ -12,8 +12,8 @@
 <link rel="alternate" hreflang="x-default" href="https://standcast.app/">
 <link rel="alternate" type="text/markdown" href="/index.md">
 <link rel="icon" type="image/png" href="/favicon.png" sizes="96x96">
-<meta name="theme-color" content="#F6F7FB" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0E1022" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E0E10" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Standcast">
@@ -47,18 +47,19 @@
 </script>
 </head>
 <body>
+<a class="skip" href="#top">Skip to content</a>
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
+    <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="wordmark">Standcast</span></a>
     <nav aria-label="Main"><ul>
       <li><a href="/how-it-works/">How it works</a></li>
       <li><a href="/privacy/">Privacy</a></li>
       <li><a href="/pricing/">Pricing</a></li>
       <li><a href="/faq/">FAQ</a></li>
       <li><a href="https://docs.standcast.app/">Docs</a></li>
-      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
     </ul></nav>
     <div class="nav-end">
+      <a class="nav-link" href="https://github.com/ImFelipeOliveira/standcast">GitHub</a>
       <a class="lang" href="/pt-BR/" hreflang="pt-BR" lang="pt-BR">Português</a>
       <a class="btn btn-primary" href="/beta/">Join the beta</a>
     </div>
@@ -66,188 +67,296 @@
 </header>
 
 <main id="top">
-<div class="field-stage">
-<canvas class="hero-field" aria-hidden="true"></canvas>
-<section class="hero hero-home">
+<section class="hero" aria-labelledby="hero-title">
+  <canvas class="field" aria-hidden="true"></canvas>
   <div class="wrap hero-grid">
     <div class="hero-copy">
-      <span class="pill"><b>Beta</b> Open source · MIT · free while in beta</span>
-      <h1>Your daily standup, written in <em>your AI agent</em>.</h1>
+      <p class="pill">Open source (MIT) · free during the public beta</p>
+      <h1 id="hero-title">Your daily standup, written in your AI agent.</h1>
       <p class="lede">Standcast is an open source daily standup tool for software teams. Run <code>/daily</code> in Claude Code, Cursor or the terminal. Standcast drafts yesterday from your GitHub and Linear activity, you confirm, and your team gets one digest in Slack or Google Chat.</p>
-      <div class="install">
-        <code id="cmd" data-copy="curl -fsSL https://standcast.app/install.sh | sh"><span>$</span> curl -fsSL https://standcast.app/install.sh | sh</code>
-        <button class="copy" id="copy" type="button" aria-describedby="cmd" data-done="Copied">Copy</button>
-      </div>
       <div class="cta-row">
         <a class="btn btn-primary" href="/beta/">Join the beta</a>
-        <a class="btn btn-ghost" href="https://docs.standcast.app/admin/install">Install for your org</a>
+        <a class="btn" href="https://docs.standcast.app/admin/install">Install for your org</a>
       </div>
-      <p class="fine">GitHub, Linear, Slack and Google Chat today. <a href="#integrations">Jira, ClickUp and others are coming.</a></p>
+      <div class="install">
+        <code id="cmd" data-copy="curl -fsSL https://standcast.app/install.sh | sh"><span aria-hidden="true">$</span> curl -fsSL https://standcast.app/install.sh | sh</code>
+        <button class="copy" id="copy" type="button" data-target="cmd" data-done="Copied" aria-describedby="cmd" hidden>Copy</button>
+      </div>
     </div>
-
-    <figure class="stage" aria-label="Example: a daily drafted in the terminal and the digest posted to Slack">
+    <div class="stage" role="img" aria-label="Example: in the terminal, Ana runs /daily and confirms her draft. At 10:00, the #daily-backend channel gets the team digest with blockers and updates.">
       <div class="terminal">
-        <div class="term-bar"><i></i><i></i><i></i><span class="term-title">~/work · claude</span><button class="replay" id="replay" type="button" hidden>Replay</button></div>
-        <div class="term-body"><pre id="term"><span class="ln"><span class="t-acc">&gt; </span><span class="typed t-acc">/daily</span></span>
-<span class="ln t-dim">Drafting from GitHub and Linear since Mon 09:12<span class="dots"></span></span>
-<span class="ln"> </span>
-<span class="ln"><b>Yesterday</b></span>
-<span class="ln">  • Merged <span class="t-acc">api#412</span> rate limits per API key</span>
-<span class="ln">  • Reviewed <span class="t-acc">web#88</span> setup checklist</span>
-<span class="ln">  • Moved <span class="t-acc">BE-231</span> to In review</span>
-<span class="ln"><b>Today</b></span>
-<span class="ln">  • Webhook retries with backoff</span>
-<span class="ln"><b>Blockers</b></span>
-<span class="ln">  <span class="t-warn">!</span> <span class="t-acc">api#415</span> waiting for review since Thu</span>
-<span class="ln">    <span class="t-dim">suggested only to you · confirm or ignore</span></span>
-<span class="ln"> </span>
-<span class="ln"><span class="t-ok">✓</span> Confirmed. Sent to #daily-backend at 10:00.</span></pre></div>
-      </div>
-      <div class="slack">
-        <div class="slack-head">
-          <div class="avatar"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span></div>
-          <div><b>Standcast</b><span class="tag">APP</span><br><small>#daily-backend · 10:00</small></div>
+        <div class="term-bar"><i></i><i></i><i></i><span class="term-title">claude · ana@backend</span></div>
+        <div class="term-body">
+          <div class="tl"><span class="t-acc">›</span> /daily</div>
+          <div class="tl t-dim">Draft for yesterday, Mon, Nov 2</div>
+          <div class="tl row"><span><span class="t-ok">+</span> Merged rate limits per API key</span><span class="t-acc">api#412</span></div>
+          <div class="tl row"><span><span class="t-ok">+</span> Reviewed the setup checklist</span><span class="t-acc">web#88</span></div>
+          <div class="tl t-dim gap">Today</div>
+          <div class="tl row"><span>• Webhook retries with backoff</span><span class="t-acc">BE-231</span></div>
+          <div class="tl t-dim gap">Blocker</div>
+          <div class="tl row"><span><span class="t-warn">!</span> Waiting for review since Thu</span><span class="t-acc">api#415</span></div>
+          <div class="tl gap"><span class="t-dim">Send to backend?</span> <span class="t-ok">yes</span></div>
         </div>
-        <p class="title">Backend · Tue, Nov 3</p>
-        <p class="blk">1 blocker</p>
-        <ul><li>Ana: api#415 waiting for review → sent to @bruno</li></ul>
-        <p class="title">Updates</p>
-        <ul><li>Ana: merged rate limits; today, webhook retries</li><li>Caio: Linear sync fixes; today, pagination</li></ul>
-        <p class="who">Not sent yet: Davi</p>
       </div>
-    </figure>
+      <div class="digest">
+        <div class="digest-head"><b># daily-backend</b><span class="mono">Standcast · 10:00</span></div>
+        <div class="digest-body">
+          <b>Digest for Tue, Nov 3</b>
+          <div><span class="d-blk">Blockers · 1</span><span>Ana: waiting for review <span class="ref">api#415</span>, sent to <span class="mono">@bruno</span></span></div>
+          <div><span class="d-h">Updates</span><span>Ana · Caio</span></div>
+          <span class="d-who">Not sent yet: Davi</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="field-toggle" type="button" aria-pressed="false" hidden><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>Pause animation</button>
+</section>
+
+<section class="agents" aria-labelledby="agents-title">
+  <div class="wrap">
+    <h2 id="agents-title">Write your daily where you already work</h2>
+    <ul><li>Claude Code</li><li>Cursor</li><li>Codex</li><li>Claude Desktop</li><li>VS Code</li><li class="mono">terminal</li></ul>
   </div>
 </section>
 
-<div class="agents">
+<section id="how" aria-labelledby="how-title">
   <div class="wrap">
-    <p>Write your daily where you already work</p>
-    <ul aria-label="Supported clients"><li>Claude Code</li><li>Cursor</li><li>Codex</li><li>Claude Desktop</li><li>VS Code</li><li>Terminal</li></ul>
-  </div>
-</div>
-
-<section id="how">
-  <div class="wrap day-grid">
     <div class="head">
-      <span class="eyebrow">A day with Standcast</span>
-      <h2>Set two times in standcast.yml. Standcast runs the rest.</h2>
+      <p class="eyebrow">A day with Standcast</p>
+      <h2 id="how-title">Set two times in standcast.yml. Standcast runs the rest.</h2>
       <p class="lede">This team has <code>remind_at: "09:30"</code> and <code>digest_at: "10:00"</code> in São Paulo time, Monday to Friday.</p>
-      <p><a class="more" href="/how-it-works/">See how it works →</a></p>
     </div>
-    <ol class="day" aria-label="Timeline of one day">
-      <li class="slot"><span class="k">Draft</span><time datetime="08:50">08:50</time><p><b>Ana runs /daily.</b> She edits the draft, adds a blocker that links a pull request and confirms. The reviewer gets a direct message.</p></li>
-      <li class="slot"><span class="k">remind_at</span><time datetime="09:30">09:30</time><p><b>Davi hasn't written yet,</b> so he gets one reminder. Never more than one a day.</p></li>
-      <li class="slot"><span class="k">digest_at</span><time datetime="10:00">10:00</time><p><b>One digest per team</b> in #daily-backend: blockers first, then updates, then who hasn't sent.</p></li>
-      <li class="slot"><span class="k">Late</span><time datetime="10:40">10:40</time><p><b>Davi sends late.</b> His daily goes in the digest thread, so nobody misses it.</p></li>
+    <ol class="timeline">
+      <li class="tile"><p class="tile-k"><time datetime="08:50">08:50</time> · draft</p><h3>Ana runs /daily</h3><p>She edits the draft, adds a blocker that links a pull request and confirms. The reviewer gets a direct message.</p></li>
+      <li class="tile"><p class="tile-k"><time datetime="09:30">09:30</time> · remind_at</p><h3>Davi gets one reminder</h3><p>He hasn't written yet. Never more than one reminder a day.</p></li>
+      <li class="tile tile-ink"><p class="tile-k"><time datetime="10:00">10:00</time> · digest_at</p><h3>The digest arrives</h3><p>One per team in #daily-backend: blockers first, then updates, then who hasn't sent.</p></li>
+      <li class="tile"><p class="tile-k"><time datetime="10:40">10:40</time> · late</p><h3>Davi sends late</h3><p>His daily goes in the digest thread, so nobody misses it.</p></li>
     </ol>
+    <p class="list-more"><a class="more" href="/how-it-works/">See how it works</a></p>
   </div>
 </section>
-</div>
 
-<section id="integrations">
+<section id="features" class="flush" aria-labelledby="features-title">
   <div class="wrap">
     <div class="head">
-      <span class="eyebrow">Integrations</span>
-      <h2>What connects today, and what is still to come.</h2>
-      <p class="lede">GitHub is where the draft starts. A tracker adds your cards. A chat is where the team digest goes. Each team picks its own chat, and Linear is optional.</p>
+      <p class="eyebrow">What it does</p>
+      <h2 id="features-title">Collects, consolidates and delivers. You only write.</h2>
     </div>
-    <div class="connect">
-      <article>
-        <h3>Available now</h3>
-        <ul>
-          <li><b>GitHub</b><span>Pull requests, reviews and commits in the draft. An organization installs Standcast as a GitHub App.</span></li>
-          <li><b>Linear</b><span>Optional tracker. Your cards show in the draft, and a card blocker goes to the people who own the blocking card.</span></li>
-          <li><b>Slack</b><span>One digest per team, late dailies in the thread, one reminder and direct messages.</span></li>
-          <li><b>Google Chat</b><span>The same digest in a space, through the Standcast app.</span></li>
-        </ul>
-      </article>
-      <article>
-        <h3>Coming</h3>
-        <p class="note">Not connected yet, so Standcast reads nothing from them.</p>
-        <ul>
-          <li><b>Jira</b><span>Tracker. <code>standcast.yml</code> already accepts it, and setup says it is not available yet.</span></li>
-          <li><b>ClickUp</b><span>Tracker, the same role as Linear.</span></li>
-          <li><b>Asana</b><span>Tracker, the same role as Linear.</span></li>
-          <li><b>GitHub Projects</b><span>Tracker, the same role as Linear.</span></li>
-          <li><b>Microsoft Teams</b><span>Chat, the same role as Slack.</span></li>
-          <li><b>Discord</b><span>Chat, the same role as Slack.</span></li>
-        </ul>
-      </article>
+    <div class="features">
+      <article class="feat"><h3>A draft from real work</h3><p>Pull requests opened, merged and reviewed, commits by repository, and Linear cards that started or finished. Monday covers the weekend.</p></article>
+      <article class="feat"><h3>Blockers reach who can help</h3><p>A blocker that links a pull request goes to its reviewers, then CODEOWNERS, then the team managers. A Linear card goes to the owner of the blocking card.</p></article>
+      <article class="feat"><h3>Nothing sent without you</h3><p>The MCP submit tool needs <code>confirmed: true</code>, which the agent passes only after you approve the text.</p></article>
+      <article class="feat"><h3>Several teams, one daily</h3><p>Write once and appear in every team digest you belong to, each in its own time zone and workdays.</p></article>
+      <article class="feat"><h3>Managers read from their agent</h3><p>Team digests, dailies and blockers for the last 90 days, through MCP read tools. Confirmed content only.</p></article>
+      <article class="feat"><h3>API and webhooks</h3><p>Read-only API keys with scopes, an OpenAPI reference, and signed <code>daily.submitted</code> and <code>blocker.opened</code> webhooks.</p></article>
     </div>
   </div>
 </section>
 
-<section class="band" id="privacy">
+<section id="ways" class="tinted" aria-labelledby="ways-title">
+  <div class="wrap ways-block">
+    <div class="head tight">
+      <p class="eyebrow">Three ways to write</p>
+      <h2 id="ways-title">Pick the one that fits how you work.</h2>
+      <p class="lede">The Claude Code plugin, any MCP client or the terminal.</p>
+    </div>
+    <div class="ways-tabs">
+      <div class="tabs" role="tablist" aria-label="Ways to write" hidden>
+        <button type="button" role="tab" id="way-tab-plugin" aria-controls="way-plugin" aria-selected="true" tabindex="0">Claude Code plugin</button>
+        <button type="button" role="tab" id="way-tab-mcp" aria-controls="way-mcp" aria-selected="false" tabindex="-1">Any MCP client</button>
+        <button type="button" role="tab" id="way-tab-cli" aria-controls="way-cli" aria-selected="false" tabindex="-1">Terminal</button>
+      </div>
+      <div class="way-panel" role="tabpanel" id="way-plugin" aria-labelledby="way-tab-plugin">
+        <div class="way-head"><h3 id="way-plugin-title">Claude Code plugin</h3><button class="copy" type="button" data-target="way-plugin-code" data-done="Copied" aria-describedby="way-plugin-title" hidden>Copy</button></div>
+        <p>The <code>/daily</code> skill drafts, asks for today and blockers, and confirms with you.</p>
+<pre id="way-plugin-code">/plugin marketplace add \
+  ImFelipeOliveira/standcast
+/plugin install standcast@standcast
+/daily</pre>
+      </div>
+      <div class="way-panel" role="tabpanel" id="way-mcp" aria-labelledby="way-tab-mcp">
+        <div class="way-head"><h3 id="way-mcp-title">Any MCP client</h3><button class="copy" type="button" data-target="way-mcp-code" data-done="Copied" aria-describedby="way-mcp-title" hidden>Copy</button></div>
+        <p>Cursor, Codex, Claude Desktop and VS Code run the local <a href="https://docs.standcast.app/members/mcp">MCP server</a>.</p>
+<pre id="way-mcp-code">{
+  "mcpServers": {
+    "standcast": {
+      "command": "standcast",
+      "args": ["mcp"]
+    }
+  }
+}</pre>
+      </div>
+      <div class="way-panel" role="tabpanel" id="way-cli" aria-labelledby="way-tab-cli">
+        <div class="way-head"><h3 id="way-cli-title">Terminal</h3><button class="copy" type="button" data-target="way-cli-code" data-done="Copied" aria-describedby="way-cli-title" hidden>Copy</button></div>
+        <p>One binary for macOS, Linux and Windows, checked against SHA256SUMS.</p>
+<pre id="way-cli-code">standcast login
+standcast draft
+standcast submit</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="integrations" aria-labelledby="integrations-title">
   <div class="wrap">
     <div class="head">
-      <span class="eyebrow">Privacy</span>
-      <h2>Built for teams, not for watching people.</h2>
+      <p class="eyebrow">Integrations</p>
+      <h2 id="integrations-title">GitHub builds the draft. Your chat gets the digest.</h2>
+      <p class="lede">A tracker adds your cards. Each team picks its own chat, and Linear is optional.</p>
+    </div>
+    <ul class="tiles">
+      <li class="tile"><p class="tile-k">draft</p><h3>GitHub</h3><p>Pull requests, reviews and commits in the draft. An organization installs Standcast as a GitHub App.</p></li>
+      <li class="tile"><p class="tile-k">optional tracker</p><h3>Linear</h3><p>Your cards show in the draft, and a card blocker goes to the people who own the blocking card.</p></li>
+      <li class="tile"><p class="tile-k">chat</p><h3>Slack</h3><p>One digest per team, late dailies in the thread, one reminder and direct messages.</p></li>
+      <li class="tile"><p class="tile-k">chat</p><h3>Google Chat</h3><p>The same digest in a space, through the Standcast app.</p></li>
+    </ul>
+    <div class="coming">
+      <h3>Coming</h3>
+      <ul class="chips"><li>Jira</li><li>ClickUp</li><li>Asana</li><li>GitHub Projects</li><li>Microsoft Teams</li><li>Discord</li></ul>
+      <p class="fine">Not connected yet, so Standcast reads nothing from them.</p>
+    </div>
+  </div>
+</section>
+
+<section id="privacy" class="band" aria-labelledby="privacy-title">
+  <div class="wrap band-grid">
+    <div class="head tight">
+      <p class="eyebrow">Privacy</p>
+      <h2 id="privacy-title">Built for teams, not for watching people.</h2>
       <p class="lede">Standcast suggests blockers from your own signals. Those suggestions belong to you. A test in CI checks that they never leave your draft.</p>
+      <p><a class="more" href="/privacy/">Read how privacy works</a></p>
     </div>
-    <div class="privacy-grid">
-      <div class="col"><h3>Your team sees</h3><ul>
-        <li>Dailies you confirmed, in the team digest</li>
-        <li>Blockers you confirmed, routed to who can help</li>
-        <li>Who hasn't sent today's daily</li>
-      </ul></div>
-      <div class="col only"><h3>Only you see</h3><ul>
-        <li>A pull request waiting days for review</li>
-        <li>CI failing on your branch for a day</li>
-        <li>A Linear card stuck in progress</li>
-      </ul></div>
-    </div>
-    <p class="never">No productivity metrics. No rankings. No commit counts. Nothing sent on anyone's behalf.</p>
-    <p class="band-more"><a class="more" href="/privacy/">Read how privacy works →</a></p>
+    <ul class="nevers">
+      <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>No productivity metrics</li>
+      <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>No rankings</li>
+      <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>No commit counts</li>
+      <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>Nothing sent on anyone's behalf</li>
+    </ul>
   </div>
 </section>
 
-<section>
-  <div class="wrap">
-    <div class="ways">
-      <article class="way" id="ways"><h3>Three ways to write</h3><p>The Claude Code plugin, any MCP client or the terminal. Pick the one that fits how you work.</p><a class="more" href="/how-it-works/#ways">Ways to write →</a></article>
-      <article class="way" id="pricing"><h3>Pricing</h3><p>Free during the public beta. Pricing will be announced before the beta ends.</p><a class="more" href="/pricing/">See pricing →</a></article>
-      <article class="way" id="faq"><h3>FAQ</h3><p>What the GitHub App reads, what you need, who sees suggested blockers and whether you can self-host.</p><a class="more" href="/faq/">Read the FAQ →</a></article>
+<section id="config" aria-labelledby="config-title">
+  <div class="wrap split">
+    <div>
+      <div class="head tight">
+        <p class="eyebrow">Configuration as code</p>
+        <h2 id="config-title">One file in your .github repository.</h2>
+        <p class="lede">Teams, times, chat channels and managers live in <code>standcast.yml</code>. Every change is reviewed like code.</p>
+      </div>
+      <ul class="list">
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 12l5 5 9-10"></path></svg><span><b>Checked on every push.</b> A <code>Standcast config</code> check run points to the line with the error.</span></li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 12l5 5 9-10"></path></svg><span><b>Never breaks the team.</b> An invalid push keeps the last valid config in effect.</span></li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 12l5 5 9-10"></path></svg><span><b>Teams from GitHub.</b> Members can be logins or <code>@org/team</code>.</span></li>
+      </ul>
+      <p class="list-more"><a class="more" href="https://docs.standcast.app/admin/configuration">standcast.yml reference</a></p>
+    </div>
+    <div class="code">
+      <p class="code-head">.github/standcast.yml</p>
+<pre><span class="t-acc">teams</span>:
+  - <span class="t-acc">name</span>: Backend
+    <span class="t-acc">timezone</span>: America/Sao_Paulo
+    <span class="t-acc">workdays</span>: [mon, tue, wed, thu, fri]
+    <span class="t-acc">remind_at</span>: <span class="t-ok">"09:30"</span>
+    <span class="t-acc">digest_at</span>: <span class="t-ok">"10:00"</span>
+    <span class="t-acc">chat</span>:
+      <span class="t-acc">provider</span>: slack
+      <span class="t-acc">channel</span>: <span class="t-ok">"#daily-backend"</span>
+    <span class="t-acc">tracker</span>:
+      <span class="t-acc">provider</span>: linear
+      <span class="t-acc">team</span>: BE
+    <span class="t-acc">managers</span>: [bruno]
+    <span class="t-acc">members</span>: [<span class="t-ok">"@acme/backend"</span>]</pre>
     </div>
   </div>
 </section>
 
-<section id="beta" class="flush cta-field">
-<canvas class="hero-field field-cta" aria-hidden="true"></canvas>
+<section id="pricing" class="tinted" aria-labelledby="pricing-title">
+  <div class="wrap price-row">
+    <div class="head tight">
+      <p class="eyebrow">Pricing</p>
+      <h2 id="pricing-title">Free during the public beta.</h2>
+      <p class="lede">Pricing will be announced before the beta ends. Standcast is open source under the MIT license, so you can also host it yourself.</p>
+      <p><a class="more" href="/pricing/">See pricing</a></p>
+    </div>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="/beta/">Join the beta</a>
+      <a class="btn" href="https://github.com/ImFelipeOliveira/standcast#self-hosting">Host it yourself</a>
+    </div>
+  </div>
+</section>
+
+<section id="faq" aria-labelledby="faq-title">
+  <div class="wrap faq">
+    <div class="head tight">
+      <p class="eyebrow">FAQ</p>
+      <h2 id="faq-title">Before you install.</h2>
+      <p class="lede">Another question? Write to <a href="mailto:support@standcast.app">support@standcast.app</a> or read the <a href="https://docs.standcast.app/">documentation</a>.</p>
+    </div>
+    <div>
+      <details open><summary>Does Standcast read our code?</summary><p>No. The GitHub App reads pull requests, reviews, checks, commit metadata, standcast.yml and CODEOWNERS. It never reads source files.</p></details>
+      <details><summary>Can my manager see my suggested blockers?</summary><p>No. Suggestions are visible only to you, in your own draft. They never reach the digest, the API, webhooks or managers.</p></details>
+      <details><summary>Can Standcast send a daily for me?</summary><p>No. The MCP submit tool needs <code>confirmed: true</code>, which the agent passes only after you approve the text.</p></details>
+      <details><summary>What do I need?</summary><p>A GitHub organization or personal account, and a Slack workspace or Google Chat in Google Workspace. Linear is optional.</p></details>
+      <details><summary>Can we self-host?</summary><p>Yes. Standcast is MIT licensed. The <a href="https://github.com/ImFelipeOliveira/standcast#self-hosting">self-hosting section of the README</a> covers the API, the worker and Postgres.</p></details>
+      <p class="list-more"><a class="more" href="/faq/">All questions</a></p>
+    </div>
+  </div>
+</section>
+
+<section id="beta" class="flush" aria-labelledby="beta-title">
   <div class="wrap">
     <div class="beta">
       <div class="head tight">
-        <span class="eyebrow">Public beta</span>
-        <h2>Try it with your team.</h2>
+        <p class="eyebrow">Public beta</p>
+        <h2 id="beta-title">Try it with your team.</h2>
         <p class="lede">We're looking for teams of 3 to 15 people on GitHub and Slack or Google Chat. We'll help you set it up.</p>
       </div>
       <div class="beta-cta">
         <p class="invalid" id="beta-invalid" role="alert">We couldn't send your request. Open the form again, check your name and work email, pick an option in each list and try again.</p>
         <div class="cta-row">
-          <a class="btn btn-primary" href="/beta/">Request beta access</a>
-          <a class="btn btn-ghost" href="https://docs.standcast.app/admin/install">Install for your org</a>
+          <a class="btn btn-primary btn-lg" href="/beta/">Request beta access</a>
         </div>
       </div>
     </div>
   </div>
 </section>
+<p class="sr-only" id="copy-status" role="status"></p>
 </main>
 
 <footer class="site-footer">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Standcast</a>
-    <ul aria-label="Footer">
-      <li><a href="/how-it-works/">How it works</a></li>
-      <li><a href="/privacy/">Privacy</a></li>
-      <li><a href="/terms/">Terms</a></li>
-      <li><a href="/pricing/">Pricing</a></li>
-      <li><a href="/faq/">FAQ</a></li>
-      <li><a href="/beta/">Join the beta</a></li>
-      <li><a href="https://docs.standcast.app/">Documentation</a></li>
-      <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
-      <li><a href="/llms.txt">llms.txt</a></li>
-      <li><a href="/pt-BR/" hreflang="pt-BR" lang="pt-BR">Português</a></li>
-    </ul>
-    <p>MIT · support@standcast.app</p>
+    <div class="foot-brand">
+      <a class="brand" href="/" aria-label="Standcast home"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="wordmark">Standcast</span></a>
+      <p>Your daily standup, written in your AI agent. Open source, MIT license.</p>
+    </div>
+    <nav class="foot-nav" aria-label="Footer">
+      <div>
+        <p class="foot-h">Product</p>
+        <ul>
+          <li><a href="/how-it-works/">How it works</a></li>
+          <li><a href="/pricing/">Pricing</a></li>
+          <li><a href="/faq/">FAQ</a></li>
+          <li><a href="/beta/">Join the beta</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="foot-h">Resources</p>
+        <ul>
+          <li><a href="https://docs.standcast.app/">Documentation</a></li>
+          <li><a href="https://github.com/ImFelipeOliveira/standcast">GitHub</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="/pt-BR/" hreflang="pt-BR" lang="pt-BR">Português</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="foot-h">Legal</p>
+        <ul>
+          <li><a href="/terms/">Terms of use</a></li>
+          <li><a href="/privacy/">Privacy</a></li>
+          <li><a href="mailto:support@standcast.app">support@standcast.app</a></li>
+        </ul>
+      </div>
+    </nav>
   </div>
 </footer>
 </body>
