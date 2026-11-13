@@ -128,7 +128,7 @@ export function SignIn({
               id="sign-in-lang"
               value={lang}
               onChange={(event) => setLang(event.target.value as Lang)}
-              className="min-h-11 rounded-md border border-border-strong border-solid bg-surface px-2 font-medium text-[13px] text-text2 desk:min-h-9"
+              className="min-h-11 rounded-md border border-border-strong border-solid bg-surface px-2 font-medium text-base text-text2 desk:min-h-9 desk:text-[13px]"
             >
               <option value="pt-BR">Português</option>
               <option value="en">English</option>

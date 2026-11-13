@@ -13,6 +13,7 @@ import {
   teamTodayQuery,
 } from '../api/queries';
 import { applyLang } from '../i18n';
+import { SummaryTiles } from '../pages/hoje/SummaryTiles';
 import { createAppRouter } from '../router';
 import { OrgSelect } from './OrgSelect';
 import { signOut } from './sign-out';
@@ -121,6 +122,60 @@ describe('shell', () => {
     expect(settings.router.state.location.href).toBe('/orgs/11/settings?connected=slack');
     const history = await renderAt('/orgs/11/historico');
     expect(history.router.state.location.pathname).toBe('/orgs/11/history');
+  });
+
+  test('today and settings render a single sticky page heading', async () => {
+    for (const path of ['/orgs/11/today?team=backend', '/orgs/11/history']) {
+      const { html } = await renderAt(path);
+      expect(html.match(/<h1/g), path).toHaveLength(1);
+      expect(html, path).toContain('data-scrolled="false"');
+    }
+  });
+
+  test('phones get a menu button that controls the sidebar drawer', async () => {
+    const { html } = await renderAt('/orgs/11/today?team=backend');
+    const button = html.match(/<button[^>]*aria-controls="app-sidebar"[^>]*>/)?.[0] ?? '';
+    expect(button).toContain('aria-expanded="false"');
+    expect(button).toContain('desk:hidden');
+    expect(button).toContain('aria-label="Abrir menu"');
+    const aside = html.match(/<aside[^>]*id="app-sidebar"[^>]*>/)?.[0] ?? '';
+    expect(aside).toContain('hidden');
+    expect(aside).toContain('desk:flex');
+  });
+
+  test('loading and error states inside an org still offer the menu on phones', async () => {
+    const { html } = await renderAt('/orgs/11/today?team=nope');
+    expect(html).toContain('aria-controls="app-sidebar"');
+    expect(html.match(/<h1/g)).toHaveLength(1);
+  });
+
+  test('the blockers tile keeps its card shape', () => {
+    const html = renderToStaticMarkup(
+      <SummaryTiles
+        today={{
+          ...backendToday,
+          blockers: [
+            {
+              id: 'b1',
+              author: 'bruno',
+              text: 'waiting',
+              ref: null,
+              openedOn: '2026-10-30',
+              ageDays: 4,
+              recurring: true,
+              routedTo: null,
+              hint: null,
+            },
+          ],
+        }}
+      />,
+    );
+    const tile =
+      html.match(/<div[^>]*>(?:(?!<div).)*Impedimentos abertos(?:(?!<\/div>).)*<\/div>/)?.[0] ?? '';
+    expect(tile).toContain('Impedimentos abertos');
+    expect(tile).toMatch(/>1<\/span>/);
+    expect(tile).toContain('text-warn-ink');
+    expect(tile).not.toContain('bg-warn-soft');
   });
 
   test('no installations', async () => {
