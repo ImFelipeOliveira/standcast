@@ -411,4 +411,43 @@ export const ptBR = {
   'history.to': 'Até',
   'history.range': 'Período',
   'history.apply': 'Aplicar',
+  'settings.tabs': 'Seções da configuração',
+  'settings.tab.general': 'Geral',
+  'settings.tab.people': 'Pessoas e vínculos',
+  'settings.tab.api': 'API e webhooks',
+  'setup.webhooks.redeliver': 'Reenviar',
+  'setup.webhooks.actions': 'Ações',
+  'people.issue.one': '{count} pessoa sem vínculo com o {provider}',
+  'people.issue.other': '{count} pessoas sem vínculo com o {provider}',
+  'people.issue.body':
+    'Elas não são marcadas no consolidado e não recebem lembrete. A daily delas continua funcionando pela CLI e pelo plugin.',
+  'people.option.self': 'Cada pessoa resolve',
+  'people.option.selfGoogleChat':
+    'A pessoa toca em "Vincular minha conta" no consolidado do espaço ou manda uma mensagem direta para o app Standcast. O vínculo usa o e-mail principal do GitHub.',
+  'people.option.selfSlack':
+    'O vínculo é automático quando o e-mail principal do GitHub é o mesmo do Slack. A pessoa pode rodar standcast login para tentar de novo.',
+  'people.option.admin': 'Admin mapeia',
+  'people.option.adminGoogleChat':
+    'Informe members.<login>.google_chat (users/…) no standcast.yml quando o e-mail do GitHub for diferente do e-mail do Google.',
+  'people.option.adminSlack':
+    'Informe members.<login>.slack (o id do usuário, como U0123ABCD) no standcast.yml quando o e-mail for diferente.',
+  'people.title': 'Pessoas',
+  'people.subtitle':
+    'Quem está no standcast.yml e como o Standcast encontra cada um no chat e no rastreador.',
+  'people.filter': 'Filtro',
+  'people.all': 'Todas',
+  'people.onlyIssues': 'Com pendência',
+  'people.person': 'Pessoa',
+  'people.teams': 'Times',
+  'people.chat': 'Chat',
+  'people.tracker': 'Rastreador',
+  'people.cli': 'CLI e plugin',
+  'people.linked': 'vinculado',
+  'people.missing': 'Sem vínculo',
+  'people.source.config': 'pelo standcast.yml',
+  'people.source.identity': 'pelo login',
+  'people.cliConnected': 'conectada',
+  'people.cliNever': 'nunca entrou',
+  'people.managerOf': 'gestor de {team}',
+  'people.note': 'Sem métricas por pessoa: esta tela só mostra se a configuração está completa.',
 } as const;

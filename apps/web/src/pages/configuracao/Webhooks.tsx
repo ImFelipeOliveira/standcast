@@ -4,6 +4,7 @@ import {
   type CreatedWebhook,
   useCreateWebhook,
   useDisableWebhook,
+  useRedeliverWebhook,
   useTestWebhook,
   type WebhookDelivery,
   type WebhookEndpoint,
@@ -188,8 +189,17 @@ function lastDelivery(deliveries: WebhookDelivery[], endpointId: string): Date |
     .reduce<Date | null>((latest, at) => (latest && latest > at ? latest : at), null);
 }
 
-function Deliveries({ t, deliveries }: { t: Translate; deliveries: WebhookDelivery[] }) {
+function Deliveries({
+  t,
+  deliveries,
+  installationId,
+}: {
+  t: Translate;
+  deliveries: WebhookDelivery[];
+  installationId: number;
+}) {
   const lang = useLang();
+  const redeliver = useRedeliverWebhook(installationId);
   return (
     <div className="flex flex-col gap-2.5">
       <h3 className="m-0 font-semibold text-[11px] text-muted uppercase tracking-[0.06em]">
@@ -206,6 +216,9 @@ function Deliveries({ t, deliveries }: { t: Translate; deliveries: WebhookDelive
               <TableHead scope="col">{t('setup.webhooks.status')}</TableHead>
               <TableHead scope="col">{t('setup.webhooks.attempts')}</TableHead>
               <TableHead scope="col">{t('setup.webhooks.response')}</TableHead>
+              <TableHead scope="col">
+                <span className="sr-only">{t('setup.webhooks.actions')}</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -238,6 +251,18 @@ function Deliveries({ t, deliveries }: { t: Translate; deliveries: WebhookDelive
                         <code className="font-mono text-[12px]">{delivery.lastError}</code>
                       ) : null}
                     </span>
+                  ) : null}
+                </TableCell>
+                <TableCell className="text-right">
+                  {delivery.status === 'failed' ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={redeliver.isPending}
+                      onClick={() => redeliver.mutate(delivery.id)}
+                    >
+                      {t('setup.webhooks.redeliver')}
+                    </Button>
                   ) : null}
                 </TableCell>
               </TableRow>
@@ -363,7 +388,7 @@ export function Webhooks({
           })}
         </ul>
       )}
-      <Deliveries t={t} deliveries={webhooks.deliveries} />
+      <Deliveries t={t} deliveries={webhooks.deliveries} installationId={installationId} />
     </Card>
   );
 }

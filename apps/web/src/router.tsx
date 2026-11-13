@@ -19,6 +19,8 @@ import { orgContextQuery, sessionQuery } from './api/queries';
 import { useT } from './i18n';
 import { BlockersPage } from './pages/blockers/BlockersPage';
 import { ConfiguracaoPage } from './pages/configuracao/ConfiguracaoPage';
+import { PeopleTab } from './pages/configuracao/PeopleTab';
+import { SettingsTabs } from './pages/configuracao/SettingsTabs';
 import { HistoryPage, type HistorySearch } from './pages/history/HistoryPage';
 import { HojePage } from './pages/hoje/HojePage';
 import { NoInstallations } from './pages/NoInstallations';
@@ -26,6 +28,7 @@ import { Loading, NotFound, RouteError } from './pages/RouteStates';
 import { SetupPending } from './pages/SetupPending';
 import { SignIn } from './pages/SignIn';
 import { AppShell } from './shell/AppShell';
+import { PageHeader } from './shell/PageHeader';
 import { teamsOf } from './shell/roles';
 import { SectionHeader } from './shell/SectionHeader';
 
@@ -299,6 +302,41 @@ const configuracaoRoute = createRoute({
         key={installationId}
         installationId={installationId}
         connected={connected}
+        tabs={<SettingsTabs installationId={installationId} current="general" />}
+      />
+    );
+  },
+});
+
+const settingsPeopleRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: 'settings/people',
+  component: function SettingsPeople() {
+    const t = useT();
+    const { installationId } = orgRoute.useParams();
+    return (
+      <>
+        <PageHeader
+          title={t('setup.heading')}
+          actions={<SettingsTabs installationId={installationId} current="people" />}
+        />
+        <PeopleTab installationId={installationId} />
+      </>
+    );
+  },
+});
+
+const settingsApiRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: 'settings/api',
+  component: function SettingsApi() {
+    const { installationId } = orgRoute.useParams();
+    return (
+      <ConfiguracaoPage
+        key={installationId}
+        installationId={installationId}
+        tab="api"
+        tabs={<SettingsTabs installationId={installationId} current="api" />}
       />
     );
   },
@@ -349,6 +387,8 @@ export const routeTree = rootRoute.addChildren([
     blockersRoute,
     historicoRoute,
     configuracaoRoute,
+    settingsPeopleRoute,
+    settingsApiRoute,
     legacyTodayRoute,
     legacyHistoryRoute,
     legacySettingsRoute,

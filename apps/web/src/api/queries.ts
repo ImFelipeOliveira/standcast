@@ -1,5 +1,6 @@
 import type {
   OrgBlockers,
+  PeopleLinks,
   SearchResult,
   SetupStatus,
   TeamDigest,
@@ -155,5 +156,12 @@ export function teamShippedQuery(installationId: number, team: string, from?: st
     queryKey: ['org', installationId, 'team', team, 'history', 'shipped', from ?? null, to ?? null],
     queryFn: () =>
       apiGet<TeamShipped>(`${historyPath(installationId, team)}/shipped${rangeQuery(from, to)}`),
+  });
+}
+
+export function peopleQuery(installationId: number) {
+  return queryOptions({
+    queryKey: ['org', installationId, 'people'],
+    queryFn: () => apiGet<PeopleLinks>(`/v1/app/orgs/${installationId}/people`),
   });
 }

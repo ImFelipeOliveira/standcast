@@ -117,10 +117,11 @@ function renderPage(
   status: SetupStatus,
   context: OrgContext = memberContext,
   connected?: 'slack' | 'linear',
+  tab: 'general' | 'api' = 'general',
 ): string {
   return renderToStaticMarkup(
     <QueryClientProvider client={seeded(status, context)}>
-      <ConfiguracaoPage installationId={status.installationId} connected={connected} />
+      <ConfiguracaoPage installationId={status.installationId} connected={connected} tab={tab} />
     </QueryClientProvider>,
   );
 }
@@ -214,8 +215,45 @@ describe('configuração', () => {
     expect(html).toContain('href="mailto:support@standcast.app"');
   });
 
-  test('admin sees keys and webhooks', () => {
+  test('the general tab leaves keys and webhooks to their own tab', () => {
     const html = renderPage(adminStatus(), adminContext);
+    expect(html).toContain('Arquivo standcast.yml');
+    expect(html).not.toContain('BI interno');
+    expect(html).not.toContain('Novo endpoint');
+  });
+
+  test('a failed webhook delivery can be redelivered', () => {
+    const status = adminStatus();
+    if (!status.webhooks.manage) throw new Error('admin');
+    const html = renderPage(
+      {
+        ...status,
+        webhooks: {
+          ...status.webhooks,
+          deliveries: [
+            {
+              id: 'del-1',
+              endpointId: 'hook-1',
+              endpointUrl: 'https://hooks.acme.dev/standcast',
+              event: 'daily.submitted',
+              status: 'failed',
+              attempts: 5,
+              lastStatusCode: 500,
+              lastError: 'timeout',
+              createdAt,
+            },
+          ],
+        },
+      },
+      adminContext,
+      undefined,
+      'api',
+    );
+    expect(html).toContain('Reenviar');
+  });
+
+  test('admin sees keys and webhooks on the API tab', () => {
+    const html = renderPage(adminStatus(), adminContext, undefined, 'api');
     expect(html).toContain('API keys');
     expect(html).toContain('BI interno');
     expect(html).toContain('sck_abc123');
@@ -228,11 +266,15 @@ describe('configuração', () => {
     expect(html).toContain('Enviar evento de teste');
     expect(html).toContain('Desativar');
     expect(html).toContain('Novo endpoint');
+    expect(html).not.toContain('Só um admin pode');
+  });
+
+  test('admin can connect from the general tab', () => {
+    const html = renderPage(adminStatus(), adminContext);
     expect(html).toContain(`href="${apiUrl}/connect/slack?installation_id=11"`);
     expect(html).toContain('Reconectar Slack');
     expect(html).toContain(`href="${apiUrl}/connect/linear?installation_id=11"`);
     expect(html).toContain('Conectar o Linear');
-    expect(html).not.toContain('Só um admin pode');
   });
 
   test('invalid config lists errors', () => {
@@ -458,7 +500,7 @@ describe('configuração', () => {
     const refreshed = adminStatus({
       apiKeys: { manage: true, keys: [...apiKeys.keys, created.key] },
     });
-    const html = renderPage(refreshed, adminContext);
+    const html = renderPage(refreshed, adminContext, undefined, 'api');
     expect(html).toContain('Notion sync');
     expect(html).toContain('sck_def456');
     expect(html).not.toContain('supersecret');

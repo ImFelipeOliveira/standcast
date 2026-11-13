@@ -132,3 +132,14 @@ export function useResolveOrgBlocker(installationId: number) {
 export function useReopenOrgBlocker(installationId: number) {
   return useOrgBlockerMutation(installationId, 'reopen');
 }
+
+export function useRedeliverWebhook(installationId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (deliveryId: string) =>
+      apiPost<void>(
+        `${orgPath(installationId)}/webhooks/deliveries/${encodeURIComponent(deliveryId)}/redeliver`,
+      ),
+    onSuccess: () => queryClient.invalidateQueries(setupStatusQuery(installationId)),
+  });
+}
