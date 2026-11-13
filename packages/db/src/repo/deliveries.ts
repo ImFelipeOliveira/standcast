@@ -89,7 +89,7 @@ export async function completeDelivery(
   db: Db,
   k: DeliveryKey,
   token: number,
-  ref: MessageRef,
+  ref: MessageRef | null,
 ): Promise<boolean> {
   const rows = await db
     .update(deliveries)
