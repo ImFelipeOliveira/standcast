@@ -404,4 +404,5 @@ export const en: Record<MessageKey, string> = {
   'history.to': 'To',
   'history.range': 'Period',
   'history.apply': 'Apply',
+  'history.exportTitle': '{team} · shipped {from} to {to}',
 };

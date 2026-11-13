@@ -411,4 +411,5 @@ export const ptBR = {
   'history.to': 'Até',
   'history.range': 'Período',
   'history.apply': 'Aplicar',
+  'history.exportTitle': '{team} · entregas de {from} a {to}',
 } as const;
