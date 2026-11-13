@@ -109,12 +109,16 @@ export function Digests({
 }) {
   const t = useT();
   const lang = useLang();
-  const query = useQuery(teamHistoryQuery(installationId, search.team));
+  const query = useQuery(teamHistoryQuery(installationId, search.team, search.from, search.to));
   if (query.isPending) return <Loading header={false} />;
   if (query.isError) return <p className="m-0 text-bad-ink">{t('error.body')}</p>;
   const days = query.data.days;
-  if (days.length === 0) return <p className="m-0 text-muted">{t('history.empty')}</p>;
-  const selected = days.find((day) => day.date === search.date)?.date ?? days[0]?.date ?? '';
+  const selected = search.date ?? days[0]?.date;
+  if (!selected) return <p className="m-0 text-muted">{t('history.empty')}</p>;
+  const range = {
+    ...(search.from ? { from: search.from } : {}),
+    ...(search.to ? { to: search.to } : {}),
+  };
   return (
     <div className="flex flex-wrap items-start gap-6">
       <nav
@@ -126,7 +130,7 @@ export function Digests({
             key={day.date}
             to="/orgs/$installationId/history"
             params={{ installationId }}
-            search={{ team: search.team, date: day.date }}
+            search={{ team: search.team, date: day.date, ...range }}
             activeOptions={{ exact: true, includeSearch: true }}
             aria-current={day.date === selected ? 'page' : undefined}
             className={cn(

@@ -142,6 +142,63 @@ describe('history page', () => {
     expect(html).not.toContain('em breve');
   });
 
+  test('digests load the requested range and keep it in the day links', async () => {
+    const september: TeamHistory = {
+      team: 'backend',
+      provider: 'slack',
+      days: [
+        {
+          date: '2026-09-04',
+          status: 'sent',
+          sentAt: null,
+          dailies: 3,
+          blockers: 0,
+          chatUrl: null,
+        },
+        {
+          date: '2026-09-03',
+          status: 'sent',
+          sentAt: null,
+          dailies: 2,
+          blockers: 0,
+          chatUrl: null,
+        },
+      ],
+    };
+    const { html } = await renderAt(
+      '/orgs/11/history?team=backend&from=2026-09-01&to=2026-09-07&date=2026-09-03',
+      async (client) => {
+        client.setQueryData(
+          teamHistoryQuery(11, 'backend', '2026-09-01', '2026-09-07').queryKey,
+          september,
+        );
+        client.setQueryData(teamDigestQuery(11, 'backend', '2026-09-03').queryKey, {
+          ...digest,
+          date: '2026-09-03',
+          blockers: [{ author: 'alice', text: 'September blocker', ref: null }],
+        });
+      },
+    );
+    expect(html).toContain('September blocker');
+    expect(html).toContain('from=2026-09-01');
+    expect(html).toContain('to=2026-09-07');
+  });
+
+  test('a requested day outside the listed days still opens that day', async () => {
+    const { html } = await renderAt(
+      '/orgs/11/history?team=backend&date=2026-08-10',
+      async (client) => {
+        client.setQueryData(teamDigestQuery(11, 'backend', '2026-08-10').queryKey, {
+          ...digest,
+          date: '2026-08-10',
+          blockers: [{ author: 'alice', text: 'August blocker', ref: null }],
+        });
+      },
+    );
+    expect(html).toContain('August blocker');
+    expect(html).not.toContain('Waiting on the Partner contract');
+  });
+
   test('search shows matches with their section', async () => {
     const { html } = await renderAt('/orgs/11/history?team=backend&tab=search&q=partner');
     expect(html).toContain('Waiting on the Partner contract');
