@@ -13,6 +13,7 @@ import {
   teamTodayQuery,
 } from '../api/queries';
 import { applyLang } from '../i18n';
+import { SummaryTiles } from '../pages/hoje/SummaryTiles';
 import { createAppRouter } from '../router';
 import { OrgSelect } from './OrgSelect';
 import { signOut } from './sign-out';
@@ -140,6 +141,36 @@ describe('shell', () => {
     const aside = html.match(/<aside[^>]*id="app-sidebar"[^>]*>/)?.[0] ?? '';
     expect(aside).toContain('hidden');
     expect(aside).toContain('desk:flex');
+  });
+
+  test('loading and error states inside an org still offer the menu on phones', async () => {
+    const { html } = await renderAt('/orgs/11/today?team=nope');
+    expect(html).toContain('aria-controls="app-sidebar"');
+    expect(html.match(/<h1/g)).toHaveLength(1);
+  });
+
+  test('the blockers tile keeps its card shape', () => {
+    const html = renderToStaticMarkup(
+      <SummaryTiles
+        today={{
+          ...backendToday,
+          blockers: [
+            {
+              id: 'b1',
+              author: 'bruno',
+              text: 'waiting',
+              ref: null,
+              openedOn: '2026-10-30',
+              ageDays: 4,
+              recurring: true,
+              routedTo: null,
+              hint: null,
+            },
+          ],
+        }}
+      />,
+    );
+    expect(html).not.toContain('bg-warn-soft');
   });
 
   test('no installations', async () => {

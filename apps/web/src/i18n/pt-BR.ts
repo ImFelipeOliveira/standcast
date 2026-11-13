@@ -361,4 +361,5 @@ export const ptBR = {
   'signIn.preview.item2': 'Emissão fiscal em lote',
   'nav.openMenu': 'Abrir menu',
   'nav.closeMenu': 'Fechar menu',
+  'nav.menu': 'Menu',
 } as const;

@@ -1,5 +1,5 @@
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from '../api/queries';
 import { NavDrawerContext } from './nav-drawer';
 import { Sidebar } from './Sidebar';
@@ -11,12 +11,27 @@ export function AppShell({ installationId }: { installationId: number }) {
   const search = useRouterState({ select: (state) => state.location.search });
   const session = useSession();
   const section = sectionOf(pathname);
+  const href = useRouterState({ select: (state) => state.location.href });
   const [open, setOpen] = useState(false);
+  const restoreFocusRef = useRef(false);
   useEffect(() => {
-    if (pathname) setOpen(false);
-  }, [pathname]);
+    if (href) setOpen(false);
+  }, [href]);
+  useEffect(() => {
+    if (open || !restoreFocusRef.current) return;
+    restoreFocusRef.current = false;
+    document.getElementById('app-menu-button')?.focus();
+  }, [open]);
   const drawer = useMemo(
-    () => ({ open, toggle: () => setOpen((value) => !value), close: () => setOpen(false) }),
+    () => ({
+      inShell: true,
+      open,
+      toggle: () => setOpen((value) => !value),
+      close: (restoreFocus = false) => {
+        restoreFocusRef.current = restoreFocus;
+        setOpen(false);
+      },
+    }),
     [open],
   );
   return (
@@ -31,7 +46,10 @@ export function AppShell({ installationId }: { installationId: number }) {
             void navigate({ to: SECTION_PATHS[section], params: { installationId: next } })
           }
         />
-        <main className="box-border min-w-0 flex-[999_1_640px] px-4 pb-12 desk:px-9">
+        <main
+          inert={open || undefined}
+          className="box-border min-w-0 flex-[999_1_640px] px-4 pb-12 desk:px-9"
+        >
           <div className="mx-auto flex max-w-[1180px] flex-col gap-6">
             <Outlet />
           </div>

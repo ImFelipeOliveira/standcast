@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 export function nextScrolled(previous: boolean, y: number): boolean {
-  if (y > 32) return true;
+  if (y > 64) return true;
   if (y <= 2) return false;
   return previous;
 }

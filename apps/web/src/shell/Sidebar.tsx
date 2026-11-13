@@ -1,6 +1,6 @@
 import type { TeamSummary } from '@standcast/orchestrator';
 import { Link } from '@tanstack/react-router';
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
 import type { Installation } from '../api/client';
 import { useOrgContext, useTeamsSummary } from '../api/queries';
 import { Badge } from '../components/ui/badge';
@@ -52,6 +52,11 @@ function sentOf(summary: TeamSummary[] | undefined, team: string): string | null
 
 export function Sidebar({ installations, installationId, section, team, onOrgChange }: Props) {
   const drawer = useNavDrawer();
+  const asideRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!drawer.open) return;
+    asideRef.current?.querySelector<HTMLElement>('select, a[href], button')?.focus();
+  }, [drawer.open]);
   const t = useT();
   const context = useOrgContext(installationId);
   const teams = context.data ? teamsOf(context.data) : [];
@@ -62,12 +67,19 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
         <button
           type="button"
           aria-label={t('nav.closeMenu')}
-          onClick={drawer.close}
+          onClick={() => drawer.close(true)}
           className="fixed inset-0 z-30 cursor-pointer border-0 bg-overlay desk:hidden"
         />
       ) : null}
       <aside
+        ref={asideRef}
         id="app-sidebar"
+        role={drawer.open ? 'dialog' : undefined}
+        aria-modal={drawer.open ? true : undefined}
+        aria-label={drawer.open ? t('nav.menu') : undefined}
+        onKeyDown={(event) => {
+          if (drawer.open && event.key === 'Escape') drawer.close(true);
+        }}
         className={cn(
           'box-border flex-col gap-6 bg-surface px-4 py-5 text-text desk:sticky desk:top-0 desk:flex desk:h-screen desk:flex-[0_0_248px] desk:self-start desk:overflow-y-auto',
           drawer.open
@@ -89,6 +101,7 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
                 to={SECTION_PATHS[item]}
                 params={{ installationId }}
                 aria-current={active ? 'page' : undefined}
+                onClick={() => drawer.close()}
                 className={cn(
                   'flex min-h-11 items-center gap-2.5 rounded-[9px] px-3 font-medium text-sm no-underline desk:min-h-10',
                   active
@@ -134,6 +147,7 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
                       params={{ installationId }}
                       search={{ team: name }}
                       aria-current={active ? 'page' : undefined}
+                      onClick={() => drawer.close()}
                       className={cn(
                         'flex min-h-11 items-center justify-between gap-2 rounded-[9px] px-3 font-medium text-sm no-underline desk:min-h-10',
                         active

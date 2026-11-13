@@ -26,6 +26,7 @@ export function PageHeader({
           aria-label={t('nav.openMenu')}
           aria-expanded={drawer.open}
           aria-controls="app-sidebar"
+          id="app-menu-button"
           onClick={drawer.toggle}
           className="inline-flex size-11 flex-none cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-text2 hover:bg-hover desk:hidden"
         >
@@ -44,11 +45,11 @@ export function PageHeader({
         </button>
         <div className="flex min-w-0 flex-1 flex-col">
           {context ? (
-            <p className="m-0 max-h-[18px] overflow-hidden font-mono text-[12px] text-muted opacity-100 transition-[max-height,opacity] duration-200 motion-reduce:transition-none group-data-[scrolled=true]:max-h-0 group-data-[scrolled=true]:opacity-0">
+            <p className="m-0 max-h-[18px] truncate font-mono text-[12px] text-muted opacity-100 transition-[max-height,opacity] duration-200 motion-reduce:transition-none group-data-[scrolled=true]:max-h-0 group-data-[scrolled=true]:opacity-0">
               {context}
             </p>
           ) : null}
-          <h1 className="m-0 font-semibold text-[20px] leading-[26px] tracking-[-0.015em] transition-[font-size] duration-200 motion-reduce:transition-none group-data-[scrolled=true]:text-[16px]">
+          <h1 className="m-0 truncate font-semibold text-[20px] leading-[26px] tracking-[-0.015em] transition-[font-size] duration-200 motion-reduce:transition-none group-data-[scrolled=true]:text-[16px]">
             {title}
           </h1>
         </div>

@@ -8,6 +8,7 @@ import { Card } from '../../components/ui/card';
 import { useLang, useT } from '../../i18n';
 import { docsUrl } from '../../lib/links';
 import { PageHeader } from '../../shell/PageHeader';
+import { SectionHeader } from '../../shell/SectionHeader';
 import { Loading } from '../RouteStates';
 import { ApiKeys } from './ApiKeys';
 import { ConfigFile } from './ConfigFile';
@@ -18,13 +19,16 @@ import { Webhooks } from './Webhooks';
 function LoadError({ onRetry }: { onRetry: () => void }) {
   const t = useT();
   return (
-    <Card role="alert" className="items-start">
-      <h1 className="m-0 font-bold text-[17px]">{t('error.title')}</h1>
-      <p className="m-0 text-text2">{t('error.body')}</p>
-      <Button type="button" variant="outline" onClick={onRetry}>
-        {t('error.retry')}
-      </Button>
-    </Card>
+    <>
+      <SectionHeader />
+      <Card role="alert" className="items-start">
+        <h2 className="m-0 font-bold text-[17px]">{t('error.title')}</h2>
+        <p className="m-0 text-text2">{t('error.body')}</p>
+        <Button type="button" variant="outline" onClick={onRetry}>
+          {t('error.retry')}
+        </Button>
+      </Card>
+    </>
   );
 }
 
