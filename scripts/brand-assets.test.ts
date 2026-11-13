@@ -201,6 +201,20 @@ describe('github marketplace copy', () => {
     expect(detailed.length).toBeLessThanOrEqual(1000);
   });
 
+  test('states what the github app reads and writes', () => {
+    const manifest = JSON.parse(text('docs/github-app-manifest.json')) as {
+      default_permissions: Record<string, string>;
+    };
+    const writes = Object.entries(manifest.default_permissions)
+      .filter(([, access]) => access === 'write')
+      .map(([name]) => name);
+    expect(writes).toEqual(['checks']);
+    const detailed = section(listing, '### Detailed description (GitHub)');
+    expect(detailed).toContain('Standcast config check run');
+    expect(detailed).toMatch(/reads[^.]*standcast\.yml and CODEOWNERS/);
+    expect(detailed).toMatch(/team membership/);
+  });
+
   test('names the badge color', () => {
     expect(listing).toContain('#3B4BC8');
   });

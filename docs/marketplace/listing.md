@@ -243,7 +243,7 @@ Standcast drafts each person's daily standup from their GitHub and Linear activi
 
 ### Detailed description (GitHub)
 
-874 characters (up to 1,000). GitHub renders it as Markdown.
+949 characters (up to 1,000). GitHub renders it as Markdown.
 
 ```text
 ### Drafted from real work
@@ -259,7 +259,7 @@ The MCP submit tool requires confirmed: true, which the agent only passes after 
 Teams, schedules, chat channels and managers live in standcast.yml in your .github-private (or .github) repository, validated on every push.
 
 ### Built for teams, not surveillance
-No productivity metrics, no rankings, no commit counts. It reads pull requests, reviews, checks and commit metadata, and writes only its own standcast.yml check run; it never reads your code. Open source (MIT) and free during the public beta.
+No productivity metrics, no rankings, no commit counts. It reads pull request, review, check and commit metadata, team membership, and two files: standcast.yml and CODEOWNERS. It never reads your source code, and its only write is its own Standcast config check run. Open source (MIT) and free during the public beta.
 ```
 
 ## After approval
