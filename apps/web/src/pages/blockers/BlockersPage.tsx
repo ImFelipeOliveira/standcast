@@ -107,17 +107,34 @@ function TeamFilter({
   );
 }
 
+export type Kept = { blocker: OrgOpenBlocker; settled: boolean };
+
 export function withKept(
   open: OrgOpenBlocker[],
-  kept: Map<string, OrgOpenBlocker>,
+  kept: Map<string, Kept>,
 ): { blocker: OrgOpenBlocker; resolved: boolean }[] {
   const ids = new Set(open.map((blocker) => blocker.id));
   return [
-    ...open.map((blocker) => ({ blocker, resolved: kept.has(blocker.id) })),
+    ...open.map((blocker) => ({ blocker, resolved: kept.get(blocker.id)?.settled === false })),
     ...[...kept.values()]
-      .filter((blocker) => !ids.has(blocker.id))
-      .map((blocker) => ({ blocker, resolved: true })),
+      .filter((entry) => !ids.has(entry.blocker.id))
+      .map((entry) => ({ blocker: entry.blocker, resolved: true })),
   ].sort((a, b) => a.blocker.openedOn.localeCompare(b.blocker.openedOn));
+}
+
+function without(current: Map<string, Kept>, id: string): Map<string, Kept> {
+  const next = new Map(current);
+  next.delete(id);
+  return next;
+}
+
+function FailedAlert() {
+  const t = useT();
+  return (
+    <p role="alert" className="m-0 text-[13px] text-bad-ink">
+      {t('blockers.failed')}
+    </p>
+  );
 }
 
 function OpenList({
@@ -130,44 +147,34 @@ function OpenList({
   const t = useT();
   const resolve = useResolveOrgBlocker(installationId);
   const reopen = useReopenOrgBlocker(installationId);
-  const [kept, setKept] = useState<Map<string, OrgOpenBlocker>>(new Map());
+  const [kept, setKept] = useState<Map<string, Kept>>(new Map());
   const [failed, setFailed] = useState(false);
   const listed = withKept(blockers, kept);
   if (listed.length === 0) return <p className="m-0 text-muted">{t('blockers.emptyOpen')}</p>;
   const run = (blocker: OrgOpenBlocker, done: boolean) => {
     setFailed(false);
-    if (done) setKept((current) => new Map(current).set(blocker.id, blocker));
+    if (done) {
+      setKept((current) => new Map(current).set(blocker.id, { blocker, settled: false }));
+    }
     const mutation = done ? resolve : reopen;
     mutation.mutate(blocker.id, {
       onSuccess: () => {
-        if (!done) {
-          setKept((current) => {
-            const next = new Map(current);
-            next.delete(blocker.id);
-            return next;
-          });
-        }
+        setKept((current) =>
+          done
+            ? new Map(current).set(blocker.id, { blocker, settled: true })
+            : without(current, blocker.id),
+        );
       },
       onError: () => {
         setFailed(true);
-        if (done) {
-          setKept((current) => {
-            const next = new Map(current);
-            next.delete(blocker.id);
-            return next;
-          });
-        }
+        if (done) setKept((current) => without(current, blocker.id));
       },
     });
   };
   return (
     <div className="flex flex-col gap-3">
       <p className="m-0 text-[12px] text-muted">{t('blockers.openNote')}</p>
-      {failed ? (
-        <p role="alert" className="m-0 text-[13px] text-bad-ink">
-          {t('blockers.failed')}
-        </p>
-      ) : null}
+      {failed ? <FailedAlert /> : null}
       {listed.map(({ blocker, resolved }) => (
         <BlockerCard
           key={blocker.id}
