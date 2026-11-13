@@ -493,4 +493,27 @@ export const en: Record<MessageKey, string> = {
   'editor.note.alert': 'Blockers open for {days} days post one alert in the channel, only once.',
   'editor.readOnly':
     'The editor saves nothing: copy the YAML or open the file on GitHub and commit it to the organization .github repository.',
+  'firstSteps.title': 'First steps',
+  'firstSteps.progress': '{done} of {total}',
+  'firstSteps.intro': 'This box goes away once the team gets its first digest in the chat.',
+  'firstSteps.done': 'Done',
+  'firstSteps.pending': 'To do',
+  'firstSteps.install': 'Install the GitHub app',
+  'firstSteps.installBody': 'Standcast already reads the organization.',
+  'firstSteps.config': 'Create standcast.yml',
+  'firstSteps.configBody': 'Teams, times and channel are configured.',
+  'firstSteps.chatSlack': 'Connect Slack',
+  'firstSteps.chatSlackBody': 'Connect the workspace and invite the app to the team channel.',
+  'firstSteps.chatGoogle': 'Connect Google Chat',
+  'firstSteps.chatGoogleBody':
+    'Add the app to the team space and link people so they can be mentioned.',
+  'firstSteps.openSettings': 'Open settings',
+  'firstSteps.daily': 'Send the first daily',
+  'firstSteps.dailyBody':
+    'Each person runs standcast login and sends the daily from the CLI or the plugin.',
+  'firstSteps.openDocs': 'See how to install',
+  'firstSteps.newTab': '(opens in a new tab)',
+  'firstSteps.digest': 'Get the first digest',
+  'firstSteps.digestBody':
+    'The digest goes to the channel at {time}, with the dailies sent by then.',
 };

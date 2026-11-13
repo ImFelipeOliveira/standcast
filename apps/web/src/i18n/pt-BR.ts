@@ -500,4 +500,26 @@ export const ptBR = {
     'Impedimentos abertos há {days} dias geram um alerta no canal, uma única vez.',
   'editor.readOnly':
     'O editor não grava nada: copie o YAML ou abra o arquivo no GitHub e faça o commit no repositório .github da organização.',
+  'firstSteps.title': 'Primeiros passos',
+  'firstSteps.progress': '{done} de {total}',
+  'firstSteps.intro': 'Este quadro some quando o time receber o primeiro resumo no chat.',
+  'firstSteps.done': 'Feito',
+  'firstSteps.pending': 'Pendente',
+  'firstSteps.install': 'Instalar o app no GitHub',
+  'firstSteps.installBody': 'O Standcast já lê a organização.',
+  'firstSteps.config': 'Criar o standcast.yml',
+  'firstSteps.configBody': 'Times, horários e canal já estão configurados.',
+  'firstSteps.chatSlack': 'Conectar o Slack',
+  'firstSteps.chatSlackBody': 'Conecte o workspace e convide o app para o canal do time.',
+  'firstSteps.chatGoogle': 'Conectar o Google Chat',
+  'firstSteps.chatGoogleBody':
+    'Adicione o app ao espaço do time e vincule as pessoas para serem mencionadas.',
+  'firstSteps.openSettings': 'Abrir configurações',
+  'firstSteps.daily': 'Enviar a primeira daily',
+  'firstSteps.dailyBody':
+    'Cada pessoa roda standcast login e envia a daily pela CLI ou pelo plugin.',
+  'firstSteps.openDocs': 'Ver como instalar',
+  'firstSteps.newTab': '(abre em nova aba)',
+  'firstSteps.digest': 'Receber o primeiro resumo',
+  'firstSteps.digestBody': 'O resumo sai no canal às {time}, com as dailies enviadas até lá.',
 } as const;
