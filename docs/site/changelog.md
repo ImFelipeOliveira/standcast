@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+### 0.10.0 — 2026-11-13
+
 - Reopening a blocker that is already open no longer undoes a resolve someone else makes at the same moment.
 - When a stale blocker alert is posted but Standcast fails to record it, the retry that same day records it, so the blocker is not alerted again the next day. Each blocker is still alerted once in each team.
 - A resolved blocker can be reopened on **Today** or **Blockers** only while it is still in the latest daily of the person who wrote it. Once they send a daily without it, it stays resolved and **Reopen** no longer shows for it; if it still blocks them, they list it again in their next daily. Before, it could be reopened at any time. See [Web app](/admin/web-app).
