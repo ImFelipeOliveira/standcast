@@ -217,6 +217,13 @@ const ptBR = {
   'blockerRouted.reason.card_owner':
     'Você recebeu porque você é responsável pelo card bloqueado ou o criou.',
   'blockerRouted.reason.manager': 'Você recebeu porque você é gestor do time.',
+  'blockerAlert.title': '🚧 Impedimento aberto há {age} · {team}',
+  'blockerAlert.body':
+    '{managers}, este impedimento segue aberto há {age}. Alguém pode ajudar a destravar?',
+  'blockerAlert.opened': 'Aberto desde {date}, informado por {author}.',
+  'blockerAlert.routed': 'Encaminhado para {logins}.',
+  'blockerAlert.age.one': '1 dia',
+  'blockerAlert.age.other': '{days} dias',
   'suggestion.pr_no_review':
     'O PR {title} está há mais de {hours}h sem review. Quer mencioná-lo como impedimento?',
   'suggestion.ci_failing':
@@ -486,6 +493,13 @@ const en = {
   'blockerRouted.reason.card_owner':
     'You got this because you are responsible for or created the blocked card.',
   'blockerRouted.reason.manager': 'You got this because you manage the team.',
+  'blockerAlert.title': '🚧 Blocker open for {age} · {team}',
+  'blockerAlert.body':
+    '{managers}, this blocker has been open for {age}. Can someone help unblock it?',
+  'blockerAlert.opened': 'Open since {date}, reported by {author}.',
+  'blockerAlert.routed': 'Routed to {logins}.',
+  'blockerAlert.age.one': '1 day',
+  'blockerAlert.age.other': '{days} days',
   'suggestion.pr_no_review':
     'The PR {title} has had no review for over {hours}h. Want to mention it as a blocker?',
   'suggestion.ci_failing':
