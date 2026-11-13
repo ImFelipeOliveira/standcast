@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import type { TeamDigest, TeamHistory, TeamShipped } from '@standcast/orchestrator';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { type QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { OrgContext, Session } from '../../api/client';
@@ -65,7 +65,7 @@ const shipped: TeamShipped = {
   days: [{ date: '2026-10-27', items: digest.shipped }],
 };
 
-async function renderAt(path: string) {
+async function renderAt(path: string, prepare?: (client: QueryClient) => Promise<void>) {
   globalThis.fetch = mock(async (input: RequestInfo | URL) =>
     String(input).endsWith('/v1/app/session')
       ? Response.json(session)
@@ -97,6 +97,7 @@ async function renderAt(path: string) {
     scrollRestoration: false,
   });
   await router.load();
+  await prepare?.(queryClient);
   const html = renderToStaticMarkup(
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
@@ -114,6 +115,19 @@ describe('history page', () => {
   test('without a team it opens the first team the person reads', async () => {
     const { router } = await renderAt('/orgs/11/history');
     expect(router.state.location.search).toMatchObject({ team: 'backend' });
+  });
+
+  test('without a team it keeps the requested tab and filters', async () => {
+    const { router } = await renderAt(
+      '/orgs/11/history?tab=search&q=webhook&from=2026-10-01&to=2026-10-20',
+    );
+    expect(router.state.location.search).toMatchObject({
+      team: 'backend',
+      tab: 'search',
+      q: 'webhook',
+      from: '2026-10-01',
+      to: '2026-10-20',
+    });
   });
 
   test('lists past days and shows the latest digest with the chat link', async () => {
@@ -135,6 +149,21 @@ describe('history page', () => {
     expect(html).toContain('name="q"');
     expect(html).toContain('name="from"');
     expect(html).toContain('name="to"');
+  });
+
+  test('a rejected shipped range keeps the range form to fix it', async () => {
+    const { html } = await renderAt(
+      '/orgs/11/history?team=backend&tab=shipped&from=2026-10-28&to=2026-10-01',
+      (client) => {
+        client.setQueryDefaults(['org'], { retryOnMount: false });
+        return client.prefetchQuery(teamShippedQuery(11, 'backend', '2026-10-28', '2026-10-01'));
+      },
+    );
+    expect(html).toContain('Não foi possível');
+    expect(html).toContain('name="from"');
+    expect(html).toContain('value="2026-10-28"');
+    expect(html).toContain('name="to"');
+    expect(html).toContain('value="2026-10-01"');
   });
 
   test('shipped offers copy and exports', async () => {

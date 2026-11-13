@@ -258,7 +258,7 @@ const historicoRoute = createRoute({
     throw redirect({
       to: '/orgs/$installationId/history',
       params,
-      search: { team },
+      search: { ...parseHistorySearch(search), team },
       replace: true,
     });
   },
