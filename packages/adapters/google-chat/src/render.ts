@@ -1,4 +1,11 @@
-import { type Block, GOOGLE_CHAT_USER_ID, type Inline, type Message } from '@standcast/core';
+import {
+  type Block,
+  GOOGLE_CHAT_USER_ID,
+  type Inline,
+  LINK_CHAT_ACCOUNT_ACTION,
+  type Message,
+  type MessageAction,
+} from '@standcast/core';
 
 export const GOOGLE_CHAT_TEXT_LIMIT = 4096;
 export const TRUNCATION_TAIL = '… see Standcast';
@@ -62,10 +69,55 @@ function truncate(text: string): string {
   return `${kept}\n${TRUNCATION_TAIL}`;
 }
 
-export function renderGoogleChat(msg: Message): { text: string } {
+function escapeCardText(text: string): string {
+  return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+}
+
+function actionCard(action: MessageAction, interactionUrl: string) {
+  return {
+    cardId: action.type,
+    card: {
+      sections: [
+        {
+          widgets: [
+            { textParagraph: { text: escapeCardText(action.text) } },
+            {
+              buttonList: {
+                buttons: [
+                  {
+                    text: action.label,
+                    onClick: {
+                      action: {
+                        function: interactionUrl,
+                        parameters: [{ key: 'action', value: action.type }],
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
+export type GoogleChatRenderOptions = { interactionUrl?: string };
+
+export type GoogleChatPayload = { text: string; cardsV2?: ReturnType<typeof actionCard>[] };
+
+export function renderGoogleChat(
+  msg: Message,
+  options: GoogleChatRenderOptions = {},
+): GoogleChatPayload {
   const text = msg.blocks
     .map(renderBlock)
     .filter((b): b is string => b !== null)
     .join('\n');
-  return { text: truncate(text.trim().length > 0 ? text : escapeText(msg.fallbackText)) };
+  const payload = { text: truncate(text.trim().length > 0 ? text : escapeText(msg.fallbackText)) };
+  const { interactionUrl } = options;
+  const actions = (msg.actions ?? []).filter((a) => a.type === LINK_CHAT_ACCOUNT_ACTION);
+  if (!interactionUrl || actions.length === 0) return payload;
+  return { ...payload, cardsV2: actions.map((action) => actionCard(action, interactionUrl)) };
 }

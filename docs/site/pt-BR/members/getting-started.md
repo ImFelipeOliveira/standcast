@@ -42,7 +42,7 @@ standcast login
 
 A CLI mostra um código e abre o GitHub no navegador. Digite o código e autorize o Standcast. A CLI então mostra "Autenticado como" e o seu login.
 
-Entrar também liga você ao seu usuário do Slack, para o consolidado poder mencionar você. Se o admin conectar o Slack ou mudar o `standcast.yml` depois que você entrou, rode `standcast login` de novo. Se o seu time usa o Google Chat, mande também uma mensagem direta para o app do Standcast no Google Chat uma vez, para vincular o seu usuário do Google Chat. Veja [Google Chat](/pt-BR/admin/google-chat#como-as-pessoas-sao-vinculadas).
+Entrar também liga você ao seu usuário do Slack, para o consolidado poder mencionar você. Se o admin conectar o Slack ou mudar o `standcast.yml` depois que você entrou, rode `standcast login` de novo. Se o seu time usa o Google Chat, vincule também o seu usuário do Google Chat uma vez: clique em **Vincular minha conta** embaixo do consolidado do time no Google Chat, mencione o app do Standcast num espaço ou mande uma mensagem direta para o app. Para receber lembretes por mensagem direta, mande uma mensagem direta para o app uma vez de qualquer jeito: o Google Chat só deixa o app mandar mensagem para você depois disso. Veja [Google Chat](/pt-BR/admin/google-chat#como-as-pessoas-sao-vinculadas).
 
 Confira quem você é e para quais organizações pode escrever dailies:
 

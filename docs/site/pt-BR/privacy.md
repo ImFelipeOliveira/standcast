@@ -41,12 +41,12 @@ O app do Standcast para o Google Chat chama a API do Google Chat como ele mesmo,
 - confira se um usuário definido em `members.<login>.google_chat` participa de um dos seus espaços vinculados, antes de mandar uma mensagem direta para ele;
 - encontre o espaço de mensagem direta com uma pessoa e envie mensagens diretas: lembretes, impedimentos encaminhados e, se o time ativar `signals.direct_message`, impedimentos sugeridos.
 
-O Google só manda um evento para o Standcast quando o app é adicionado a um espaço, removido de um espaço ou recebe uma mensagem direta. Desses eventos, o Standcast usa:
+O Google só manda um evento para o Standcast quando o app é adicionado a um espaço, removido de um espaço, recebe uma mensagem direta, é mencionado num espaço, ou quando alguém clica em **Vincular minha conta** embaixo de um consolidado. Desses eventos, o Standcast usa:
 
 - o nome do espaço (`spaces/...`) e o nome de exibição dele, para vincular o espaço à sua organização;
-- de uma mensagem direta, o id de usuário no Google Chat e o e-mail de quem mandou, só para vincular a pessoa à conta dela no Standcast.
+- de uma mensagem direta, de uma menção ou de um clique, o id de usuário no Google Chat e o e-mail dessa pessoa, só para vincular a pessoa à conta dela no Standcast. A resposta a uma menção ou a um clique só aparece para essa pessoa.
 
-O Standcast não guarda nada do texto das mensagens que as pessoas mandam para o app. Ele não lê mensagens nos espaços e não busca pessoas pelo e-mail no Google Chat.
+O Standcast não guarda nada do texto das mensagens que as pessoas mandam para o app. Ele não lê mensagens nos espaços e não busca pessoas pelo e-mail no Google Chat. Um clique vincula só a pessoa que clicou; ninguém fica sabendo nada de outra pessoa por ele.
 
 ### Linear
 

@@ -14,7 +14,7 @@ import {
   pullRequestMerged,
   resolveTeamMembers,
 } from '@standcast/github';
-import { createGoogleJwks, GOOGLE_OIDC_JWKS_URL } from '@standcast/google-chat';
+import { createGoogleJwks, GOOGLE_OIDC_JWKS_URL, googleChatEndpoint } from '@standcast/google-chat';
 import { exchangeLinearCode, refreshLinearToken } from '@standcast/linear';
 import { createChatFor, createTrackerFor, type Deps } from '@standcast/orchestrator';
 import { createPgBossQueue } from '@standcast/queue';
@@ -69,7 +69,13 @@ const deps: Deps = {
   },
   slack: { exchangeCode: exchangeSlackCode },
   linear: { exchangeCode: exchangeLinearCode, refreshToken: refreshLinearToken },
-  chatFor: createChatFor(db, env.STANDCAST_ENCRYPTION_KEY, chatFactories(googleChatAccount)),
+  chatFor: createChatFor(
+    db,
+    env.STANDCAST_ENCRYPTION_KEY,
+    chatFactories(googleChatAccount, {
+      interactionUrl: googleChatEndpoint(env.PUBLIC_URL),
+    }),
+  ),
   googleChatAvailable: Boolean(googleChatAccount),
   trackerFor: (...args) => createTrackerFor(deps)(...args),
   env: {
@@ -99,7 +105,7 @@ const api = createApp(deps, {
       ? {
           projectNumber: env.GOOGLE_CHAT_PROJECT_NUMBER,
           jwks: createGoogleJwks(),
-          endpointUrl: `${env.PUBLIC_URL}/webhooks/google-chat`,
+          endpointUrl: googleChatEndpoint(env.PUBLIC_URL),
           oidcJwks: createGoogleJwks({ url: GOOGLE_OIDC_JWKS_URL }),
         }
       : null,

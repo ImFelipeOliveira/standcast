@@ -151,7 +151,7 @@ How to start:
 1. Install the Standcast GitHub App on your GitHub organization and add a standcast.yml.
 2. Add the Standcast app to a Google Chat™ space. It posts a link code.
 3. An admin pastes the code in Standcast and sets the space in standcast.yml.
-4. Each person sends the app a direct message once to link their account.
+4. Each person links their account once: with the Link my account button under the digest, or by sending the app a direct message.
 
 Standcast is open source (MIT) and free during the public beta. No productivity metrics, no rankings: suggested blockers stay private to each person until they confirm them.
 

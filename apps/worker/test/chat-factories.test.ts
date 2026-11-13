@@ -28,4 +28,32 @@ describe('chatFactories', () => {
     expect(urls.filter((url) => url.endsWith('/v1/spaces/AAA'))).toHaveLength(2);
     expect(typeof factories.slack).toBe('function');
   });
+
+  test('the google chat channel gets the interaction url for card buttons', async () => {
+    const keys = await generateKeys();
+    const bodies: unknown[] = [];
+    const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input instanceof Request ? input.url : input);
+      if (url === 'https://oauth2.googleapis.com/token') {
+        return Response.json({ access_token: 'ya29.token', expires_in: 3600 });
+      }
+      bodies.push(JSON.parse(String(init?.body)));
+      return Response.json({
+        name: 'spaces/AAA/messages/1',
+        thread: { name: 'spaces/AAA/threads/1' },
+      });
+    }) as typeof fetch;
+    const endpoint = 'https://api.test/webhooks/google-chat';
+    const build = chatFactories(
+      { clientEmail: 'bot@p.iam.gserviceaccount.com', privateKey: keys.pem },
+      { fetch: fetchImpl, interactionUrl: endpoint },
+    )['google-chat'];
+    if (!build) throw new Error('expected a google chat factory');
+    await build().postToChannel('spaces/AAA', {
+      fallbackText: 'fb',
+      blocks: [{ type: 'paragraph', content: ['hi'] }],
+      actions: [{ type: 'link-chat-account', text: 'Link?', label: 'Link my account' }],
+    });
+    expect(JSON.stringify(bodies[0])).toContain(endpoint);
+  });
 });
