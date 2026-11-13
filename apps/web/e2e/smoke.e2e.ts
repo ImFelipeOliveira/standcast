@@ -28,3 +28,24 @@ test('hoje shows the team blocker and who sent today', async ({ page, context })
   await expect(page.locator('article').filter({ hasText: BLOCKER_TEXT }).first()).toBeVisible();
   await expect(page.getByLabel('Resumo de hoje')).toContainText('1 de 2');
 });
+
+test('an anonymous visit lands on the sign-in page', async ({ page }) => {
+  await page.goto(`/orgs/${INSTALLATION_ID}/today?team=${TEAM_NAME}`);
+  await expect(page).toHaveURL(/\/sign-in\?next=/);
+  await expect(page.getByRole('link', { name: 'Continuar com GitHub' })).toBeVisible();
+});
+
+test('a sign-in error shows a toast once and leaves the URL', async ({ page }) => {
+  await page.goto('/sign-in?error=access_denied&next=%2Forgs%2F1%2Ftoday');
+  await expect(page.getByRole('alert')).toContainText('Você cancelou o acesso no GitHub');
+  await expect(page).toHaveURL(/\/sign-in\?next=%2Forgs%2F1%2Ftoday$/);
+  await page.reload();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});
+
+test('the app serves its favicon', async ({ page }) => {
+  await page.goto('/sign-in');
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg');
+  const response = await page.request.get('/favicon.svg');
+  expect(response.status()).toBe(200);
+});
