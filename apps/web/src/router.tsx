@@ -39,14 +39,14 @@ async function landing(queryClient: QueryClient, installationId: number): Promis
   const team = await firstTeam(queryClient, installationId);
   if (team) {
     throw redirect({
-      to: '/orgs/$installationId/hoje',
+      to: '/orgs/$installationId/today',
       params: { installationId },
       search: { team },
       replace: true,
     });
   }
   throw redirect({
-    to: '/orgs/$installationId/configuracao',
+    to: '/orgs/$installationId/settings',
     params: { installationId },
     replace: true,
   });
@@ -86,7 +86,7 @@ const setupRoute = createRoute({
     const session = await context.queryClient.ensureQueryData(sessionQuery);
     if (session.installations.some((installation) => installation.id === search.installation_id)) {
       throw redirect({
-        to: '/orgs/$installationId/configuracao',
+        to: '/orgs/$installationId/settings',
         params: { installationId: search.installation_id },
         replace: true,
       });
@@ -138,7 +138,7 @@ const orgIndexRoute = createRoute({
 
 const hojeRoute = createRoute({
   getParentRoute: () => orgRoute,
-  path: 'hoje',
+  path: 'today',
   validateSearch: (search: Record<string, unknown>): { team?: string } =>
     typeof search.team === 'string' && search.team.length > 0 ? { team: search.team } : {},
   beforeLoad: async ({ context, params, search }) => {
@@ -156,16 +156,16 @@ const hojeRoute = createRoute({
 
 const historicoRoute = createRoute({
   getParentRoute: () => orgRoute,
-  path: 'historico',
+  path: 'history',
   component: function Historico() {
     const { installationId } = orgRoute.useParams();
-    return <ComingSoon section="historico" installationId={installationId} />;
+    return <ComingSoon section="history" installationId={installationId} />;
   },
 });
 
 const configuracaoRoute = createRoute({
   getParentRoute: () => orgRoute,
-  path: 'configuracao',
+  path: 'settings',
   validateSearch: (search: Record<string, unknown>): { connected?: 'slack' | 'linear' } =>
     search.connected === 'slack' || search.connected === 'linear'
       ? { connected: search.connected }
@@ -183,11 +183,53 @@ const configuracaoRoute = createRoute({
   },
 });
 
+const legacyTodayRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: 'hoje',
+  beforeLoad: ({ params, search }) => {
+    throw redirect({
+      to: '/orgs/$installationId/today',
+      params,
+      search: search as Record<string, unknown>,
+      replace: true,
+    });
+  },
+});
+
+const legacyHistoryRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: 'historico',
+  beforeLoad: ({ params }) => {
+    throw redirect({ to: '/orgs/$installationId/history', params, replace: true });
+  },
+});
+
+const legacySettingsRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: 'configuracao',
+  beforeLoad: ({ params, search }) => {
+    throw redirect({
+      to: '/orgs/$installationId/settings',
+      params,
+      search: search as Record<string, unknown>,
+      replace: true,
+    });
+  },
+});
+
 export const routeTree = rootRoute.addChildren([
   indexRoute,
   setupRoute,
   signedOutRoute,
-  orgRoute.addChildren([orgIndexRoute, hojeRoute, historicoRoute, configuracaoRoute]),
+  orgRoute.addChildren([
+    orgIndexRoute,
+    hojeRoute,
+    historicoRoute,
+    configuracaoRoute,
+    legacyTodayRoute,
+    legacyHistoryRoute,
+    legacySettingsRoute,
+  ]),
 ]);
 
 type AppRouterOptions = {

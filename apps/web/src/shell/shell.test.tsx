@@ -97,21 +97,30 @@ afterEach(() => {
 
 describe('shell', () => {
   test('sidebar marks the active section', async () => {
-    const { html } = await renderAt('/orgs/11/historico');
+    const { html } = await renderAt('/orgs/11/history');
     const links = navLinks(html);
     expect(links).toHaveLength(3);
     const current = links.filter((link) => link.includes('aria-current="page"'));
     expect(current).toHaveLength(1);
-    expect(current[0]).toContain('href="/orgs/11/historico"');
+    expect(current[0]).toContain('href="/orgs/11/history"');
     expect(html).toContain('Histórico');
     expect(html).toContain('em breve');
     expect(html).toContain('gestor · backend');
   });
 
   test('sidebar links keep the current org', async () => {
-    const { html } = await renderAt('/orgs/11/hoje');
+    const { html } = await renderAt('/orgs/11/today');
     const hrefs = navLinks(html).map((link) => link.match(/href="([^"]+)"/)?.[1]);
-    expect(hrefs).toEqual(['/orgs/11/hoje', '/orgs/11/historico', '/orgs/11/configuracao']);
+    expect(hrefs).toEqual(['/orgs/11/today', '/orgs/11/history', '/orgs/11/settings']);
+  });
+
+  test('old Portuguese URLs redirect and keep the query', async () => {
+    const today = await renderAt('/orgs/11/hoje?team=backend');
+    expect(today.router.state.location.href).toBe('/orgs/11/today?team=backend');
+    const settings = await renderAt('/orgs/11/configuracao?connected=slack');
+    expect(settings.router.state.location.href).toBe('/orgs/11/settings?connected=slack');
+    const history = await renderAt('/orgs/11/historico');
+    expect(history.router.state.location.pathname).toBe('/orgs/11/history');
   });
 
   test('no installations', async () => {
@@ -123,30 +132,30 @@ describe('shell', () => {
 
   test('index lands on hoje for the first team the person reads', async () => {
     const { router } = await renderAt('/');
-    expect(router.state.location.pathname).toBe('/orgs/11/hoje');
+    expect(router.state.location.pathname).toBe('/orgs/11/today');
     expect(router.state.location.search).toEqual({ team: 'backend' });
   });
 
   test('index lands on configuração when the person reads no team', async () => {
     const { router } = await renderAt('/', session, noTeams);
-    expect(router.state.location.pathname).toBe('/orgs/11/configuracao');
+    expect(router.state.location.pathname).toBe('/orgs/11/settings');
   });
 
   test('sidebar switches teams with today sent and total', async () => {
-    const { html } = await renderAt('/orgs/11/hoje?team=backend');
+    const { html } = await renderAt('/orgs/11/today?team=backend');
     const nav = html.slice(html.indexOf('<nav'), html.indexOf('</nav>'));
-    const hojeLink = nav.slice(nav.indexOf('href="/orgs/11/hoje"'), nav.indexOf('</a>'));
+    const hojeLink = nav.slice(nav.indexOf('href="/orgs/11/today"'), nav.indexOf('</a>'));
     expect(hojeLink).toContain('Hoje');
     expect(hojeLink).not.toContain('em breve');
-    expect(html).toContain('href="/orgs/11/hoje?team=backend"');
+    expect(html).toContain('href="/orgs/11/today?team=backend"');
     expect(html).toContain('2/3');
-    const teamLink = html.match(/<a [^>]*href="\/orgs\/11\/hoje\?team=backend"[^>]*>/)?.[0];
+    const teamLink = html.match(/<a [^>]*href="\/orgs\/11\/today\?team=backend"[^>]*>/)?.[0];
     expect(teamLink).toContain('aria-current="page"');
   });
 
   test('sidebar outside hoje lists teams without today counts', async () => {
-    const { html } = await renderAt('/orgs/11/historico');
-    expect(html).toContain('href="/orgs/11/hoje?team=backend"');
+    const { html } = await renderAt('/orgs/11/history');
+    expect(html).toContain('href="/orgs/11/today?team=backend"');
     expect(html).not.toContain('2/3');
   });
 
@@ -162,33 +171,33 @@ describe('shell', () => {
 
   test('setup redirects to the installation from the query string', async () => {
     const { router } = await renderAt('/setup?installation_id=12');
-    expect(router.state.location.pathname).toBe('/orgs/12/configuracao');
+    expect(router.state.location.pathname).toBe('/orgs/12/settings');
   });
 
   test('setup without an id goes home', async () => {
     const { router } = await renderAt('/setup');
-    expect(router.state.location.pathname).toBe('/orgs/11/hoje');
+    expect(router.state.location.pathname).toBe('/orgs/11/today');
   });
 
   test('unknown installation goes home', async () => {
-    const { router } = await renderAt('/orgs/99/hoje');
-    expect(router.state.location.pathname).toBe('/orgs/11/hoje');
+    const { router } = await renderAt('/orgs/99/today');
+    expect(router.state.location.pathname).toBe('/orgs/11/today');
   });
 
   test('invalid installation id goes home', async () => {
-    const { router } = await renderAt('/orgs/abc/hoje');
-    expect(router.state.location.pathname).toBe('/orgs/11/hoje');
+    const { router } = await renderAt('/orgs/abc/today');
+    expect(router.state.location.pathname).toBe('/orgs/11/today');
   });
 
   test('org without a section opens hoje for the first team', async () => {
     const { router } = await renderAt('/orgs/12');
-    expect(router.state.location.pathname).toBe('/orgs/12/hoje');
+    expect(router.state.location.pathname).toBe('/orgs/12/today');
     expect(router.state.location.search).toEqual({ team: 'backend' });
   });
 
   test('org without a section opens configuração without teams', async () => {
     const { router } = await renderAt('/orgs/12', session, noTeams);
-    expect(router.state.location.pathname).toBe('/orgs/12/configuracao');
+    expect(router.state.location.pathname).toBe('/orgs/12/settings');
   });
 
   test('org select lists installations by owner', () => {
@@ -221,7 +230,7 @@ describe('shell', () => {
   });
 
   test('sign out goes to the signed-out page', async () => {
-    const { router, queryClient } = await renderAt('/orgs/11/hoje');
+    const { router, queryClient } = await renderAt('/orgs/11/today');
     const calls: string[] = [];
     globalThis.fetch = mock(async (input: RequestInfo | URL, init?: RequestInit) => {
       calls.push(`${init?.method ?? 'GET'} ${String(input)}`);
@@ -244,7 +253,7 @@ describe('shell', () => {
   });
 
   test('logout failure shows an error', async () => {
-    const { router, queryClient } = await renderAt('/orgs/11/hoje');
+    const { router, queryClient } = await renderAt('/orgs/11/today');
     globalThis.fetch = mock(async (input: RequestInfo | URL) =>
       String(input).endsWith('/v1/app/logout')
         ? Response.json({ error: { code: 'internal', message: 'boom' } }, { status: 500 })
@@ -259,21 +268,21 @@ describe('shell', () => {
     });
     expect(ok).toBe(false);
     expect(navigated).toBe(false);
-    expect(router.state.location.pathname).toBe('/orgs/11/hoje');
+    expect(router.state.location.pathname).toBe('/orgs/11/today');
     expect(queryClient.getQueryData(sessionQuery.queryKey)).toEqual(session);
     const html = renderToStaticMarkup(<SignOutError />);
     expect(html).toContain('role="alert"');
     expect(html).toContain('Não foi possível sair agora.');
   });
   test('logout with an expired session goes to the signed-out page without signing in', async () => {
-    const { router, queryClient } = await renderAt('/orgs/11/hoje');
+    const { router, queryClient } = await renderAt('/orgs/11/today');
     const assigned: string[] = [];
     const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
     Object.defineProperty(globalThis, 'window', {
       configurable: true,
       value: {
         location: {
-          pathname: '/orgs/11/hoje',
+          pathname: '/orgs/11/today',
           search: '',
           assign: (url: string) => assigned.push(url),
         },

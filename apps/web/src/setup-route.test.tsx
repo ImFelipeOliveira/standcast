@@ -77,12 +77,12 @@ describe('setup route', () => {
 
   test('a listed installation opens Configuração', async () => {
     const { router } = await open('/setup?installation_id=42', [42]);
-    expect(router.state.location.href).toBe('/orgs/42/configuracao');
+    expect(router.state.location.href).toBe('/orgs/42/settings');
   });
 
   test('a listed installation drops resynced from the next URL', async () => {
     const { router } = await open('/setup?installation_id=42&resynced=1', [42]);
-    expect(router.state.location.href).toBe('/orgs/42/configuracao');
+    expect(router.state.location.href).toBe('/orgs/42/settings');
   });
 
   test('a missing installation signs in once to resync', async () => {
