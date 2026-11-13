@@ -14,6 +14,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 - When signing in fails (you cancel on GitHub, the link expires, GitHub does not confirm the account or the browser drops the session cookie), you return to the sign-in page with a message saying what happened and a **Try again** button, instead of an error page on the API.
 - Web app addresses are in English: `/orgs/<id>/today`, `/history` and `/settings`. Old links to `/hoje`, `/historico` and `/configuracao` still work and keep their query string.
 - The web app shows the Standcast icon in the browser tab.
+- Google Chat: while someone in a team's digest is not linked to Google Chat and shows as `@login`, the digest ends with a **Link my account** button. A click links the person who clicked, by the same email match as a direct message to the app, and the answer is visible only to them. Mentioning the app in a space links the person the same way. The worker needs `PUBLIC_URL` for the button. See [Google Chat](/admin/google-chat#how-people-are-linked).
 - New images from the Standcast brand kit: app icons, the Google Chat avatar and card banner, a light and dark README banner, social and link preview images, and five marketplace screenshots.
 
 ### 0.9.4 — 2026-11-12

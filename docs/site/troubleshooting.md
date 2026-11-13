@@ -10,7 +10,7 @@ Reminders go only to people who have not sent the daily, at most once per day, a
 
 Standcast has no Slack user for you, so it cannot send you a reminder or a routed blocker. The failed delivery shows on the setup page. Sign in again with `standcast login` after Slack was connected, or ask your admin to add `members.<your-login>.slack` to `standcast.yml`. See [My name shows as @login](#my-name-shows-as-login).
 
-On Google Chat, Standcast has no Google Chat user for you. Send the Standcast app a direct message in Google Chat, or ask your admin to add `members.<your-login>.google_chat`. See [Google Chat does not link me](#google-chat-does-not-link-me).
+On Google Chat, Standcast has no Google Chat user for you. Click **Link my account** under your team digest, send the Standcast app a direct message in Google Chat, or ask your admin to add `members.<your-login>.google_chat`. Linking does not open a direct message, so send the Standcast app a direct message to receive reminders. See [Google Chat does not link me](#google-chat-does-not-link-me).
 
 ## `no_route_target`
 
@@ -37,7 +37,7 @@ The notice says that a GitHub team named in `standcast.yml` was not found, or is
 
 ## Google Chat does not link me
 
-You link yourself by sending the Standcast app a direct message in Google Chat. Check the app's answer:
+You link yourself in Google Chat by clicking **Link my account** under the team digest, mentioning the Standcast app in a space, or sending the app a direct message. Check the app's answer, which only you see:
 
 1. **"No Standcast account uses this email"**: run `standcast login` first, then message the app again. If your Google account uses another email than your GitHub account, ask your admin to add `members.<your-login>.google_chat` with your user id, such as `users/123456789`.
 2. **"none of your organizations has connected Google Chat"**: an admin must first link a space. See [Google Chat](/admin/google-chat#_2-link-the-space).
