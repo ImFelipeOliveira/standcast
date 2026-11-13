@@ -25,6 +25,29 @@ export async function upsertDaily(
   return row;
 }
 
+export type LatestDaily = { date: string; submittedAt: Date; payload: StoredDaily };
+
+export async function listLatestDailies(
+  db: Db,
+  installationId: number,
+  memberIds: string[],
+): Promise<Map<string, LatestDaily>> {
+  if (memberIds.length === 0) return new Map();
+  const rows = await db
+    .selectDistinctOn([dailies.memberId], {
+      memberId: dailies.memberId,
+      date: dailies.date,
+      submittedAt: dailies.submittedAt,
+      payload: dailies.payload,
+    })
+    .from(dailies)
+    .where(and(eq(dailies.installationId, installationId), inArray(dailies.memberId, memberIds)))
+    .orderBy(dailies.memberId, desc(dailies.date));
+  return new Map(
+    rows.map((r) => [r.memberId, { date: r.date, submittedAt: r.submittedAt, payload: r.payload }]),
+  );
+}
+
 export async function getMemberDaily(
   db: Db,
   installationId: number,

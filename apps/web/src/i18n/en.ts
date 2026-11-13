@@ -495,4 +495,5 @@ export const en: Record<MessageKey, string> = {
   'editor.alertTag': 'Alert',
   'editor.readOnly':
     "The editor saves nothing: copy the YAML or open the file on GitHub and commit it to the organization's configuration repository.",
+  'history.exportTitle': '{team} · shipped {from} to {to}',
 };

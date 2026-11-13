@@ -45,6 +45,38 @@ describe('shipped export', () => {
     );
   });
 
+  test('markdown heading follows the language', () => {
+    expect(shippedMarkdown(shipped, 'backend', 'pt-BR').split('\n')[0]).toBe(
+      '## backend · entregas de 2026-10-26 a 2026-11-01',
+    );
+  });
+
+  test('markdown escapes daily text so it renders as written', () => {
+    const md = shippedMarkdown(
+      {
+        from: '2026-10-26',
+        to: '2026-11-01',
+        days: [
+          {
+            date: '2026-10-27',
+            items: [
+              {
+                author: 'ana',
+                text: 'Use <Widget> in *the* [dashboard] with `x` \\ y_z',
+                ref: null,
+              },
+            ],
+          },
+        ],
+      },
+      'backend',
+      'en',
+    );
+    expect(md).toContain(
+      '- Use \\<Widget\\> in \\*the\\* \\[dashboard\\] with \\`x\\` \\\\ y\\_z — @ana',
+    );
+  });
+
   test('csv neutralizes spreadsheet formulas', () => {
     const csv = shippedCsv({
       from: '2026-10-26',

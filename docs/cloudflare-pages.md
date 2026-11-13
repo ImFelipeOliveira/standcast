@@ -43,6 +43,12 @@ The build writes two files Cloudflare Pages reads from the output directory:
 - `_headers`, generated at the end of the build by `scripts/docs-headers.ts`: HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY` and a self-only Content-Security-Policy with `frame-ancestors 'none'`. The policy allows the inline scripts VitePress writes by their `sha256` hashes, computed from the built pages, so it never needs `'unsafe-inline'` for scripts. Hashed files under `/assets/` are cached for a year.
 - `_redirects`, from `docs/site/public/_redirects`: `/pt-BR` to `/pt-BR/`.
 
+## Link preview images and last updated dates
+
+The build has no browser, so it does not draw the per page link preview images: they are committed under `docs/site/public/og`, and the build fails when a page has none (see [CONTRIBUTING.md](../CONTRIBUTING.md#documentation-link-preview-images)).
+
+Cloudflare clones the repository without its full history. The build fetches the rest of it (`git fetch --unshallow`) so each page shows the date of its last commit; when that fetch fails, pages leave the date out instead of showing the date of the deployed commit.
+
 ## Check a build locally
 
 ```sh

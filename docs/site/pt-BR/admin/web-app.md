@@ -29,7 +29,7 @@ Um membro do time abre Hoje do próprio time. Gestores abrem os times que gerenc
 
 ### Resolver um impedimento
 
-Gestores, admins e a pessoa que escreveu o impedimento podem marcá-lo como resolvido e reabri-lo. Um impedimento resolvido sai da lista de abertos. Se a pessoa listar o impedimento de novo na daily de um dia seguinte, ele abre de novo. Reenviar a daily do dia em que ele foi resolvido mantém o impedimento resolvido.
+Gestores, admins e a pessoa que escreveu o impedimento podem marcá-lo como resolvido e reabri-lo. Um impedimento resolvido sai da lista de abertos. Se a pessoa listar o impedimento de novo na daily de um dia seguinte, ele abre de novo. Reenviar a daily do dia em que ele foi resolvido mantém o impedimento resolvido. Um impedimento resolvido só pode ser reaberto enquanto está na última daily da pessoa: depois que ela envia uma daily sem ele, ele continua resolvido até ela listar de novo.
 
 ### Lembrar agora
 

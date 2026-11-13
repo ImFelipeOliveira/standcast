@@ -502,4 +502,5 @@ export const ptBR = {
   'editor.alertTag': 'Alerta',
   'editor.readOnly':
     'O editor não grava nada: copie o YAML ou abra o arquivo no GitHub e faça o commit no repositório de configuração da organização.',
+  'history.exportTitle': '{team} · entregas de {from} a {to}',
 } as const;

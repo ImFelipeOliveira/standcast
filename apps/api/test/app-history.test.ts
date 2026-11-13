@@ -13,6 +13,7 @@ import {
   upsertInstallation,
   upsertMember,
 } from '@standcast/db';
+import { dailies, members } from '../../../packages/db/src/schema';
 import { db, useCleanDb } from '../../../packages/db/test/setup';
 import { createTestApp, type FakeRequest } from './support';
 
@@ -207,6 +208,60 @@ describe('/v1/app team history', () => {
     expect(
       (await get(app, bob, 'Alpha/history/search?q=web&from=2026-01-01&to=2026-10-28')).status,
     ).toBe(422);
+  });
+
+  test('search accepts up to 100 characters and rejects longer queries', async () => {
+    const { app, bob } = await harness();
+    const at = (q: string) => get(app, bob, `Alpha/history/search?q=${q}`);
+    expect((await at('w'.repeat(100))).status).toBe(200);
+    expect((await at(`  ${'w'.repeat(100)}  `)).status).toBe(200);
+    expect((await at('w'.repeat(101))).status).toBe(422);
+  });
+
+  test('history reads every daily of a large team across the whole range', async () => {
+    const { app, alice } = await harness();
+    const logins = Array.from({ length: 55 }, (_, i) => `m${i}`);
+    const parsed = parseConfig(`
+teams:
+  - name: Big
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [alice]
+    members: [alice, ${logins.join(', ')}]
+    chat: { provider: slack, channel: "#big" }
+`);
+    if (!parsed.ok) throw new Error('config');
+    await setInstallationConfig(db, INST, { status: 'configured', config: parsed.config });
+    const rows = await db
+      .insert(members)
+      .values(logins.map((login, i) => ({ githubUserId: 1000 + i, login })))
+      .returning({ id: members.id });
+    const ids = [alice.member.id, ...rows.map((row) => row.id)];
+    const days = Array.from({ length: 92 }, (_, i) =>
+      new Date(Date.UTC(2026, 6, 29 + i)).toISOString().slice(0, 10),
+    );
+    const payload = { org: 'acme', yesterday: [], today: [], blockers: [], support: [] };
+    await db
+      .insert(dailies)
+      .values(
+        days.flatMap((date) =>
+          ids.map((memberId) => ({
+            installationId: INST,
+            memberId,
+            date,
+            payload,
+            submittedAt: new Date(`${date}T12:00:00Z`),
+          })),
+        ),
+      )
+      .onConflictDoNothing();
+    const body = await (
+      await get(app, alice, 'Big/history/digests?from=2026-07-29&to=2026-10-28')
+    ).json();
+    expect(body.days).toHaveLength(92);
+    expect(body.days.at(-1)).toMatchObject({ date: '2026-07-29', dailies: 56 });
+    expect(body.days.every((day: { dailies: number }) => day.dailies === 56)).toBe(true);
   });
 
   test('shipped groups pull requests and cards by day', async () => {
