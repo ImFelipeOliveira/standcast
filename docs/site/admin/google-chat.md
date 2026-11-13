@@ -91,7 +91,7 @@ All three ways do the same thing. Standcast matches the email of your Google acc
 
 The answer is in the team's language when Standcast knows it, otherwise in English and Portuguese. When no account or more than one account has the email, the app also tells the person their Google Chat id (`users/` followed by digits), ready for the mapping below.
 
-GitHub sends Standcast your verified emails when you run `standcast login` or sign in to the web app. After you add and verify your Google email on GitHub, sign in again in one of these ways before you message the app. Standcast compares with the emails from your last sign-in, so an email you remove from GitHub still matches until you sign in again: sign in again after you remove one.
+GitHub sends Standcast your verified emails when you run `standcast login` or sign in to the web app. After you add and verify your Google email on GitHub, sign in again in one of these ways before you message the app. Standcast compares with the emails from your last sign-in, so an email you remove from GitHub still matches until you sign in again: sign in again after you remove one. If your GitHub account has more than 1,000 emails, Standcast cannot read them all and keeps the list it already had, so a removed email keeps matching; ask an admin to map you by hand, as below.
 
 When the Google email is not a verified email of the GitHub account, an admin maps the person by hand in `standcast.yml`, with their Google Chat user id:
 
