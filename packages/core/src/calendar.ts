@@ -27,6 +27,12 @@ export function addCalendarDays(date: string, days: number): string {
   return fmt(addDays(plain(date), days));
 }
 
+const DAY_MS = 86_400_000;
+
+export function calendarDaysBetween(from: string, to: string): number {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS);
+}
+
 export function isWorkday(date: string, cal: Calendar): boolean {
   const day = WEEKDAYS[plain(date).getDay()] as Weekday;
   return cal.workdays.includes(day);

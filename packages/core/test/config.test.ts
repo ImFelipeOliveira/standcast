@@ -275,6 +275,35 @@ describe('parseConfig', () => {
     expect(r.config.teams[0]?.signals.directMessage).toBe(true);
   });
 
+  test('signals.blocker_alert_days is off when absent', () => {
+    const r = parseConfig(toYaml([team()]));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.config.teams[0]?.signals.blockerAlertDays).toBeUndefined();
+    expect('blockerAlertDays' in (r.config.teams[0]?.signals ?? {})).toBe(false);
+  });
+
+  test('signals.blocker_alert_days accepts a positive whole number', () => {
+    const r = parseConfig(toYaml([team({ signals: { blocker_alert_days: 3 } })]));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.config.teams[0]?.signals.blockerAlertDays).toBe(3);
+    expect(r.config.teams[0]?.signals.cardStaleDays).toBe(5);
+  });
+
+  test('signals.blocker_alert_days rejects zero, negative and fractional values', () => {
+    for (const blocker_alert_days of [0, -2, 1.5, '3']) {
+      const r = parseConfig(toYaml([team({ signals: { blocker_alert_days } })]));
+      expect(r.ok).toBe(false);
+      if (r.ok) return;
+      expect(r.errors).toHaveLength(1);
+      expect(r.errors[0]?.path).toBe('teams.0.signals.blocker_alert_days');
+      expect(r.errors[0]?.message).toBe(
+        'blocker_alert_days must be a whole number of days greater than 0',
+      );
+    }
+  });
+
   test('remind_at must be before digest_at', () => {
     for (const remind_at of ['10:00', '10:30']) {
       const r = parseConfig(toYaml([team({ remind_at, digest_at: '10:00' })]));
