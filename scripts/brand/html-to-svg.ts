@@ -208,7 +208,9 @@ export function textLayerFromCairoSvg(svg: string): { defs: string; body: string
   const ids = new Map<string, string>();
   const defs: string[] = [];
   const groups: { fill: string; uses: string[] }[] = [];
-  for (const group of bodyPart.matchAll(/<g ([^>]*)>([\s\S]*?)<\/g>/g)) {
+  for (const group of bodyPart.matchAll(
+    /<g ((?:[^>]*\s)?(?:fill="|style="[^"]*\bfill:)[^>]*)>([\s\S]*?)<\/g>/g,
+  )) {
     const paintSpec = groupPaint(group[1] ?? '');
     if (paintSpec === null) continue;
     const fill = cairoColor(paintSpec.color, paintSpec.opacity);
