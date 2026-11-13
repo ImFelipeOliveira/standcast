@@ -12,6 +12,7 @@ import {
 } from '../../api/queries';
 import { applyLang } from '../../i18n';
 import { createAppRouter } from '../../router';
+import { withKept } from './BlockersPage';
 
 const originalFetch = globalThis.fetch;
 
@@ -65,6 +66,7 @@ const blockers: OrgBlockers = {
       ref: null,
       resolvedOn: '2026-10-28',
       resolvedBy: 'ana',
+      canResolve: true,
     },
   ],
 };
@@ -77,7 +79,12 @@ async function renderAt(path: string, data: OrgBlockers = blockers) {
   ) as unknown as typeof fetch;
   const queryClient = createQueryClient();
   queryClient.setQueryData(orgContextQuery(11).queryKey, context);
-  queryClient.setQueryData(teamsSummaryQuery(11).queryKey, []);
+  queryClient.setQueryData(teamsSummaryQuery(11).queryKey, [
+    { team: 'backend', sent: 1, total: 3 },
+    { team: 'mobile', sent: 0, total: 2 },
+    { team: 'platform', sent: 2, total: 2 },
+  ]);
+  queryClient.setQueryData(orgBlockersQuery(11, 'backend').queryKey, data);
   queryClient.setQueryData(orgBlockersQuery(11).queryKey, data);
   const router = createAppRouter(queryClient, {
     history: createMemoryHistory({ initialEntries: [path] }),
@@ -129,8 +136,46 @@ describe('blockers page', () => {
     expect(html).toContain('Nenhum impedimento aberto.');
   });
 
+  test('only the selected tab is the current page', async () => {
+    for (const path of ['/orgs/11/blockers', '/orgs/11/blockers?state=resolved']) {
+      const { html } = await renderAt(path);
+      const tabs = html.slice(
+        html.indexOf('aria-label="Estado"'),
+        html.indexOf('</nav>', html.indexOf('aria-label="Estado"')),
+      );
+      expect(tabs.match(/aria-current="page"/g), path).toHaveLength(1);
+    }
+  });
+
+  test('the team filter lists every readable team even when filtered', async () => {
+    const { html } = await renderAt('/orgs/11/blockers?team=backend');
+    for (const team of ['backend', 'mobile', 'platform']) {
+      expect(html).toContain(`<option value="${team}"`);
+    }
+  });
+
+  test('resolved blockers can be reopened where allowed', async () => {
+    const { html } = await renderAt('/orgs/11/blockers?state=resolved');
+    expect(html).toContain('Reabrir');
+  });
+
   test('the sidebar links to the blockers page', async () => {
     const { html } = await renderAt('/orgs/11/blockers');
     expect(html).toContain('href="/orgs/11/blockers"');
+  });
+});
+
+describe('withKept', () => {
+  test('a blocker resolved here stays listed as resolved after the refetch drops it', () => {
+    const [first, second] = blockers.open as [
+      OrgBlockers['open'][number],
+      OrgBlockers['open'][number],
+    ];
+    const kept = new Map([[first.id, first]]);
+    expect(withKept([second], kept).map((entry) => [entry.blocker.id, entry.resolved])).toEqual([
+      ['b1', true],
+      ['b2', false],
+    ]);
+    expect(withKept([first, second], new Map()).every((entry) => !entry.resolved)).toBe(true);
   });
 });

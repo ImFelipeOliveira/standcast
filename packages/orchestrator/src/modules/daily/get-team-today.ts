@@ -7,6 +7,7 @@ import {
 } from '@standcast/core';
 import {
   getInstallationMemberIds,
+  type InstallationRow,
   listBlockerRouteRecipients,
   listCurrentOpenBlockerStates,
   listDailies,
@@ -83,12 +84,12 @@ function routeReason(ref: Ref | null, logins: string[], managers: Set<string>): 
 
 async function routesOf(
   deps: Deps,
-  access: TeamAccess,
+  installation: InstallationRow,
   states: OpenBlockerState[],
 ): Promise<Map<string, string[]>> {
   const rows = await listBlockerRouteRecipients(
     deps.db,
-    access.installation.id,
+    installation.id,
     [...new Set(states.map((s) => s.authorMemberId))],
     [...new Set(states.map((s) => s.blockerId))],
   );
@@ -104,10 +105,10 @@ async function routesOf(
 
 async function lookupHints(
   deps: Deps,
-  access: TeamAccess,
+  installation: InstallationRow,
   states: OpenBlockerState[],
 ): Promise<Map<string, string>> {
-  const owner = access.installation.accountLogin.toLowerCase();
+  const owner = installation.accountLogin.toLowerCase();
   const targets = states
     .flatMap((state) => {
       const pull = state.ref?.kind === 'pull_request' ? parsePullRequestUrl(state.ref.url) : null;
@@ -116,7 +117,7 @@ async function lookupHints(
     .slice(0, MAX_HINT_CALLS);
   const hints = new Map<string, string>();
   if (targets.length === 0) return hints;
-  const octokit = await deps.github.installationOctokit(access.installation.id);
+  const octokit = await deps.github.installationOctokit(installation.id);
   await Promise.all(
     targets.map(async ({ id, pull }) => {
       try {
@@ -124,12 +125,58 @@ async function lookupHints(
         if (result?.merged && result.mergedAt) hints.set(id, result.mergedAt);
       } catch (error) {
         logError('today hint lookup failed', error, {
-          installationId: String(access.installation.id),
+          installationId: String(installation.id),
         });
       }
     }),
   );
   return hints;
+}
+
+export type BlockerContext = { timezone: string; date: string; managers: Set<string> };
+
+export async function buildOpenBlockers(
+  deps: Deps,
+  installation: InstallationRow,
+  states: OpenBlockerState[],
+  contextOf: (state: OpenBlockerState) => BlockerContext,
+): Promise<TodayBlocker[]> {
+  if (states.length === 0) return [];
+  const [routes, hints] = await Promise.all([
+    routesOf(deps, installation, states),
+    guarded(
+      lookupHints(deps, installation, states),
+      new Map<string, string>(),
+      HINT_TIMEOUT_MS,
+      'today hints failed',
+      { installationId: String(installation.id) },
+    ),
+  ]);
+  return states
+    .map((state) => {
+      const context = contextOf(state);
+      const logins = routes.get(`${state.authorMemberId}:${state.blockerId}`);
+      const at = hints.get(state.id);
+      const on = at ? localDate(new Date(at), context.timezone) : null;
+      const ref = state.ref ?? null;
+      return {
+        id: state.id,
+        author: state.authorLogin.toLowerCase(),
+        text: state.text,
+        ref,
+        openedOn: state.openedOn,
+        ageDays: Math.max(0, daysBetween(state.openedOn, context.date)),
+        recurring: state.lastSeenOn > state.openedOn,
+        routedTo: logins ? { logins, reason: routeReason(ref, logins, context.managers) } : null,
+        hint: at && on && on >= state.openedOn ? { kind: 'pr_merged' as const, at, on } : null,
+      };
+    })
+    .sort(
+      (a, b) =>
+        a.openedOn.localeCompare(b.openedOn) ||
+        a.author.localeCompare(b.author) ||
+        a.text.localeCompare(b.text),
+    );
 }
 
 export async function openTeamBlockers(deps: Deps, access: TeamAccess): Promise<TodayBlocker[]> {
@@ -141,44 +188,12 @@ export async function openTeamBlockers(deps: Deps, access: TeamAccess): Promise<
   const states = await listCurrentOpenBlockerStates(deps.db, access.installation.id, [
     ...ids.values(),
   ]);
-  if (states.length === 0) return [];
-  const [routes, hints] = await Promise.all([
-    routesOf(deps, access, states),
-    guarded(
-      lookupHints(deps, access, states),
-      new Map<string, string>(),
-      HINT_TIMEOUT_MS,
-      'today hints failed',
-      {
-        installationId: String(access.installation.id),
-      },
-    ),
-  ]);
-  const managers = new Set(access.team.managerLogins);
-  return states
-    .map((state) => {
-      const logins = routes.get(`${state.authorMemberId}:${state.blockerId}`);
-      const at = hints.get(state.id);
-      const on = at ? localDate(new Date(at), access.team.timezone) : null;
-      const ref = state.ref ?? null;
-      return {
-        id: state.id,
-        author: state.authorLogin.toLowerCase(),
-        text: state.text,
-        ref,
-        openedOn: state.openedOn,
-        ageDays: Math.max(0, daysBetween(state.openedOn, access.date)),
-        recurring: state.lastSeenOn > state.openedOn,
-        routedTo: logins ? { logins, reason: routeReason(ref, logins, managers) } : null,
-        hint: at && on && on >= state.openedOn ? { kind: 'pr_merged' as const, at, on } : null,
-      };
-    })
-    .sort(
-      (a, b) =>
-        a.openedOn.localeCompare(b.openedOn) ||
-        a.author.localeCompare(b.author) ||
-        a.text.localeCompare(b.text),
-    );
+  const context = {
+    timezone: access.team.timezone,
+    date: access.date,
+    managers: new Set(access.team.managerLogins),
+  };
+  return buildOpenBlockers(deps, access.installation, states, () => context);
 }
 
 async function supportRequests(

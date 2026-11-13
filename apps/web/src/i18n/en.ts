@@ -370,4 +370,5 @@ export const en: Record<MessageKey, string> = {
   'blockers.resolvedOn': 'Resolved on {date}',
   'blockers.byTeam': 'Open by team',
   'blockers.failed': 'Could not update the blocker. Try again.',
+  'blockers.state': 'Status',
 };

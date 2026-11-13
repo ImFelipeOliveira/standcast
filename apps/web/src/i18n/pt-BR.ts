@@ -377,4 +377,5 @@ export const ptBR = {
   'blockers.resolvedOn': 'Resolvido em {date}',
   'blockers.byTeam': 'Abertos por time',
   'blockers.failed': 'Não foi possível atualizar o impedimento. Tente de novo.',
+  'blockers.state': 'Estado',
 } as const;

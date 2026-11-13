@@ -43,7 +43,7 @@ teams:
 
 type User = { cookie: string; csrf: string; member: MemberRow };
 
-async function harness() {
+async function harness(admins: string[] = []) {
   const users = new Map([
     [1, 'alice'],
     [2, 'bob'],
@@ -57,7 +57,8 @@ async function harness() {
       return { status: 204 };
     }
     if (route === 'GET /orgs/{org}/memberships/{username}' && params.org === 'acme') {
-      return { status: 200, data: { role: 'member', state: 'active' } };
+      const role = admins.includes(String(params.username)) ? 'admin' : 'member';
+      return { status: 200, data: { role, state: 'active' } };
     }
     throw Object.assign(new Error('not found'), { status: 404 });
   };
@@ -95,7 +96,7 @@ async function harness() {
     blockers: [{ text: 'need prod access' }],
   });
   const [state] = await db.query.blockerStates.findMany();
-  return { app, queue, alice, bob, carol, blockerId: state?.id ?? '' };
+  return { app, deps, queue, alice, bob, carol, blockerId: state?.id ?? '' };
 }
 
 type App = Awaited<ReturnType<typeof harness>>['app'];
@@ -250,7 +251,57 @@ teams:
         ref: null,
         resolvedOn: '2026-10-28',
         resolvedBy: 'bob',
+        canResolve: true,
       },
     ]);
+  });
+});
+
+describe('/v1/app blockers permissions', () => {
+  async function aliceBlocker(deps: Parameters<typeof recordBlockers>[0], alice: User) {
+    await upsertDaily(db, {
+      installationId: INST,
+      memberId: alice.member.id,
+      date: '2026-10-28',
+      payload: {
+        org: 'acme',
+        yesterday: [],
+        today: [],
+        blockers: [{ text: 'waiting on legal' }],
+        support: [],
+      },
+      submittedAt: new Date('2026-10-28T11:55:00Z'),
+    });
+    await recordBlockers(deps, {
+      installationId: INST,
+      memberId: alice.member.id,
+      date: '2026-10-28',
+      blockers: [{ text: 'waiting on legal' }],
+    });
+  }
+
+  test('a member who reads the team cannot resolve a teammate blocker', async () => {
+    const { app, deps, alice, bob } = await harness();
+    await aliceBlocker(deps, alice);
+    const body = await (await get(app, bob, `${INST}/blockers`)).json();
+    const legal = body.open.find((b: { text: string }) => b.text === 'waiting on legal');
+    expect(legal.canResolve).toBe(false);
+  });
+
+  test('an org admin who is only a member of the team can resolve', async () => {
+    const { app, deps, alice, bob } = await harness(['bob']);
+    await aliceBlocker(deps, alice);
+    const body = await (await get(app, bob, `${INST}/blockers?team=Alpha`)).json();
+    const legal = body.open.find((b: { text: string }) => b.text === 'waiting on legal');
+    expect(legal.canResolve).toBe(true);
+  });
+
+  test('resolved blockers say whether the person can reopen them', async () => {
+    const { app, alice, bob, carol, blockerId } = await harness();
+    await post(app, bob, `${INST}/blockers/${blockerId}/resolve`);
+    expect((await (await get(app, alice, `${INST}/blockers`)).json()).resolved[0].canResolve).toBe(
+      true,
+    );
+    expect((await (await get(app, carol, `${INST}/blockers`)).json()).resolved).toEqual([]);
   });
 });

@@ -3,7 +3,7 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { ApiError } from '../../api/client';
 import { useReopenOrgBlocker, useResolveOrgBlocker } from '../../api/mutations';
-import { useOrgBlockers } from '../../api/queries';
+import { useOrgBlockers, useTeamsSummary } from '../../api/queries';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
@@ -39,6 +39,7 @@ function Tabs({
         ...(value === 'resolved' ? { state: 'resolved' as const } : {}),
         ...(team ? { team } : {}),
       }}
+      activeOptions={{ exact: true, includeSearch: true }}
       aria-current={tab === value ? 'page' : undefined}
       className={cn(
         'inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 font-medium text-[13px] no-underline desk:min-h-8',
@@ -52,7 +53,7 @@ function Tabs({
     </Link>
   );
   return (
-    <nav aria-label={t('nav.blockers')} className="flex gap-1 rounded-lg bg-hover p-0.5">
+    <nav aria-label={t('blockers.state')} className="flex gap-1 rounded-lg bg-hover p-0.5">
       {item('open', t('blockers.open'), openCount)}
       {item('resolved', t('blockers.resolved'), resolvedCount)}
     </nav>
@@ -72,7 +73,9 @@ function TeamFilter({
 }) {
   const t = useT();
   const navigate = useNavigate();
-  if (teams.length < 2 && !team) return null;
+  const summary = useTeamsSummary(installationId, true);
+  const options = summary.data ? summary.data.map((entry) => entry.team) : teams;
+  if (options.length < 2 && !team) return null;
   return (
     <>
       <label htmlFor="blockers-team" className="sr-only">
@@ -94,7 +97,7 @@ function TeamFilter({
         className="min-h-11 rounded-md border border-border-strong bg-surface px-2.5 text-base text-text desk:min-h-8 desk:text-[13px]"
       >
         <option value="">{t('blockers.allTeams')}</option>
-        {teams.map((name) => (
+        {options.map((name) => (
           <option key={name} value={name}>
             {name}
           </option>
@@ -102,6 +105,19 @@ function TeamFilter({
       </select>
     </>
   );
+}
+
+export function withKept(
+  open: OrgOpenBlocker[],
+  kept: Map<string, OrgOpenBlocker>,
+): { blocker: OrgOpenBlocker; resolved: boolean }[] {
+  const ids = new Set(open.map((blocker) => blocker.id));
+  return [
+    ...open.map((blocker) => ({ blocker, resolved: kept.has(blocker.id) })),
+    ...[...kept.values()]
+      .filter((blocker) => !ids.has(blocker.id))
+      .map((blocker) => ({ blocker, resolved: true })),
+  ].sort((a, b) => a.blocker.openedOn.localeCompare(b.blocker.openedOn));
 }
 
 function OpenList({
@@ -114,21 +130,34 @@ function OpenList({
   const t = useT();
   const resolve = useResolveOrgBlocker(installationId);
   const reopen = useReopenOrgBlocker(installationId);
-  const [resolvedIds, setResolvedIds] = useState<Set<string>>(new Set());
+  const [kept, setKept] = useState<Map<string, OrgOpenBlocker>>(new Map());
   const [failed, setFailed] = useState(false);
-  if (blockers.length === 0) return <p className="m-0 text-muted">{t('blockers.emptyOpen')}</p>;
-  const run = (id: string, done: boolean) => {
+  const listed = withKept(blockers, kept);
+  if (listed.length === 0) return <p className="m-0 text-muted">{t('blockers.emptyOpen')}</p>;
+  const run = (blocker: OrgOpenBlocker, done: boolean) => {
     setFailed(false);
+    if (done) setKept((current) => new Map(current).set(blocker.id, blocker));
     const mutation = done ? resolve : reopen;
-    mutation.mutate(id, {
-      onSuccess: () =>
-        setResolvedIds((current) => {
-          const next = new Set(current);
-          if (done) next.add(id);
-          else next.delete(id);
-          return next;
-        }),
-      onError: () => setFailed(true),
+    mutation.mutate(blocker.id, {
+      onSuccess: () => {
+        if (!done) {
+          setKept((current) => {
+            const next = new Map(current);
+            next.delete(blocker.id);
+            return next;
+          });
+        }
+      },
+      onError: () => {
+        setFailed(true);
+        if (done) {
+          setKept((current) => {
+            const next = new Map(current);
+            next.delete(blocker.id);
+            return next;
+          });
+        }
+      },
     });
   };
   return (
@@ -139,18 +168,18 @@ function OpenList({
           {t('blockers.failed')}
         </p>
       ) : null}
-      {blockers.map((blocker) => (
+      {listed.map(({ blocker, resolved }) => (
         <BlockerCard
           key={blocker.id}
           blocker={blocker}
           teams={blocker.teams}
           timezone={blocker.timezone}
           today={blocker.today}
-          resolved={resolvedIds.has(blocker.id)}
+          resolved={resolved}
           canResolve={blocker.canResolve}
           pending={resolve.isPending || reopen.isPending}
-          onResolve={() => run(blocker.id, true)}
-          onReopen={() => run(blocker.id, false)}
+          onResolve={() => run(blocker, true)}
+          onReopen={() => run(blocker, false)}
           onViewDaily={null}
         />
       ))}
@@ -158,9 +187,16 @@ function OpenList({
   );
 }
 
-function ResolvedList({ blockers }: { blockers: OrgResolvedBlocker[] }) {
+function ResolvedList({
+  installationId,
+  blockers,
+}: {
+  installationId: number;
+  blockers: OrgResolvedBlocker[];
+}) {
   const t = useT();
   const lang = useLang();
+  const reopen = useReopenOrgBlocker(installationId);
   if (blockers.length === 0) return <p className="m-0 text-muted">{t('blockers.emptyResolved')}</p>;
   return (
     <div className="flex flex-col gap-3">
@@ -195,6 +231,17 @@ function ResolvedList({ blockers }: { blockers: OrgResolvedBlocker[] }) {
                       })
                     : t('blockers.resolvedOn', { date: formatShortDate(lang, blocker.resolvedOn) })}
                 </span>
+                {blocker.canResolve ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="ml-auto"
+                    disabled={reopen.isPending}
+                    onClick={() => reopen.mutate(blocker.id)}
+                  >
+                    {t('hoje.blocker.reopen')}
+                  </Button>
+                ) : null}
               </span>
             </li>
           ))}
@@ -282,7 +329,7 @@ export function BlockersPage({
           {tab === 'open' ? (
             <OpenList installationId={installationId} blockers={data.open} />
           ) : (
-            <ResolvedList blockers={data.resolved} />
+            <ResolvedList installationId={installationId} blockers={data.resolved} />
           )}
         </div>
         {tab === 'open' ? (
