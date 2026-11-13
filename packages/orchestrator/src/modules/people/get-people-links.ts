@@ -54,7 +54,7 @@ export async function getPeopleLinks(
   const ids = [...memberIds.values()];
   const [identities, cli] = await Promise.all([
     listMemberIdentities(deps.db, installation.id, ids),
-    listMemberIdsWithActiveCliSession(deps.db, ids, deps.now()),
+    listMemberIdsWithActiveCliSession(deps.db, installation.id, ids, deps.now()),
   ]);
   const linked = new Set(identities.map((row) => `${row.memberId}:${row.provider}`));
   return {

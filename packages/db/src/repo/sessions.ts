@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { and, eq, gt, inArray, lt, or, sql } from 'drizzle-orm';
 import type { Db } from '../client';
-import { type MemberRow, members, sessions } from '../schema';
+import { type MemberRow, memberInstallations, members, sessions } from '../schema';
 import { PRUNE_BATCH } from './prune-batch';
 
 const WEB_TTL_DAYS = 7;
@@ -74,6 +74,7 @@ export async function deleteExpiredSessions(db: Db, now: Date): Promise<number> 
 
 export async function listMemberIdsWithActiveCliSession(
   db: Db,
+  installationId: number,
   memberIds: string[],
   now: Date,
 ): Promise<Set<string>> {
@@ -82,8 +83,10 @@ export async function listMemberIdsWithActiveCliSession(
   const rows = await db
     .selectDistinct({ memberId: sessions.memberId })
     .from(sessions)
+    .innerJoin(memberInstallations, eq(memberInstallations.memberId, sessions.memberId))
     .where(
       and(
+        eq(memberInstallations.installationId, installationId),
         inArray(sessions.memberId, memberIds),
         eq(sessions.kind, 'cli'),
         gt(sessions.lastUsedAt, cutoff),

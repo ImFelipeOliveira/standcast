@@ -75,6 +75,12 @@ describe('people and links', () => {
     expect(html).toContain('não conectada');
   });
 
+  test('the people table is named by the People heading', () => {
+    const html = render();
+    expect(html).toContain('<h2 id="people-links-title"');
+    expect(html).toContain('<table aria-labelledby="people-links-title"');
+  });
+
   test('no issues means no callout', () => {
     const first = people.people[0] as PeopleLinks['people'][number];
     const html = render({ people: [first] });

@@ -20,6 +20,7 @@ import {
   listDailies,
   listFailedPersonDeliveryGroups,
   listFailedTeamDeliveries,
+  listMemberIdsWithActiveCliSession,
   listOperationalInstallations,
   listPersonDeliveries,
   markConnectionInvalid,
@@ -458,6 +459,24 @@ describe('sessions', () => {
       sql`UPDATE sessions SET created_at = now() - interval '200 days', last_used_at = now() - interval '30 days'`,
     );
     expect((await resolveSession(db, active, 'cli'))?.id).toBe(m.id);
+  });
+
+  test('active CLI sessions are listed only for members of the installation', async () => {
+    await upsertInstallation(db, { id: 1, accountLogin: 'acme', accountType: 'Organization' });
+    await upsertInstallation(db, { id: 2, accountLogin: 'other', accountType: 'Organization' });
+    const ana = await upsertMember(db, { githubUserId: 1, login: 'Ana', email: null });
+    const bob = await upsertMember(db, { githubUserId: 2, login: 'bob', email: null });
+    await setMemberInstallations(db, ana.id, [1]);
+    await setMemberInstallations(db, bob.id, [2]);
+    await createSession(db, ana.id, 'cli');
+    await createSession(db, bob.id, 'cli');
+    const now = new Date();
+    expect([...(await listMemberIdsWithActiveCliSession(db, 1, [ana.id, bob.id], now))]).toEqual([
+      ana.id,
+    ]);
+    expect([...(await listMemberIdsWithActiveCliSession(db, 2, [ana.id, bob.id], now))]).toEqual([
+      bob.id,
+    ]);
   });
 
   test('revoked session resolves to null', async () => {

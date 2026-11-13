@@ -120,7 +120,9 @@ export function PeopleTab({ installationId }: { installationId: number }) {
       <Callouts people={people} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5">
-          <h2 className="m-0 font-semibold text-[15px]">{t('people.title')}</h2>
+          <h2 id="people-links-title" className="m-0 font-semibold text-[15px]">
+            {t('people.title')}
+          </h2>
           <p className="m-0 text-[13px] text-muted">{t('people.subtitle')}</p>
         </div>
         <fieldset className="m-0 flex gap-1 rounded-lg border-0 bg-hover p-0.5">
@@ -144,7 +146,10 @@ export function PeopleTab({ installationId }: { installationId: number }) {
         </fieldset>
       </div>
       <Card className="gap-0 overflow-x-auto p-0" tabIndex={0} aria-label={t('people.title')}>
-        <table className="w-full min-w-[680px] border-collapse text-[13px]">
+        <table
+          aria-labelledby="people-links-title"
+          className="w-full min-w-[680px] border-collapse text-[13px]"
+        >
           <thead>
             <tr className="border-border border-b text-left text-[12px] text-muted">
               <th scope="col" className="px-4 py-2.5 font-semibold">
