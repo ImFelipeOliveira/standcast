@@ -1,23 +1,23 @@
 import type { MessageKey } from '../i18n';
 
-export const SECTIONS = ['hoje', 'historico', 'configuracao'] as const;
+export const SECTIONS = ['today', 'history', 'settings'] as const;
 export type Section = (typeof SECTIONS)[number];
 
 export const SECTION_PATHS = {
-  hoje: '/orgs/$installationId/hoje',
-  historico: '/orgs/$installationId/historico',
-  configuracao: '/orgs/$installationId/configuracao',
+  today: '/orgs/$installationId/today',
+  history: '/orgs/$installationId/history',
+  settings: '/orgs/$installationId/settings',
 } as const satisfies Record<Section, string>;
 
 export const SECTION_LABELS = {
-  hoje: 'nav.today',
-  historico: 'nav.history',
-  configuracao: 'nav.setup',
+  today: 'nav.today',
+  history: 'nav.history',
+  settings: 'nav.setup',
 } as const satisfies Record<Section, MessageKey>;
 
-export const SOON_SECTIONS: ReadonlySet<Section> = new Set<Section>(['historico']);
+export const SOON_SECTIONS: ReadonlySet<Section> = new Set<Section>(['history']);
 
 export function sectionOf(pathname: string): Section {
   const last = pathname.replace(/\/+$/, '').split('/').pop() ?? '';
-  return (SECTIONS as readonly string[]).includes(last) ? (last as Section) : 'configuracao';
+  return (SECTIONS as readonly string[]).includes(last) ? (last as Section) : 'settings';
 }

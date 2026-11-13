@@ -9,6 +9,7 @@ import {
   DomainError,
   logError,
   logoutWebSession,
+  readLoginState,
   startLinearConnect,
   startSlackConnect,
   startWebLogin,
@@ -29,6 +30,7 @@ const LOGIN_NONCE_SECONDS = 600;
 const SIGN_IN_CODES = ['unauthorized', 'forbidden', 'invalid_state', 'access_denied'];
 export const WEB_IP_LIMIT = 60;
 const RESYNC_CODES = ['forbidden', 'installation_pending'];
+const APP_SIGN_IN_CODES = ['access_denied', 'invalid_state', 'unauthorized'];
 const PAGE_PATHS = ['/setup/*', '/connect/*', '/auth/*', '/oauth/*', '/logout'];
 const STYLE_HASH = `'sha256-${new Bun.CryptoHasher('sha256').update(PAGE_CSS).digest('base64')}'`;
 
@@ -147,14 +149,28 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
     return c.redirect(url);
   });
 
+  const appSignIn = (code: string, next: string | undefined) => {
+    const query = new URLSearchParams({ error: code });
+    if (next && next !== '/') query.set('next', next);
+    return `${deps.env.appUrl}/sign-in?${query}`;
+  };
+
   app.get('/auth/github/callback', async (c) => {
-    const { token, next, target } = await completeWebLogin(deps, {
+    const state = readLoginState(deps, c.req.query('state'));
+    const login = await completeWebLogin(deps, {
       code: c.req.query('code'),
       state: c.req.query('state'),
       nonce: getCookie(c, LOGIN_COOKIE),
       error: c.req.query('error'),
+    }).catch((error: unknown) => {
+      if (state?.target === 'api') throw error;
+      if (!(error instanceof DomainError)) logError('web login failed', error);
+      const known = error instanceof DomainError && APP_SIGN_IN_CODES.includes(error.code);
+      return { failed: known ? error.code : 'generic' };
     });
     deleteCookie(c, LOGIN_COOKIE, { path: LOGIN_COOKIE_PATH, secure: true });
+    if ('failed' in login) return c.redirect(appSignIn(login.failed, state?.next));
+    const { token, next, target } = login;
     setCookie(c, WEB_COOKIE, token, {
       httpOnly: true,
       secure: true,
@@ -202,7 +218,7 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       state: c.req.query('state'),
       error: c.req.query('error'),
     });
-    return c.redirect(`${deps.env.appUrl}/orgs/${id}/configuracao?connected=slack`);
+    return c.redirect(`${deps.env.appUrl}/orgs/${id}/settings?connected=slack`);
   });
 
   app.get('/connect/linear', async (c) => {
@@ -225,7 +241,7 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       state: c.req.query('state'),
       error: c.req.query('error'),
     });
-    return c.redirect(`${deps.env.appUrl}/orgs/${id}/configuracao?connected=linear`);
+    return c.redirect(`${deps.env.appUrl}/orgs/${id}/settings?connected=linear`);
   });
 
   return app;
