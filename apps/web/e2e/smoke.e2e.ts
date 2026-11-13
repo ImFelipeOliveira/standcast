@@ -178,6 +178,20 @@ test('the search keeps the active result in view and closes the phone drawer', a
   await expect(drawer).toHaveCount(0);
 });
 
+test('the search box keeps at most 100 characters, like the History search', async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.goto(`/orgs/${INSTALLATION_ID}/blockers`);
+  await expect(page.getByRole('heading', { name: 'Impedimentos', level: 1 })).toBeVisible();
+  await page.keyboard.press('ControlOrMeta+k');
+  const input = page.getByRole('combobox', { name: 'Buscar no painel' });
+  await expect(input).toBeFocused();
+  await input.fill('a'.repeat(101));
+  await expect(input).toHaveValue('a'.repeat(100));
+});
+
 test('a new search in History keeps the focus in the search box', async ({ page, context }) => {
   await signIn(context);
   await page.goto(`/orgs/${INSTALLATION_ID}/history?team=${TEAM_NAME}&tab=search&q=deploy`);

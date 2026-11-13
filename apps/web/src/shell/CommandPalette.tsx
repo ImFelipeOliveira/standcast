@@ -126,6 +126,7 @@ export function CommandPalette({
             aria-autocomplete="list"
             aria-activedescendant={activeId}
             placeholder={t('palette.placeholder')}
+            maxLength={100}
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
