@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { contrast } from './docs-contrast';
+import { fullGitHistory, gitRunner } from './docs-git';
 import {
   displayPath,
   docPages,
@@ -187,7 +188,11 @@ describe('built site', () => {
       'href="https://github.com/ImFelipeOliveira/standcast/edit/main/docs/site/pt-BR/admin/install.md"',
     );
     expect(html).toContain('Editar esta página no GitHub');
-    expect(html).toContain('Atualizado em');
+    if (fullGitHistory(gitRunner(ROOT), { fetch: false })) {
+      expect(html).toMatch(/class="VPLastUpdated"[^>]*>Atualizado em: <time datetime="\d{4}-/);
+    } else {
+      expect(html).not.toContain('class="VPLastUpdated"');
+    }
   });
 
   test('every highlighted token reaches 4.5:1 on the code background', async () => {
