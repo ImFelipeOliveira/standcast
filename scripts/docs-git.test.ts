@@ -24,6 +24,8 @@ async function originWithTwoCommits(): Promise<{ root: string; origin: string }>
       'user.name=Test',
       '-c',
       'user.email=test@example.com',
+      '-c',
+      'commit.gpgSign=false',
       'commit',
       '--quiet',
       '-m',
