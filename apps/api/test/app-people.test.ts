@@ -14,6 +14,7 @@ import {
   upsertMember,
 } from '@standcast/db';
 import { csrfToken } from '@standcast/orchestrator';
+import { sql } from 'drizzle-orm';
 import { db, useCleanDb } from '../../../packages/db/test/setup';
 import { createTestApp, type FakeRequest } from './support';
 
@@ -150,13 +151,13 @@ describe('/v1/app people and links', () => {
   });
 
   test('only members of this installation with an active CLI session count', async () => {
-    const { app, alice, carol } = await harness();
+    const { app, deps, alice, carol } = await harness();
     const dave = await upsertMember(db, { githubUserId: 4, login: 'dave', email: null });
     await setMemberInstallations(db, dave.id, [FOREIGN]);
     await createSession(db, dave.id, 'cli');
     await createSession(db, carol.member.id, 'cli');
     await db.execute(
-      `update sessions set last_used_at = now() - interval '200 days' where member_id = '${carol.member.id}' and kind = 'cli'`,
+      sql`update sessions set last_used_at = ${new Date(deps.now().getTime() - 200 * 86_400_000).toISOString()} where member_id = ${carol.member.id} and kind = 'cli'`,
     );
     const people = (await (await get(app, alice, `${INST}/people`)).json()).people as {
       login: string;
