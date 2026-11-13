@@ -3,6 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { configQuery, configValidationQuery, createQueryClient } from '../../api/queries';
 import { applyLang } from '../../i18n';
+import { en } from '../../i18n/en';
 import { ptBR } from '../../i18n/pt-BR';
 import { ConfigEditor, configEditUrl, ValidationStatus } from './ConfigEditor';
 import { type ConfigDraft, emptyTeam, toYaml } from './config-yaml';
@@ -115,6 +116,30 @@ describe('editor copy', () => {
     const editorCopy = Object.entries(ptBR).filter(([key]) => key.startsWith('editor.'));
     expect(editorCopy.filter(([, value]) => /resumo/i.test(value))).toEqual([]);
     expect(ptBR['editor.digestAt']).toBe('Consolidado');
+  });
+});
+
+describe('editor starting point', () => {
+  test('without a standcast.yml the first team uses the interface language', () => {
+    const renderEmpty = () => {
+      const queryClient = createQueryClient();
+      queryClient.setQueryData(configQuery(11).queryKey, { config: null });
+      return renderToStaticMarkup(
+        <QueryClientProvider client={queryClient}>
+          <ConfigEditor installationId={11} editUrl={null} />
+        </QueryClientProvider>,
+      );
+    };
+    expect(renderEmpty()).toContain('language: pt-BR');
+    applyLang('en');
+    expect(renderEmpty()).toContain('language: en');
+  });
+
+  test('the read-only note does not name one configuration repository', () => {
+    expect(en['editor.readOnly']).not.toContain('.github');
+    expect(ptBR['editor.readOnly']).not.toContain('.github');
+    expect(en['editor.readOnly']).toContain("organization's configuration repository");
+    expect(ptBR['editor.readOnly']).toContain('repositório de configuração da organização');
   });
 });
 

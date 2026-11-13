@@ -14,14 +14,14 @@ function list(values: string[]): string {
   return `[${values.map(scalar).join(', ')}]`;
 }
 
-export function emptyTeam(name: string): TeamDraft {
+export function emptyTeam(name: string, language: TeamDraft['language'] = 'en'): TeamDraft {
   return {
     name,
     timezone: 'America/Sao_Paulo',
     workdays: ['mon', 'tue', 'wed', 'thu', 'fri'],
     remindAt: '09:00',
     digestAt: '10:00',
-    language: 'pt-BR',
+    language,
     managers: [],
     members: [],
     chat: { provider: 'slack', channel: '#daily' },

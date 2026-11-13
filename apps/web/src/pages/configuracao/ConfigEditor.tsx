@@ -5,7 +5,7 @@ import { configQuery, configValidationQuery } from '../../api/queries';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { type MessageKey, useT } from '../../i18n';
+import { type MessageKey, useLang, useT } from '../../i18n';
 import { cn } from '../../lib/utils';
 import { Loading } from '../RouteStates';
 import { newConfigFileUrl } from './ConfigFile';
@@ -377,6 +377,7 @@ function Editor({
   editUrl: string | null;
 }) {
   const t = useT();
+  const lang = useLang();
   const [draft, setDraft] = useState(initial);
   const [selected, setSelected] = useState(0);
   const nextId = useRef(initial.teams.length);
@@ -425,7 +426,7 @@ function Editor({
               onClick={() => {
                 setDraft((current) => ({
                   ...current,
-                  teams: [...current.teams, emptyTeam(t('editor.newTeamName'))],
+                  teams: [...current.teams, emptyTeam(t('editor.newTeamName'), lang)],
                 }));
                 setIds((current) => [...current, nextId.current++]);
                 setSelected(draft.teams.length);
@@ -544,10 +545,14 @@ export function ConfigEditor({
   editUrl: string | null;
 }) {
   const t = useT();
+  const lang = useLang();
   const query = useQuery(configQuery(installationId));
   if (query.isPending) return <Loading header={false} />;
   if (query.isError) return <p className="m-0 text-bad-ink">{t('error.body')}</p>;
-  const initial: ConfigDraft = query.data.config ?? { teams: [emptyTeam('backend')], members: {} };
+  const initial: ConfigDraft = query.data.config ?? {
+    teams: [emptyTeam('backend', lang)],
+    members: {},
+  };
   return (
     <Editor
       key={installationId}

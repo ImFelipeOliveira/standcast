@@ -501,5 +501,5 @@ export const ptBR = {
   'editor.validationFailed': 'Não foi possível validar',
   'editor.alertTag': 'Alerta',
   'editor.readOnly':
-    'O editor não grava nada: copie o YAML ou abra o arquivo no GitHub e faça o commit no repositório .github da organização.',
+    'O editor não grava nada: copie o YAML ou abra o arquivo no GitHub e faça o commit no repositório de configuração da organização.',
 } as const;

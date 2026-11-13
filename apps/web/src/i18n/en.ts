@@ -494,5 +494,5 @@ export const en: Record<MessageKey, string> = {
   'editor.validationFailed': 'Could not validate',
   'editor.alertTag': 'Alert',
   'editor.readOnly':
-    'The editor saves nothing: copy the YAML or open the file on GitHub and commit it to the organization .github repository.',
+    "The editor saves nothing: copy the YAML or open the file on GitHub and commit it to the organization's configuration repository.",
 };
