@@ -1,5 +1,5 @@
 import type { Ref } from '@standcast/core';
-import { and, asc, eq, inArray, isNull, lt, notInArray, type SQL, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, lt, lte, notInArray, type SQL, sql } from 'drizzle-orm';
 import type { Db } from '../client';
 import { type BlockerStateRow, blockerStates, dailies, members } from '../schema';
 
@@ -107,25 +107,76 @@ export async function setBlockerStateResolved(
 
 export type OpenBlockerState = BlockerStateRow & { authorLogin: string };
 
+const latestDailyOfAuthor = sql`(select max(${dailies.date}) from ${dailies} where ${dailies.installationId} = ${blockerStates.installationId} and ${dailies.memberId} = ${blockerStates.authorMemberId})`;
+
+function currentOpenFilters(installationId: number, authorMemberIds: string[]): SQL[] {
+  return [
+    eq(blockerStates.installationId, installationId),
+    inArray(blockerStates.authorMemberId, authorMemberIds),
+    isNull(blockerStates.resolvedAt),
+    sql`${blockerStates.lastSeenOn} = ${latestDailyOfAuthor}`,
+  ];
+}
+
 export async function listCurrentOpenBlockerStates(
   db: Db,
   installationId: number,
   authorMemberIds: string[],
 ): Promise<OpenBlockerState[]> {
   if (authorMemberIds.length === 0) return [];
-  const latest = sql`(select max(${dailies.date}) from ${dailies} where ${dailies.installationId} = ${blockerStates.installationId} and ${dailies.memberId} = ${blockerStates.authorMemberId})`;
+  const rows = await db
+    .select({ state: blockerStates, authorLogin: members.login })
+    .from(blockerStates)
+    .innerJoin(members, eq(members.id, blockerStates.authorMemberId))
+    .where(and(...currentOpenFilters(installationId, authorMemberIds)))
+    .orderBy(asc(blockerStates.openedOn), asc(members.login), asc(blockerStates.text));
+  return rows.map((r) => ({ ...r.state, authorLogin: r.authorLogin }));
+}
+
+export type StaleBlockerQuery = {
+  authorMemberIds: string[];
+  openedOnOrBefore: string;
+  limit: number;
+};
+
+export async function listStaleBlockerStates(
+  db: Db,
+  installationId: number,
+  query: StaleBlockerQuery,
+): Promise<OpenBlockerState[]> {
+  if (query.authorMemberIds.length === 0) return [];
   const rows = await db
     .select({ state: blockerStates, authorLogin: members.login })
     .from(blockerStates)
     .innerJoin(members, eq(members.id, blockerStates.authorMemberId))
     .where(
       and(
-        eq(blockerStates.installationId, installationId),
-        inArray(blockerStates.authorMemberId, authorMemberIds),
-        isNull(blockerStates.resolvedAt),
-        sql`${blockerStates.lastSeenOn} = ${latest}`,
+        ...currentOpenFilters(installationId, query.authorMemberIds),
+        isNull(blockerStates.alertedAt),
+        lte(blockerStates.openedOn, query.openedOnOrBefore),
       ),
     )
-    .orderBy(asc(blockerStates.openedOn), asc(members.login), asc(blockerStates.text));
+    .orderBy(asc(blockerStates.openedOn), asc(members.login), asc(blockerStates.text))
+    .limit(query.limit);
   return rows.map((r) => ({ ...r.state, authorLogin: r.authorLogin }));
+}
+
+export async function markBlockerStateAlerted(
+  db: Db,
+  installationId: number,
+  id: string,
+  at: Date,
+): Promise<boolean> {
+  const rows = await db
+    .update(blockerStates)
+    .set({ alertedAt: at })
+    .where(
+      and(
+        eq(blockerStates.id, id),
+        eq(blockerStates.installationId, installationId),
+        isNull(blockerStates.alertedAt),
+      ),
+    )
+    .returning({ id: blockerStates.id });
+  return rows.length > 0;
 }

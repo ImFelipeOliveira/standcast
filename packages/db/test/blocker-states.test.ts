@@ -1,8 +1,11 @@
 import { describe, expect, test } from 'bun:test';
 import {
   getBlockerState,
+  listStaleBlockerStates,
+  markBlockerStateAlerted,
   setBlockerStateResolved,
   upsertBlockerState,
+  upsertDaily,
   upsertInstallation,
   upsertMember,
 } from '../src';
@@ -148,5 +151,102 @@ describe('blocker states', () => {
     expect(await getBlockerState(db, 200, row.id)).toBeNull();
     expect(await setBlockerStateResolved(db, 200, row.id, null)).toBe(false);
     expect((await getBlockerState(db, INST, row.id))?.resolvedAt).toBeNull();
+  });
+});
+
+describe('stale blocker states', () => {
+  const payload = { yesterday: [], today: [], blockers: [], support: [] };
+
+  async function open(memberId: string, blockerId: string, date: string, installationId = INST) {
+    await upsertDaily(db, {
+      installationId,
+      memberId,
+      date,
+      payload,
+      submittedAt: new Date(`${date}T12:00:00Z`),
+    });
+    return upsertBlockerState(db, {
+      installationId,
+      authorMemberId: memberId,
+      blockerId,
+      text: `blocker ${blockerId}`,
+      ref: null,
+      date,
+    });
+  }
+
+  const query = (authorMemberIds: string[], openedOnOrBefore = '2026-10-25', limit = 10) => ({
+    authorMemberIds,
+    openedOnOrBefore,
+    limit,
+  });
+
+  test('lists open, current and never alerted blockers opened on or before the cutoff', async () => {
+    const { ana, bob } = await seed();
+    const old = await open(ana.id, 'old', '2026-10-20');
+    await open(ana.id, 'old', '2026-10-28');
+    await open(bob.id, 'edge', '2026-10-25');
+    await open(bob.id, 'edge', '2026-10-26');
+    await open(bob.id, 'young', '2026-10-26');
+    const rows = await listStaleBlockerStates(db, INST, query([ana.id, bob.id]));
+    expect(rows.map((r) => [r.blockerId, r.authorLogin, r.openedOn])).toEqual([
+      ['old', 'Ana', '2026-10-20'],
+      ['edge', 'Bob', '2026-10-25'],
+    ]);
+    expect(rows[0]?.id).toBe(old.id);
+  });
+
+  test('skips resolved, alerted, no longer current and other authors or installations', async () => {
+    const { ana, bob } = await seed();
+    const resolved = await open(ana.id, 'resolved', '2026-10-20');
+    await setBlockerStateResolved(db, INST, resolved.id, {
+      at: new Date('2026-10-22T12:00:00Z'),
+      by: bob.id,
+      on: '2026-10-22',
+    });
+    const alerted = await open(ana.id, 'alerted', '2026-10-20');
+    expect(await markBlockerStateAlerted(db, INST, alerted.id, new Date())).toBe(true);
+    await open(bob.id, 'gone', '2026-10-20');
+    await upsertDaily(db, {
+      installationId: INST,
+      memberId: bob.id,
+      date: '2026-10-27',
+      payload,
+      submittedAt: new Date('2026-10-27T12:00:00Z'),
+    });
+    await open(ana.id, 'elsewhere', '2026-10-20', 200);
+    expect(await listStaleBlockerStates(db, INST, query([ana.id]))).toEqual([]);
+    expect(await listStaleBlockerStates(db, INST, query([bob.id]))).toEqual([]);
+    expect(await listStaleBlockerStates(db, INST, query([]))).toEqual([]);
+  });
+
+  test('is bounded by the limit, oldest first', async () => {
+    const { ana } = await seed();
+    await open(ana.id, 'a', '2026-10-20');
+    await open(ana.id, 'b', '2026-10-21');
+    await open(ana.id, 'a', '2026-10-21');
+    const rows = await listStaleBlockerStates(db, INST, query([ana.id], '2026-10-25', 1));
+    expect(rows.map((r) => r.blockerId)).toEqual(['a']);
+  });
+
+  test('marks a blocker alerted once and keeps it after a reopen', async () => {
+    const { ana, bob } = await seed();
+    const row = await open(ana.id, 'b1', '2026-10-20');
+    const at = new Date('2026-10-26T13:00:00Z');
+    expect(await markBlockerStateAlerted(db, 200, row.id, at)).toBe(false);
+    expect(await markBlockerStateAlerted(db, INST, row.id, at)).toBe(true);
+    expect(await markBlockerStateAlerted(db, INST, row.id, new Date())).toBe(false);
+    expect((await getBlockerState(db, INST, row.id))?.alertedAt?.toISOString()).toBe(
+      at.toISOString(),
+    );
+    await setBlockerStateResolved(db, INST, row.id, {
+      at: new Date('2026-10-27T12:00:00Z'),
+      by: bob.id,
+      on: '2026-10-27',
+    });
+    const reopened = await open(ana.id, 'b1', '2026-10-29');
+    expect(reopened.id).toBe(row.id);
+    expect(reopened.resolvedAt).toBeNull();
+    expect(reopened.alertedAt?.toISOString()).toBe(at.toISOString());
   });
 });

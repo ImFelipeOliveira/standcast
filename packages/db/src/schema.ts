@@ -147,7 +147,8 @@ export type DeliveryKind =
   | 'reminder'
   | 'blocker_route'
   | 'suggestion_dm'
-  | 'signal_scan';
+  | 'signal_scan'
+  | 'blocker_alert';
 
 export const deliveries = pgTable(
   'deliveries',
@@ -202,6 +203,7 @@ export const blockerStates = pgTable(
       onDelete: 'set null',
     }),
     resolvedOn: date('resolved_on', { mode: 'string' }),
+    alertedAt: timestamp('alerted_at', { withTimezone: true }),
   },
   (t) => [unique().on(t.installationId, t.authorMemberId, t.blockerId)],
 );
