@@ -54,7 +54,7 @@ export function FailedDeliveries({ status }: { status: SetupStatus }) {
       {teamFailures.length > 0 ? (
         <>
           <Subtitle>{t('setup.failed.teamMessages')}</Subtitle>
-          <Table className="text-[13px]">
+          <Table className="text-[13px]" label={t('setup.failed.teamMessages')}>
             <TableHeader>
               <TableRow>
                 <TableHead scope="col">{t('setup.failed.team')}</TableHead>
@@ -83,7 +83,7 @@ export function FailedDeliveries({ status }: { status: SetupStatus }) {
       {personFailures.length > 0 ? (
         <>
           <Subtitle>{t('setup.failed.directMessages')}</Subtitle>
-          <Table className="text-[13px]">
+          <Table className="text-[13px]" label={t('setup.failed.directMessages')}>
             <TableHeader>
               <TableRow>
                 <TableHead scope="col">{t('setup.failed.delivery')}</TableHead>

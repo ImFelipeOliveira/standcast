@@ -211,7 +211,7 @@ function Deliveries({
       {deliveries.length === 0 ? (
         <p className="m-0 text-[13px] text-muted">{t('setup.webhooks.noDeliveries')}</p>
       ) : (
-        <Table className="text-[13px]">
+        <Table className="text-[13px]" label={t('setup.webhooks.deliveriesTitle')}>
           <TableHeader>
             <TableRow>
               <TableHead scope="col">{t('setup.webhooks.createdAt')}</TableHead>

@@ -25,7 +25,7 @@ test('the account page sets theme and language for this browser', async ({ page,
   await signIn(context);
   await page.emulateMedia({ colorScheme: 'light' });
   await page.goto(`/orgs/${INSTALLATION_ID}/today?team=${TEAM_NAME}`);
-  await page.getByRole('button', { name: 'Menu da conta de alice' }).click();
+  await page.getByRole('button', { name: /^Menu da conta: alice/ }).click();
   await expect(page.getByRole('menuitem', { name: 'Read in English' })).toHaveCount(0);
   await page.getByRole('menuitem', { name: 'Conta' }).click();
   await expect(page).toHaveURL(`/orgs/${INSTALLATION_ID}/account`);

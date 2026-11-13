@@ -145,7 +145,7 @@ export function PeopleTab({ installationId }: { installationId: number }) {
           ))}
         </fieldset>
       </div>
-      <Card className="gap-0 overflow-x-auto p-0">
+      <Card className="gap-0 overflow-x-auto p-0" tabIndex={0} aria-label={t('people.title')}>
         <table
           aria-labelledby="people-links-title"
           className="w-full min-w-[680px] border-collapse text-[13px]"

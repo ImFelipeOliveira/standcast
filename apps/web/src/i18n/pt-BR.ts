@@ -16,7 +16,7 @@ export const ptBR = {
   'role.admin': 'admin',
   'role.manager': 'gestor',
   'role.member': 'membro',
-  'user.menu': 'Menu da conta de {login}',
+  'user.menu': 'Menu da conta',
   'user.account': 'Conta',
   'user.docs': 'Documentação',
   'user.signOut': 'Sair',
