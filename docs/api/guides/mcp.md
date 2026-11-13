@@ -6,25 +6,29 @@ The server uses the credentials saved by `standcast login`. Run it once before c
 
 ### Configure your client
 
-Claude Desktop (`claude_desktop_config.json`) and Cursor (`.cursor/mcp.json`):
+Add the server to your client's configuration: `claude_desktop_config.json` for Claude Desktop, `.cursor/mcp.json` for Cursor, `.vscode/mcp.json` for VS Code and `~/.codex/config.toml` for Codex.
 
-```json
+::: code-group
+
+```json [Claude Desktop]
 {"mcpServers":{"standcast":{"command":"standcast","args":["mcp"]}}}
 ```
 
-VS Code (`.vscode/mcp.json`):
+```json [Cursor]
+{"mcpServers":{"standcast":{"command":"standcast","args":["mcp"]}}}
+```
 
-```json
+```json [VS Code]
 {"servers":{"standcast":{"type":"stdio","command":"standcast","args":["mcp"]}}}
 ```
 
-Codex (`~/.codex/config.toml`):
-
-```toml
+```toml [Codex]
 [mcp_servers.standcast]
 command = "standcast"
 args = ["mcp"]
 ```
+
+:::
 
 Any other client: `{"command": "standcast", "args": ["mcp"]}`.
 

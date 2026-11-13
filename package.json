@@ -17,6 +17,7 @@
     "build:cli": "bun scripts/build-cli.ts",
     "docs:dev": "vitepress dev docs/site",
     "docs:build": "vitepress build docs/site",
+    "docs:og": "bun scripts/docs-og-render.ts",
     "check-docs": "bun scripts/check-docs.ts",
     "check-pins": "bun scripts/check-pins.ts",
     "check-deps": "bun scripts/check-deps.ts",
