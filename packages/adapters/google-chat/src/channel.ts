@@ -64,11 +64,17 @@ export function createGoogleChatChannel(
     const path = thread
       ? `${space}/messages?messageReplyOption=${REPLY_OPTION}`
       : `${space}/messages`;
-    const response = await call('POST', path, {
-      ...renderGoogleChat(msg, renderOptions),
+    const { cardsV2, ...rendered } = renderGoogleChat(msg, renderOptions);
+    const body = {
+      ...rendered,
       markupSyntax: 'MARKUP_SYNTAX_CHAT',
       ...(thread ? { thread: { name: thread } } : {}),
-    });
+    };
+    let response = await call('POST', path, cardsV2 ? { ...body, cardsV2 } : body);
+    if (cardsV2 && response.status === 400) {
+      await discard(response);
+      response = await call('POST', path, body);
+    }
     if (!response.ok) {
       await discard(response);
       throw statusError(response.status, overrides);

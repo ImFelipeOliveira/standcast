@@ -66,7 +66,7 @@ For local development, put `GOOGLE_CHAT_SERVICE_ACCOUNT` and `GOOGLE_CHAT_PROJEC
    - for an app built without the add-on mode, the authentication audience is **Project number**.
 3. Paste the code in the Google Chat card, set a test team with `provider: google-chat` and the space name, and send the app a direct message to link yourself.
 4. Let a digest post, and check that links, mentions and text with `<` show as expected in Google Chat.
-5. With a team member who is not linked, check that the digest ends with **Link my account**, and that a click by that person answers "You're linked" visible only to them.
+5. With a team member who is not linked, check that the digest ends with **Link my account**, and that a click by that person answers "You're linked" visible only to them. If the digest arrives without the button although `PUBLIC_URL` is set on the worker, Google rejected the card and Standcast posted the digest without it.
 
 ## Publish on the Google Workspace Marketplace
 

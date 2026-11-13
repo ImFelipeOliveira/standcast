@@ -92,6 +92,36 @@ describe('createGoogleChatChannel', () => {
     expect(withoutUrl.calls[0]?.body).toEqual({ text: 'hi', markupSyntax: 'MARKUP_SYNTAX_CHAT' });
   });
 
+  test('a digest is still posted without the button when google rejects the card', async () => {
+    const endpoint = 'https://api.test/webhooks/google-chat';
+    const { calls, channel } = fake(
+      (call) =>
+        (call.body as { cardsV2?: unknown }).cardsV2
+          ? googleError(400)
+          : Response.json({
+              name: 'spaces/AAA/messages/m1',
+              thread: { name: 'spaces/AAA/threads/t1' },
+            }),
+      { interactionUrl: endpoint },
+    );
+    const linking: Message = {
+      ...msg,
+      actions: [{ type: LINK_CHAT_ACCOUNT_ACTION, text: 'Link?', label: 'Link my account' }],
+    };
+    const ref = await channel.postToChannel('spaces/AAA', linking);
+    expect(ref).toEqual({ channel: 'spaces/AAA', id: 'spaces/AAA/threads/t1' });
+    expect(calls).toHaveLength(2);
+    expect(calls[1]?.body).toEqual({ text: 'hi', markupSyntax: 'MARKUP_SYNTAX_CHAT' });
+  });
+
+  test('a rejected message without a card is not posted again', async () => {
+    const { calls, channel } = fake(() => googleError(400), {
+      interactionUrl: 'https://api.test/webhooks/google-chat',
+    });
+    expect((await failure(() => channel.postToChannel('spaces/AAA', msg))).code).toBe('http_error');
+    expect(calls).toHaveLength(1);
+  });
+
   test('the chat endpoint is the webhook path of the public url', () => {
     expect(googleChatEndpoint('https://api.test/')).toBe('https://api.test/webhooks/google-chat');
   });
