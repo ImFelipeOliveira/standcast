@@ -1,6 +1,7 @@
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from '../api/queries';
+import { DESKTOP_QUERY, watchDesktop } from './desktop';
 import { NavDrawerContext } from './nav-drawer';
 import { Sidebar } from './Sidebar';
 import { SECTION_PATHS, sectionOf } from './sections';
@@ -17,6 +18,7 @@ export function AppShell({ installationId }: { installationId: number }) {
   useEffect(() => {
     if (href) setOpen(false);
   }, [href]);
+  useEffect(() => watchDesktop(window.matchMedia(DESKTOP_QUERY), () => setOpen(false)), []);
   useEffect(() => {
     if (open || !restoreFocusRef.current) return;
     restoreFocusRef.current = false;
