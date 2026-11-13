@@ -155,7 +155,7 @@ describe('blocker states', () => {
 });
 
 describe('stale blocker states', () => {
-  const payload = { yesterday: [], today: [], blockers: [], support: [] };
+  const payload = { org: 'acme', yesterday: [], today: [], blockers: [], support: [] };
 
   async function open(memberId: string, blockerId: string, date: string, installationId = INST) {
     await upsertDaily(db, {

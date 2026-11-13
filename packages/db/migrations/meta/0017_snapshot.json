@@ -93,12 +93,8 @@
           "name": "api_keys_installation_id_installations_id_fk",
           "tableFrom": "api_keys",
           "tableTo": "installations",
-          "columnsFrom": [
-            "installation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["installation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -106,12 +102,8 @@
           "name": "api_keys_created_by_members_id_fk",
           "tableFrom": "api_keys",
           "tableTo": "members",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -121,9 +113,7 @@
         "api_keys_secret_hash_unique": {
           "name": "api_keys_secret_hash_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "secret_hash"
-          ]
+          "columns": ["secret_hash"]
         }
       },
       "policies": {},
@@ -314,12 +304,8 @@
           "name": "blocker_states_installation_id_installations_id_fk",
           "tableFrom": "blocker_states",
           "tableTo": "installations",
-          "columnsFrom": [
-            "installation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["installation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -327,12 +313,8 @@
           "name": "blocker_states_author_member_id_members_id_fk",
           "tableFrom": "blocker_states",
           "tableTo": "members",
-          "columnsFrom": [
-            "author_member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["author_member_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -340,12 +322,8 @@
           "name": "blocker_states_resolved_by_member_id_members_id_fk",
           "tableFrom": "blocker_states",
           "tableTo": "members",
-          "columnsFrom": [
-            "resolved_by_member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["resolved_by_member_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -355,11 +333,7 @@
         "blocker_states_installation_id_author_member_id_blocker_id_unique": {
           "name": "blocker_states_installation_id_author_member_id_blocker_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "installation_id",
-            "author_member_id",
-            "blocker_id"
-          ]
+          "columns": ["installation_id", "author_member_id", "blocker_id"]
         }
       },
       "policies": {},
@@ -426,12 +400,8 @@
           "name": "connections_installation_id_installations_id_fk",
           "tableFrom": "connections",
           "tableTo": "installations",
-          "columnsFrom": [
-            "installation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["installation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -439,10 +409,7 @@
       "compositePrimaryKeys": {
         "connections_installation_id_provider_pk": {
           "name": "connections_installation_id_provider_pk",
-          "columns": [
-            "installation_id",
-            "provider"
-          ]
+          "columns": ["installation_id", "provider"]
         }
       },
       "uniqueConstraints": {},
@@ -505,12 +472,8 @@
           "name": "dailies_installation_id_installations_id_fk",
           "tableFrom": "dailies",
           "tableTo": "installations",
-          "columnsFrom": [
-            "installation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["installation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -518,12 +481,8 @@
           "name": "dailies_member_id_members_id_fk",
           "tableFrom": "dailies",
           "tableTo": "members",
-          "columnsFrom": [
-            "member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["member_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -533,11 +492,7 @@
         "dailies_installation_id_member_id_date_unique": {
           "name": "dailies_installation_id_member_id_date_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "installation_id",
-            "member_id",
-            "date"
-          ]
+          "columns": ["installation_id", "member_id", "date"]
         }
       },
       "policies": {},
@@ -625,12 +580,8 @@
           "name": "deliveries_installation_id_installations_id_fk",
           "tableFrom": "deliveries",
           "tableTo": "installations",
-          "columnsFrom": [
-            "installation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["installation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -640,13 +591,7 @@
         "deliveries_installation_id_team_name_date_kind_subject_unique": {
           "name": "deliveries_installation_id_team_name_date_kind_subject_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "installation_id",
-            "team_name",
-            "date",
-            "kind",
-            "subject"
-          ]
+          "columns": ["installation_id", "team_name", "date", "kind", "subject"]
         }
       },
       "policies": {},
@@ -738,12 +683,8 @@
           "name": "google_chat_spaces_installation_id_installations_id_fk",
           "tableFrom": "google_chat_spaces",
           "tableTo": "installations",
-          "columnsFrom": [
-            "installation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["installation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -871,12 +812,8 @@
           "name": "member_identities_installation_id_installations_id_fk",
           "tableFrom": "member_identities",
           "tableTo": "installations",
-          "columnsFrom": [
-            "installation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["installation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -884,12 +821,8 @@
           "name": "member_identities_member_id_members_id_fk",
           "tableFrom": "member_identities",
           "tableTo": "members",
-          "columnsFrom": [
-            "member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["member_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -897,11 +830,7 @@
       "compositePrimaryKeys": {
         "member_identities_installation_id_member_id_provider_pk": {
           "name": "member_identities_installation_id_member_id_provider_pk",
-          "columns": [
-            "installation_id",
-            "member_id",
-            "provider"
-          ]
+          "columns": ["installation_id", "member_id", "provider"]
         }
       },
       "uniqueConstraints": {},
@@ -932,12 +861,8 @@
           "name": "member_installations_member_id_members_id_fk",
           "tableFrom": "member_installations",
           "tableTo": "members",
-          "columnsFrom": [
-            "member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["member_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -945,12 +870,8 @@
           "name": "member_installations_installation_id_installations_id_fk",
           "tableFrom": "member_installations",
           "tableTo": "installations",
-          "columnsFrom": [
-            "installation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["installation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -958,10 +879,7 @@
       "compositePrimaryKeys": {
         "member_installations_member_id_installation_id_pk": {
           "name": "member_installations_member_id_installation_id_pk",
-          "columns": [
-            "member_id",
-            "installation_id"
-          ]
+          "columns": ["member_id", "installation_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1037,9 +955,7 @@
         "members_github_user_id_unique": {
           "name": "members_github_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "github_user_id"
-          ]
+          "columns": ["github_user_id"]
         }
       },
       "policies": {},
@@ -1091,10 +1007,7 @@
       "compositePrimaryKeys": {
         "rate_limits_key_window_start_pk": {
           "name": "rate_limits_key_window_start_pk",
-          "columns": [
-            "key",
-            "window_start"
-          ]
+          "columns": ["key", "window_start"]
         }
       },
       "uniqueConstraints": {},
@@ -1145,12 +1058,8 @@
           "name": "sessions_member_id_members_id_fk",
           "tableFrom": "sessions",
           "tableTo": "members",
-          "columnsFrom": [
-            "member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["member_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1235,12 +1144,8 @@
           "name": "suggestions_installation_id_installations_id_fk",
           "tableFrom": "suggestions",
           "tableTo": "installations",
-          "columnsFrom": [
-            "installation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["installation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1248,12 +1153,8 @@
           "name": "suggestions_member_id_members_id_fk",
           "tableFrom": "suggestions",
           "tableTo": "members",
-          "columnsFrom": [
-            "member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["member_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1263,11 +1164,7 @@
         "suggestions_installation_id_member_id_fingerprint_unique": {
           "name": "suggestions_installation_id_member_id_fingerprint_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "installation_id",
-            "member_id",
-            "fingerprint"
-          ]
+          "columns": ["installation_id", "member_id", "fingerprint"]
         }
       },
       "policies": {},
@@ -1393,12 +1290,8 @@
           "name": "webhook_deliveries_endpoint_id_webhook_endpoints_id_fk",
           "tableFrom": "webhook_deliveries",
           "tableTo": "webhook_endpoints",
-          "columnsFrom": [
-            "endpoint_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["endpoint_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1408,10 +1301,7 @@
         "webhook_deliveries_endpoint_id_event_id_unique": {
           "name": "webhook_deliveries_endpoint_id_event_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "endpoint_id",
-            "event_id"
-          ]
+          "columns": ["endpoint_id", "event_id"]
         }
       },
       "policies": {},
@@ -1503,12 +1393,8 @@
           "name": "webhook_endpoints_installation_id_installations_id_fk",
           "tableFrom": "webhook_endpoints",
           "tableTo": "installations",
-          "columnsFrom": [
-            "installation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["installation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

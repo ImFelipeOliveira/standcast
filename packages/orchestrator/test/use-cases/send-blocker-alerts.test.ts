@@ -224,9 +224,7 @@ describe('sendBlockerAlerts', () => {
     await sendBlockerAlerts(deps, job);
     expect(posted).toHaveLength(1);
     expect(posted[0]?.channel).toBe('spaces/AAAA');
-    const content = posted[0]?.msg.blocks.flatMap((b) =>
-      b.type === 'paragraph' ? b.content : [],
-    );
+    const content = posted[0]?.msg.blocks.flatMap((b) => (b.type === 'paragraph' ? b.content : []));
     expect(content).toContainEqual({ mention: 'users/42' });
     expect(posted[0]?.msg.fallbackText).toContain('Impedimento aberto há 5 dias · Alpha');
   });

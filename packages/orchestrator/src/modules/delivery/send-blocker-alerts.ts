@@ -96,7 +96,10 @@ async function routesOf(
   return routes;
 }
 
-export async function sendBlockerAlerts(deps: WorkerDeps, job: SendBlockerAlertsJob): Promise<void> {
+export async function sendBlockerAlerts(
+  deps: WorkerDeps,
+  job: SendBlockerAlertsJob,
+): Promise<void> {
   const installation = await getInstallation(deps.db, job.installationId);
   const config = operationalConfig(installation);
   if (!installation || !config) return;
