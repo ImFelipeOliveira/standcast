@@ -9,6 +9,7 @@ import {
   DomainError,
   logError,
   logoutWebSession,
+  readLoginState,
   startLinearConnect,
   startSlackConnect,
   startWebLogin,
@@ -147,14 +148,27 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
     return c.redirect(url);
   });
 
+  const appSignIn = (code: string, next: string | undefined) => {
+    const query = new URLSearchParams({ error: code });
+    if (next && next !== '/') query.set('next', next);
+    return `${deps.env.appUrl}/sign-in?${query}`;
+  };
+
   app.get('/auth/github/callback', async (c) => {
-    const { token, next, target } = await completeWebLogin(deps, {
+    const state = readLoginState(deps, c.req.query('state'));
+    const login = await completeWebLogin(deps, {
       code: c.req.query('code'),
       state: c.req.query('state'),
       nonce: getCookie(c, LOGIN_COOKIE),
       error: c.req.query('error'),
+    }).catch((error: unknown) => {
+      if (state?.target === 'api') throw error;
+      if (!(error instanceof DomainError)) logError('web login failed', error);
+      return { failed: error instanceof DomainError ? error.code : 'generic' };
     });
     deleteCookie(c, LOGIN_COOKIE, { path: LOGIN_COOKIE_PATH, secure: true });
+    if ('failed' in login) return c.redirect(appSignIn(login.failed, state?.next));
+    const { token, next, target } = login;
     setCookie(c, WEB_COOKIE, token, {
       httpOnly: true,
       secure: true,

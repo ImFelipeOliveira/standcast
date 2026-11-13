@@ -147,6 +147,7 @@ function harness(
         return '192.0.2.1';
       },
     }),
+    deps,
     linear,
     slackCalls,
     webCodes,
@@ -286,18 +287,57 @@ describe('web login', () => {
     expect(location(res)).toBe('/setup?installation_id=42');
   });
 
-  test('callback rejects a tampered state', async () => {
+  test('callback rejects a tampered state and sends the person to the app sign-in', async () => {
     const { app, webCodes } = harness();
     const { state, loginCookie } = await beginLogin(app);
     const res = await callback(app, `${state}x`, loginCookie);
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe('https://app.test/sign-in?error=invalid_state');
+    expect(res.headers.getSetCookie().some((c) => c.startsWith('sc_web='))).toBe(false);
     expect(webCodes).toEqual([]);
+  });
+
+  test('a failed app login goes back to the app sign-in with the code and next', async () => {
+    const { app, webCodes } = harness();
+    await seed();
+    const { state } = await beginLogin(app, '/orgs/11/hoje?team=core', 'app');
+    const res = await callback(app, state, 'sc_login=other');
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe(
+      `https://app.test/sign-in?error=invalid_state&next=${encodeURIComponent('/orgs/11/hoje?team=core')}`,
+    );
+    const cleared = res.headers.getSetCookie().find((c) => c.startsWith('sc_login=')) ?? '';
+    expect(cleared).toContain('Max-Age=0');
+    expect(webCodes).toEqual([]);
+  });
+
+  test('an unexpected failure on an app login goes back to the app sign-in as generic', async () => {
+    const { app, deps } = harness();
+    await seed();
+    deps.github.exchangeWebCode = async () => {
+      throw new Error('github is down');
+    };
+    const { state, loginCookie } = await beginLogin(app, '/orgs/11/hoje', 'app');
+    const res = await callback(app, state, loginCookie);
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe(
+      `https://app.test/sign-in?error=generic&next=${encodeURIComponent('/orgs/11/hoje')}`,
+    );
+  });
+
+  test('a failed login started by an api page keeps the error page', async () => {
+    const { app } = harness();
+    await seed();
+    const { state } = await beginLogin(app, '/connect/slack?installation_id=11');
+    const res = await callback(app, state, 'sc_login=other');
+    expect(res.status).toBe(400);
+    expect(await res.text()).toContain('<html');
   });
 
   test('callback rejects a valid state without its cookie or with a different one', async () => {
     const { app, webCodes } = harness();
     await seed();
-    const { state } = await beginLogin(app);
+    const { state } = await beginLogin(app, '/setup');
     const other = await beginLogin(app);
     for (const cookie of [undefined, other.loginCookie, 'sc_login=']) {
       const res = await callback(app, state, cookie);
@@ -307,15 +347,23 @@ describe('web login', () => {
     expect(webCodes).toEqual([]);
   });
 
-  test('callback with access_denied renders a friendly page', async () => {
+  test('callback with access_denied sends the person to the app sign-in', async () => {
     const { app } = harness();
-    const res = await app.request('/auth/github/callback?error=access_denied', {
-      headers: { 'accept-language': 'en' },
-    });
-    expect(res.status).toBe(403);
-    const html = await res.text();
-    expect(html).toContain('<html');
-    expect(html).toContain('Access was denied');
+    const { state } = await beginLogin(app, '/orgs/11/hoje', 'app');
+    const res = await app.request(
+      `/auth/github/callback?error=access_denied&state=${encodeURIComponent(state)}`,
+    );
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe(
+      `https://app.test/sign-in?error=access_denied&next=${encodeURIComponent('/orgs/11/hoje')}`,
+    );
+  });
+
+  test('callback with access_denied and no state still lands on the app sign-in', async () => {
+    const { app } = harness();
+    const res = await app.request('/auth/github/callback?error=access_denied');
+    expect(res.status).toBe(302);
+    expect(location(res)).toBe('https://app.test/sign-in?error=access_denied');
   });
 
   for (const next of [
