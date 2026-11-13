@@ -10,12 +10,16 @@ import {
   getOrgBlockers,
   getOrgContext,
   getSetupStatus,
+  getTeamDigest,
+  getTeamHistory,
+  getTeamShipped,
   getTeamsSummary,
   getTeamToday,
   linkGoogleChatSpace,
   logoutWebSession,
   remindNow,
   revokeInstallationApiKey,
+  searchTeamDailies,
   sendTestEvent,
   setBlockerResolved,
   unlinkGoogleChatSpace,
@@ -141,6 +145,51 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
         installationId: installationIdOf(c),
         team: c.req.param('team'),
       }),
+      200,
+    ),
+  );
+
+  const teamInput = (c: Context) => ({
+    installationId: installationIdOf(c),
+    team: c.req.param('team') ?? '',
+  });
+  const rangeInput = (c: Context) => {
+    const from = c.req.query('from');
+    const to = c.req.query('to');
+    return { ...(from ? { from } : {}), ...(to ? { to } : {}) };
+  };
+
+  app.get(`${ORG}/teams/:team/history/digests`, async (c) =>
+    c.json(
+      await getTeamHistory(deps, isMember, c.get('member'), { ...teamInput(c), ...rangeInput(c) }),
+      200,
+    ),
+  );
+
+  app.get(`${ORG}/teams/:team/history/digests/:date`, async (c) =>
+    c.json(
+      await getTeamDigest(deps, isMember, c.get('member'), {
+        ...teamInput(c),
+        date: c.req.param('date'),
+      }),
+      200,
+    ),
+  );
+
+  app.get(`${ORG}/teams/:team/history/search`, async (c) =>
+    c.json(
+      await searchTeamDailies(deps, isMember, c.get('member'), {
+        ...teamInput(c),
+        ...rangeInput(c),
+        q: c.req.query('q') ?? '',
+      }),
+      200,
+    ),
+  );
+
+  app.get(`${ORG}/teams/:team/history/shipped`, async (c) =>
+    c.json(
+      await getTeamShipped(deps, isMember, c.get('member'), { ...teamInput(c), ...rangeInput(c) }),
       200,
     ),
   );

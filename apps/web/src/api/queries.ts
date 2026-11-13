@@ -1,4 +1,13 @@
-import type { OrgBlockers, SetupStatus, TeamSummary, TeamToday } from '@standcast/orchestrator';
+import type {
+  OrgBlockers,
+  SearchResult,
+  SetupStatus,
+  TeamDigest,
+  TeamHistory,
+  TeamShipped,
+  TeamSummary,
+  TeamToday,
+} from '@standcast/orchestrator';
 import { QueryClient, queryOptions, useQuery } from '@tanstack/react-query';
 import { ApiError, apiGet, fetchSession, type OrgContext } from './client';
 
@@ -80,4 +89,72 @@ export function orgBlockersQuery(installationId: number, team?: string) {
 
 export function useOrgBlockers(installationId: number, team?: string) {
   return useQuery(orgBlockersQuery(installationId, team));
+}
+
+function historyPath(installationId: number, team: string): string {
+  return `/v1/app/orgs/${installationId}/teams/${encodeURIComponent(team)}/history`;
+}
+
+function rangeQuery(from?: string, to?: string): string {
+  const query = new URLSearchParams();
+  if (from) query.set('from', from);
+  if (to) query.set('to', to);
+  const value = query.toString();
+  return value ? `?${value}` : '';
+}
+
+export function teamHistoryQuery(installationId: number, team: string, from?: string, to?: string) {
+  return queryOptions({
+    queryKey: ['org', installationId, 'team', team, 'history', 'days', from ?? null, to ?? null],
+    queryFn: () =>
+      apiGet<TeamHistory>(`${historyPath(installationId, team)}/digests${rangeQuery(from, to)}`),
+  });
+}
+
+export function teamDigestQuery(installationId: number, team: string, date: string) {
+  return queryOptions({
+    queryKey: ['org', installationId, 'team', team, 'history', 'digest', date],
+    queryFn: () =>
+      apiGet<TeamDigest>(
+        `${historyPath(installationId, team)}/digests/${encodeURIComponent(date)}`,
+      ),
+  });
+}
+
+export function teamSearchQuery(
+  installationId: number,
+  team: string,
+  q: string,
+  from?: string,
+  to?: string,
+) {
+  return queryOptions({
+    queryKey: [
+      'org',
+      installationId,
+      'team',
+      team,
+      'history',
+      'search',
+      q,
+      from ?? null,
+      to ?? null,
+    ],
+    queryFn: () => {
+      const query = new URLSearchParams({ q });
+      if (from) query.set('from', from);
+      if (to) query.set('to', to);
+      return apiGet<{ results: SearchResult[] }>(
+        `${historyPath(installationId, team)}/search?${query}`,
+      );
+    },
+  });
+}
+
+export function teamShippedQuery(installationId: number, team: string, from?: string, to?: string) {
+  return queryOptions({
+    queryKey: ['org', installationId, 'team', team, 'history', 'shipped', from ?? null, to ?? null],
+    queryFn: () =>
+      apiGet<TeamShipped>(`${historyPath(installationId, team)}/shipped${rangeQuery(from, to)}`),
+  });
 }

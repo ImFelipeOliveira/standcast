@@ -5,11 +5,11 @@ import { Card } from '../components/ui/card';
 import { useT } from '../i18n';
 import { SectionHeader } from '../shell/SectionHeader';
 
-export function Loading() {
+export function Loading({ header = true }: { header?: boolean } = {}) {
   const t = useT();
   return (
     <>
-      <SectionHeader />
+      {header ? <SectionHeader /> : null}
       <p role="status" className="m-0 p-6 text-muted">
         {t('app.loading')}
       </p>

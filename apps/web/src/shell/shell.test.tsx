@@ -37,6 +37,7 @@ const backendToday: TeamToday = {
   team: { name: 'backend', timezone: 'UTC', remindAt: '09:00', digestAt: '10:00' },
   date: '2026-11-03',
   digest: { status: 'scheduled', sentAt: null },
+  chat: { provider: 'slack', url: null },
   canRemind: false,
   canResolve: false,
   people: [
@@ -105,7 +106,6 @@ describe('shell', () => {
     expect(current).toHaveLength(1);
     expect(current[0]).toContain('href="/orgs/11/history"');
     expect(html).toContain('Histórico');
-    expect(html).toContain('em breve');
     expect(html).toContain('gestor · backend');
   });
 

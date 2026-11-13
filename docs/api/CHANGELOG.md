@@ -6,6 +6,8 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 
 - `standcast.yml` accepts `signals.blocker_alert_days` on a team: an optional positive whole number of days. When it is absent, the stale blocker alert is off. Zero, negative, fractional and quoted values fail validation with `blocker_alert_days must be a whole number of days greater than 0`.
 - The errors guide lists `blocker_not_current` (409), returned only by the web app route that reopens a blocker when the author sent a later daily without it.
+- New web app routes for a team's history, readable by the team's members and managers and by admins: `GET /v1/app/orgs/:id/teams/:team/history/digests` (days with digest status, team counts and chat link; `from`, `to`, last 28 days by default), `GET .../history/digests/:date` (one day's digest), `GET .../history/search` (`q` of 2 to 100 characters, `from`, `to`, last 28 days by default, at most 100 results) and `GET .../history/shipped` (pull requests and cards, `from`, `to`, last 7 days by default). Ranges cover at most 92 days. They return `422 invalid_request` for a malformed date, `from` after `to`, a range over 92 days or a `q` outside 2 to 100 characters, `403 forbidden` for a team the person cannot read and `404 not_found` for an unknown team.
+- `GET /v1/app/orgs/:id/teams/:team/today` returns `chat: { provider, url }`. `url` is `null` until the day's digest is sent or when no link can be built.
 
 ## 0.9.4 — 2026-11-12
 
