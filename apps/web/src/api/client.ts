@@ -26,8 +26,17 @@ export class ApiError extends Error {
 let csrfToken: string | null = null;
 
 export const SIGN_IN_MARKER = 'standcast.signInRedirectAt';
-export const SIGN_IN_DID_NOT_STICK = 'sign_in_did_not_stick';
+export const SIGN_IN_PATH = '/sign-in';
 const SIGN_IN_LOOP_WINDOW_MS = 60_000;
+
+export const SIGN_IN_ERRORS = [
+  'access_denied',
+  'invalid_state',
+  'unauthorized',
+  'sign_in_did_not_stick',
+  'generic',
+] as const;
+export type SignInError = (typeof SIGN_IN_ERRORS)[number];
 
 export type RequestOptions = { skipAuthRedirect?: boolean };
 
@@ -55,7 +64,7 @@ function writeSignInMarker(at: number): void {
   } catch {}
 }
 
-function clearSignInMarker(): void {
+export function clearSignInMarker(): void {
   try {
     sessionStore()?.removeItem(SIGN_IN_MARKER);
   } catch {}
@@ -65,30 +74,50 @@ export function signInUrl(next: string): string {
   return `${apiUrl}/auth/github/login?target=app&next=${encodeURIComponent(next)}`;
 }
 
+export function safeNext(next: unknown): string {
+  if (typeof next !== 'string' || !next.startsWith('/')) return '/';
+  if (next.startsWith('//') || next.startsWith('/\\')) return '/';
+  if (
+    next === SIGN_IN_PATH ||
+    next.startsWith(`${SIGN_IN_PATH}?`) ||
+    next.startsWith(`${SIGN_IN_PATH}/`)
+  ) {
+    return '/';
+  }
+  return next;
+}
+
+export function signInPagePath(next: string, error?: SignInError): string {
+  const query = new URLSearchParams();
+  if (error) query.set('error', error);
+  const target = safeNext(next);
+  if (target !== '/') query.set('next', target);
+  const search = query.toString();
+  return search ? `${SIGN_IN_PATH}?${search}` : SIGN_IN_PATH;
+}
+
+export function markSignInStarted(): void {
+  writeSignInMarker(Date.now());
+}
+
 export function currentPathAndSearch(): string {
   if (typeof window === 'undefined') return '/';
   return `${window.location.pathname}${window.location.search}`;
 }
 
-export function redirectToSignIn(next: string): void {
-  window.location.assign(signInUrl(next));
-}
-
-export function retrySignIn(): void {
-  clearSignInMarker();
-  redirectToSignIn(currentPathAndSearch());
-}
-
-export function isSignInStuck(error: unknown): boolean {
-  return error instanceof ApiError && error.code === SIGN_IN_DID_NOT_STICK;
-}
-
-function signInLooping(): boolean {
-  const now = Date.now();
+function signInJustStarted(): boolean {
   const last = readSignInMarker();
-  if (last !== null && now - last >= 0 && now - last < SIGN_IN_LOOP_WINDOW_MS) return true;
-  writeSignInMarker(now);
-  return false;
+  const now = Date.now();
+  return last !== null && now - last >= 0 && now - last < SIGN_IN_LOOP_WINDOW_MS;
+}
+
+function redirectToSignInPage(): void {
+  if (typeof window === 'undefined' || window.location.pathname === SIGN_IN_PATH) return;
+  const stuck = signInJustStarted();
+  clearSignInMarker();
+  window.location.assign(
+    signInPagePath(currentPathAndSearch(), stuck ? 'sign_in_did_not_stick' : undefined),
+  );
 }
 
 async function toApiError(response: Response): Promise<ApiError> {
@@ -109,11 +138,7 @@ async function request<T>(path: string, init: RequestInit, options: RequestOptio
   const response = await fetch(`${apiUrl}${path}`, { ...init, credentials: 'include' });
   if (response.status === 401) {
     csrfToken = null;
-    if (options.skipAuthRedirect) throw await toApiError(response);
-    if (signInLooping()) {
-      throw new ApiError(401, SIGN_IN_DID_NOT_STICK, 'sign-in did not stick');
-    }
-    redirectToSignIn(currentPathAndSearch());
+    if (!options.skipAuthRedirect) redirectToSignInPage();
     throw await toApiError(response);
   }
   if (!response.ok) throw await toApiError(response);

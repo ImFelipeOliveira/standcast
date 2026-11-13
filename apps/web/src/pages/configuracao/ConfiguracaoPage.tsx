@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ApiError, isSignInStuck } from '../../api/client';
+import { ApiError } from '../../api/client';
 import type { CreatedApiKey, CreatedWebhook } from '../../api/mutations';
 import { useSetupStatus } from '../../api/queries';
 import { Badge } from '../../components/ui/badge';
@@ -7,7 +7,7 @@ import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { useLang, useT } from '../../i18n';
 import { docsUrl } from '../../lib/links';
-import { Loading, SignInStuck } from '../RouteStates';
+import { Loading } from '../RouteStates';
 import { ApiKeys } from './ApiKeys';
 import { ConfigFile } from './ConfigFile';
 import { Connections, setupProgress } from './Connections';
@@ -42,7 +42,6 @@ export function ConfiguracaoPage({
 
   if (setup.isPending) return <Loading />;
   if (setup.isError) {
-    if (isSignInStuck(setup.error)) return <SignInStuck />;
     if (setup.error instanceof ApiError && setup.error.status === 401) return <Loading />;
     return <LoadError onRetry={() => void setup.refetch()} />;
   }

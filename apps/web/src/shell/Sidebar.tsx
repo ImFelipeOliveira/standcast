@@ -14,19 +14,19 @@ import { ThemeToggle } from './ThemeToggle';
 import { UserMenu } from './UserMenu';
 
 const ICONS: Record<Section, ReactNode> = {
-  hoje: (
+  today: (
     <>
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
     </>
   ),
-  historico: (
+  history: (
     <>
       <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
       <path d="M3 3v5h5M12 7v5l3 2" />
     </>
   ),
-  configuracao: (
+  settings: (
     <>
       <path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" />
       <circle cx="16" cy="6" r="2" />
@@ -53,7 +53,7 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
   const t = useT();
   const context = useOrgContext(installationId);
   const teams = context.data ? teamsOf(context.data) : [];
-  const summary = useTeamsSummary(installationId, section === 'hoje' && teams.length > 0);
+  const summary = useTeamsSummary(installationId, section === 'today' && teams.length > 0);
   return (
     <aside className="box-border flex max-w-full flex-[1_1_232px] flex-col gap-6 border-border-strong border-b bg-surface px-4 py-5 text-text desk:sticky desk:top-0 desk:h-screen desk:flex-[0_0_248px] desk:self-start desk:overflow-y-auto desk:border-r desk:border-b-0">
       <div className="flex items-center gap-2.5 px-2">
@@ -110,11 +110,11 @@ export function Sidebar({ installations, installationId, section, team, onOrgCha
           <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
             {teams.map((name) => {
               const active = name === team;
-              const sent = section === 'hoje' ? sentOf(summary.data, name) : null;
+              const sent = section === 'today' ? sentOf(summary.data, name) : null;
               return (
                 <li key={name}>
                   <Link
-                    to="/orgs/$installationId/hoje"
+                    to="/orgs/$installationId/today"
                     params={{ installationId }}
                     search={{ team: name }}
                     aria-current={active ? 'page' : undefined}

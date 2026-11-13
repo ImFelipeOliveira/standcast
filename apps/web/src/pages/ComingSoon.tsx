@@ -20,7 +20,7 @@ export function ComingSoon({
         <h2 className="m-0 font-bold text-[17px]">{t('comingSoon.title', { section: title })}</h2>
         <p className="m-0 text-text2">{t('comingSoon.body')}</p>
         <Button asChild variant="outline">
-          <Link to="/orgs/$installationId/configuracao" params={{ installationId }}>
+          <Link to="/orgs/$installationId/settings" params={{ installationId }}>
             {t('comingSoon.cta')}
           </Link>
         </Button>
