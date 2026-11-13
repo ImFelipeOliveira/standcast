@@ -1,6 +1,6 @@
 # Google Workspace Marketplace listing
 
-Everything needed to publish the Standcast Google Chat app on the Google Workspace Marketplace as a public listing. Each field has the exact value to paste. The Chat app itself is set up as described in [Create the Google Chat app](../google-chat-app.md); this page covers what the Marketplace adds on top.
+Everything needed to publish the Standcast Google Chat app on the Google Workspace Marketplace as a public listing, plus the copy and images for the GitHub App on the [GitHub Marketplace](#github-marketplace). Each field has the exact value to paste. The Chat app itself is set up as described in [Create the Google Chat app](../google-chat-app.md); this page covers what the Marketplace adds on top.
 
 Google renames console labels from time to time. If a label below differs, use the closest one.
 
@@ -12,29 +12,51 @@ Before submitting:
 
 ## Assets
 
-The PNGs are rendered with `rsvg-convert` from the SVG sources in [brand/](brand/). The landing serves them from the same origin, so the CSP (`img-src 'self'`) is unchanged.
+Every image has an SVG source in [brand/](brand/) with its text outlined as paths, so it renders the same in a browser, on GitHub and in `rsvg-convert`, without fonts or network. The PNGs are rendered from those SVGs with `rsvg-convert`. The landing serves them from the same origin, so the CSP (`img-src 'self'`) is unchanged.
 
-| Asset | Size | File | Public URL |
-| --- | --- | --- | --- |
-| Icon | 32×32 | `apps/landing/public/brand/logo-32.png` | https://standcast.app/brand/logo-32.png |
-| Icon | 48×48 | `apps/landing/public/brand/logo-48.png` | https://standcast.app/brand/logo-48.png |
-| Icon | 96×96 | `apps/landing/public/brand/logo-96.png` | https://standcast.app/brand/logo-96.png |
-| Icon | 128×128 | `apps/landing/public/brand/logo-128.png` | https://standcast.app/brand/logo-128.png |
-| Chat app avatar | 256×256 | `apps/landing/public/brand/logo-256.png` | https://standcast.app/brand/logo-256.png |
-| Card banner | 220×140 | `apps/landing/public/brand/banner-220x140.png` | https://standcast.app/brand/banner-220x140.png |
-| Screenshot 1: landing hero | 1280×800 | `docs/marketplace/screenshots/1-landing-hero.png` | upload the file |
-| Screenshot 2: a day with Standcast | 1280×800 | `docs/marketplace/screenshots/2-how-it-works-digest.png` | upload the file |
-| Screenshot 3: the digest in Google Chat | 1280×800 | `docs/marketplace/screenshots/3-google-chat-digest.png` | upload the file |
+| Asset | Size | Source | File | Public URL |
+| --- | --- | --- | --- | --- |
+| Icon | 32×32 | `logo-square.svg` | `apps/landing/public/brand/logo-32.png` | https://standcast.app/brand/logo-32.png |
+| Icon | 48×48 | `logo-square.svg` | `apps/landing/public/brand/logo-48.png` | https://standcast.app/brand/logo-48.png |
+| Icon | 96×96 | `logo-square.svg` | `apps/landing/public/brand/logo-96.png` | https://standcast.app/brand/logo-96.png |
+| Icon | 128×128 | `logo-square.svg` | `apps/landing/public/brand/logo-128.png` | https://standcast.app/brand/logo-128.png |
+| Chat app avatar, safe in a circle | 256×256 | `logo-avatar.svg` | `apps/landing/public/brand/logo-256.png` | https://standcast.app/brand/logo-256.png |
+| Apple touch icon | 180×180 | `apple-touch-icon.svg` | `apps/landing/public/brand/apple-touch-icon-180.png` | https://standcast.app/brand/apple-touch-icon-180.png |
+| Favicon, light and dark | any | `favicon.svg` | `apps/landing/public/favicon.svg` | https://standcast.app/favicon.svg |
+| Favicon | 32×32 | `favicon.svg` | `apps/landing/public/brand/favicon-32.png` | https://standcast.app/brand/favicon-32.png |
+| Favicon, pixel drawn | 16×16 | `favicon-16.svg` | `apps/landing/public/brand/favicon-16.png` | https://standcast.app/brand/favicon-16.png |
+| Card banner | 220×140 | `banner.svg` | `apps/landing/public/brand/banner-220x140.png` | https://standcast.app/brand/banner-220x140.png |
+| GitHub Marketplace logo, white bars on transparent | 512×512 | `github-marketplace-logo.svg` | `apps/landing/public/brand/github-marketplace-logo-512.png` | upload the file |
+| GitHub Marketplace feature card | 965×482 | `feature-card.svg` | `apps/landing/public/brand/feature-card-965x482.png` | upload the file |
+| GitHub social preview | 1280×640 | `social-preview.svg` | `apps/landing/public/brand/social-preview-1280x640.png` | upload the file in **Settings > Social preview** |
+| Landing OG image, pt-BR | 1200×630 | `og-landing.svg` | `apps/landing/public/brand/og-landing-1200x630.png` | https://standcast.app/brand/og-landing-1200x630.png |
+| Landing OG image, en | 1200×630 | `og-landing-en.svg` | `apps/landing/public/brand/og-landing-en-1200x630.png` | https://standcast.app/brand/og-landing-en-1200x630.png |
+| Docs OG image template | 1200×630 | `og-docs.svg` | none yet | none yet |
+| README banner, light and dark | 1600×400 | `readme-light.svg`, `readme-dark.svg` | used as SVG by the README | none |
+| Screenshot 1: your daily, drafted from yesterday's GitHub work | 1280×800 | `mock/1-draft-in-agent.html` | `docs/marketplace/screenshots/1-draft-in-agent.png` | upload the file |
+| Screenshot 2: one digest per team, delivered to Slack | 1280×800 | `mock/2-digest-in-slack.html` | `docs/marketplace/screenshots/2-digest-in-slack.png` | upload the file |
+| Screenshot 3: the same digest in Google Chat | 1280×800 | `mock/3-digest-in-google-chat.html` | `docs/marketplace/screenshots/3-digest-in-google-chat.png` | upload the file |
+| Screenshot 4: blockers reach the people who can help | 1280×800 | `mock/4-blocker-routing.html` | `docs/marketplace/screenshots/4-blocker-routing.png` | upload the file |
+| Screenshot 5: your team's day and blockers in one panel (History is coming soon) | 1280×800 | `mock/5-team-panel.html` | `docs/marketplace/screenshots/5-team-panel.png` | upload the file |
 
-Screenshot 3 is a mock ([mock/google-chat-digest.html](mock/google-chat-digest.html)) whose message text is the real output of `buildDigest` (`packages/core/src/digest.ts`) rendered by `renderGoogleChat` (`packages/adapters/google-chat/src/render.ts`) for a fake team (ana, bruno, carla, with diego missing). Upload the screenshots in this order.
+The screenshots are mocks with example teams and names, without a browser frame. Upload them in this order, to both marketplaces. The landing still uses `og.png` (source `brand/og.svg`) until the new landing ships.
 
-To change the logo, edit `brand/logo-square.svg` and render again:
+### Changing an image
+
+- **Icons and favicons** have no text. Edit the SVG in [brand/](brand/) by hand.
+- **Images with text** are built from the HTML artboards in [brand/html/](brand/html/), which load Inter, JetBrains Mono and Saira from `apps/web/public/fonts`. Edit the artboard, never the generated SVG.
+- **Screenshots** are the HTML mocks in [mock/](mock/).
+
+Then render everything again. The script needs Playwright's Chromium (`bunx playwright install chromium`), `pdftocairo` and `rsvg-convert` (`brew install poppler librsvg`):
 
 ```sh
-for n in 32 48 96 128 256; do
-  rsvg-convert -w $n -h $n docs/marketplace/brand/logo-square.svg -o apps/landing/public/brand/logo-$n.png
-done
-rsvg-convert -w 220 -h 140 docs/marketplace/brand/banner.svg -o apps/landing/public/brand/banner-220x140.png
+bun scripts/brand/build.ts
+```
+
+It writes each artboard as an outlined SVG in `docs/marketplace/brand/`, renders the PNGs with `rsvg-convert`, takes the screenshots with Playwright, and copies `favicon.svg` and `logo-96.png` (as `favicon.png`) to the landing. `bun test scripts/brand-assets.test.ts` checks every size. To render one icon by hand:
+
+```sh
+rsvg-convert -w 128 -h 128 docs/marketplace/brand/logo-square.svg -o apps/landing/public/brand/logo-128.png
 ```
 
 ## Chat API configuration
@@ -104,7 +126,7 @@ rsvg-convert -w 220 -h 140 docs/marketplace/brand/banner.svg -o apps/landing/pub
 | Pricing | **Free** |
 | Application icon | `logo-128.png` and `logo-32.png` from the table above |
 | Application card banner | `banner-220x140.png` |
-| Screenshots | The three screenshots, in order |
+| Screenshots | The five screenshots, in order |
 | YouTube video URL | Leave empty |
 | Terms of service URL | `https://standcast.app/terms/` |
 | Privacy policy URL | `https://standcast.app/privacy/` |
@@ -129,7 +151,7 @@ How to start:
 1. Install the Standcast GitHub App on your GitHub organization and add a standcast.yml.
 2. Add the Standcast app to a Google Chat™ space. It posts a link code.
 3. An admin pastes the code in Standcast and sets the space in standcast.yml.
-4. Each person sends the app a direct message once to link their account.
+4. Each person links their account once: with the Link my account button under the digest, or by sending the app a direct message.
 
 Standcast is open source (MIT) and free during the public beta. No productivity metrics, no rankings: suggested blockers stay private to each person until they confirm them.
 
@@ -186,7 +208,61 @@ Privacy: https://standcast.app/privacy/ and https://docs.standcast.app/privacy
 Terms: https://standcast.app/terms/
 ```
 
+## GitHub Marketplace
+
+Copy and images for listing the Standcast GitHub App on the GitHub Marketplace (**GitHub App settings > Marketplace listing**), in English. The lengths are counted against GitHub's limits.
+
+| Field | Value |
+| --- | --- |
+| Logo | `github-marketplace-logo-512.png` from the table above: white bars on a transparent background |
+| Badge background color | `#3B4BC8` |
+| Feature card | `feature-card-965x482.png` |
+| Screenshots | The five screenshots, in order, with the captions in the asset table |
+| Category | **Project management**, and **Code review** if a second one is allowed |
+| Pricing | **Free** |
+| Support | `support@standcast.app` |
+| Privacy policy | `https://standcast.app/privacy/` |
+| Terms of service | `https://standcast.app/terms/` |
+| Documentation | `https://docs.standcast.app/` |
+
+### Very short description
+
+65 characters (40 to 80).
+
+```text
+Daily standups drafted from GitHub and posted to your team's chat
+```
+
+### Introductory description
+
+181 characters (150 to 250).
+
+```text
+Standcast drafts each person's daily standup from their GitHub and Linear activity inside Claude Code, Cursor or the terminal, and posts one digest per team to Slack or Google Chat.
+```
+
+### Detailed description (GitHub)
+
+949 characters (up to 1,000). GitHub renders it as Markdown.
+
+```text
+### Drafted from real work
+Pull requests opened, merged and reviewed, commits per repository and Linear cards that moved. Run /daily, edit, confirm.
+
+### Blockers reach people who can help
+A blocker linked to a pull request goes to its reviewers, then CODEOWNERS, then the team's managers.
+
+### Nothing is sent without you
+The MCP submit tool requires confirmed: true, which the agent only passes after you approve the text.
+
+### Configuration as code
+Teams, schedules, chat channels and managers live in standcast.yml in your .github-private (or .github) repository, validated on every push.
+
+### Built for teams, not surveillance
+No productivity metrics, no rankings, no commit counts. It reads pull request, review, check and commit metadata, team membership, and two files: standcast.yml and CODEOWNERS. It never reads your source code, and its only write is its own Standcast config check run. Open source (MIT) and free during the public beta.
+```
+
 ## After approval
 
 - Update the [admin guide](../site/admin/google-chat.md) and its pt-BR page: the Availability section still says the Marketplace listing is coming.
-- Add the Marketplace link to the landing and the README.
+- Add the Marketplace links to the landing and the README (the README links the GitHub App until then).

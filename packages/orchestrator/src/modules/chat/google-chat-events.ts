@@ -2,6 +2,7 @@ import {
   GOOGLE_CHAT_SPACE,
   GOOGLE_CHAT_USER_ID,
   type Language,
+  LINK_CHAT_ACCOUNT_ACTION,
   type MessageKey,
   type StandcastConfig,
   t,
@@ -33,9 +34,10 @@ export type GoogleChatEvent = {
     singleUserBotDm?: boolean;
   };
   user?: { name: string; email?: string };
+  action?: string;
 };
 
-export type GoogleChatReply = { text: string };
+export type GoogleChatReply = { text: string; privateTo?: string };
 
 type EventDeps = Pick<Deps, 'db' | 'now'>;
 
@@ -191,6 +193,19 @@ async function linkIdentities(
   return reply(language, 'googleChat.linked', { logins: linked.join(', ') });
 }
 
+async function linkFromSpace(
+  deps: EventDeps,
+  user: GoogleChatEvent['user'],
+): Promise<GoogleChatReply | null> {
+  if (!user || !GOOGLE_CHAT_USER_ID.test(user.name)) return null;
+  return { ...(await linkIdentities(deps, user)), privateTo: user.name };
+}
+
+function asksToLink(event: GoogleChatEvent): boolean {
+  if (event.type === 'MESSAGE') return true;
+  return event.type === 'CARD_CLICKED' && event.action === LINK_CHAT_ACCOUNT_ACTION;
+}
+
 export async function handleGoogleChatEvent(
   deps: EventDeps,
   event: GoogleChatEvent,
@@ -203,5 +218,6 @@ export async function handleGoogleChatEvent(
     return linkIdentities(deps, event.user);
   }
   if (event.type === 'ADDED_TO_SPACE') return issueLinkCode(deps, space);
+  if (asksToLink(event)) return linkFromSpace(deps, event.user);
   return null;
 }

@@ -1,13 +1,20 @@
 import { describe, expect, test } from 'bun:test';
-import { ChatDeliveryError, type Message } from '@standcast/core';
-import { createGoogleChatChannel, GOOGLE_CHAT_REQUEST_TIMEOUT_MS } from '../src';
+import { ChatDeliveryError, LINK_CHAT_ACCOUNT_ACTION, type Message } from '@standcast/core';
+import {
+  createGoogleChatChannel,
+  GOOGLE_CHAT_REQUEST_TIMEOUT_MS,
+  googleChatEndpoint,
+} from '../src';
 
 type Call = { method: string; url: string; headers: Headers; body: unknown; signal?: AbortSignal };
 
 const API = 'https://chat.test';
 const msg: Message = { fallbackText: 'fb', blocks: [{ type: 'paragraph', content: ['hi'] }] };
 
-function fake(handler: (call: Call) => Response | Promise<Response>) {
+function fake(
+  handler: (call: Call) => Response | Promise<Response>,
+  options: { interactionUrl?: string } = {},
+) {
   const calls: Call[] = [];
   const fetchImpl = (async (url: RequestInfo | URL, init?: RequestInit) => {
     const call: Call = {
@@ -23,6 +30,7 @@ function fake(handler: (call: Call) => Response | Promise<Response>) {
   const channel = createGoogleChatChannel(async () => 'ya29.token', {
     apiUrl: API,
     fetch: fetchImpl,
+    ...options,
   });
   return { calls, channel };
 }
@@ -64,6 +72,58 @@ describe('createGoogleChatChannel', () => {
     expect(calls[0]?.body).toEqual({ text: 'hi', markupSyntax: 'MARKUP_SYNTAX_CHAT' });
     expect(calls[0]?.signal).toBeInstanceOf(AbortSignal);
     expect(GOOGLE_CHAT_REQUEST_TIMEOUT_MS).toBe(15_000);
+  });
+
+  test('a message with the link action posts the card button when the endpoint is known', async () => {
+    const created = () =>
+      Response.json({ name: 'spaces/AAA/messages/m1', thread: { name: 'spaces/AAA/threads/t1' } });
+    const linking: Message = {
+      ...msg,
+      actions: [{ type: LINK_CHAT_ACCOUNT_ACTION, text: 'Link?', label: 'Link my account' }],
+    };
+    const endpoint = 'https://api.test/webhooks/google-chat';
+    const withUrl = fake(created, { interactionUrl: endpoint });
+    await withUrl.channel.postToChannel('spaces/AAA', linking);
+    const body = withUrl.calls[0]?.body as { text: string; cardsV2: unknown[] };
+    expect(body.text).toBe('hi');
+    expect(JSON.stringify(body.cardsV2)).toContain(endpoint);
+    const withoutUrl = fake(created);
+    await withoutUrl.channel.postToChannel('spaces/AAA', linking);
+    expect(withoutUrl.calls[0]?.body).toEqual({ text: 'hi', markupSyntax: 'MARKUP_SYNTAX_CHAT' });
+  });
+
+  test('a digest is still posted without the button when google rejects the card', async () => {
+    const endpoint = 'https://api.test/webhooks/google-chat';
+    const { calls, channel } = fake(
+      (call) =>
+        (call.body as { cardsV2?: unknown }).cardsV2
+          ? googleError(400)
+          : Response.json({
+              name: 'spaces/AAA/messages/m1',
+              thread: { name: 'spaces/AAA/threads/t1' },
+            }),
+      { interactionUrl: endpoint },
+    );
+    const linking: Message = {
+      ...msg,
+      actions: [{ type: LINK_CHAT_ACCOUNT_ACTION, text: 'Link?', label: 'Link my account' }],
+    };
+    const ref = await channel.postToChannel('spaces/AAA', linking);
+    expect(ref).toEqual({ channel: 'spaces/AAA', id: 'spaces/AAA/threads/t1' });
+    expect(calls).toHaveLength(2);
+    expect(calls[1]?.body).toEqual({ text: 'hi', markupSyntax: 'MARKUP_SYNTAX_CHAT' });
+  });
+
+  test('a rejected message without a card is not posted again', async () => {
+    const { calls, channel } = fake(() => googleError(400), {
+      interactionUrl: 'https://api.test/webhooks/google-chat',
+    });
+    expect((await failure(() => channel.postToChannel('spaces/AAA', msg))).code).toBe('http_error');
+    expect(calls).toHaveLength(1);
+  });
+
+  test('the chat endpoint is the webhook path of the public url', () => {
+    expect(googleChatEndpoint('https://api.test/')).toBe('https://api.test/webhooks/google-chat');
   });
 
   test('reply uses the thread and fallback option', async () => {

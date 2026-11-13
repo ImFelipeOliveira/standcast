@@ -4,6 +4,8 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 
 ## Unreleased
 
+- `standcast.yml` accepts `signals.blocker_alert_days` on a team: an optional positive whole number of days. When it is absent, the stale blocker alert is off. Zero, negative, fractional and quoted values fail validation with `blocker_alert_days must be a whole number of days greater than 0`.
+
 ## 0.9.4 — 2026-11-12
 
 - No public API changes.

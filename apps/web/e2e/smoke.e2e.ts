@@ -133,3 +133,18 @@ test('admins type the team in the standcast.yml editor and see it validated', as
 
   await expect(page.getByRole('status').filter({ hasText: 'Válido' })).toBeVisible();
 });
+
+test('widening past the desk breakpoint closes the phone drawer and frees the page', async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`/orgs/${INSTALLATION_ID}/today?team=${TEAM_NAME}`);
+  await page.getByRole('button', { name: 'Abrir menu' }).click();
+  await expect(page.getByRole('dialog', { name: 'Menu' })).toBeVisible();
+  await expect(page.locator('main')).toHaveAttribute('inert', '');
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await expect(page.locator('main')).not.toHaveAttribute('inert', /.*/);
+  await expect(page.getByRole('dialog', { name: 'Menu' })).toHaveCount(0);
+});

@@ -75,6 +75,7 @@ const loginOrTeam = (field: string) =>
 
 const BLOCKER_ALERT_DAYS_MESSAGE =
   'blocker_alert_days must be a whole number of days greater than 0';
+
 const blockerAlertDays = z
   .number({ error: BLOCKER_ALERT_DAYS_MESSAGE })
   .int(BLOCKER_ALERT_DAYS_MESSAGE)
@@ -198,11 +199,11 @@ function toConfig(raw: RawConfig): StandcastConfig {
           prReviewHours: t.signals.pr_review_hours,
           cardStaleDays: t.signals.card_stale_days,
           directMessage: t.signals.direct_message,
-          ...(t.signals.blocker_alert_days === undefined
-            ? {}
-            : { blockerAlertDays: t.signals.blocker_alert_days }),
         },
       };
+      if (t.signals.blocker_alert_days !== undefined) {
+        team.signals.blockerAlertDays = t.signals.blocker_alert_days;
+      }
       if (t.tracker) team.tracker = t.tracker;
       return team;
     }),

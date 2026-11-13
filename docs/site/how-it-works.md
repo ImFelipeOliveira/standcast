@@ -75,6 +75,27 @@ Rules:
 
 Blockers also appear at the top of the digest, in the `blocker.opened` webhook and in the manager tools.
 
+## Stale blocker alert
+
+A team can ask Standcast to speak up when a blocker stays open too long. Set [`signals.blocker_alert_days`](/admin/configuration#signals) on the team, for example `5`. Without it, nothing is sent.
+
+On each workday, once that day's digest is posted, Standcast looks at the team's open blockers. A blocker counts when it is still in its author's latest daily, nobody marked it as resolved, and at least that many days passed since the day it was first reported. For each one, Standcast posts one message in the team's channel or space, the same place as the digest, with:
+
+- a mention of the team's managers (at most 20, in login order), using their Slack or Google Chat identity when Standcast knows it;
+- the blocker text and its link;
+- how many days it has been open and who reported it;
+- who it was routed to, when it was [routed](#blocker-routing) to someone.
+
+Rules:
+
+- Each blocker is alerted once per team. It is not alerted again on the next days, after it leaves the daily and comes back, or after it is marked as resolved and comes back. A blocker with a different link, or with a different text when it has no link, is a different blocker and can be alerted.
+- When the person who reported the blocker is in more than one team with the alert on, each of those teams gets its own message, once.
+- At most 10 blockers per team per day, oldest first. The others go out on the next workday.
+- Nothing is sent when the team has no managers Standcast can find, for example when its managers are a GitHub team with no members.
+- If the digest of the day is not posted, the alert waits for the next workday.
+
+The alert is about the blocker, to get it unstuck. It never counts blockers per person or compares people.
+
 ## Support requests
 
 A support request is something you need from someone else without being blocked: a review, a decision, a pairing session. It is an optional section of the daily, asked for right after the blockers, and it goes exactly as you wrote it.
