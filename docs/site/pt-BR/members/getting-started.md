@@ -16,7 +16,7 @@ Baixe o binário do seu sistema na [última release](https://github.com/ImFelipe
 | Linux, ARM64 | `standcast-bun-linux-arm64` |
 | Windows, x64 | `standcast-bun-windows-x64.exe` |
 
-No macOS ou no Linux, o script de instalação baixa o binário certo, confere com o arquivo `SHA256SUMS` da release e instala em `~/.local/bin/standcast`. Para instalar à mão, baixe o binário e o `SHA256SUMS`, confira o hash do binário e coloque no `PATH` com o nome `standcast`; a aba manual mostra como fazer num Mac com Apple silicon e não instala nada se o hash não bater. No Linux, use `sha256sum -c` no lugar de `shasum -a 256 -c`.
+No macOS ou no Linux, o script de instalação baixa o binário certo, confere com o arquivo `SHA256SUMS` da release e instala em `~/.local/bin/standcast`. Para instalar à mão, baixe o binário e o `SHA256SUMS`, confira o hash do binário e coloque no `PATH` com o nome `standcast`; a aba manual mostra como fazer num Mac com Apple silicon e não instala nada se o hash não bater. No Linux, use `sha256sum -c` no lugar de `shasum -a 256 -c`. A linha `export` coloca `~/.local/bin` no `PATH` só no terminal atual; coloque essa linha no `~/.zshrc`, `~/.bashrc` ou `~/.profile` para mantê-la.
 
 ::: code-group
 
@@ -26,6 +26,7 @@ curl -fsSL https://standcast.app/install.sh | sh
 
 ```bash [Manual, Mac com Apple silicon]
 mkdir -p ~/.local/bin
+export PATH="$HOME/.local/bin:$PATH"
 cd "$(mktemp -d)"
 curl -fsSLO https://github.com/ImFelipeOliveira/standcast/releases/latest/download/standcast-bun-darwin-arm64
 curl -fsSLO https://github.com/ImFelipeOliveira/standcast/releases/latest/download/SHA256SUMS
