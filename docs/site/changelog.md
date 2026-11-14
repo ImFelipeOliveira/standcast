@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+### 0.11.0 — 2026-11-14
+
 - Google Chat links you when your Google email is any verified email of your GitHub account, not only the primary one. Emails other than the primary one count for 30 days after you run `standcast login` or sign in to the web app, so sign in again, then message the app. See [Google Chat](/admin/google-chat).
 
 ### 0.10.0 — 2026-11-13
