@@ -134,6 +134,8 @@ describe.each(implementations)('JobQueue (%s)', (_label, make) => {
 
   test('stately dedupes queued jobs with the same key', async () => {
     let calls = 0;
+    await h.queue.enqueue('stately-queued', {}, { singletonKey: 'K', policy: 'stately' });
+    await h.queue.enqueue('stately-queued', {}, { singletonKey: 'K', policy: 'stately' });
     await h.queue.work(
       'stately-queued',
       async () => {
@@ -141,8 +143,6 @@ describe.each(implementations)('JobQueue (%s)', (_label, make) => {
       },
       { policies: ['stately'] },
     );
-    await h.queue.enqueue('stately-queued', {}, { singletonKey: 'K', policy: 'stately' });
-    await h.queue.enqueue('stately-queued', {}, { singletonKey: 'K', policy: 'stately' });
     await h.settle(() => calls >= 1);
     expect(calls).toBe(1);
   });
