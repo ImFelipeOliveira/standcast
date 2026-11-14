@@ -15,7 +15,7 @@ import {
   upsertDaily,
   upsertMember,
 } from '@standcast/db';
-import { googleChatSpaces, memberIdentities } from '../../../db/src/schema';
+import { googleChatSpaces, memberIdentities, members } from '../../../db/src/schema';
 import { db, useCleanDb } from '../../../db/test/setup';
 import {
   chatUserIdFor,
@@ -524,6 +524,67 @@ describe('handleGoogleChatEvent in a direct message', () => {
     const missing = await handleGoogleChatEvent(deps, dm(undefined));
     expect(missing?.text).toContain('No Standcast account uses this email');
     expect(missing?.text).not.toContain('users/123');
+  });
+
+  test('a verified email that is not the primary one links the member', async () => {
+    const { deps } = await setup();
+    await upsertMember(db, {
+      githubUserId: 1,
+      login: 'Alice',
+      email: 'alice@personal.dev',
+      verifiedEmails: ['alice@personal.dev', 'Alice@Acme.com'],
+    });
+    await bindElsewhere('spaces/AAAA', INST);
+    const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
+    expect(reply).toEqual({ text: "You're linked, @Alice." });
+    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
+  });
+
+  test('an email the member does not have links nobody, even with other verified emails', async () => {
+    const { deps } = await setup();
+    await upsertMember(db, {
+      githubUserId: 1,
+      login: 'Alice',
+      email: 'alice@personal.dev',
+      verifiedEmails: ['alice@personal.dev'],
+    });
+    await bindElsewhere('spaces/AAAA', INST);
+    const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
+    expect(reply?.text).toContain('No Standcast account uses this email');
+    expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
+  });
+
+  test('a secondary email from a sign-in over 30 days ago links nobody', async () => {
+    const { deps } = await setup();
+    await upsertMember(db, {
+      githubUserId: 1,
+      login: 'Alice',
+      email: 'alice@personal.dev',
+      verifiedEmails: ['alice@personal.dev', 'alice@acme.com'],
+    });
+    await db
+      .update(members)
+      .set({ verifiedEmailsSyncedAt: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000) });
+    await bindElsewhere('spaces/AAAA', INST);
+    const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
+    expect(reply?.text).toContain('No Standcast account uses this email');
+    expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
+  });
+
+  test('a verified email shared with another account links nobody', async () => {
+    const { deps, member } = await setup();
+    const twin = await upsertMember(db, {
+      githubUserId: 2,
+      login: 'bob',
+      email: 'bob@acme.com',
+      verifiedEmails: ['bob@acme.com', 'alice@acme.com'],
+    });
+    await setMemberInstallations(db, twin.id, [INST]);
+    await bindElsewhere('spaces/AAAA', INST);
+    await setIdentity(db, INST, member.id, 'google-chat', 'users/555');
+    const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
+    expect(reply?.text).toContain('more than one GitHub account');
+    expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
   });
 
   test('an email shared by two accounts links nobody and quarantines their links', async () => {

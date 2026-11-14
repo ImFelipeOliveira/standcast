@@ -16,6 +16,7 @@ describe('getUserProfile', () => {
       githubUserId: 42,
       login: 'alice',
       email: 'alice@acme.com',
+      verifiedEmails: ['old@x.com', 'alice@acme.com'],
       installationIds: [1, 2, 3],
     });
     expect(calls.length).toBe(3);
@@ -27,8 +28,72 @@ describe('getUserProfile', () => {
     expect(profile.installationIds).toEqual([1, 3]);
   });
 
+  test('reads every page of emails', async () => {
+    const firstPage = Array.from({ length: 100 }, (_, i) => ({
+      email: `alias${i}@x.com`,
+      primary: false,
+      verified: false,
+    }));
+    const secondPage = [{ email: 'work@acme.com', primary: false, verified: true }];
+    const { fetch } = fakeFetch({
+      ...routes,
+      'GET /user/emails': (url) => ({
+        body: JSON.stringify(url.searchParams.get('page') === '2' ? secondPage : firstPage),
+      }),
+    });
+    expect((await getUserProfile('ghu_token', { fetch })).verifiedEmails).toEqual([
+      'work@acme.com',
+    ]);
+  });
+
+  test('every email page request carries a timeout signal', async () => {
+    const firstPage = Array.from({ length: 100 }, (_, i) => ({
+      email: `alias${i}@x.com`,
+      primary: false,
+      verified: false,
+    }));
+    const signals: (AbortSignal | undefined)[] = [];
+    const fake = fakeFetch({
+      ...routes,
+      'GET /user/emails': (url) => ({
+        body: JSON.stringify(url.searchParams.get('page') === '2' ? [] : firstPage),
+      }),
+    });
+    const recording = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : String(input));
+      if (url.pathname === '/user/emails') {
+        signals.push(init?.signal ?? (input instanceof Request ? input.signal : undefined));
+      }
+      return fake.fetch(input, init);
+    }) as typeof fetch;
+    await getUserProfile('ghu_token', { fetch: recording });
+    expect(signals).toHaveLength(2);
+    for (const signal of signals) {
+      expect(signal).toBeInstanceOf(AbortSignal);
+      expect(signal?.aborted).toBe(false);
+    }
+  });
+
+  test('verified emails are unknown when the list reaches the page cap', async () => {
+    const full = Array.from({ length: 100 }, (_, i) => ({
+      email: `alias${i}@x.com`,
+      primary: i === 0,
+      verified: true,
+    }));
+    const { fetch, calls } = fakeFetch({
+      ...routes,
+      'GET /user/emails': { body: JSON.stringify(full) },
+    });
+    const profile = await getUserProfile('ghu_token', { fetch });
+    expect(profile.verifiedEmails).toBeNull();
+    expect(profile.email).toBe('alias0@x.com');
+    expect(calls.filter((call) => call.url.pathname === '/user/emails').length).toBe(10);
+  });
+
   test('email is null when none is primary and verified', async () => {
     const { fetch } = fakeFetch({ ...routes, 'GET /user/emails': { body: '[]' } });
-    expect((await getUserProfile('ghu_token', { fetch })).email).toBeNull();
+    const profile = await getUserProfile('ghu_token', { fetch });
+    expect(profile.email).toBeNull();
+    expect(profile.verifiedEmails).toEqual([]);
   });
 });

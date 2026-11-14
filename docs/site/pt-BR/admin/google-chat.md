@@ -80,18 +80,20 @@ O Google Chat não deixa o app achar uma pessoa pelo e-mail, então cada pessoa 
 
 O consolidado só mostra o botão **Vincular minha conta** enquanto alguém nele não está vinculado e aparece como `@login`. O botão vale para quem clica: ele vincula a pessoa que clicou, nunca as pessoas citadas no consolidado.
 
-Os três jeitos fazem a mesma coisa. O Standcast compara o e-mail da sua conta do Google com o e-mail principal verificado da sua conta do GitHub, e vincula você em todas as suas organizações que têm um espaço vinculado. Ele guarda só o seu id de usuário no Google Chat. Clicar de novo, ou mandar mensagem de novo, mantém um único vínculo. O app responde; depois de um clique ou de uma menção num espaço, a resposta só aparece para você:
+Os três jeitos fazem a mesma coisa. O Standcast compara o e-mail da sua conta do Google com qualquer e-mail verificado da sua conta do GitHub, principal ou não, e vincula você em todas as suas organizações que têm um espaço vinculado. Ele guarda só o seu id de usuário no Google Chat. Clicar de novo, ou mandar mensagem de novo, mantém um único vínculo. O app responde; depois de um clique ou de uma menção num espaço, a resposta só aparece para você:
 
 | Resposta | O que significa |
 | --- | --- |
 | Vínculo feito, @seu-login. | Pronto. |
-| Nenhuma conta do Standcast usa este e-mail. Rode `standcast login` primeiro e depois me mande uma mensagem de novo. | O Standcast não tem conta com este e-mail. Entre primeiro. Se o seu e-mail do GitHub é outro, veja abaixo. |
+| Nenhuma conta do Standcast usa este e-mail. Rode `standcast login` primeiro e depois me mande uma mensagem de novo. | O Standcast não tem conta com este e-mail. Entre primeiro. Se nenhum e-mail verificado do seu GitHub é este, veja abaixo. |
 | Achei a sua conta, mas nenhuma organização sua conectou o Google Chat ao Standcast ainda. Peça a um admin para vincular um espaço e me mande uma mensagem de novo. | Vincule um espaço primeiro e mande uma mensagem para o app de novo. |
 | Este e-mail pertence a mais de uma conta do GitHub no Standcast, então não vinculei nenhuma. Peça a um admin para definir `google_chat` para você em `members` no standcast.yml, ou deixe o e-mail certo só na sua conta do GitHub e rode `standcast login` de novo. | Duas ou mais contas do GitHub que entraram no Standcast têm este e-mail, então o Standcast não vincula nenhuma. Em cada organização dessas contas que usa o Google Chat, ele também apaga os vínculos do Google Chat dessas contas e qualquer vínculo com este usuário do Google Chat. Mapeie a pessoa à mão, como abaixo, ou tire o e-mail das outras contas. |
 
 A resposta vem no idioma do time quando o Standcast sabe qual é, e em inglês e português quando não sabe. Nas respostas de conta não encontrada e de e-mail em mais de uma conta, o app também diz o id da pessoa no Google Chat (`users/` seguido de dígitos), pronto para o mapeamento abaixo.
 
-Quando os e-mails são diferentes, por exemplo quando o e-mail principal do GitHub é pessoal e o do Google é o da empresa, um admin mapeia a pessoa à mão no `standcast.yml`, com o id de usuário dela no Google Chat:
+O GitHub manda os seus e-mails verificados para o Standcast quando você roda `standcast login` ou entra no app web. O seu e-mail principal sempre vale. Os outros e-mails verificados só valem por 30 dias depois dessa entrada, então um e-mail que você tira do GitHub deixa de valer até lá. Depois de adicionar e verificar o seu e-mail do Google no GitHub, entre de novo de um desses jeitos e mande mensagem para o app em até 30 dias. Se a sua conta do GitHub tem 1.000 e-mails ou mais, o Standcast não consegue ler todos e mantém a lista da entrada anterior até os 30 dias dela acabarem; peça a um admin para mapear você à mão, como abaixo.
+
+Quando o e-mail do Google não é um e-mail verificado da conta do GitHub, um admin mapeia a pessoa à mão no `standcast.yml`, com o id de usuário dela no Google Chat:
 
 ```text
 members:
