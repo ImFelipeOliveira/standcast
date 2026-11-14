@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- O Google Chat vincula você quando o seu e-mail do Google é qualquer e-mail verificado da sua conta do GitHub, e não só o principal. Os e-mails que não são o principal valem por 30 dias depois de você rodar `standcast login` ou entrar no app web, então entre de novo e depois mande mensagem para o app. Veja [Google Chat](/pt-BR/admin/google-chat).
+
 ### 0.10.0 — 13/11/2026
 
 - Reabrir um impedimento que já está aberto não desfaz mais a resolução que outra pessoa faz no mesmo momento.

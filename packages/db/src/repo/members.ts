@@ -9,10 +9,24 @@ import {
   type Provider,
 } from '../schema';
 
+export const VERIFIED_EMAILS_MAX_AGE_DAYS = 30;
+
+function normalizeEmails(emails: string[]): string[] {
+  return [...new Set(emails.map((email) => email.trim().toLowerCase()).filter(Boolean))];
+}
+
 export async function upsertMember(
   db: Db,
-  m: { githubUserId: number; login: string; email: string | null },
+  m: { githubUserId: number; login: string; email: string | null; verifiedEmails?: string[] },
 ): Promise<MemberRow> {
+  const verifiedEmails = m.verifiedEmails ? normalizeEmails(m.verifiedEmails) : undefined;
+  const synced = verifiedEmails ? { verifiedEmails, verifiedEmailsSyncedAt: sql`now()` } : {};
+  const values = {
+    githubUserId: m.githubUserId,
+    login: m.login,
+    email: m.email,
+    ...synced,
+  };
   return db.transaction(async (tx) => {
     await tx
       .update(members)
@@ -25,10 +39,10 @@ export async function upsertMember(
       );
     const [row] = await tx
       .insert(members)
-      .values(m)
+      .values(values)
       .onConflictDoUpdate({
         target: members.githubUserId,
-        set: { login: m.login, email: m.email },
+        set: { login: m.login, email: m.email, ...synced },
       })
       .returning();
     if (!row) throw new Error('upsertMember returned no row');
@@ -299,7 +313,15 @@ export async function findMembersByEmail(db: Db, email: string): Promise<MemberR
   return db
     .select()
     .from(members)
-    .where(sql`lower(${members.email}) = ${normalized}`)
+    .where(
+      or(
+        sql`lower(${members.email}) = ${normalized}`,
+        and(
+          sql`${members.verifiedEmails} @> ARRAY[${normalized}]::text[]`,
+          sql`${members.verifiedEmailsSyncedAt} > now() - make_interval(days => ${VERIFIED_EMAILS_MAX_AGE_DAYS})`,
+        ),
+      ),
+    )
     .orderBy(members.login);
 }
 

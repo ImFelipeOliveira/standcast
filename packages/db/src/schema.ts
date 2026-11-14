@@ -52,10 +52,13 @@ export const members = pgTable(
     githubUserId: bigint('github_user_id', { mode: 'number' }).notNull().unique(),
     login: text('login').notNull(),
     email: text('email'),
+    verifiedEmails: text('verified_emails').array().notNull().default(sql`'{}'::text[]`),
+    verifiedEmailsSyncedAt: timestamp('verified_emails_synced_at', { withTimezone: true }),
   },
   (t) => [
     uniqueIndex('members_login_lower_idx').on(sql`lower(${t.login})`),
     index('members_email_lower_idx').on(sql`lower(${t.email})`),
+    index('members_verified_emails_idx').using('gin', t.verifiedEmails),
   ],
 );
 

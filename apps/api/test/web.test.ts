@@ -92,6 +92,7 @@ function harness(
         githubUserId: 1,
         login: 'alice',
         email: 'alice@acme.com',
+        verifiedEmails: ['alice@acme.com'],
         installationIds: opts.githubInstallations ?? [INST],
       }),
       listActivity: async () => [],

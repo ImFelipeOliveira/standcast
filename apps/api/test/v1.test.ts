@@ -97,6 +97,7 @@ function harness(
           githubUserId: 1,
           login: 'Alice',
           email: 'alice@acme.com',
+          verifiedEmails: ['alice@acme.com'],
           installationIds: [INST, 999],
         };
       },

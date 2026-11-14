@@ -30,6 +30,31 @@ describe('startSession', () => {
     expect((await getIdentities(db, INST, 'slack')).get('alice')).toBe('U9');
   });
 
+  test('stores every verified email and replaces them on the next sign in', async () => {
+    await seedOrg();
+    const first = fakeDeps({ verifiedEmails: ['alice@acme.com', ' Alice@Work.IO '] });
+    const result = await startSession(first.deps, { githubToken: 'gho_x' });
+    const member = await resolveSession(db, result.token, 'cli');
+    expect(member?.verifiedEmails).toEqual(['alice@acme.com', 'alice@work.io']);
+    const second = fakeDeps({ verifiedEmails: ['alice@acme.com'] });
+    const again = await startSession(second.deps, { githubToken: 'gho_x' });
+    expect((await resolveSession(db, again.token, 'cli'))?.verifiedEmails).toEqual([
+      'alice@acme.com',
+    ]);
+  });
+
+  test('keeps the stored verified emails when GitHub lists too many to read', async () => {
+    await seedOrg();
+    const first = fakeDeps({ verifiedEmails: ['alice@acme.com', 'alice@work.io'] });
+    await startSession(first.deps, { githubToken: 'gho_x' });
+    const truncated = fakeDeps({ verifiedEmails: null });
+    const again = await startSession(truncated.deps, { githubToken: 'gho_x' });
+    expect((await resolveSession(db, again.token, 'cli'))?.verifiedEmails).toEqual([
+      'alice@acme.com',
+      'alice@work.io',
+    ]);
+  });
+
   test('links personal account installations only to their owner', async () => {
     await seedOrg();
     await upsertInstallation(db, {
