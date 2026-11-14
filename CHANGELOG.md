@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.11.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.10.0...standcast-v0.11.0) (2026-11-14)
+
+
+### Features
+
+* **db:** store verified GitHub emails and match members on them ([d075750](https://github.com/ImFelipeOliveira/standcast/commit/d0757503d9d6003e7f1d27aced58be1495794630))
+
+
+### Bug Fixes
+
+* **db:** match secondary emails only within 30 days of the last sign-in ([1b63b02](https://github.com/ImFelipeOliveira/standcast/commit/1b63b02b59d30fd3725933ecf43b5e36d63ffe81))
+* **github:** read every page of verified emails before replacing them ([78970b5](https://github.com/ImFelipeOliveira/standcast/commit/78970b51c9f869634838dca5c594ba833f1f2bd0))
+* **github:** time out each verified email page request ([fb8da43](https://github.com/ImFelipeOliveira/standcast/commit/fb8da432a30bb910547dfa2bb6ec5dc9c7e5ebf7))
+* **google-chat:** link members by any verified GitHub email ([fa75c84](https://github.com/ImFelipeOliveira/standcast/commit/fa75c84fb841d552e360156ac4c5ecd33d826a54))
+* **google-chat:** link members by any verified GitHub email ([#179](https://github.com/ImFelipeOliveira/standcast/issues/179)) ([84d5198](https://github.com/ImFelipeOliveira/standcast/commit/84d519802cbf08690ac4e551aaeb2bb84e364887))
+
 ## [0.10.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.9.4...standcast-v0.10.0) (2026-11-13)
 
 
