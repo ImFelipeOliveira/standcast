@@ -32,6 +32,58 @@ args = ["mcp"]
 
 Any other client: `{"command": "standcast", "args": ["mcp"]}`.
 
+#### With npx, without installing the CLI
+
+The CLI is also on npm as [`standcast`](https://www.npmjs.com/package/standcast), so a client with Node.js can run it through `npx`. Sign in once with `npx -y standcast login`, then use `npx` as the command:
+
+::: code-group
+
+```json [Claude Desktop]
+{"mcpServers":{"standcast":{"command":"npx","args":["-y","standcast","mcp"]}}}
+```
+
+```json [Cursor]
+{"mcpServers":{"standcast":{"command":"npx","args":["-y","standcast","mcp"]}}}
+```
+
+```json [VS Code]
+{"servers":{"standcast":{"type":"stdio","command":"npx","args":["-y","standcast","mcp"]}}}
+```
+
+```toml [Codex]
+[mcp_servers.standcast]
+command = "npx"
+args = ["-y", "standcast", "mcp"]
+```
+
+:::
+
+On Windows, `npx` is a `.cmd` script that clients cannot start directly, so run it through `cmd /c`:
+
+::: code-group
+
+```json [Claude Desktop]
+{"mcpServers":{"standcast":{"command":"cmd","args":["/c","npx","-y","standcast","mcp"]}}}
+```
+
+```json [Cursor]
+{"mcpServers":{"standcast":{"command":"cmd","args":["/c","npx","-y","standcast","mcp"]}}}
+```
+
+```json [VS Code]
+{"servers":{"standcast":{"type":"stdio","command":"cmd","args":["/c","npx","-y","standcast","mcp"]}}}
+```
+
+```toml [Codex]
+[mcp_servers.standcast]
+command = "cmd"
+args = ["/c", "npx", "-y", "standcast", "mcp"]
+```
+
+:::
+
+npm installs only the binary for your platform: macOS, Linux or Windows on x64, and macOS or Linux on arm64. Standcast is also listed in the [MCP Registry](https://registry.modelcontextprotocol.io) as `io.github.ImFelipeOliveira/standcast`.
+
 ### The confirmation rule
 
 Standcast never sends a daily on your behalf without your explicit confirmation. The agent must show you the final daily and ask you first. On top of that, `standcast_submit_daily` confirms in one of two ways:
