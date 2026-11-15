@@ -19,12 +19,17 @@ The Standcast plugin for Claude Code adds the `/daily` skill and registers the S
 Type `/daily`, or ask for it in your words: "my daily", "standup", "what did I do yesterday". The skill:
 
 1. Gets the draft of yesterday from your GitHub activity, your cards if Linear is connected, and your local Claude Code sessions. If you belong to more than one organization, it asks which one.
-2. Shows yesterday as a short summary, at most 5 lines grouped by project or theme, and lets you correct, remove or add items. It may add things that really happened in this Claude Code session.
-3. If the draft has suggested blockers, such as your pull request waiting for review, failing checks or a card in progress for days, asks about each one. If it is a real blocker, it goes into your blockers with its link; if not, the skill ignores it and it does not come back unless the signal changes. It never adds a suggestion without your answer, and suggestions are visible only to you.
-4. Asks what you will do today and what blocks you, in your language.
-5. Asks whether you need support from anyone, without being blocked: a review, a decision, a pairing session. "No" leaves the section empty.
-6. Shows the final daily and asks for your explicit confirmation.
-7. Sends it, and tells you if it went to the digest thread because the digest was already posted.
+2. Opens with what you planned in your previous daily, if it is at most 7 days old, and whether each item moved. It says "moved" and what happened, "no activity found", or "unknown" and asks you. It looks at your own commits, reviews, merges and card changes since that daily. This is shown only to you and is never copied into your daily.
+3. Shows yesterday as a short summary, at most 5 lines grouped by project or theme, and lets you correct, remove or add items. It may add things that really happened in this Claude Code session.
+4. If the draft has suggested blockers, such as your pull request waiting for review, failing checks or a card in progress for days, asks about each one. If it is a real blocker, it goes into your blockers with its link; if not, the skill ignores it and it does not come back unless the signal changes. It never adds a suggestion without your answer, and suggestions are visible only to you.
+5. Shows what is waiting on you, in groups: reviews requested from you directly, your pull requests with changes requested or failing checks, your urgent or high cards, work in progress, approved pull requests ready to merge, and review requests on drafts. It shows at most 10 lines and counts the rest.
+6. Recommends up to 5 focus items, each with a short reason, and asks what you will focus on today. Pick by number, say "ok" for the recommendation, or write your own words.
+7. Asks whether anything blocks you, in your language.
+8. Asks whether you need support from anyone, without being blocked: a review, a decision, a pairing session. "No" leaves the section empty.
+9. Shows the final daily and asks for your explicit confirmation.
+10. Sends it, and tells you if it went to the digest thread because the digest was already posted.
+
+If GitHub or Linear does not answer, you still get your draft. The skill says in one line which source was unavailable and goes on with the rest. Only cards assigned to you count.
 
 It uses the MCP tools when they are available, and falls back to the `standcast` CLI otherwise.
 
@@ -51,14 +56,22 @@ The draft uses your Claude Code sessions from the draft window, so yesterday cov
 
 ```text
 You:     /daily
-Claude:  Here is yesterday from your GitHub and Linear activity in acme and your Claude Code sessions:
+Claude:  Your plan from 2026-10-27:
+         ✅ Finish rate limiting: merged (acme/api#42)
+         ⏸️ Write the integrator guides: no activity found
+         Here is yesterday from your GitHub and Linear activity in acme and your Claude Code sessions:
          1. Added rate limiting to the public API and merged it (acme/api#42, card ENG-42)
          2. Reviewed "Retry webhooks with backoff" (acme/worker#17)
          3. Looked into the flaky checkout test in acme/shop
          Anything to fix, remove or add?
 You:     Drop 3, it went nowhere.
-Claude:  What will you do today? Any blockers?
-You:     Today I'll write the integrator guides. Blocked: waiting for the staging database.
+Claude:  Waiting on you: review requested on "Add audit log" (acme/api#51). In progress: ENG-44 Integrator guides. Focus today:
+         1. Review acme/api#51 (it blocks a teammate)
+         2. Write the integrator guides (ENG-44, planned and not moved)
+         What will you focus on?
+You:     1 and 2.
+Claude:  Anything blocking you?
+You:     Waiting for the staging database.
 Claude:  Do you need support from anyone, without being blocked?
 You:     A review on the migration PR before Friday.
 Claude:  Final daily for acme, 2026-10-28:
@@ -66,7 +79,8 @@ Claude:  Final daily for acme, 2026-10-28:
          - Added rate limiting to the public API and merged it (acme/api#42)
          - Reviewed "Retry webhooks with backoff" (acme/worker#17)
          Today
-         - I'll write the integrator guides
+         - Review "Add audit log" (acme/api#51)
+         - Write the integrator guides (ENG-44)
          Blockers
          - waiting for the staging database
          Support requests

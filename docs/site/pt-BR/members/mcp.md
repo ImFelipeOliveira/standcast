@@ -76,7 +76,7 @@ Toda tool que recebe `org` aceita esse campo como opcional. Quando você está n
 | Tool | Entrada | Devolve |
 | --- | --- | --- |
 | `standcast_whoami` | nenhuma | `{ login, orgs }` |
-| `standcast_get_draft` | `org?`, `includeSessions?` (padrão `true`) | O rascunho do trabalho de ontem, montado a partir da sua atividade no GitHub e no Linear, mais o `work` agrupado com as suas sessões locais de IA |
+| `standcast_get_draft` | `org?`, `includeSessions?` (padrão `true`) | O rascunho do trabalho de ontem, montado a partir da sua atividade no GitHub e no Linear, mais `plan`, `pending` e `warnings`, e o `work` agrupado com as suas sessões locais de IA |
 | `standcast_submit_daily` | `org?`, `yesterday`, `today`, `blockers`, `support?` (o que você precisa de outra pessoa sem estar travado; vazio quando falta), `confirmed?` (`true` quando o cliente não tem elicitation) | `{ date, teams, late, confirmation }` |
 | `standcast_decide_suggestion` | `org?`, `id`, `decision` (`confirmed` ou `ignored`) | `{ id, decision }` |
 | `standcast_list_teams` | `org?` | Os times que você pode ler |
@@ -93,6 +93,16 @@ A `standcast_get_draft` também lê as suas sessões locais do Claude Code na ja
 O servidor MCP roda na sua máquina e lê os arquivos das sessões ele mesmo, em `~/.claude/projects` (ou `STANDCAST_CLAUDE_DIR`). O Standcast não envia os dados das sessões para a API do Standcast, para logs nem para webhooks. O cliente MCP que você conecta recebe esses dados e pode enviá-los ao provedor do modelo dele. Só a daily que você confirma é enviada ao Standcast.
 
 O agente monta o ontem resumido, em até 5 linhas agrupadas por projeto ou tema, no seu idioma, e não cola os seus prompts na daily, a menos que você peça. Para deixar as sessões de fora, diga ao agente (ele chama de novo com `includeSessions: false`), ou defina `STANDCAST_SESSIONS=off` no ambiente do servidor MCP para desligar em todo lugar.
+
+## Planejado contra feito e trabalho pendente
+
+O rascunho também traz `plan` e `pending`, calculados quando você o abre.
+
+- `plan` é a lista dos itens de "hoje" da sua daily anterior, quando ela tem no máximo 7 dias; senão é `null`. Cada item é `{ text, ref?, status, evidence }`. `status` é `moved` (com a `evidence`: o que aconteceu, como commits, um review, um merge, uma mudança de estado do card ou um comentário), `not_moved` (sem atividade encontrada) ou `unknown` (o agente pergunta para você). Ele olha os seus próprios commits, reviews, merges e mudanças nos cards desde essa daily.
+- `pending` é o que está esperando por você: `items` e `truncated`. Um item é um pull request que você abriu, um pull request em que o seu review foi pedido diretamente (não por um time), ou um card atribuído a você que está em andamento, ou não iniciado com prioridade urgente ou alta.
+- `warnings` lista as fontes que não responderam (GitHub ou Linear). O rascunho ainda vem com o resto.
+
+O agente abre com o planejado contra o feito, mostra o trabalho pendente em grupos (esperando por você, cards urgentes ou de prioridade alta, em andamento, aprovados e prontos para merge, rascunhos) e recomenda até 5 itens de foco. Você escolhe pelo número, "ok" ou com as suas palavras, e a escolha vira o "hoje". Plano e pendências são só seus: não são guardados, nunca são copiados para a daily e nunca aparecem para gestores nem na API da organização.
 
 ## Impedimentos sugeridos
 

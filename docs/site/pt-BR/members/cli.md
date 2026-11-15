@@ -74,6 +74,47 @@ Mostra o rascunho da sua daily na organização:
 - `activity`: até 50 itens, do mais recente para o mais antigo. `kind` é `pr_opened`, `pr_merged`, `review`, `commits`, `card_started` ou `card_done`. Os commits vêm agrupados por repositório, com `count`. Nos cards, `repo` é a chave do time no Linear e `url` é o link do card, que você pode usar como link de um impedimento.
 - `suggestions`: possíveis impedimentos que o Standcast percebeu por você, cada um `{ id, kind, ref, since }`. `kind` é `pr_no_review` (pull request seu sem revisão), `ci_failing` (checks falhando nele há 24 horas) ou `card_stale` (um card seu no Linear em andamento há `card_stale_days`). Só você vê. Veja [`standcast suggestion`](#standcast-suggestion).
 
+#### Planejado contra feito e pendências
+
+O rascunho também traz `plan`, `pending` e `warnings`, calculados quando você roda o comando.
+
+```json
+{
+  "plan": {
+    "date": "2026-10-27",
+    "items": [
+      {
+        "text": "Finish rate limiting",
+        "ref": { "kind": "pull_request", "url": "https://github.com/acme/api/pull/42", "title": "Add rate limiting" },
+        "status": "moved",
+        "evidence": [{ "kind": "merged", "url": "https://github.com/acme/api/pull/42", "at": "2026-10-27T18:20:00.000Z" }]
+      }
+    ]
+  },
+  "pending": {
+    "items": [
+      {
+        "kind": "review_requested",
+        "ref": { "kind": "pull_request", "url": "https://github.com/acme/api/pull/51", "title": "Add audit log" },
+        "title": "Add audit log",
+        "repo": "acme/api",
+        "since": "2026-10-27T09:00:00.000Z",
+        "draft": false,
+        "reviewDecision": "review_required",
+        "checks": "success"
+      }
+    ],
+    "truncated": false
+  },
+  "warnings": []
+}
+```
+
+- `plan`: os itens de "hoje" da sua daily anterior, quando ela tem no máximo 7 dias; senão `null`. `status` é `moved`, `not_moved` ou `unknown`, e `evidence` diz o que foi encontrado (`commit`, `review`, `merged`, `closed`, `state_changed` ou `comment`). Ele olha os seus próprios commits, reviews, merges e mudanças nos cards desde essa daily.
+- `pending`: o que está esperando por você. `kind` é `own_pr` (um pull request que você abriu), `review_requested` (o seu review foi pedido diretamente, não por um time) ou `card` (atribuído a você, em andamento, ou não iniciado com `priority` urgente ou alta). Os pull requests trazem `draft`, `reviewDecision` e `checks`. `truncated` é `true` quando a lista pode estar incompleta.
+- `warnings`: as fontes que não responderam, cada uma `{ source, code }`. O resto do rascunho ainda vem.
+- Só você vê. Nada disso é guardado, vai para o consolidado ou aparece para gestores ou na API da organização.
+
 #### Com as suas sessões de IA
 
 ```bash

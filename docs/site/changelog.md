@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- `/daily` opens with what you planned in your previous daily and whether each item moved, then lists what is waiting on you and recommends up to 5 focus items to build "today". It is shown only to you, computed when you open the draft and not stored. If GitHub or Linear does not answer, you still get the draft and the agent says which source was unavailable. See [Claude Code skill](/members/claude-code).
+
 ### 0.11.0 — 2026-11-14
 
 - Google Chat links you when your Google email is any verified email of your GitHub account, not only the primary one. Emails other than the primary one count for 30 days after you run `standcast login` or sign in to the web app, so sign in again, then message the app. See [Google Chat](/admin/google-chat).
