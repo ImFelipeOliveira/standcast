@@ -14,8 +14,8 @@ reviews:
       - dev
       - main
     ignore_title_keywords:
-      - "promote dev to main"
-      - "chore(main): release"
+      - "chore: promote dev to main"
+      - "chore(main): release standcast"
   path_filters:
     - "!bun.lock"
     - "!CHANGELOG.md"
