@@ -79,9 +79,12 @@
         <a class="btn btn-primary" href="/beta/">Join the beta</a>
         <a class="btn" href="https://docs.standcast.app/admin/install">Install for your org</a>
       </div>
-      <div class="install">
-        <code id="cmd" data-copy="curl -fsSL https://standcast.app/install.sh | sh"><span aria-hidden="true">$</span> curl -fsSL https://standcast.app/install.sh | sh</code>
-        <button class="copy" id="copy" type="button" data-target="cmd" data-done="Copied" aria-describedby="cmd" hidden>Copy</button>
+      <div class="install-group">
+        <div class="install">
+          <code id="cmd" data-copy="curl -fsSL https://standcast.app/install.sh | sh"><span aria-hidden="true">$</span> curl -fsSL https://standcast.app/install.sh | sh</code>
+          <button class="copy" id="copy" type="button" data-target="cmd" data-done="Copied" aria-describedby="cmd" hidden>Copy</button>
+        </div>
+        <p class="install-alt">Or, on macOS, Linux and Windows: <code>npm install -g standcast</code></p>
       </div>
     </div>
     <div class="stage" role="img" aria-label="Example: in the terminal, Ana runs /daily and confirms her draft. At 10:00, the #daily-backend channel gets the team digest with blockers and updates.">
@@ -177,19 +180,19 @@
       </div>
       <div class="way-panel" role="tabpanel" id="way-mcp" aria-labelledby="way-tab-mcp">
         <div class="way-head"><h3 id="way-mcp-title">Any MCP client</h3><button class="copy" type="button" data-target="way-mcp-code" data-done="Copied" aria-describedby="way-mcp-title" hidden>Copy</button></div>
-        <p>Cursor, Codex, Claude Desktop and VS Code run the local <a href="https://docs.standcast.app/members/mcp">MCP server</a>.</p>
+        <p>Cursor, Codex, Claude Desktop and VS Code run the local <a href="https://docs.standcast.app/members/mcp">MCP server</a>, straight from npm.</p>
 <pre id="way-mcp-code">{
   "mcpServers": {
     "standcast": {
-      "command": "standcast",
-      "args": ["mcp"]
+      "command": "npx",
+      "args": ["-y", "standcast", "mcp"]
     }
   }
 }</pre>
       </div>
       <div class="way-panel" role="tabpanel" id="way-cli" aria-labelledby="way-tab-cli">
         <div class="way-head"><h3 id="way-cli-title">Terminal</h3><button class="copy" type="button" data-target="way-cli-code" data-done="Copied" aria-describedby="way-cli-title" hidden>Copy</button></div>
-        <p>One binary for macOS, Linux and Windows, checked against SHA256SUMS.</p>
+        <p>One binary for macOS, Linux and Windows, checked against SHA256SUMS or installed from npm.</p>
 <pre id="way-cli-code">standcast login
 standcast draft
 standcast submit</pre>
