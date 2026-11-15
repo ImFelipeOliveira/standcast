@@ -103,6 +103,19 @@ function evidenceOf(pull: PlannedPull, login: string, since: Date): PlanEvidence
   ].filter((evidence): evidence is PlanEvidence => evidence !== null);
 }
 
+function hasUnattributedCommits(pull: PlannedPull, since: Date): boolean {
+  return (pull.commits?.nodes ?? []).some((node) => {
+    const commit = node?.commit;
+    return !!commit && !commit.author?.user && inWindow(commit.committedDate, since) !== null;
+  });
+}
+
+function resultOf(pull: PlannedPull, login: string, since: Date): PlanLookupResult {
+  const evidence = evidenceOf(pull, login, since);
+  if (evidence.length === 0 && hasUnattributedCommits(pull, since)) return { ok: false };
+  return { ok: true, evidence };
+}
+
 export async function lookupPlannedPullRequests(
   octokit: Octokit,
   input: { login: string; since: Date; targets: PullRequestTarget[] },
@@ -122,7 +135,7 @@ export async function lookupPlannedPullRequests(
       results.set(target.key, { ok: false });
       return;
     }
-    results.set(target.key, { ok: true, evidence: evidenceOf(pull, input.login, input.since) });
+    results.set(target.key, resultOf(pull, input.login, input.since));
   });
   return results;
 }

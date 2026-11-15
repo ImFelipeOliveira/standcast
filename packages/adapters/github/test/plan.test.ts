@@ -98,7 +98,7 @@ describe('lookupPlannedPullRequests', () => {
               commits: [
                 { committedDate: '2026-11-13T15:00:00Z', login: 'bob' },
                 { committedDate: '2026-11-12T15:00:00Z', login: 'alice' },
-                { committedDate: '2026-11-13T16:00:00Z', login: null },
+                { committedDate: '2026-11-11T16:00:00Z', login: null },
               ],
               reviews: [{ submittedAt: '2026-11-12T09:00:00Z', url: 'https://github.com/r/old' }],
               merged: true,
@@ -165,6 +165,41 @@ describe('lookupPlannedPullRequests', () => {
           at: '2026-11-13T12:00:00.000Z',
         },
       ],
+    });
+  });
+
+  test('lookupPlannedPullRequests leaves unattributed commits in the window unknown unless other evidence exists', async () => {
+    const unattributed = target('acme', 'api', 1);
+    const reviewed = target('acme', 'api', 2);
+    const { octokit } = octokitWith({
+      'POST /graphql': {
+        body: JSON.stringify({
+          data: {
+            p0: pull('https://github.com/acme/api/pull/1', {
+              commits: [
+                { committedDate: '2026-11-13T15:00:00Z', login: null },
+                { committedDate: '2026-11-13T16:00:00Z', login: 'bob' },
+              ],
+            }),
+            p1: pull('https://github.com/acme/api/pull/2', {
+              commits: [{ committedDate: '2026-11-13T15:00:00Z', login: null }],
+              reviews: [{ submittedAt: '2026-11-13T18:00:00Z', url: 'https://github.com/r/1' }],
+            }),
+          },
+        }),
+      },
+    });
+
+    const results = await lookupPlannedPullRequests(octokit, {
+      login: 'alice',
+      since,
+      targets: [unattributed, reviewed],
+    });
+
+    expect(results.get(unattributed.key)).toEqual({ ok: false });
+    expect(results.get(reviewed.key)).toEqual({
+      ok: true,
+      evidence: [{ kind: 'review', url: 'https://github.com/r/1', at: '2026-11-13T18:00:00.000Z' }],
     });
   });
 
