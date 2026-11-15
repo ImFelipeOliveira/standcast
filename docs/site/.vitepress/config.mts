@@ -72,7 +72,6 @@ export default defineConfigWithTheme<ThemeConfig>({
     },
   },
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
     ['link', { rel: 'icon', type: 'image/png', href: '/favicon.png', sizes: '96x96' }],
     ['meta', { name: 'robots', content: 'max-image-preview:large' }],
     ['meta', { property: 'og:type', content: 'website' }],
