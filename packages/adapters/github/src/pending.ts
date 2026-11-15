@@ -86,15 +86,15 @@ export async function listPendingPullRequests(
   login: string,
 ): Promise<Pending> {
   const scope = await scopeQualifier(octokit, owner);
-  const { data } = await queryGraphql<PendingData>(octokit, PENDING_QUERY, {
+  const { data, errors } = await queryGraphql<PendingData>(octokit, PENDING_QUERY, {
     own: `is:pr is:open author:${login} ${scope}`,
     requested: `is:pr is:open user-review-requested:${login} ${scope}`,
   });
   const { own, requested } = data;
   if (!own || !requested) throw new Error('GitHub pending search returned no results');
-  const truncated = [own, requested].some(
-    (result) => (result.nodes ?? []).length >= PENDING_SEARCH_LIMIT,
-  );
+  const truncated =
+    errors.length > 0 ||
+    [own, requested].some((result) => (result.nodes ?? []).length >= PENDING_SEARCH_LIMIT);
   return {
     items: [...itemsOf('own_pr', own), ...itemsOf('review_requested', requested)],
     truncated,

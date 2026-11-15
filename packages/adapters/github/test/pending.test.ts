@@ -139,6 +139,34 @@ describe('listPendingPullRequests', () => {
     ]);
   });
 
+  test('listPendingPullRequests bounds the owner lookup with a timeout', async () => {
+    const { octokit, calls } = octokitWith({
+      'GET /users/acme': { body: JSON.stringify({ type: 'Organization' }) },
+      'POST /graphql': graphqlRoute([], []),
+    });
+
+    await listPendingPullRequests(octokit, 'acme', 'alice');
+
+    expect(calls.find((c) => c.url.pathname === '/users/acme')?.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  test('listPendingPullRequests marks partial data as truncated', async () => {
+    const { octokit } = octokitWith({
+      'GET /users/acme': { body: JSON.stringify({ type: 'Organization' }) },
+      'POST /graphql': {
+        body: JSON.stringify({
+          data: { own: { nodes: [pullNode(), null] }, requested: { nodes: [] } },
+          errors: [{ path: ['own', 'nodes', 1], message: 'Resource not accessible' }],
+        }),
+      },
+    });
+
+    const pending = await listPendingPullRequests(octokit, 'acme', 'alice');
+
+    expect(pending.truncated).toBe(true);
+    expect(pending.items).toHaveLength(1);
+  });
+
   test('listPendingPullRequests uses the user qualifier for user accounts', async () => {
     const { octokit, calls } = octokitWith({
       'GET /users/alice': { body: JSON.stringify({ type: 'User' }) },
