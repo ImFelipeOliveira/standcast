@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.14.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.13.1...standcast-v0.14.0) (2026-11-15)
+
+
+### Features
+
+* **cli:** publish the CLI to npm and the MCP Registry on every release ([e71ca11](https://github.com/ImFelipeOliveira/standcast/commit/e71ca1197f24d8ac0619e146efdf89ee40fb482c))
+* **cli:** publish the CLI to npm and the MCP Registry on every release ([#208](https://github.com/ImFelipeOliveira/standcast/issues/208)) ([099c7dd](https://github.com/ImFelipeOliveira/standcast/commit/099c7dd706afd8a6ae72b93bd7a94017a0ed2d0c))
+
+
+### Bug Fixes
+
+* **cli:** address the review of the npm and MCP Registry publishing ([636eb55](https://github.com/ImFelipeOliveira/standcast/commit/636eb554991b19ea72e9ca986a976219fa32a8e2))
+
 ## [0.13.1](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.13.0...standcast-v0.13.1) (2026-11-15)
 
 
