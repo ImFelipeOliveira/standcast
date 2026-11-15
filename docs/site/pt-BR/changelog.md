@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+### 0.14.1 — 15/11/2026
+
 ### 0.14.0 — 15/11/2026
 
 - A CLI está no npm como `standcast`. Um cliente MCP com Node.js pode rodar `npx -y standcast mcp` sem instalar a CLI antes, e o Standcast aparece no MCP Registry como `io.github.ImFelipeOliveira/standcast`. Cada release publica nos dois.
