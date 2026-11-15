@@ -131,7 +131,7 @@ Grouping in the skill:
 
 - GitHub: the existing 4 search calls, plus 1 GraphQL request for pending and at most 1 for the plan. No per-item REST calls.
 - Linear: the existing activity call, plus 1 for pending and at most 1 for the plan.
-- Each request has a 5-second timeout, and all run in parallel, so the draft adds about one round trip in the usual case.
+- GitHub requests have a 5-second timeout; Linear requests keep the shared client timeout (10 seconds). All run in parallel, so the draft adds about one round trip in the usual case.
 
 ### Failure isolation
 
