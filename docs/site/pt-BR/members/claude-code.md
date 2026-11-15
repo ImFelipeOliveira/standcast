@@ -19,12 +19,17 @@ O plugin do Standcast para o Claude Code adiciona a skill `/daily` e registra o 
 Digite `/daily`, ou peça do seu jeito: "minha daily", "standup", "o que eu fiz ontem". A skill:
 
 1. Busca o rascunho do ontem a partir da sua atividade no GitHub, dos seus cards se o Linear está conectado e das suas sessões locais do Claude Code. Se você está em mais de uma organização, pergunta qual.
-2. Mostra o ontem resumido, em até 5 linhas agrupadas por projeto ou tema, e deixa você corrigir, remover ou adicionar itens. Ela pode adicionar coisas que de fato aconteceram nesta sessão do Claude Code.
-3. Se o rascunho tem impedimentos sugeridos, como um pull request seu esperando revisão, com checks falhando ou um card em andamento há dias, pergunta sobre cada um. Se for um impedimento de verdade, ele entra nos seus impedimentos com o link; se não, a skill o ignora e ele só volta se o sinal mudar. Ela nunca adiciona uma sugestão sem a sua resposta, e as sugestões só são visíveis para você.
-4. Pergunta o que você vai fazer hoje e o que está travando você, no seu idioma.
-5. Pergunta se você precisa de apoio de alguém, sem estar travado: um review, uma decisão, um pareamento. "Não" deixa a seção vazia.
-6. Mostra a daily final e pede a sua confirmação explícita.
-7. Envia e avisa se ela foi para a thread do consolidado porque ele já tinha sido publicado.
+2. Abre com o que você planejou na sua daily anterior, se ela tem no máximo 7 dias, e se cada item andou. Diz "andou" e o que aconteceu, "sem atividade encontrada", ou "não sei" e pergunta para você. Conta como andou: seus próprios commits e reviews no pull request, o pull request mergeado ou fechado, uma mudança de estado do card ou um comentário seu no card, desde o início do dia da sua daily anterior. Essa lista aparece só para você e nunca é copiada para a sua daily. Um item planejado que não andou ainda pode virar foco de hoje quando você o escolhe de novo.
+3. Mostra o ontem resumido, em até 5 linhas agrupadas por projeto ou tema, e deixa você corrigir, remover ou adicionar itens. Ela pode adicionar coisas que de fato aconteceram nesta sessão do Claude Code.
+4. Se o rascunho tem impedimentos sugeridos, como um pull request seu esperando revisão, com checks falhando ou um card em andamento há dias, pergunta sobre cada um. Se for um impedimento de verdade, ele entra nos seus impedimentos com o link; se não, a skill o ignora e ele só volta se o sinal mudar. Ela nunca adiciona uma sugestão sem a sua resposta, e as sugestões só são visíveis para você.
+5. Mostra o que está esperando por você, em grupos: reviews pedidos diretamente a você, seus pull requests com mudanças pedidas ou checks falhando, seus cards urgentes ou de prioridade alta, trabalho em andamento, pull requests aprovados prontos para merge e pedidos de review em rascunhos. Mostra no máximo 10 linhas e conta o resto.
+6. Recomenda até 5 itens de foco, cada um com um motivo curto, e pergunta em que você vai focar hoje. Escolha pelo número, diga "ok" para aceitar a recomendação, ou escreva com as suas palavras.
+7. Pergunta se algo está travando você, no seu idioma.
+8. Pergunta se você precisa de apoio de alguém, sem estar travado: um review, uma decisão, um pareamento. "Não" deixa a seção vazia.
+9. Mostra a daily final e pede a sua confirmação explícita.
+10. Envia e avisa se ela foi para a thread do consolidado porque ele já tinha sido publicado.
+
+Se o GitHub ou o Linear não responder, você ainda recebe o rascunho. A skill diz em uma linha qual fonte ficou indisponível e segue com o resto. Só contam os cards atribuídos a você.
 
 Ela usa as tools do MCP quando estão disponíveis e, senão, a CLI `standcast`.
 
@@ -51,14 +56,22 @@ O rascunho usa as suas sessões do Claude Code na janela do rascunho, então o o
 
 ```text
 Você:    /daily
-Claude:  Este é o seu ontem a partir da atividade no GitHub e no Linear da acme e das suas sessões do Claude Code:
+Claude:  O seu plano de 2026-10-27:
+         ✅ Terminar o rate limiting: mergeado (acme/api#42)
+         ⏸️ Escrever os guias para integradores: sem atividade encontrada
+         Este é o seu ontem a partir da atividade no GitHub e no Linear da acme e das suas sessões do Claude Code:
          1. Adicionou rate limiting na API pública e mergeou (acme/api#42, card ENG-42)
          2. Revisou "Retry webhooks with backoff" (acme/worker#17)
          3. Investigou o teste instável do checkout em acme/shop
          Quer corrigir, remover ou adicionar algo?
 Você:    Tira o 3, não deu em nada.
-Claude:  O que você vai fazer hoje? Algum impedimento?
-Você:    Hoje vou escrever os guias para integradores. Travado: esperando o banco de staging.
+Claude:  Esperando por você: review pedido em "Add audit log" (acme/api#51). Em andamento: ENG-44 Guias para integradores. Foco de hoje:
+         1. Revisar acme/api#51 (destrava um colega)
+         2. Escrever os guias para integradores (ENG-44, planejado e sem andar)
+         Em que você vai focar?
+Você:    1 e 2.
+Claude:  Algo está travando você?
+Você:    Esperando o banco de staging.
 Claude:  Precisa de apoio de alguém, sem estar travado?
 Você:    Um review no PR da migração antes de sexta.
 Claude:  Daily final da acme, 2026-10-28:
@@ -66,7 +79,8 @@ Claude:  Daily final da acme, 2026-10-28:
          - Adicionou rate limiting na API pública e mergeou (acme/api#42)
          - Revisou "Retry webhooks with backoff" (acme/worker#17)
          Hoje
-         - vou escrever os guias para integradores
+         - Revisar "Add audit log" (acme/api#51)
+         - Escrever os guias para integradores (ENG-44)
          Impedimentos
          - esperando o banco de staging
          Pedidos de apoio

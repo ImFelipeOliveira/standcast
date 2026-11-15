@@ -10,7 +10,9 @@ import type {
   getUserProfile,
   listActivity,
   listOpenPullRequestSnapshots,
+  listPendingPullRequests,
   listPullRequestFiles,
+  lookupPlannedPullRequests,
   Octokit,
   pullRequestMerged,
   resolveTeamMembers,
@@ -39,6 +41,8 @@ export type Deps = {
     pullRequestMerged: typeof pullRequestMerged;
     listPullRequestFiles: typeof listPullRequestFiles;
     listOpenPullRequestSnapshots: typeof listOpenPullRequestSnapshots;
+    listPendingPullRequests: typeof listPendingPullRequests;
+    lookupPlannedPullRequests: typeof lookupPlannedPullRequests;
     fetchCodeowners: typeof fetchCodeowners;
     createCheckRun: typeof createCheckRun;
     exchangeWebCode: (code: string) => Promise<string>;

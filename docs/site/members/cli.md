@@ -74,6 +74,47 @@ Prints the draft of your daily for the organization:
 - `activity`: up to 50 items, newest first. `kind` is `pr_opened`, `pr_merged`, `review`, `commits`, `card_started` or `card_done`. Commits are grouped per repository, with `count`. For cards, `repo` is the Linear team key and `url` is the card link, which you can use as the link of a blocker.
 - `suggestions`: possible blockers Standcast noticed for you, each `{ id, kind, ref, since }`. `kind` is `pr_no_review` (your pull request without review), `ci_failing` (checks failing on it for 24 hours) or `card_stale` (one of your Linear cards in progress for `card_stale_days`). Only you see them. See [`standcast suggestion`](#standcast-suggestion).
 
+#### Planned against done and pending
+
+The draft also has `plan`, `pending` and `warnings`, computed when you run the command.
+
+```json
+{
+  "plan": {
+    "date": "2026-10-27",
+    "items": [
+      {
+        "text": "Finish rate limiting",
+        "ref": { "kind": "pull_request", "url": "https://github.com/acme/api/pull/42", "title": "Add rate limiting" },
+        "status": "moved",
+        "evidence": [{ "kind": "merged", "url": "https://github.com/acme/api/pull/42", "at": "2026-10-27T18:20:00.000Z" }]
+      }
+    ]
+  },
+  "pending": {
+    "items": [
+      {
+        "kind": "review_requested",
+        "ref": { "kind": "pull_request", "url": "https://github.com/acme/api/pull/51", "title": "Add audit log" },
+        "title": "Add audit log",
+        "repo": "acme/api",
+        "since": "2026-10-27T09:00:00.000Z",
+        "draft": false,
+        "reviewDecision": "review_required",
+        "checks": "success"
+      }
+    ],
+    "truncated": false
+  },
+  "warnings": []
+}
+```
+
+- `plan`: the "today" items of your previous daily, when it is at most 7 days old; otherwise `null`. `status` is `moved`, `not_moved` or `unknown`, and `evidence` says what was found (`commit`, `review`, `merged`, `closed`, `state_changed` or `comment`). What counts is your own commits and reviews on the pull request, the pull request merged or closed, a state change of the card, or your own comment on the card, from the start of the day of your previous daily.
+- `pending`: what is waiting on you. `kind` is `own_pr` (a pull request you opened), `review_requested` (your review is requested directly, not through a team) or `card` (assigned to you, in progress, or not started with urgent or high `priority`). Pull requests have `draft`, `reviewDecision` and `checks`. `truncated` is `true` when the list may be incomplete.
+- `warnings`: the sources that did not answer, each `{ source, code }`. The rest of the draft still comes back.
+- Only you see them. They are not stored, not in the digest and not visible to managers or in the organization API.
+
 #### With your AI sessions
 
 ```bash
