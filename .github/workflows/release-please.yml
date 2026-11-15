@@ -124,3 +124,104 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "$TAG_NAME" dist/standcast-* dist/SHA256SUMS --clobber
+
+  npm-publish:
+    needs: [release-please, cli-assets]
+    if: ${{ !cancelled() && needs.cli-assets.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TAG_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || needs.release-please.outputs.tag_name }}
+    steps:
+      - name: Check the npm token
+        id: npm
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "::warning::NPM_TOKEN is not set, so neither npm nor the MCP registry got this release"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: checkout v7.0.1
+        if: steps.npm.outputs.ready == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: setup-bun v2.2.0
+        if: steps.npm.outputs.ready == 'true'
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.4.4
+      - name: setup-node v7.1.0
+        if: steps.npm.outputs.ready == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: Download and check the CLI binaries
+        if: steps.npm.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release download "$TAG_NAME" -p 'standcast-bun-*' -p SHA256SUMS -D dist --clobber
+          (cd dist && sha256sum -c SHA256SUMS)
+      - name: Build the npm packages
+        if: steps.npm.outputs.ready == 'true'
+        run: bun scripts/npm-packages.ts "${TAG_NAME#standcast-v}" dist dist/npm > dist/npm-order.txt
+      - name: Publish the npm packages
+        if: steps.npm.outputs.ready == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          while read -r dir; do
+            name=$(jq -r .name "$dir/package.json")
+            version=$(jq -r .version "$dir/package.json")
+            if npm view "$name@$version" version > /dev/null 2>&1; then
+              echo "$name@$version is already on npm"
+              continue
+            fi
+            latest=$(npm view "$name" dist-tags.latest 2> /dev/null || true)
+            tag=latest
+            if [ -n "$latest" ] && [ "$(printf '%s\n%s\n' "$latest" "$version" | sort -V | tail -n 1)" != "$version" ]; then
+              tag=backport
+              echo "$name@$version is older than latest $latest, publishing it under the backport tag"
+            fi
+            npm publish "$dir" --access public --provenance --tag "$tag"
+          done < dist/npm-order.txt
+      - name: Publish to the MCP registry
+        if: steps.npm.outputs.ready == 'true'
+        run: |
+          version="${TAG_NAME#standcast-v}"
+          for _ in $(seq 1 12); do
+            if [ "$(npm view "standcast@$version" mcpName 2> /dev/null)" != "" ]; then break; fi
+            sleep 10
+          done
+          curl -fsSL -o mcp-publisher.tar.gz https://github.com/modelcontextprotocol/registry/releases/download/v1.8.7/mcp-publisher_linux_amd64.tar.gz
+          echo "00b21004149a4ce66f0782508ae4a2bce67d1bea395a8da0bd8028159fb59579  mcp-publisher.tar.gz" | sha256sum -c -
+          tar -xzf mcp-publisher.tar.gz mcp-publisher
+          jq --arg v "$version" '.version = $v | .packages[0].version = $v' server.json > server.next.json
+          mv server.next.json server.json
+          name=$(jq -r .name server.json)
+          url="https://registry.modelcontextprotocol.io/v0.1/servers/$(jq -rn --arg n "$name" '$n | @uri')/versions/$version"
+          status=$(curl -sS -o registry.json -w '%{http_code}' "$url")
+          if [ "$status" = 200 ]; then
+            packages='[.packages[] | {registryType, identifier, version}]'
+            if [ "$(jq -c ".server | $packages" registry.json)" = "$(jq -c "$packages" server.json)" ]; then
+              echo "$name $version is already in the MCP registry"
+              exit 0
+            fi
+            echo "::error::$name $version is in the MCP registry with different packages"
+            exit 1
+          fi
+          if [ "$status" != 404 ]; then
+            echo "::error::the MCP registry answered $status for $name $version"
+            exit 1
+          fi
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish
