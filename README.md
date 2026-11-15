@@ -20,6 +20,7 @@
 
 <p align="center">
   <a href="https://github.com/ImFelipeOliveira/standcast/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/ImFelipeOliveira/standcast/ci.yml?branch=main&amp;label=CI&amp;labelColor=18181b" alt="CI"></a>
+  <a href="https://github.com/ImFelipeOliveira/standcast/releases"><img src="https://img.shields.io/github/v/release/ImFelipeOliveira/standcast?include_prereleases&amp;label=release&amp;labelColor=18181b&amp;color=3B4BC8" alt="Latest release"></a>
   <a href="https://www.npmjs.com/package/standcast"><img src="https://img.shields.io/npm/v/standcast?label=npm&amp;labelColor=18181b&amp;color=3B4BC8" alt="npm"></a>
   <img src="https://img.shields.io/badge/status-public%20beta-3B4BC8?labelColor=18181b" alt="Status: public beta">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-3B4BC8?labelColor=18181b" alt="License: MIT"></a>
