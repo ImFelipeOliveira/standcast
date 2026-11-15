@@ -21,7 +21,7 @@ Se o card do Google Chat no app web diz "O Google Chat não está disponível ne
 1. No Google Chat, abra o espaço onde o consolidado deve chegar.
 2. Abra o menu do espaço, escolha **Apps e integrações**, depois **Adicionar apps**, e escolha **Standcast**.
 
-O app publica uma mensagem no espaço, em inglês e português, com um código de vínculo:
+O app publica uma mensagem no espaço com um código de vínculo. Ela vem no `language` dos times cujo `chat.channel` é este espaço no `standcast.yml`, e em inglês quando nenhum time usa o espaço ainda ou os times dele têm idiomas diferentes:
 
 > O Standcast está neste espaço. Para receber os consolidados aqui, um admin da sua organização no GitHub cola este código no Standcast, em Configuração → Google Chat: `K7QF3MZP`. O código vale por 24 horas.
 
@@ -44,7 +44,7 @@ Se o código não funcionar:
 | Muitas tentativas. Espere um minuto e tente de novo. | Espere um minuto. As tentativas de vínculo são limitadas a 10 por minuto. |
 | Esta organização já tem 20 espaços vinculados, o máximo. Desvincule um antes. | Uma organização pode vincular até 20 espaços. Desvincule um que não usa mais. |
 
-Depois do vínculo, o app publica no espaço, em inglês e português, qual organização passa a receber os consolidados ali. Se não for a sua organização, remova o app do espaço para desfazer o vínculo.
+Depois do vínculo, o app publica no espaço qual organização passa a receber os consolidados ali, no idioma dos times do espaço, ou em inglês como acima. Se não for a sua organização, remova o app do espaço para desfazer o vínculo.
 
 Um espaço só pode estar vinculado a uma organização. Colar o código é o que prova que a sua organização pode publicar ali: só o nome do espaço no `standcast.yml` não basta.
 
@@ -89,7 +89,7 @@ Os três jeitos fazem a mesma coisa. O Standcast compara o e-mail da sua conta d
 | Achei a sua conta, mas nenhuma organização sua conectou o Google Chat ao Standcast ainda. Peça a um admin para vincular um espaço e me mande uma mensagem de novo. | Vincule um espaço primeiro e mande uma mensagem para o app de novo. |
 | Este e-mail pertence a mais de uma conta do GitHub no Standcast, então não vinculei nenhuma. Peça a um admin para definir `google_chat` para você em `members` no standcast.yml, ou deixe o e-mail certo só na sua conta do GitHub e rode `standcast login` de novo. | Duas ou mais contas do GitHub que entraram no Standcast têm este e-mail, então o Standcast não vincula nenhuma. Em cada organização dessas contas que usa o Google Chat, ele também apaga os vínculos do Google Chat dessas contas e qualquer vínculo com este usuário do Google Chat. Mapeie a pessoa à mão, como abaixo, ou tire o e-mail das outras contas. |
 
-A resposta vem no idioma do time quando o Standcast sabe qual é, e em inglês e português quando não sabe. Nas respostas de conta não encontrada e de e-mail em mais de uma conta, o app também diz o id da pessoa no Google Chat (`users/` seguido de dígitos), pronto para o mapeamento abaixo.
+A resposta vem em um idioma só: o dos seus times, ou o dos times do espaço quando você clica no botão ou menciona o app ali. Quando o Standcast não consegue saber, ou os seus times têm idiomas diferentes, ela vem em inglês. Nas respostas de conta não encontrada e de e-mail em mais de uma conta, o app também diz o id da pessoa no Google Chat (`users/` seguido de dígitos), pronto para o mapeamento abaixo.
 
 O GitHub manda os seus e-mails verificados para o Standcast quando você roda `standcast login` ou entra no app web. O seu e-mail principal sempre vale. Os outros e-mails verificados só valem por 30 dias depois dessa entrada, então um e-mail que você tira do GitHub deixa de valer até lá. Depois de adicionar e verificar o seu e-mail do Google no GitHub, entre de novo de um desses jeitos e mande mensagem para o app em até 30 dias. Se a sua conta do GitHub tem 1.000 e-mails ou mais, o Standcast não consegue ler todos e mantém a lista da entrada anterior até os 30 dias dela acabarem; peça a um admin para mapear você à mão, como abaixo.
 
