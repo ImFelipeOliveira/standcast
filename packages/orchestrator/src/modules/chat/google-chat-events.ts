@@ -14,6 +14,7 @@ import {
   getConnectionExternalId,
   getInstallation,
   issueGoogleChatLinkCode,
+  listGoogleChatSpaceConfigs,
   listMemberInstallations,
   type MemberRow,
   operationalConfig,
@@ -22,7 +23,12 @@ import {
 } from '@standcast/db';
 import type { Deps } from '../../deps';
 import { logError } from '../../log-error';
-import { generateLinkCode, hashLinkCode, LINK_CODE_TTL_MS } from './link-google-chat-space';
+import {
+  generateLinkCode,
+  googleChatSpaceLanguage,
+  hashLinkCode,
+  LINK_CODE_TTL_MS,
+} from './link-google-chat-space';
 
 export type GoogleChatEvent = {
   type: string;
@@ -49,23 +55,20 @@ function isDirectMessage(space: GoogleChatEvent['space']): boolean {
   );
 }
 
-function bilingual(key: MessageKey, vars: Record<string, string> = {}): GoogleChatReply {
-  return { text: `${t('en', key, vars)}\n\n${t('pt-BR', key, vars)}` };
-}
-
-function bilingualWithMapHint(key: MessageKey, userId: string): GoogleChatReply {
-  const texts = (['en', 'pt-BR'] as const).map(
-    (lang) => `${t(lang, key)}\n${t(lang, 'googleChat.mapHint', { userId })}`,
-  );
-  return { text: texts.join('\n\n') };
-}
-
 function reply(
-  language: Language | null,
+  language: Language,
   key: MessageKey,
   vars: Record<string, string> = {},
 ): GoogleChatReply {
-  return language ? { text: t(language, key, vars) } : bilingual(key, vars);
+  return { text: t(language, key, vars) };
+}
+
+function replyWithMapHint(language: Language, key: MessageKey, userId: string): GoogleChatReply {
+  return { text: `${t(language, key)}\n${t(language, 'googleChat.mapHint', { userId })}` };
+}
+
+async function spaceLanguage(deps: EventDeps, spaceName: string): Promise<Language> {
+  return googleChatSpaceLanguage(await listGoogleChatSpaceConfigs(deps.db, spaceName), spaceName);
 }
 
 async function issueLinkCode(
@@ -81,7 +84,7 @@ async function issueLinkCode(
     expiresAt: new Date(deps.now().getTime() + LINK_CODE_TTL_MS),
     now: deps.now(),
   });
-  return bilingual('googleChat.linkCode', { code });
+  return reply(await spaceLanguage(deps, space.name), 'googleChat.linkCode', { code });
 }
 
 async function removeSpace(deps: EventDeps, spaceName: string): Promise<null> {
@@ -168,16 +171,17 @@ async function quarantineLinks(
 async function linkIdentities(
   deps: EventDeps,
   user: GoogleChatEvent['user'],
+  fallback: Language,
 ): Promise<GoogleChatReply> {
   const email = user?.email?.trim();
   if (!user || !email || !GOOGLE_CHAT_USER_ID.test(user.name)) {
-    return bilingual('googleChat.notFound');
+    return reply(fallback, 'googleChat.notFound');
   }
   const members = await membersWithEmail(deps, email);
-  if (members.length === 0) return bilingualWithMapHint('googleChat.notFound', user.name);
+  if (members.length === 0) return replyWithMapHint(fallback, 'googleChat.notFound', user.name);
   if (new Set(members.map((member) => member.id)).size > 1) {
     await quarantineLinks(deps, members, user.name);
-    return bilingualWithMapHint('googleChat.ambiguous', user.name);
+    return replyWithMapHint(fallback, 'googleChat.ambiguous', user.name);
   }
   const linked: string[] = [];
   const languages = new Set<Language>();
@@ -188,17 +192,19 @@ async function linkIdentities(
     for (const language of outcome.languages) languages.add(language);
   }
   const [only] = languages;
-  const language = languages.size === 1 && only ? only : null;
+  const language = languages.size === 1 && only ? only : fallback;
   if (linked.length === 0) return reply(language, 'googleChat.notConnected');
   return reply(language, 'googleChat.linked', { logins: linked.join(', ') });
 }
 
 async function linkFromSpace(
   deps: EventDeps,
+  space: GoogleChatEvent['space'],
   user: GoogleChatEvent['user'],
 ): Promise<GoogleChatReply | null> {
   if (!user || !GOOGLE_CHAT_USER_ID.test(user.name)) return null;
-  return { ...(await linkIdentities(deps, user)), privateTo: user.name };
+  const language = await spaceLanguage(deps, space.name);
+  return { ...(await linkIdentities(deps, user, language)), privateTo: user.name };
 }
 
 function asksToLink(event: GoogleChatEvent): boolean {
@@ -215,9 +221,9 @@ export async function handleGoogleChatEvent(
   if (event.type === 'REMOVED_FROM_SPACE') return removeSpace(deps, space.name);
   if (isDirectMessage(space)) {
     if (event.type !== 'MESSAGE' && event.type !== 'ADDED_TO_SPACE') return null;
-    return linkIdentities(deps, event.user);
+    return linkIdentities(deps, event.user, 'en');
   }
   if (event.type === 'ADDED_TO_SPACE') return issueLinkCode(deps, space);
-  if (asksToLink(event)) return linkFromSpace(deps, event.user);
+  if (asksToLink(event)) return linkFromSpace(deps, space, event.user);
   return null;
 }

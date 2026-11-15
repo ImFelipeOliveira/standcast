@@ -1,9 +1,10 @@
 import { createHash } from 'node:crypto';
-import { type Message, t } from '@standcast/core';
+import { type Language, type Message, type StandcastConfig, t } from '@standcast/core';
 import {
   deleteGoogleChatConnectionIfUnused,
   deleteGoogleChatSpaceBinding,
   type MemberRow,
+  operationalConfig,
   redeemGoogleChatLinkCode,
 } from '@standcast/db';
 import type { Deps } from '../../deps';
@@ -38,15 +39,21 @@ function normalizeLinkCode(code: string): string | null {
   return LINK_CODE.test(normalized) ? normalized : null;
 }
 
-function spaceLinkedMessage(org: string): Message {
-  const texts = [
-    t('en', 'googleChat.spaceLinked', { org }),
-    t('pt-BR', 'googleChat.spaceLinked', { org }),
-  ];
-  return {
-    fallbackText: texts.join('\n\n'),
-    blocks: texts.map((text) => ({ type: 'paragraph', content: [text] })),
-  };
+export function googleChatSpaceLanguage(configs: StandcastConfig[], space: string): Language {
+  const languages = new Set(
+    configs.flatMap((config) =>
+      config.teams
+        .filter((team) => team.chat.provider === 'google-chat' && team.chat.channel === space)
+        .map((team) => team.language),
+    ),
+  );
+  const [only] = languages;
+  return languages.size === 1 && only ? only : 'en';
+}
+
+function spaceLinkedMessage(org: string, language: Language): Message {
+  const text = t(language, 'googleChat.spaceLinked', { org });
+  return { fallbackText: text, blocks: [{ type: 'paragraph', content: [text] }] };
 }
 
 async function announceLink(
@@ -54,10 +61,12 @@ async function announceLink(
   installationId: number,
   org: string,
   space: string,
+  config: StandcastConfig | null,
 ): Promise<void> {
   try {
     const chat = await deps.chatFor(installationId, 'google-chat');
-    await chat?.postToChannel(space, spaceLinkedMessage(org));
+    const language = googleChatSpaceLanguage(config ? [config] : [], space);
+    await chat?.postToChannel(space, spaceLinkedMessage(org, language));
   } catch (error) {
     logError('google chat link notice failed', error, { installationId: String(installationId) });
   }
@@ -99,7 +108,13 @@ export async function linkGoogleChatSpace(
       `an organization can link at most ${MAX_GOOGLE_CHAT_SPACES} google chat spaces; unlink one first`,
     );
   }
-  await announceLink(deps, installation.id, installation.accountLogin, result.space.name);
+  await announceLink(
+    deps,
+    installation.id,
+    installation.accountLogin,
+    result.space.name,
+    operationalConfig(installation),
+  );
   return { space: result.space.name, displayName: result.space.displayName };
 }
 

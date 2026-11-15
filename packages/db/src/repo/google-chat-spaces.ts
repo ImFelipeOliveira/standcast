@@ -1,7 +1,9 @@
+import type { StandcastConfig } from '@standcast/core';
 import { and, asc, count, eq, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
 import type { Db } from '../client';
 import { encryptSecret } from '../crypto';
-import { connections, googleChatSpaces } from '../schema';
+import { connections, googleChatSpaces, installations } from '../schema';
+import { operationalConfig } from './installations';
 
 export type GoogleChatSpace = { name: string; displayName: string };
 
@@ -186,6 +188,30 @@ export async function isGoogleChatSpaceLinked(
       ),
     );
   return row !== undefined;
+}
+
+export async function listGoogleChatSpaceConfigs(
+  db: Db,
+  spaceName: string,
+): Promise<StandcastConfig[]> {
+  const columns = { status: installations.status, config: installations.config };
+  const bound = await db
+    .select(columns)
+    .from(googleChatSpaces)
+    .innerJoin(installations, eq(installations.id, googleChatSpaces.installationId))
+    .where(and(eq(googleChatSpaces.spaceName, spaceName), isNotNull(googleChatSpaces.linkedAt)));
+  const usedOnSpace = JSON.stringify([{ chat: { provider: 'google-chat', channel: spaceName } }]);
+  const rows =
+    bound.length > 0
+      ? bound
+      : await db
+          .select(columns)
+          .from(installations)
+          .where(sql`${installations.config} -> 'teams' @> ${usedOnSpace}::jsonb`);
+  return rows.flatMap((row) => {
+    const config = operationalConfig(row);
+    return config ? [config] : [];
+  });
 }
 
 export async function deleteGoogleChatConnectionIfUnused(
