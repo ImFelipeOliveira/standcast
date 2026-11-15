@@ -95,7 +95,7 @@ The draft also carries `plan` and `pending`, computed when you open it.
 - `pending` is what is waiting on you: `items` and `truncated`. An item is a pull request you opened, a pull request where your review is requested directly (not through a team), or a card assigned to you that is in progress, or not started with urgent or high priority.
 - `warnings` lists the sources that did not answer (GitHub or Linear). The draft still comes back with the rest.
 
-The agent opens with planned against done, then shows the pending work in groups (waiting on you, urgent or high cards, in progress, approved and ready to merge, drafts) and recommends up to 5 focus items. You pick by number, "ok" or your own words, and the picks become "today". Plan and pending are only for you: they are not stored and never shown to managers or in the organization API. The plan is never copied into the daily, and a pending item goes into the daily only when you pick it as a focus item for "today".
+The agent opens with planned against done, then shows the pending work in groups (waiting on you, urgent or high cards, in progress, approved and ready to merge, drafts) and recommends up to 5 focus items. You pick by number, "ok" or your own words, and the picks become "today". Plan and pending are only for you: they are not stored and never shown to managers or in the organization API. The planned against done list is never copied into the daily. A planned item that did not move, or a pending item, goes into the daily only when you pick it as a focus item for "today".
 
 ### Suggested blockers
 

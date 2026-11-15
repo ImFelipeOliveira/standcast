@@ -177,7 +177,9 @@ describe('daily skill', () => {
     expect(skill).toContain(
       'including their own drafts, those with checks pending and those not approved with checks null',
     );
-    expect(skill).toContain('`reviewDecision: "approved"` and `checks: "success"` or null');
+    expect(skill).toContain(
+      '`own_pr` that is not a `draft`, with `reviewDecision: "approved"` and `checks: "success"` or null. An approved draft stays in progress.',
+    );
     for (const flow of [mcpFlow, cliFlow]) {
       const pendingStep = flow.slice(flow.search(/^\d+\. \*\*Pending\.\*\*/m));
       expect(pendingStep.slice(0, pendingStep.search(/^\d+\. \*\*Focus/m))).toContain(

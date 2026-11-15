@@ -124,7 +124,7 @@ Grouping in the skill:
 - **Waiting on you:** review requested from you and not a draft; your pull requests with changes requested or failing checks.
 - **Your cards, urgent or high.**
 - **In progress:** your started cards; your pull requests with no review decision yet and passing or pending checks.
-- **Approved, ready to merge:** your pull requests approved with passing checks or no checks.
+- **Approved, ready to merge:** your pull requests that are not drafts, approved with passing checks or no checks. An approved draft stays in progress.
 - **Drafts:** review requests on draft pull requests, as one short line.
 
 ### Budget

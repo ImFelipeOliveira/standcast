@@ -102,7 +102,7 @@ O rascunho também traz `plan` e `pending`, calculados quando você o abre.
 - `pending` é o que está esperando por você: `items` e `truncated`. Um item é um pull request que você abriu, um pull request em que o seu review foi pedido diretamente (não por um time), ou um card atribuído a você que está em andamento, ou não iniciado com prioridade urgente ou alta.
 - `warnings` lista as fontes que não responderam (GitHub ou Linear). O rascunho ainda vem com o resto.
 
-O agente abre com o planejado contra o feito, mostra o trabalho pendente em grupos (esperando por você, cards urgentes ou de prioridade alta, em andamento, aprovados e prontos para merge, rascunhos) e recomenda até 5 itens de foco. Você escolhe pelo número, "ok" ou com as suas palavras, e a escolha vira o "hoje". Plano e pendências são só seus: não são guardados e nunca aparecem para gestores nem na API da organização. O plano nunca é copiado para a daily, e um item pendente só entra na daily quando você o escolhe como foco do "hoje".
+O agente abre com o planejado contra o feito, mostra o trabalho pendente em grupos (esperando por você, cards urgentes ou de prioridade alta, em andamento, aprovados e prontos para merge, rascunhos) e recomenda até 5 itens de foco. Você escolhe pelo número, "ok" ou com as suas palavras, e a escolha vira o "hoje". Plano e pendências são só seus: não são guardados e nunca aparecem para gestores nem na API da organização. A lista do planejado contra o feito nunca é copiada para a daily. Um item planejado que não andou, ou um item pendente, só entra na daily quando você o escolhe como foco do "hoje".
 
 ## Impedimentos sugeridos
 

@@ -205,7 +205,7 @@ const DAILY_PLAN_RULES = [
 const GROUPING_RULES = [
   '"review_required" or null means no review decision yet',
   'including their own drafts, those with checks pending and those not approved with checks null',
-  "the person's pull requests approved with checks success or null",
+  "the person's pull requests that are not drafts, approved with checks success or null",
   'may be incomplete',
 ];
 
