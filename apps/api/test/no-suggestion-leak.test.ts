@@ -417,14 +417,14 @@ describe('suggestions never leak outside the person', () => {
         outputs.push([route, body]);
       }
       const web = await createSession(db, alice.id, 'web');
-      const page = await app.request(`/setup?installation_id=${INST}`, {
-        headers: { cookie: `sc_web=${web}`, 'accept-language': 'en' },
-      });
-      outputs.push(['setup page', await page.text()]);
-      const context = await app.request(`/v1/app/orgs/${INST}/context`, {
-        headers: { cookie: `sc_web=${web}`, origin: deps.env.appUrl },
-      });
-      outputs.push(['org context', await context.text()]);
+      for (const endpoint of ['setup', 'context']) {
+        const res = await app.request(`/v1/app/orgs/${INST}/${endpoint}`, {
+          headers: { cookie: `sc_web=${web}`, origin: deps.env.appUrl },
+        });
+        const body = await res.text();
+        expect(res.status, `org ${endpoint} ${body}`).toBe(200);
+        outputs.push([`org ${endpoint}`, body]);
+      }
 
       for (const [label, output] of outputs) {
         const text = typeof output === 'string' ? output : JSON.stringify(output);
