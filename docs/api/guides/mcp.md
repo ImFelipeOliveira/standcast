@@ -69,7 +69,7 @@ Every tool that takes `org` accepts it as optional. When you belong to a single 
 | Tool | Input | Returns |
 | --- | --- | --- |
 | `standcast_whoami` | none | `{ login, orgs }` |
-| `standcast_get_draft` | `org?`, `includeSessions?` (default `true`) | The draft of yesterday's work, built from your GitHub and Linear activity, plus `work` grouped with your local AI sessions |
+| `standcast_get_draft` | `org?`, `includeSessions?` (default `true`) | The draft of yesterday's work, built from your GitHub and Linear activity, plus `plan`, `pending` and `warnings`, and `work` grouped with your local AI sessions |
 | `standcast_submit_daily` | `org?`, `yesterday`, `today`, `blockers`, `support?` (what you need from someone else without being blocked; empty when missing), `confirmed?` (`true` when the client has no elicitation) | `{ date, teams, late, confirmation }` |
 | `standcast_decide_suggestion` | `org?`, `id`, `decision` (`confirmed` or `ignored`) | `{ id, decision }` |
 | `standcast_list_teams` | `org?` | The teams you can read |
@@ -86,6 +86,16 @@ Every tool declares an input schema, an output schema and annotations, and retur
 The MCP server runs on your machine and reads the session files itself, from `~/.claude/projects` (or `STANDCAST_CLAUDE_DIR`). Standcast does not send session data to the Standcast API, logs or webhooks. The MCP client you connect receives it and may send it to its model provider. Only the daily you confirm is submitted to Standcast.
 
 The agent builds yesterday as a short summary, at most 5 lines grouped by project or theme, in your language, and does not paste your prompts into the daily unless you ask. To leave your sessions out, tell the agent (it calls again with `includeSessions: false`), or set `STANDCAST_SESSIONS=off` in the environment of the MCP server to turn it off everywhere.
+
+### Planned against done and pending work
+
+The draft also carries `plan` and `pending`, computed when you open it.
+
+- `plan` is the list of "today" items of your previous daily, when that daily is at most 7 days old; otherwise it is `null`. Each item is `{ text, ref?, status, evidence }`. `status` is `moved` (with `evidence`: what happened, such as commits, a review, a merge, a card state change or a comment), `not_moved` (no activity found) or `unknown` (the agent asks you). What counts is your own commits and reviews on the pull request, the pull request merged or closed, a state change of the card, or your own comment on the card, from the start of the day of your previous daily.
+- `pending` is what is waiting on you: `items` and `truncated`. An item is a pull request you opened, a pull request where your review is requested directly (not through a team), or a card assigned to you that is in progress, or not started with urgent or high priority.
+- `warnings` lists the sources that did not answer (GitHub or Linear). The draft still comes back with the rest.
+
+The agent opens with planned against done, then shows the pending work in groups (waiting on you, urgent or high cards, in progress, approved and ready to merge, drafts) and recommends up to 5 focus items. You pick by number, "ok" or your own words, and the picks become "today". Plan and pending are only for you: they are not stored and never shown to managers or in the organization API. The planned against done list is never copied into the daily. A planned item that did not move, or a pending item, goes into the daily only when you pick it as a focus item for "today".
 
 ### Suggested blockers
 

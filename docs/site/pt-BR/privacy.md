@@ -15,6 +15,7 @@ O Standcast usa as permissões do GitHub App dele: Metadata (read), Contents (re
 - o `standcast.yml` do repositório `.github-private` do dono da instalação ou, quando ele não tem o arquivo, do repositório `.github`, e se esse repositório é privado;
 - os membros dos times do GitHub citados no `standcast.yml` (`@org/time`);
 - a participação e o papel na organização, para saber quem é membro e quem é admin;
+- para a pessoa que pede o rascunho, para comparar o planejado com o feito e listar o que está pendente: os pull requests que ela abriu e aqueles em que o review dela foi pedido diretamente, com título, link, repositório, estado de rascunho, decisão de review e o estado dos checks no commit head; e, para os pull requests dos itens de "hoje" da daily anterior dela, as datas dos commits de autoria dela, os reviews dela e se foi mergeado ou fechado;
 - para os impedimentos sugeridos e o encaminhamento de impedimentos, em pull requests da organização: título, url, estado de rascunho, o momento em que ficou pronto para revisão, o estado das revisões (só contadas), as conclusões dos check runs no commit head, os caminhos dos arquivos alterados (só para achar os donos do código) e o arquivo `CODEOWNERS`;
 - para a pessoa que pede o rascunho: títulos, links, repositórios e datas dos pull requests que ela abriu, mergeou e revisou, e dos commits de autoria dela, na organização;
 - quando você entra: o seu id de usuário no GitHub, o seu login, o seu e-mail principal verificado, os seus outros e-mails verificados (só para vincular você no Google Chat) e as instalações que você acessa.
@@ -54,9 +55,10 @@ Se um admin conectar o Linear, o Standcast usa um app OAuth que age como ele mes
 
 - para quem pede o rascunho e para os sinais de cards: o identificador da issue, o título, a url, o tipo do estado, as datas de início e de conclusão, o responsável, quem criou, as relações "bloqueia" e a chave do time;
 - para encaminhar um impedimento de card: o responsável e quem criou o card citado, e os responsáveis pelos cards que o bloqueiam, só para saber quem avisar;
+- para a pessoa que pede o rascunho, os cards atribuídos a ela que estão em andamento, ou não iniciados com prioridade urgente ou alta, com o nome do estado e a prioridade; e, para os cards dos itens de "hoje" da daily anterior dela, as datas das mudanças de estado do card e dos comentários da própria pessoa nele, nunca o texto dos comentários;
 - o e-mail dos usuários do Linear, só para ligar as pessoas ao usuário delas no Linear.
 
-Ele nunca lê descrições nem comentários, e nunca escreve no Linear. Cards de outro workspace nunca são lidos. Os cards de uma pessoa aparecem só no rascunho dela e nunca são usados para medir pessoas.
+Ele nunca lê descrições nem o texto de comentários, e nunca escreve no Linear. Cards de outro workspace nunca são lidos. Os cards de uma pessoa aparecem só no rascunho dela e nunca são usados para medir pessoas.
 
 ### Suas sessões de IA, na sua máquina
 
@@ -114,6 +116,7 @@ Quando alguém pede acesso ao beta na página do Standcast, o formulário coleta
 
 - Enviar uma daily sem a confirmação explícita da pessoa.
 - Mostrar a alguém um rascunho ou uma sugestão que a pessoa não confirmou.
+- Guardar ou mostrar a alguém, além da própria pessoa, o planejado contra o feito ou as pendências dela: ambos são calculados quando a pessoa abre o rascunho, aparecem só para ela e não vão para o consolidado, as tools de gestor, a API da organização nem os webhooks.
 - Mostrar um impedimento sugerido a outra pessoa que não ela, no consolidado, nas tools de organização ou de gestor, nos webhooks ou na página de setup.
 - Calcular ranking, nota, métrica de produtividade ou agregado por pessoa.
 - Ler o seu código, as suas mensagens no Slack ou no Google Chat, ou as suas mensagens diretas.
@@ -126,7 +129,7 @@ Quando alguém pede acesso ao beta na página do Standcast, o formulário coleta
 
 | Quem | Vê |
 | --- | --- |
-| Você | O seu rascunho, os seus impedimentos sugeridos e as suas dailies, pelo seu agente |
+| Você | O seu rascunho, o seu planejado contra o feito, as suas pendências, os seus impedimentos sugeridos e as suas dailies, pelo seu agente |
 | Membros do canal do time no Slack ou do espaço do time no Google Chat | O consolidado e as dailies atrasadas na thread dele |
 | Gestores do time | Os consolidados, as dailies e os impedimentos confirmados do time nos últimos 90 dias, pelas tools de gestor do MCP |
 | Admins da organização | Tudo o que os gestores veem, de todos os times; na página de setup, os controles para conectar e reconectar o Slack, os controles para vincular e desvincular espaços do Google Chat, as API keys e os webhooks |

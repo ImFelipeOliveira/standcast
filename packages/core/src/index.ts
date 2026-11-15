@@ -9,6 +9,7 @@ export * from './config';
 export * from './config-locate';
 export * from './config-repository';
 export * from './daily';
+export * from './daily-plan';
 export * from './digest';
 export * from './error-fields';
 export * from './github-ref';

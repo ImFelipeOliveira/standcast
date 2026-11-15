@@ -1,6 +1,6 @@
 import type { Octokit } from '@octokit/core';
 import { type ActivityItem, clampTitle, parsePullRequestUrl } from '@standcast/core';
-import { httpStatus } from './errors';
+import { scopeQualifier } from './scope';
 
 const MAX_ITEMS = 50;
 const PER_PAGE = 100;
@@ -28,16 +28,6 @@ function iso(date: Date): string {
 
 function repoOf(hit: IssueHit): string {
   return hit.repository_url.split('/repos/')[1] ?? hit.repository_url;
-}
-
-async function scopeQualifier(octokit: Octokit, owner: string): Promise<string> {
-  try {
-    const response = await octokit.request('GET /users/{username}', { username: owner });
-    return (response.data as { type?: string }).type === 'User' ? `user:${owner}` : `org:${owner}`;
-  } catch (error) {
-    if (httpStatus(error) === 404) return `org:${owner}`;
-    throw error;
-  }
 }
 
 async function searchIssues(octokit: Octokit, q: string): Promise<IssueHit[]> {

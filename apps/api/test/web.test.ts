@@ -107,6 +107,8 @@ function harness(
       pullRequestMerged: async () => null,
       listPullRequestFiles: async () => [],
       listOpenPullRequestSnapshots: async () => [],
+      listPendingPullRequests: async () => ({ items: [], truncated: false }),
+      lookupPlannedPullRequests: async () => new Map(),
       fetchCodeowners: async () => null,
       createCheckRun: async () => {},
       exchangeWebCode: async (code) => {

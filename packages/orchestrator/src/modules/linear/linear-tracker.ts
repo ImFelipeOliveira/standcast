@@ -1,5 +1,8 @@
 import {
   type ActivityItem,
+  type CardTarget,
+  type Pending,
+  type PlanLookupResult,
   parseLinearIssueUrl,
   type Ref,
   type StandcastConfig,
@@ -11,8 +14,10 @@ import {
   LinearAuthError,
   type LinearIssue,
   type LinearUser,
+  listAssignedOpen,
   listCardActivity,
   listStaleInProgress,
+  lookupPlannedCards,
 } from '@standcast/linear';
 import type { Deps } from '../../deps';
 import { logError } from '../../log-error';
@@ -99,6 +104,29 @@ class LinearTracker implements ProjectTracker {
     return this.guard(() =>
       listStaleInProgress(this.access.client, { userId, teamKey: this.teamKey }),
     );
+  }
+
+  async listAssignedOpen(login: string): Promise<Pending> {
+    const userId = await this.linearUserId(login);
+    if (!userId) return { items: [], truncated: false };
+    return this.guard(() =>
+      listAssignedOpen(this.access.client, { userId, teamKey: this.teamKey }),
+    );
+  }
+
+  async lookupCards(
+    login: string,
+    refs: CardTarget[],
+    since: Date,
+  ): Promise<Map<string, PlanLookupResult>> {
+    const userId = await this.linearUserId(login);
+    if (!userId) return new Map();
+    const workspace = this.access.organization.urlKey.toLowerCase();
+    const targets = refs.filter(
+      (ref) => parseLinearIssueUrl(ref.url)?.workspace.toLowerCase() === workspace,
+    );
+    if (targets.length === 0) return new Map();
+    return this.guard(() => lookupPlannedCards(this.access.client, { userId, since, targets }));
   }
 
   private linearUserId(login: string): Promise<string | null> {

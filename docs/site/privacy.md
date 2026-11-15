@@ -16,6 +16,7 @@ Standcast uses the permissions of its GitHub App: Metadata (read), Contents (rea
 - the members of the GitHub teams you reference in `standcast.yml` (`@org/team`);
 - organization membership and role, to check who belongs to the organization and who is an admin;
 - for the person asking for a draft: titles, links, repositories and dates of the pull requests they opened, merged and reviewed, and of the commits they authored, in the organization;
+- for the person asking for a draft, to plan against done and list what is pending: the pull requests they opened and the ones where their review is requested directly, with title, link, repository, draft state, review decision and the state of the checks on the head commit; and, for the pull requests in the "today" items of their previous daily, the dates of the commits they authored, their reviews and whether it was merged or closed;
 - for suggested blockers and blocker routing, on pull requests of the organization: title, url, draft state, the time it was ready for review, review states (only counted), the conclusions of check runs on the head commit, the paths of changed files (only to find code owners) and the `CODEOWNERS` file;
 - when you sign in: your GitHub user id, your login, your primary verified email, your other verified emails (only to link you in Google Chat) and the installations you can access.
 
@@ -54,9 +55,10 @@ If an admin connects Linear, Standcast uses an OAuth app that acts as itself (`a
 
 - for the person asking for the draft and for the card signals: the issue identifier, title, url, state type, started and completed dates, assignee, creator, the "blocks" relations and the team key;
 - to route a card blocker: the assignee and the creator of the referenced card, and the assignees of the cards blocking it, only to find who to notify;
+- for the person asking for the draft, their assigned cards that are in progress, or not started with urgent or high priority, with the state name and priority; and, for the cards in the "today" items of their previous daily, the dates of the card's state changes and of the person's own comments on it, never the comment text;
 - the email of Linear users, only to link people to their Linear user.
 
-It never reads descriptions or comments, and it never writes to Linear. Cards from another workspace are never read. A person's own cards show only in their own draft and are never used to measure people.
+It never reads descriptions or comment text, and it never writes to Linear. Cards from another workspace are never read. A person's own cards show only in their own draft and are never used to measure people.
 
 ### Your AI sessions, on your machine
 
@@ -114,6 +116,7 @@ When someone asks for beta access on the Standcast landing page, the form collec
 
 - Sends a daily without the person's explicit confirmation.
 - Shows anyone a draft or a suggestion that the person did not confirm.
+- Stores or shows anyone but the person their planned against done or their pending work: both are computed when the person opens the draft, shown only to them, and are not in the digest, the manager tools, the organization API or webhooks.
 - Shows a suggested blocker to anyone but the person, in the digest, the organization or manager tools, webhooks or the setup page.
 - Computes rankings, scores, productivity metrics or per-person aggregates.
 - Reads your code, your Slack or Google Chat messages, or your direct messages.
@@ -126,7 +129,7 @@ When someone asks for beta access on the Standcast landing page, the form collec
 
 | Who | Sees |
 | --- | --- |
-| You | Your draft, your suggested blockers and your own dailies, through your agent |
+| You | Your draft, your planned against done, your pending work, your suggested blockers and your own dailies, through your agent |
 | Members of the team's Slack channel or Google Chat space | The digest and the late dailies in its thread |
 | Team managers | The team's digests, dailies and confirmed blockers for the last 90 days, through the MCP manager tools |
 | Organization admins | Everything managers see, for every team; on the setup page, the Slack connect and reconnect controls, the Google Chat link and unlink controls, API keys and webhooks |

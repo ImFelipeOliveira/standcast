@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import { type Message, parseConfig, type StandcastConfig } from '@standcast/core';
 import {
   claimDelivery,
@@ -11,9 +11,10 @@ import {
   setIdentity,
   setMemberInstallations,
   syncSuggestions,
+  upsertDaily,
   WEBHOOK_EVENTS,
 } from '@standcast/db';
-import { createMembershipCheck, sendDigest, submitDaily } from '@standcast/orchestrator';
+import { createMembershipCheck, getDraft, sendDigest, submitDaily } from '@standcast/orchestrator';
 import { sql } from 'drizzle-orm';
 import { db, useCleanDb } from '../../../packages/db/test/setup';
 import {
@@ -306,6 +307,137 @@ describe('suggestions never leak outside the person', () => {
         expect(json.admin, label).toBe(viewer.admin);
         if (endpoint === 'context') expect(json.managerOf, label).toEqual(['Alpha']);
       }
+    }
+  });
+
+  test('plan and pending never leave the person draft', async () => {
+    const PENDING_TITLE = 'PENDING-ONLY-TITLE';
+    const PLAN_URL = 'https://github.com/acme/api/pull/999';
+    const forbidden = [PENDING_TITLE, PLAN_URL];
+    const logs = [
+      spyOn(console, 'log').mockImplementation(() => {}),
+      spyOn(console, 'error').mockImplementation(() => {}),
+      spyOn(console, 'warn').mockImplementation(() => {}),
+    ];
+    try {
+      const { deps, alice } = await setup();
+      deps.github.listPendingPullRequests = async () => ({
+        items: [
+          {
+            kind: 'review_requested',
+            ref: {
+              kind: 'pull_request',
+              url: 'https://github.com/acme/api/pull/998',
+              title: PENDING_TITLE,
+            },
+            title: PENDING_TITLE,
+            repo: 'acme/api',
+            since: '2026-10-26T09:00:00.000Z',
+          },
+        ],
+        truncated: false,
+      });
+      deps.github.lookupPlannedPullRequests = async (_o, input) =>
+        new Map(
+          input.targets.map((t) => [
+            t.key,
+            {
+              ok: true as const,
+              evidence: [
+                { kind: 'commit' as const, url: PLAN_URL, at: '2026-10-28T10:00:00.000Z' },
+              ],
+            },
+          ]),
+        );
+      await upsertDaily(db, {
+        installationId: INST,
+        memberId: alice.id,
+        date: '2026-10-27',
+        payload: {
+          ...daily,
+          today: [
+            {
+              text: 'ship the api',
+              ref: { kind: 'pull_request', url: 'https://github.com/acme/api/pull/7' },
+            },
+          ],
+        },
+        submittedAt: new Date('2026-10-27T20:00:00Z'),
+      });
+      const isMember = createMembershipCheck(deps);
+      const draft = await getDraft(deps, isMember, alice, 'acme');
+      const own = JSON.stringify(draft);
+      for (const text of forbidden) expect(own.includes(text), `draft lacks ${text}`).toBe(true);
+
+      await submitDaily(deps, isMember, alice, daily);
+      const chat = fakeChat();
+      await sendDigest(
+        { ...deps, chatFor: async () => chat.chat },
+        { installationId: INST, teamName: 'Alpha', date: DATE },
+      );
+      const outputs: [string, unknown][] = [['digest message', chat.posted.map((p) => p.msg)]];
+      const envelopes = (await db.execute(
+        sql`SELECT event, payload FROM webhook_deliveries ORDER BY created_at`,
+      )) as unknown as { event: string; payload: unknown }[];
+      expect(envelopes.length).toBeGreaterThan(0);
+      for (const envelope of envelopes)
+        outputs.push([`webhook ${envelope.event}`, envelope.payload]);
+
+      const app = createApp(deps, { getClientIp: () => '192.0.2.1' });
+      const submitted = envelopes.find((e) => e.event === 'daily.submitted')?.payload as
+        | { data: { id: string } }
+        | undefined;
+      if (!submitted) throw new Error('daily not submitted');
+      const key = await createApiKey(db, {
+        installationId: INST,
+        name: 'leak',
+        scopes: ['teams:read', 'dailies:read', 'digests:read', 'blockers:read'],
+        createdBy: alice.id,
+      });
+      const session = await createSession(db, alice.id, 'cli');
+      const routes = [
+        ...new Set(
+          app.routes
+            .filter((r) => r.method !== 'ALL')
+            .filter((r) => r.path.startsWith('/v1/org/') || r.path.startsWith('/v1/manage/'))
+            .map((r) => `${r.method} ${r.path}`),
+        ),
+      ].sort();
+      for (const route of routes) {
+        const [method = 'GET', template = ''] = route.split(' ');
+        const path = template.replace(':id', submitted.data.id);
+        const token = template.startsWith('/v1/org/') ? key.key : session;
+        const res = await app.request(`${path}?org=acme&team=Alpha`, {
+          method,
+          headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+          ...(method === 'GET' ? {} : { body: JSON.stringify({ org: 'acme', team: 'Alpha' }) }),
+        });
+        const body = await res.text();
+        expect(res.status, `${route} ${body}`).toBe(200);
+        outputs.push([route, body]);
+      }
+      const web = await createSession(db, alice.id, 'web');
+      for (const endpoint of ['setup', 'context']) {
+        const res = await app.request(`/v1/app/orgs/${INST}/${endpoint}`, {
+          headers: { cookie: `sc_web=${web}`, origin: deps.env.appUrl },
+        });
+        const body = await res.text();
+        expect(res.status, `org ${endpoint} ${body}`).toBe(200);
+        outputs.push([`org ${endpoint}`, body]);
+      }
+
+      for (const [label, output] of outputs) {
+        const text = typeof output === 'string' ? output : JSON.stringify(output);
+        for (const fragment of forbidden) {
+          expect(text.includes(fragment), `${label} leaks ${fragment}`).toBe(false);
+        }
+      }
+      const printed = JSON.stringify(logs.flatMap((spy) => spy.mock.calls));
+      for (const fragment of forbidden) {
+        expect(printed.includes(fragment), `console leaks ${fragment}`).toBe(false);
+      }
+    } finally {
+      for (const spy of logs) spy.mockRestore();
     }
   });
 });

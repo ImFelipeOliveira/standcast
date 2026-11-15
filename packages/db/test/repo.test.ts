@@ -19,6 +19,7 @@ import {
   getInstallation,
   getInstallationMemberIds,
   getLastDaily,
+  getPreviousDaily,
   listDailies,
   listFailedPersonDeliveryGroups,
   listFailedTeamDeliveries,
@@ -108,6 +109,54 @@ describe('dailies', () => {
     }
     expect((await getLastDaily(db, INST, m.id, '2026-10-27'))?.date).toBe('2026-10-26');
     expect(await getLastDaily(db, INST, m.id, '2026-10-22')).toBeNull();
+  });
+
+  test('getPreviousDaily returns the latest earlier daily with its today items, scoped to the installation and member', async () => {
+    const m = await seed();
+    const other = await upsertMember(db, { githubUserId: 2, login: 'Bia', email: 'bia@acme.io' });
+    await upsertInstallation(db, { id: 200, accountLogin: 'beta', accountType: 'Organization' });
+    const payload = (text: string) =>
+      ({
+        org: 'acme',
+        yesterday: [],
+        today: [{ text }],
+        blockers: [],
+        support: [],
+      }) as DailySubmission;
+    const put = (installationId: number, memberId: string, date: string, text: string) =>
+      upsertDaily(db, {
+        installationId,
+        memberId,
+        date,
+        payload: payload(text),
+        submittedAt: new Date(`${date}T10:00:00Z`),
+      });
+    await put(INST, m.id, '2026-11-11', 'older');
+    await put(INST, m.id, '2026-11-12', 'latest');
+    await put(INST, other.id, '2026-11-13', 'other member');
+    await put(200, m.id, '2026-11-13', 'other installation');
+    const prev = await getPreviousDaily(db, INST, m.id, '2026-11-14');
+    expect(prev?.date).toBe('2026-11-12');
+    expect(prev?.today).toEqual([{ text: 'latest' }]);
+    expect(prev?.submittedAt).toBeInstanceOf(Date);
+    expect(await getPreviousDaily(db, INST, m.id, '2026-11-11')).toBeNull();
+  });
+
+  test('getPreviousDaily keeps the first submission time after a resubmit', async () => {
+    const m = await seed();
+    const put = (submittedAt: Date) =>
+      upsertDaily(db, {
+        installationId: INST,
+        memberId: m.id,
+        date: '2026-11-13',
+        payload: daily('2026-11-13'),
+        submittedAt,
+      });
+    await put(new Date('2026-11-13T12:00:00Z'));
+    await put(new Date('2026-11-13T21:00:00Z'));
+    const prev = await getPreviousDaily(db, INST, m.id, '2026-11-14');
+    expect(prev?.firstSubmittedAt).toEqual(new Date('2026-11-13T12:00:00Z'));
+    expect(prev?.submittedAt).toEqual(new Date('2026-11-13T21:00:00Z'));
   });
 });
 

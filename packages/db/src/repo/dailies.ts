@@ -1,4 +1,4 @@
-import type { StoredDaily } from '@standcast/core';
+import type { Item, StoredDaily } from '@standcast/core';
 import { and, desc, eq, gte, inArray, lt, lte, or, sql } from 'drizzle-orm';
 import type { Db } from '../client';
 import { dailies, members } from '../schema';
@@ -86,6 +86,39 @@ export async function getLastDaily(
     .orderBy(desc(dailies.date))
     .limit(1);
   return row ?? null;
+}
+
+export async function getPreviousDaily(
+  db: Db,
+  installationId: number,
+  memberId: string,
+  before: string,
+): Promise<{ date: string; submittedAt: Date; firstSubmittedAt: Date; today: Item[] } | null> {
+  const [row] = await db
+    .select({
+      date: dailies.date,
+      submittedAt: dailies.submittedAt,
+      firstSubmittedAt: dailies.firstSubmittedAt,
+      payload: dailies.payload,
+    })
+    .from(dailies)
+    .where(
+      and(
+        eq(dailies.installationId, installationId),
+        eq(dailies.memberId, memberId),
+        lt(dailies.date, before),
+      ),
+    )
+    .orderBy(desc(dailies.date))
+    .limit(1);
+  return row
+    ? {
+        date: row.date,
+        submittedAt: row.submittedAt,
+        firstSubmittedAt: row.firstSubmittedAt,
+        today: row.payload.today,
+      }
+    : null;
 }
 
 export async function listDailies(

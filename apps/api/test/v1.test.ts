@@ -13,6 +13,7 @@ import {
   saveConnection,
   setInstallationConfig,
   syncSuggestions,
+  upsertDaily,
   upsertInstallation,
   upsertMember,
 } from '@standcast/db';
@@ -21,6 +22,7 @@ import { createMemoryQueue } from '@standcast/queue';
 import { ChatDeliveryError } from '@standcast/slack';
 import { db, useCleanDb } from '../../../packages/db/test/setup';
 import { createApp } from '../src/app';
+import { DraftSchema } from '../src/openapi/schemas';
 
 const KEY = new Uint8Array(32).fill(7);
 const INST = 11;
@@ -46,6 +48,7 @@ function outsider(): StandcastConfig {
 }
 
 type Harness = {
+  deps: Deps;
   app: ReturnType<typeof createApp>;
   queue: ReturnType<typeof createMemoryQueue>;
   activityCalls: Date[];
@@ -116,6 +119,8 @@ function harness(
       pullRequestMerged: async () => null,
       listPullRequestFiles: async () => [],
       listOpenPullRequestSnapshots: async () => [],
+      listPendingPullRequests: async () => ({ items: [], truncated: false }),
+      lookupPlannedPullRequests: async () => new Map(),
       fetchCodeowners: async () => null,
       createCheckRun: async () => {},
       exchangeWebCode: async () => {
@@ -164,6 +169,7 @@ function harness(
     },
   };
   return {
+    deps,
     app: createApp(deps, { getClientIp: () => '192.0.2.1' }),
     queue,
     activityCalls,
@@ -502,6 +508,67 @@ describe('draft', () => {
     expect(body.since).toBe('2026-10-27T03:00:00.000Z');
     expect(h.activityCalls[0]?.toISOString()).toBe('2026-10-27T03:00:00.000Z');
     expect(body.suggestions).toEqual([]);
+  });
+
+  test('GET /v1/draft returns plan, pending and warnings', async () => {
+    await seed();
+    const h = harness();
+    const token = await login(h);
+    const alice = await upsertMember(db, {
+      githubUserId: 1,
+      login: 'Alice',
+      email: 'alice@acme.com',
+    });
+    const url = 'https://github.com/acme/api/pull/7';
+    await upsertDaily(db, {
+      installationId: INST,
+      memberId: alice.id,
+      date: '2026-10-27',
+      payload: { ...daily, today: [{ text: 'ship the api', ref: { kind: 'pull_request', url } }] },
+      submittedAt: new Date('2026-10-27T20:00:00Z'),
+    });
+    h.deps.github.lookupPlannedPullRequests = async (_o, input) =>
+      new Map(
+        input.targets.map((t) => [
+          t.key,
+          {
+            ok: true as const,
+            evidence: [{ kind: 'merged' as const, url, at: '2026-10-28T10:00:00.000Z' }],
+          },
+        ]),
+      );
+    h.deps.github.listPendingPullRequests = async () => ({
+      items: [
+        {
+          kind: 'review_requested',
+          ref: {
+            kind: 'pull_request',
+            url: 'https://github.com/acme/api/pull/9',
+            title: 'Review me',
+          },
+          title: 'Review me',
+          repo: 'acme/api',
+          since: '2026-10-26T09:00:00.000Z',
+        },
+      ],
+      truncated: false,
+    });
+    const res = await get(h, token, '/v1/draft?org=acme');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const parsed = DraftSchema.safeParse(body);
+    expect(parsed.success, JSON.stringify(parsed.error?.issues)).toBe(true);
+    expect(parsed.data).toEqual(body);
+    const draft = body as {
+      plan: { date: string; items: { status: string }[] };
+      pending: { items: { title: string }[]; truncated: boolean };
+      warnings: unknown[];
+    };
+    expect(draft.plan.date).toBe('2026-10-27');
+    expect(draft.plan.items.map((i) => i.status)).toEqual(['moved']);
+    expect(draft.pending.items.map((i) => i.title)).toEqual(['Review me']);
+    expect(draft.pending.truncated).toBe(false);
+    expect(draft.warnings).toEqual([]);
   });
 
   test('draft not in team', async () => {

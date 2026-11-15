@@ -400,6 +400,8 @@ describe('resolveRouteTarget', () => {
         }),
         listActivity: async () => [],
         listStaleInProgress: async () => ({ cards: [], truncated: false }),
+        listAssignedOpen: async () => ({ items: [], truncated: false }),
+        lookupCards: async () => new Map(),
       };
     };
     expect(await target(fake, cardBlocker())).toEqual({
