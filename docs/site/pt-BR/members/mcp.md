@@ -43,9 +43,51 @@ Qualquer outro cliente: `{"command": "standcast", "args": ["mcp"]}`.
 
 A CLI também está no npm como [`standcast`](https://www.npmjs.com/package/standcast), então um cliente com Node.js pode rodá-la pelo `npx`. Entre uma vez com `npx -y standcast login` e use o `npx` como comando:
 
-```json
+::: code-group
+
+```json [Claude Desktop]
 {"mcpServers":{"standcast":{"command":"npx","args":["-y","standcast","mcp"]}}}
 ```
+
+```json [Cursor]
+{"mcpServers":{"standcast":{"command":"npx","args":["-y","standcast","mcp"]}}}
+```
+
+```json [VS Code]
+{"servers":{"standcast":{"type":"stdio","command":"npx","args":["-y","standcast","mcp"]}}}
+```
+
+```toml [Codex]
+[mcp_servers.standcast]
+command = "npx"
+args = ["-y", "standcast", "mcp"]
+```
+
+:::
+
+No Windows, o `npx` é um script `.cmd` que os clientes não conseguem iniciar direto, então rode-o pelo `cmd /c`:
+
+::: code-group
+
+```json [Claude Desktop]
+{"mcpServers":{"standcast":{"command":"cmd","args":["/c","npx","-y","standcast","mcp"]}}}
+```
+
+```json [Cursor]
+{"mcpServers":{"standcast":{"command":"cmd","args":["/c","npx","-y","standcast","mcp"]}}}
+```
+
+```json [VS Code]
+{"servers":{"standcast":{"type":"stdio","command":"cmd","args":["/c","npx","-y","standcast","mcp"]}}}
+```
+
+```toml [Codex]
+[mcp_servers.standcast]
+command = "cmd"
+args = ["/c", "npx", "-y", "standcast", "mcp"]
+```
+
+:::
 
 O npm instala só o binário da sua plataforma: macOS, Linux ou Windows em x64, e macOS ou Linux em arm64. O Standcast também está no [MCP Registry](https://registry.modelcontextprotocol.io) como `io.github.ImFelipeOliveira/standcast`.
 

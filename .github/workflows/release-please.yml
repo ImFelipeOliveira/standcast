@@ -186,7 +186,13 @@ jobs:
               echo "$name@$version is already on npm"
               continue
             fi
-            npm publish "$dir" --access public --provenance
+            latest=$(npm view "$name" dist-tags.latest 2> /dev/null || true)
+            tag=latest
+            if [ -n "$latest" ] && [ "$(printf '%s\n%s\n' "$latest" "$version" | sort -V | tail -n 1)" != "$version" ]; then
+              tag=backport
+              echo "$name@$version is older than latest $latest, publishing it under the backport tag"
+            fi
+            npm publish "$dir" --access public --provenance --tag "$tag"
           done < dist/npm-order.txt
       - name: Publish to the MCP registry
         if: steps.npm.outputs.ready == 'true'
@@ -201,5 +207,21 @@ jobs:
           tar -xzf mcp-publisher.tar.gz mcp-publisher
           jq --arg v "$version" '.version = $v | .packages[0].version = $v' server.json > server.next.json
           mv server.next.json server.json
+          name=$(jq -r .name server.json)
+          url="https://registry.modelcontextprotocol.io/v0.1/servers/$(jq -rn --arg n "$name" '$n | @uri')/versions/$version"
+          status=$(curl -sS -o registry.json -w '%{http_code}' "$url")
+          if [ "$status" = 200 ]; then
+            packages='[.packages[] | {registryType, identifier, version}]'
+            if [ "$(jq -c ".server | $packages" registry.json)" = "$(jq -c "$packages" server.json)" ]; then
+              echo "$name $version is already in the MCP registry"
+              exit 0
+            fi
+            echo "::error::$name $version is in the MCP registry with different packages"
+            exit 1
+          fi
+          if [ "$status" != 404 ]; then
+            echo "::error::the MCP registry answered $status for $name $version"
+            exit 1
+          fi
           ./mcp-publisher login github-oidc
           ./mcp-publisher publish

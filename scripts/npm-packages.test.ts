@@ -7,6 +7,44 @@ import { buildNpmPackages, NPM_PLATFORMS } from './npm-packages';
 
 const dirs: string[] = [];
 
+const EXPECTED = [
+  {
+    name: '@standcast/cli-darwin-arm64',
+    dir: 'cli-darwin-arm64',
+    os: 'darwin',
+    cpu: 'arm64',
+    asset: 'standcast-bun-darwin-arm64',
+  },
+  {
+    name: '@standcast/cli-darwin-x64',
+    dir: 'cli-darwin-x64',
+    os: 'darwin',
+    cpu: 'x64',
+    asset: 'standcast-bun-darwin-x64',
+  },
+  {
+    name: '@standcast/cli-linux-arm64',
+    dir: 'cli-linux-arm64',
+    os: 'linux',
+    cpu: 'arm64',
+    asset: 'standcast-bun-linux-arm64',
+  },
+  {
+    name: '@standcast/cli-linux-x64',
+    dir: 'cli-linux-x64',
+    os: 'linux',
+    cpu: 'x64',
+    asset: 'standcast-bun-linux-x64',
+  },
+  {
+    name: '@standcast/cli-win32-x64',
+    dir: 'cli-win32-x64',
+    os: 'win32',
+    cpu: 'x64',
+    asset: 'standcast-bun-windows-x64.exe',
+  },
+];
+
 afterEach(async () => {
   await Promise.all(dirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
 });
@@ -19,7 +57,7 @@ async function tempDir(): Promise<string> {
 
 async function fakeBinaries(): Promise<string> {
   const dir = await tempDir();
-  for (const platform of NPM_PLATFORMS) {
+  for (const platform of EXPECTED) {
     await writeFile(join(dir, platform.asset), `binary ${platform.asset}`);
   }
   return dir;
@@ -30,10 +68,14 @@ async function readJson(path: string): Promise<Record<string, unknown>> {
 }
 
 describe('buildNpmPackages', () => {
+  test('supports exactly the platforms the release builds', () => {
+    expect(NPM_PLATFORMS).toEqual(EXPECTED);
+  });
+
   test('builds one package per platform with its binary', async () => {
     const out = await tempDir();
     await buildNpmPackages({ version: '1.2.3', binDir: await fakeBinaries(), outDir: out });
-    for (const platform of NPM_PLATFORMS) {
+    for (const platform of EXPECTED) {
       const dir = join(out, platform.dir);
       const pkg = await readJson(join(dir, 'package.json'));
       expect(pkg).toMatchObject({
@@ -65,7 +107,7 @@ describe('buildNpmPackages', () => {
     });
     expect(pkg.dependencies).toBeUndefined();
     expect(pkg.optionalDependencies).toEqual(
-      Object.fromEntries(NPM_PLATFORMS.map((platform) => [platform.name, '1.2.3'])),
+      Object.fromEntries(EXPECTED.map((platform) => [platform.name, '1.2.3'])),
     );
     expect(await readFile(join(out, 'standcast', 'bin', 'standcast.js'), 'utf8')).toBe(
       await readFile('npm/standcast/bin/standcast.js', 'utf8'),
@@ -83,7 +125,7 @@ describe('buildNpmPackages', () => {
       outDir: out,
     });
     expect(order).toEqual([
-      ...NPM_PLATFORMS.map((platform) => join(out, platform.dir)),
+      ...EXPECTED.map((platform) => join(out, platform.dir)),
       join(out, 'standcast'),
     ]);
   });
@@ -133,7 +175,7 @@ describe('server.json', () => {
 });
 
 describe.skipIf(process.platform === 'win32')('the launcher', () => {
-  const platform = NPM_PLATFORMS.find(
+  const platform = EXPECTED.find(
     (entry) => entry.os === process.platform && entry.cpu === process.arch,
   );
 
@@ -162,10 +204,32 @@ describe.skipIf(process.platform === 'win32')('the launcher', () => {
     },
   );
 
-  test.skipIf(!platform)('says how to fix a missing platform package', async () => {
-    const launcher = await install(false);
-    const run = spawnSync('node', [launcher, 'mcp'], { encoding: 'utf8' });
-    expect(run.status).toBe(1);
-    expect(run.stderr).toContain('--omit=optional');
-  });
+  test.skipIf(!platform)(
+    'says how to fix a missing platform package, in English by default',
+    async () => {
+      const launcher = await install(false);
+      const env = { PATH: process.env.PATH, LANG: 'C' };
+      const run = spawnSync('node', [launcher, 'mcp'], { encoding: 'utf8', env });
+      expect(run.status).toBe(1);
+      expect(run.stderr).toContain('is not installed. Reinstall without --omit=optional');
+    },
+  );
+
+  test.skipIf(!platform)(
+    'answers in Portuguese with the same language rule as the CLI',
+    async () => {
+      const launcher = await install(false);
+      for (const env of [
+        { LANG: 'pt_BR.UTF-8' },
+        { LANG: 'en_US.UTF-8', STANDCAST_LANG: 'pt-BR' },
+      ]) {
+        const run = spawnSync('node', [launcher, 'mcp'], {
+          encoding: 'utf8',
+          env: { PATH: process.env.PATH, ...env },
+        });
+        expect(run.status).toBe(1);
+        expect(run.stderr).toContain('não está instalado. Instale de novo sem --omit=optional');
+      }
+    },
+  );
 });

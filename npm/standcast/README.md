@@ -16,6 +16,16 @@ Then add the MCP server to your client:
 { "mcpServers": { "standcast": { "command": "npx", "args": ["-y", "standcast", "mcp"] } } }
 ```
 
+On Windows, run `npx` through `cmd /c`:
+
+```json
+{
+  "mcpServers": {
+    "standcast": { "command": "cmd", "args": ["/c", "npx", "-y", "standcast", "mcp"] }
+  }
+}
+```
+
 Ask your agent for your daily. See the [MCP server guide](https://docs.standcast.app/members/mcp) for Claude Desktop, Cursor, VS Code and Codex.
 
 ## Platforms
