@@ -134,6 +134,75 @@ export const DraftSuggestionSchema = z
     },
   });
 
+const RefSchema = z.object({
+  kind: z.enum(['pull_request', 'issue', 'commit', 'card']),
+  url: z.string(),
+  title: z.string().optional(),
+});
+
+export const PlanEvidenceSchema = z
+  .object({
+    kind: z.enum(['commit', 'review', 'merged', 'closed', 'state_changed', 'comment']),
+    url: z.string(),
+    at: z.string().openapi({ format: 'date-time' }),
+  })
+  .openapi('PlanEvidence');
+
+export const PlanItemSchema = z
+  .object({
+    text: z.string(),
+    ref: RefSchema.optional(),
+    status: z.enum(['moved', 'not_moved', 'unknown']),
+    evidence: z.array(PlanEvidenceSchema),
+  })
+  .openapi('PlanItem');
+
+export const PlanSchema = z
+  .object({
+    date: z.string().openapi({ example: '2026-10-27' }),
+    items: z.array(PlanItemSchema),
+  })
+  .openapi('Plan');
+
+export const PendingItemSchema = z
+  .object({
+    kind: z.enum(['own_pr', 'review_requested', 'card']),
+    ref: RefSchema,
+    title: z.string(),
+    repo: z.string().optional(),
+    since: z.string().openapi({ format: 'date-time' }),
+    draft: z.boolean().optional(),
+    state: z.string().optional(),
+    priority: z.enum(['urgent', 'high', 'medium', 'low', 'none']).optional(),
+    reviewDecision: z
+      .enum(['approved', 'changes_requested', 'review_required'])
+      .nullable()
+      .optional(),
+    checks: z.enum(['success', 'failure', 'pending']).nullable().optional(),
+  })
+  .openapi('PendingItem');
+
+export const PendingSchema = z
+  .object({
+    items: z.array(PendingItemSchema),
+    truncated: z.boolean(),
+  })
+  .openapi('Pending');
+
+export const DraftWarningSchema = z
+  .object({
+    source: z.enum([
+      'github_activity',
+      'github_pending',
+      'github_plan',
+      'linear_activity',
+      'linear_pending',
+      'linear_plan',
+    ]),
+    code: z.string().openapi({ example: 'rate_limited' }),
+  })
+  .openapi('DraftWarning');
+
 export const SuggestionDecisionSchema = z
   .object({
     org: z.string().min(1).openapi({ description: 'Login of the organization.', example: 'acme' }),
@@ -167,6 +236,40 @@ export const DRAFT_EXAMPLE = {
       since: '2026-10-27T12:00:00.000Z',
     },
   ],
+  plan: {
+    date: '2026-10-27',
+    items: [
+      {
+        text: 'Ship rate limiting',
+        ref: { kind: 'pull_request' as const, url: 'https://github.com/acme/api/pull/42' },
+        status: 'moved' as const,
+        evidence: [
+          {
+            kind: 'merged' as const,
+            url: 'https://github.com/acme/api/pull/42',
+            at: '2026-10-27T18:30:00.000Z',
+          },
+        ],
+      },
+    ],
+  },
+  pending: {
+    items: [
+      {
+        kind: 'review_requested' as const,
+        ref: {
+          kind: 'pull_request' as const,
+          url: 'https://github.com/acme/api/pull/44',
+          title: 'Add audit log',
+        },
+        title: 'Add audit log',
+        repo: 'acme/api',
+        since: '2026-10-26T09:00:00.000Z',
+      },
+    ],
+    truncated: false,
+  },
+  warnings: [{ source: 'github_pending' as const, code: 'rate_limited' }],
 };
 
 export const DraftSchema = z
@@ -177,6 +280,9 @@ export const DraftSchema = z
     teams: z.array(z.string()),
     activity: z.array(ActivityItemSchema),
     suggestions: z.array(DraftSuggestionSchema),
+    plan: PlanSchema.nullable(),
+    pending: PendingSchema,
+    warnings: z.array(DraftWarningSchema),
   })
   .openapi('Draft', { example: DRAFT_EXAMPLE });
 
