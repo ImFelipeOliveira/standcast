@@ -131,15 +131,15 @@ describe('dailies', () => {
         payload: payload(text),
         submittedAt: new Date(`${date}T10:00:00Z`),
       });
-    await put(INST, m.id, '2026-11-12', 'older');
-    await put(INST, m.id, '2026-11-13', 'latest');
+    await put(INST, m.id, '2026-11-11', 'older');
+    await put(INST, m.id, '2026-11-12', 'latest');
     await put(INST, other.id, '2026-11-13', 'other member');
     await put(200, m.id, '2026-11-13', 'other installation');
     const prev = await getPreviousDaily(db, INST, m.id, '2026-11-14');
-    expect(prev?.date).toBe('2026-11-13');
+    expect(prev?.date).toBe('2026-11-12');
     expect(prev?.today).toEqual([{ text: 'latest' }]);
     expect(prev?.submittedAt).toBeInstanceOf(Date);
-    expect(await getPreviousDaily(db, INST, m.id, '2026-11-12')).toBeNull();
+    expect(await getPreviousDaily(db, INST, m.id, '2026-11-11')).toBeNull();
   });
 
   test('getPreviousDaily keeps the first submission time after a resubmit', async () => {

@@ -680,8 +680,9 @@ describe('getDraft source warnings', () => {
     deps.github.listPendingPullRequests = async () => {
       throw new Error('x');
     };
+    const { promise: othersFailed, resolve: releaseActivity } = Promise.withResolvers<void>();
     deps.github.listActivity = async () => {
-      await new Promise((r) => setTimeout(r, 20));
+      await othersFailed;
       throw new Error('x');
     };
     deps.trackerFor = async () =>
@@ -690,9 +691,17 @@ describe('getDraft source warnings', () => {
           throw new LinearRateLimitError(null);
         },
       });
-    const spy = quietErrors();
+    const failed: unknown[] = [];
+    const spy = spyOn(console, 'error').mockImplementation((_label, fields) => {
+      failed.push((fields as { source?: unknown } | undefined)?.source);
+      if (failed.includes('github_pending') && failed.includes('linear_pending')) {
+        releaseActivity();
+      }
+    });
     const draft = await getDraft(deps, isMember, member, 'acme');
     spy.mockRestore();
+    expect(failed).toHaveLength(3);
+    expect(failed.at(-1)).toBe('github_activity');
     expect(draft.warnings).toEqual([
       { source: 'github_activity', code: 'unavailable' },
       { source: 'github_pending', code: 'unavailable' },
