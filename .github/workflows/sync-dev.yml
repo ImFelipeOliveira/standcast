@@ -2,7 +2,8 @@ name: sync-dev
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: sync-dev
@@ -14,25 +15,42 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions:
-      contents: write
-      pull-requests: write
+    permissions: {}
     steps:
-      - name: Open the main to dev pull request and enable auto-merge
+      - name: create-github-app-token v3.3.0
+        id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
+        with:
+          client-id: ${{ vars.AUTOMATION_APP_CLIENT_ID }}
+          private-key: ${{ secrets.AUTOMATION_APP_PRIVATE_KEY }}
+      - name: checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: dev
+          fetch-depth: 0
+          token: ${{ steps.app.outputs.token }}
+      - name: Merge main into dev
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app.outputs.token }}
           GH_REPO: ${{ github.repository }}
+          APP_SLUG: ${{ steps.app.outputs.app-slug }}
         run: |
-          ahead=$(gh api "repos/$GH_REPO/compare/dev...main" --jq .ahead_by)
-          if [ "$ahead" = "0" ]; then
+          if git merge-base --is-ancestor origin/main HEAD; then
             echo "dev already contains main"
             exit 0
           fi
+          bot_id=$(gh api "users/${APP_SLUG}[bot]" --jq .id)
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+          if git merge --no-ff --no-edit -m "chore: sync main into dev" origin/main; then
+            git push origin HEAD:dev
+            exit 0
+          fi
+          git merge --abort
           pr=$(gh pr list --base dev --head main --state open --json number --jq '.[0].number // empty')
           if [ -z "$pr" ]; then
-            url=$(gh pr create --base dev --head main \
+            gh pr create --base dev --head main \
               --title "chore: sync main into dev" \
-              --body "Brings release and merge commits from \`main\` back into \`dev\` so the next \`dev\` to \`main\` pull request is up to date. Opened by the sync-dev workflow; it merges itself with a merge commit once \`check\` passes. If it has conflicts, resolve them on a branch from \`dev\` and merge with a merge commit.")
-            pr=${url##*/}
+              --body "The sync-dev workflow could not merge \`main\` into \`dev\` because of conflicts. Resolve them on a branch from \`dev\`, open a pull request and merge it with a merge commit. Never squash: squashing leaves \`main\`'s commits out of \`dev\`."
           fi
-          gh pr merge "$pr" --auto --merge
+          echo "::warning::main could not be merged into dev automatically; conflicts need a manual merge"

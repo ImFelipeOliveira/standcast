@@ -1,0 +1,73 @@
+name: promote-dev
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+concurrency:
+  group: promote-dev
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: create-github-app-token v3.3.0
+        id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
+        with:
+          client-id: ${{ vars.AUTOMATION_APP_CLIENT_ID }}
+          private-key: ${{ secrets.AUTOMATION_APP_PRIVATE_KEY }}
+      - name: Open or update the dev to main pull request
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ahead=$(gh api "repos/$GH_REPO/compare/main...dev" --jq .ahead_by)
+          if [ "$ahead" = "0" ]; then
+            echo "main already contains dev"
+            exit 0
+          fi
+          since=$(gh pr list --base main --head dev --state merged --limit 1 --json mergedAt --jq '.[0].mergedAt // empty')
+          search="is:merged"
+          if [ -n "$since" ]; then
+            search="is:merged merged:>$since"
+          fi
+          list=$(gh pr list --base dev --state merged --limit 200 --search "$search" \
+            --json number,title,headRefName \
+            --jq '[.[] | select(.headRefName != "main")] | sort_by(.number) | .[] | "- #\(.number) \(.title)"')
+          if [ -z "$list" ]; then
+            list="- No merged pull requests found since the last promotion."
+          fi
+          start="<!-- promote-dev:start -->"
+          end="<!-- promote-dev:end -->"
+          printf '%s\n## Pull requests in this promotion\n\n%s\n%s\n' "$start" "$list" "$end" > managed.md
+          pr=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number // empty')
+          if [ -z "$pr" ]; then
+            {
+              cat managed.md
+              printf '\n## Deploy notes\n\n- None yet.\n'
+            } > body.md
+            gh pr create --base main --head dev --title "chore: promote dev to main" --body-file body.md
+            exit 0
+          fi
+          gh pr view "$pr" --json body --jq .body > current.md
+          if grep -qF "$start" current.md && grep -qF "$end" current.md; then
+            awk -v start="$start" -v end="$end" -v managed="managed.md" '
+              $0 == start { while ((getline line < managed) > 0) print line; skip = 1; next }
+              $0 == end { skip = 0; next }
+              !skip { print }
+            ' current.md > body.md
+          else
+            {
+              cat managed.md
+              printf '\n'
+              cat current.md
+            } > body.md
+          fi
+          gh pr edit "$pr" --body-file body.md
