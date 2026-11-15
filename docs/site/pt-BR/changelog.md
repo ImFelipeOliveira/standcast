@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+### 0.13.1 — 15/11/2026
+
 - As mensagens do Google Chat vêm em um idioma só. O código de vínculo, o aviso de espaço vinculado e as respostas do app usam o `language` dos times daquele espaço ou dos seus times no `standcast.yml`, e inglês quando o Standcast não consegue saber ou os times têm idiomas diferentes. Antes, vinham em inglês com o português embaixo.
 
 ### 0.13.0 — 15/11/2026

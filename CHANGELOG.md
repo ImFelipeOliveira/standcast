@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.13.1](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.13.0...standcast-v0.13.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **google-chat:** answer in one language, from the teams on the space or English ([ef4a9ea](https://github.com/ImFelipeOliveira/standcast/commit/ef4a9ea92906e23b2c1b7732db605b01f915cb04))
+* **google-chat:** answer in one language, from the teams on the space or English ([#205](https://github.com/ImFelipeOliveira/standcast/issues/205)) ([fc44065](https://github.com/ImFelipeOliveira/standcast/commit/fc44065d8d3424c9f5f5fa3660daad95a8fc80e4))
+* **mcp:** declare all four tool hints on the read-only tools ([444b469](https://github.com/ImFelipeOliveira/standcast/commit/444b4699ff79a00622964c53ce5640f474ae8be7)), closes [#123](https://github.com/ImFelipeOliveira/standcast/issues/123)
+* **mcp:** declare all four tool hints on the read-only tools ([#204](https://github.com/ImFelipeOliveira/standcast/issues/204)) ([a59028e](https://github.com/ImFelipeOliveira/standcast/commit/a59028e79081e7aa63962a410953ad086463c9d2))
+
 ## [0.13.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.12.0...standcast-v0.13.0) (2026-11-15)
 
 
