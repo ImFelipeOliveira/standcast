@@ -99,6 +99,8 @@ export function fakeLinear() {
     issues: new Map<string, unknown>(),
     activity: [] as unknown[],
     stale: [] as unknown[],
+    assigned: [] as unknown[],
+    planned: [] as unknown[],
   };
   const calls = {
     exchanges: [] as { code: string; redirectUri: string; clientId: string }[],
@@ -128,6 +130,12 @@ export function fakeLinear() {
     }
     if (name === 'StaleInProgress') {
       return Response.json({ data: { issues: { nodes: state.stale } } });
+    }
+    if (name === 'AssignedOpen') {
+      return Response.json({ data: { issues: { nodes: state.assigned } } });
+    }
+    if (name === 'PlannedCards') {
+      return Response.json({ data: { issues: { nodes: state.planned } } });
     }
     if (body.query?.includes('UserByEmail')) {
       const email = (body.variables?.email ?? '').toLowerCase();

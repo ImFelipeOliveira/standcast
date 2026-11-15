@@ -57,7 +57,7 @@ const staleNode = z.object({
   startedAt: dateField,
 });
 
-function nodesOf(data: unknown): unknown[] {
+export function nodesOf(data: unknown): unknown[] {
   const nodes = (data as { issues?: { nodes?: unknown } } | null)?.issues?.nodes;
   return Array.isArray(nodes) ? nodes : [];
 }

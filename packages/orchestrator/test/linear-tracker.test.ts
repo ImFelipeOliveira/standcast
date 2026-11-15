@@ -1,5 +1,5 @@
 import { describe, expect, spyOn, test } from 'bun:test';
-import { parseConfig, type Ref, type StandcastConfig } from '@standcast/core';
+import { cardKey, parseConfig, type Ref, type StandcastConfig } from '@standcast/core';
 import { getConnection, saveConnection, setIdentity, upsertMember } from '@standcast/db';
 import { LinearAuthError } from '@standcast/linear';
 import { db, useCleanDb } from '../../db/test/setup';
@@ -141,6 +141,8 @@ describe('trackerFor', () => {
     expect(await nullTracker.cardOwners(card())).toBeNull();
     expect(await nullTracker.listActivity('alice', new Date())).toEqual([]);
     expect(await nullTracker.listStaleInProgress('alice')).toEqual({ cards: [], truncated: false });
+    expect(await nullTracker.listAssignedOpen('alice')).toEqual({ items: [], truncated: false });
+    expect(await nullTracker.lookupCards('alice', [], new Date())).toEqual(new Map());
   });
 });
 
@@ -387,5 +389,115 @@ describe('listActivity and listStaleInProgress', () => {
     await expect(tracker.listActivity('alice', since)).rejects.toThrow('linear http 500');
     await expect(tracker.listStaleInProgress('alice')).rejects.toThrow('linear http 500');
     expect((await getConnection(db, INST, 'linear', KEY))?.invalidatedAt).toBeNull();
+  });
+});
+
+describe('listAssignedOpen and lookupCards', () => {
+  const since = new Date('2026-11-13T12:00:00Z');
+  const target = (identifier: string, workspace = 'acme') => ({
+    key: cardKey(identifier),
+    identifier,
+    url: `https://linear.app/${workspace}/issue/${identifier}`,
+  });
+
+  test('listAssignedOpen and lookupCards return nothing when the person has no Linear identity', async () => {
+    const fake = await setup();
+    const tracker = await fake.build();
+    expect(await tracker.listAssignedOpen('alice')).toEqual({ items: [], truncated: false });
+    expect(await tracker.lookupCards('alice', [target('ENG-1')], since)).toEqual(new Map());
+    expect(fake.linear.calls.bearer).toEqual([]);
+  });
+
+  test('listAssignedOpen queries the linked linear user within the team key', async () => {
+    const fake = await setup();
+    await link('Alice', 'lin-alice', 1);
+    fake.linear.state.assigned = [
+      {
+        identifier: 'ENG-2',
+        url: 'https://linear.app/acme/issue/ENG-2',
+        title: 'Open one',
+        updatedAt: '2026-11-13T10:00:00.000Z',
+        priority: 1,
+        state: { name: 'In Progress' },
+      },
+    ];
+    const tracker = await fake.build();
+    expect(await tracker.listAssignedOpen('ALICE')).toEqual({
+      items: [
+        {
+          kind: 'card',
+          ref: { kind: 'card', url: 'https://linear.app/acme/issue/ENG-2', title: 'Open one' },
+          title: 'Open one',
+          since: '2026-11-13T10:00:00.000Z',
+          state: 'In Progress',
+          priority: 'urgent',
+        },
+      ],
+      truncated: false,
+    });
+    expect(fake.linear.calls.queries).toEqual([
+      { name: 'AssignedOpen', variables: { userId: 'lin-alice', teamKey: 'ENG' } },
+    ]);
+  });
+
+  test('lookupCards skips cards of another workspace', async () => {
+    const fake = await setup();
+    await link('Alice', 'lin-alice', 1);
+    fake.linear.state.planned = [
+      {
+        identifier: 'ENG-1',
+        url: 'https://linear.app/acme/issue/ENG-1',
+        history: { nodes: [{ createdAt: '2026-11-13T13:00:00.000Z', toState: { name: 'Done' } }] },
+        comments: { nodes: [] },
+      },
+    ];
+    const tracker = await fake.build();
+    const results = await tracker.lookupCards(
+      'alice',
+      [target('ENG-1', 'ACME'), target('OPS-4', 'other'), { ...target('BAD-1'), url: 'nope' }],
+      since,
+    );
+    expect(results).toEqual(
+      new Map([
+        [
+          cardKey('ENG-1'),
+          {
+            ok: true,
+            evidence: [
+              {
+                kind: 'state_changed',
+                url: 'https://linear.app/acme/issue/ENG-1',
+                at: '2026-11-13T13:00:00.000Z',
+              },
+            ],
+          },
+        ],
+      ]),
+    );
+    expect(fake.linear.calls.queries).toEqual([
+      { name: 'PlannedCards', variables: { userId: 'lin-alice', t0: 'ENG', n0: 1 } },
+    ]);
+  });
+
+  test('lookupCards makes no call when every card is from another workspace', async () => {
+    const fake = await setup();
+    await link('Alice', 'lin-alice', 1);
+    const tracker = await fake.build();
+    expect(await tracker.lookupCards('alice', [target('OPS-4', 'other')], since)).toEqual(
+      new Map(),
+    );
+    expect(fake.linear.calls.queries).toEqual([]);
+  });
+
+  test('an auth error in listAssignedOpen or lookupCards invalidates the connection and rethrows', async () => {
+    const fake = await setup();
+    await link('Alice', 'lin-alice', 1);
+    const tracker = await fake.build();
+    fake.linear.state.graphqlStatus = 401;
+    await expect(tracker.listAssignedOpen('alice')).rejects.toBeInstanceOf(LinearAuthError);
+    expect((await getConnection(db, INST, 'linear', KEY))?.invalidatedAt).toBeInstanceOf(Date);
+    await expect(tracker.lookupCards('alice', [target('ENG-1')], since)).rejects.toBeInstanceOf(
+      LinearAuthError,
+    );
   });
 });
