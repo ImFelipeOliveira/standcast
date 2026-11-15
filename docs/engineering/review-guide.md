@@ -54,6 +54,47 @@ Patterns Standcast follows, code smells to flag and bugs that have actually happ
   - Use compare-and-swap (`WHERE` on the previous value) or a transaction-scoped advisory lock when two workers can update the same row.
   - Counting rows and then inserting is a race unless both happen under the same lock.
 
+## Logic and failure modes
+
+Read the change as the code will run, not as the description says it runs. For each item, trace one concrete input to the wrong result before you report it.
+
+- **Boundaries.** Check `<` against `<=`, inclusive and exclusive windows, and the values right at a limit.
+  - Inputs worth tracing: an empty list, one item, exactly the cap, one past the cap, the first and the last day of a window.
+  - Example: GitHub's email list was capped at ten full pages, so an account with exactly 1,000 emails hit the cap too (#179).
+- **Conditions.** Look for inverted checks, a `!` in the wrong place, `&&` where `||` was meant, and early returns that skip work the caller relies on.
+- **Empty values.** `||` treats `0`, `''` and `false` as missing. Use `??` unless that is intended. Optional fields can be absent on rows written before the column existed.
+- **Async.**
+  - Smell: a call to an async function without `await`, or `array.forEach(async …)`. Errors from it are lost and the caller moves on before the work is done.
+  - `Promise.all` rejects on the first failure and leaves the other items half done. Use `Promise.allSettled` when the items are independent, and record each failure.
+- **Swallowed errors.** A `catch` that returns a default hides the failure. It must log through `logError` and leave a state someone can see (a failed delivery, an error code, a warning on the setup page).
+- **Copied data goes stale.** A value copied from GitHub, Slack, Google or Linear (emails, team membership, identities, tokens) needs an answer to "who refreshes it, and what happens after it changes upstream". Prefer an expiry over trusting the copy forever (#179).
+- **Global lookups.** A lookup across installations needs a stated reason. When it returns more than one match it must pick nobody, and it must write only into the matched member's own installations.
+- **One person, several installations.** A person can belong to more than one installation. A value derived from "their team" (calendar, language, time zone, workdays) must come from the installation and team the data belongs to, not from the first team found anywhere.
+- **Permanent and transient errors.** Retry only what can succeed later: timeouts, 5xx, rate limits. A permanent error (no linked identity, not found, revoked token, invalid config) fails the delivery at once instead of using up retry attempts.
+- **Silent skips.** When a scheduled job decides not to send (not a workday, nobody to remind, window closed, missing identity), it records why, as a skipped or failed delivery or a log through `logError`. A missing reminder must be explainable from the data.
+- **Defaults keep current behaviour.** A new `standcast.yml` key, setting or column default must leave existing installations working as before.
+- **Description against code.** Check that every behaviour the pull request description claims has a code path and a test. A claim with neither is a finding.
+
+## Deploys, migrations and configuration
+
+- **Migrations run before the new code is everywhere.** The API runs migrations on start while the previous worker may still be running. A migration must work with both the previous and the new release.
+  - Add columns as nullable or with a default.
+  - Do not rename or drop a column in the same release as the code that stops using it. Ship the code first and drop in a later release.
+  - Backfills of existing rows go in their own step and handle rows the old code keeps writing.
+  - A unique index or a `NOT NULL` on existing data fails if any current row breaks it. Check the data first.
+- **Environment variables.** `parseEnv` fails at boot when a required variable is missing, so a new required variable takes production down until it is set.
+  - Prefer an optional variable with a safe default.
+  - Otherwise the pull request lists it under deploy notes, and `docs/site` documents it.
+- **Contract changes between apps.** When the web app, the CLI or the MCP server depend on a new API field, the pull request says which one deploys first, and the older client still works against the newer API.
+
+## Dependencies
+
+- **Read the release notes** of every version skipped, not only the target one. A `0.x` minor can break, and a patch can fix a bug that matters here.
+  - Prefer the latest patch of the target minor.
+- **Lockfiles.** Each Dependabot pull request is generated on the `dev` of its day.
+  - Rebase it on the current `dev` and let CI run again before merging. Merging several lockfile pull requests in a row without that left `bun.lock` with duplicate keys and broke `bun install --frozen-lockfile` on `dev` (#183).
+  - Smell: a dependency pull request whose last CI run is older than the newest commit on `dev`.
+
 ## External calls
 
 - **Timeouts.** Every HTTP call to GitHub, Slack or Linear has one (`AbortSignal.timeout`).
@@ -117,7 +158,12 @@ Patterns Standcast follows, code smells to flag and bugs that have actually happ
   - another installation's data;
   - a member who is not an admin;
   - pt-BR copy;
-  - long values (URLs, names) that must wrap.
+  - long values (URLs, names) that must wrap;
+  - a person in two installations with different calendars;
+  - rows written by the previous release.
+- **No timing races in tests.** A test that starts a worker and then creates the state it reads can pass or fail depending on who runs first.
+  - Create the state before starting the worker, and wait on a condition, never on a fixed sleep.
+  - Example: the `stately` queue test started the worker before the two enqueues and failed in CI once the driver's timing changed (#184).
 - **No real network.** Use the fake fetch, `fakeDeps`, `fakeChat` and the Postgres test database.
 
 ## Docs
