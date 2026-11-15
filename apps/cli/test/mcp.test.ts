@@ -202,6 +202,12 @@ const DAILY_PLAN_RULES = [
   'Never say that a manager',
 ];
 
+const GROUPING_RULES = [
+  '"review_required" or null means no review decision yet',
+  'including their own drafts and those with checks pending or null',
+  'may be incomplete',
+];
+
 const TOOLS = [
   'standcast_decide_suggestion',
   'standcast_get_digest',
@@ -277,6 +283,7 @@ describe('mcp server', () => {
     const { client } = await loggedIn();
     const instructions = client.getInstructions() ?? '';
     for (const rule of DAILY_PLAN_RULES) expect(instructions).toContain(rule);
+    for (const rule of GROUPING_RULES) expect(instructions).toContain(rule);
     expect(instructions).not.toMatch(/manager will see/i);
   });
 
@@ -861,6 +868,24 @@ describe('mcp server', () => {
     expect(body).toContain('standcast_decide_suggestion');
     expect(body).toContain("Never add a suggestion without the person's answer");
     expect(body).toContain('support');
+    for (const rule of DAILY_PLAN_RULES) expect(body).toContain(rule);
+    for (const rule of GROUPING_RULES) expect(body).toContain(rule);
+    expect(body).not.toMatch(/manager will see/i);
+    const steps = [
+      /^\d+\. Call standcast_get_draft/m,
+      /^\d+\. Planned against done/m,
+      /^\d+\. Yesterday/m,
+      /^\d+\. Suggestions/m,
+      /^\d+\. Pending/m,
+      /^\d+\. Focus/m,
+      /^\d+\. Today/m,
+      /^\d+\. Support/m,
+      /^\d+\. Show me the final daily/m,
+      /^\d+\. Only after I explicitly confirm, call standcast_submit_daily/m,
+    ];
+    const positions = steps.map((step) => body.search(step));
+    for (const position of positions) expect(position).toBeGreaterThan(-1);
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
   });
 });
 

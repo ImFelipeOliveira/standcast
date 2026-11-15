@@ -13,8 +13,13 @@ const SESSION_RULES =
 const PLAN_RULES =
   "When plan is not null, open with planned against done: one line per item of the previous daily's plan, ✅ when moved, saying what happened from its evidence, ⏸️ no activity found when not_moved, and ❓ when unknown, asking the person how it went. Never claim an item moved without evidence. It is shown to the person only and never copied into the daily.";
 
-const PENDING_RULES =
-  'pending lists the person\'s own open work. Show it in these groups: Waiting on you (reviews requested from them that are not drafts, and their pull requests with changes requested or failing checks), Your cards, urgent or high, In progress (their other cards, and their pull requests with no review decision yet and passing or pending checks), Approved, ready to merge (their pull requests approved with passing checks), and Drafts (review requests on draft pull requests, as one short line). Show at most 10 lines and mention the rest as a count. Then recommend up to 5 focus items, numbered, with a short reason each (unblocks someone, almost done, urgent, planned and not moved), ask what they will focus on today and accept numbers, "ok" for the recommendation, or free text. The person decides. Build today from their choice, each picked item with its ref; free text goes verbatim.';
+const PENDING_GROUPS =
+  "Waiting on you (reviews requested from the person that are not drafts, and the person's pull requests with changes requested or failing checks), Your cards, urgent or high, In progress (the person's other cards, and every other pull request of the person's own, including their own drafts and those with checks pending or null), Approved, ready to merge (the person's pull requests approved with checks success), and Drafts (review requests on draft pull requests, as one short line). For reviewDecision, \"review_required\" or null means no review decision yet. Show at most 10 lines and mention the rest as a count. If pending.truncated is true, say the list may be incomplete.";
+
+const FOCUS_RULES =
+  'Recommend up to 5 focus items, numbered, with a short reason each (unblocks someone, almost done, urgent, planned and not moved), ask what the person will focus on today and accept numbers, "ok" for the recommendation, or free text. The person decides.';
+
+const PENDING_RULES = `pending lists the person's own open work. Show it in these groups: ${PENDING_GROUPS} ${FOCUS_RULES} Build today from their choice, each picked item with its ref; free text goes verbatim.`;
 
 const PRIVACY_RULES =
   'Planned against done and pending are only for the person. Treat "no activity found" as a neutral fact, never a judgement. Never say that a manager or anyone else sees them: only the daily the person confirms is posted. When warnings is not empty, say one line per warning naming the unavailable source and continue.';
@@ -39,12 +44,17 @@ export function dailyPrompt(org?: string): string {
   const scope = org ? ` Use org "${org}" in every call.` : '';
   return [
     `Help me write and send my daily standup with Standcast.${scope}`,
-    '1. Call standcast_get_draft and show me a short summary of what I did yesterday, at most 5 lines grouped by project or theme. I can add, remove or edit items.',
-    "2. If the draft lists suggestions, present each one and ask me whether it is a real blocker. If I say yes, add it to blockers in my own words with its ref; submitting the daily confirms it. If I say no, call standcast_decide_suggestion with decision ignored. Never add a suggestion without the person's answer.",
-    '3. Ask me what I will do today and whether anything else is blocking me.',
-    '4. Ask me whether I need support from anyone without being blocked, such as a review, a decision or a pairing session. Put my answer in support, or leave it empty if I say no.',
-    '5. Show me the final daily (yesterday, today, blockers, support) and ask for my explicit confirmation. Do not assume it.',
-    '6. Only after I explicitly confirm, call standcast_submit_daily with confirmed: true and tell me the result.',
+    '1. Call standcast_get_draft. If it has warnings, tell me in one line per warning which source was unavailable, and continue.',
+    '2. Planned against done: if plan is not null, show me one line per planned item: ✅ when moved, saying what happened from its evidence; ⏸️ no activity found when not_moved; ❓ when unknown, asking me how it went. It is shown to me only and never copied into the daily.',
+    '3. Yesterday: show me a short summary of what I did yesterday, at most 5 lines grouped by project or theme. I can add, remove or edit items.',
+    "4. Suggestions: if the draft lists suggestions, present each one and ask me whether it is a real blocker. If I say yes, add it to blockers in my own words with its ref; submitting the daily confirms it. If I say no, call standcast_decide_suggestion with decision ignored. Never add a suggestion without the person's answer.",
+    `5. Pending: show my pending work in these groups: ${PENDING_GROUPS}`,
+    `6. Focus: ${FOCUS_RULES}`,
+    '7. Today: build today from my choice, each picked item with its ref; my free text goes verbatim. Ask me whether anything else is blocking me.',
+    '8. Support: ask me whether I need support from anyone without being blocked, such as a review, a decision or a pairing session. Put my answer in support, or leave it empty if I say no.',
+    '9. Show me the final daily (yesterday, today, blockers, support) and ask for my explicit confirmation. Do not assume it.',
+    '10. Only after I explicitly confirm, call standcast_submit_daily with confirmed: true and tell me the result.',
+    PRIVACY_RULES,
     LANGUAGE_RULES,
   ].join('\n');
 }

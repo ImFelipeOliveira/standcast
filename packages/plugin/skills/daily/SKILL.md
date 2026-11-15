@@ -37,11 +37,11 @@ Use this flow when the tools `standcast_get_draft` and `standcast_submit_daily` 
 5. **Pending.** Show `pending.items` in these groups, skipping empty ones:
    - **Waiting on you:** `review_requested` that are not `draft`; `own_pr` with `reviewDecision: "changes_requested"` or `checks: "failure"`.
    - **Your cards, urgent or high:** `card` with `priority` `urgent` or `high`.
-   - **In progress:** the other cards; `own_pr` with no review decision yet and passing or pending checks.
+   - **In progress:** the other cards; every other `own_pr`, including their own drafts and those with checks pending or null.
    - **Approved, ready to merge:** `own_pr` with `reviewDecision: "approved"` and `checks: "success"`.
    - **Drafts:** `review_requested` on a `draft` pull request, as one short line.
 
-   Show at most 10 lines in total and mention the rest as a count. If `pending.truncated` is true, say the list may be incomplete.
+   For `reviewDecision`, `"review_required"` or null means no review decision yet. Show at most 10 lines in total and mention the rest as a count. If `pending.truncated` is true, say the list may be incomplete.
 6. **Focus.** Recommend up to 5 focus items, numbered, each with a short reason (unblocks someone, almost done, urgent, planned and not moved). Ask what they will focus on today, in their language, and accept numbers, "ok" for the recommendation, or free text. The person decides.
 7. Build "today" from their choice: a picked item becomes a short line in their language with its `ref`; free text goes verbatim. Show it and let them correct it. Then ask whether anything else blocks them, keeping their answers verbatim.
 8. Ask whether they need support from anyone, without being blocked. Put their answer verbatim in `support`; "no" means an empty list.
@@ -70,7 +70,7 @@ Use this when the MCP tools are not available.
 3. **Planned against done.** If `plan` is not null, show it as in step 2 of the MCP flow, to the person only.
 4. Build "yesterday" as a short summary of at most 5 lines, from `work` when present, otherwise from `activity`, show it, and let the person correct it.
    - For each entry in `suggestions` (`{ id, kind, ref, since }`), ask whether it is a real blocker. If yes, add it to `blockers` in the person's words with its `ref`. If no, run `standcast suggestion ignore <id>` (add `--org <org>` if one was chosen). Exit code 1 with `error suggestion_already_decided` means it was already decided; move on.
-5. **Pending.** Show `pending` in the groups of step 5 of the MCP flow, at most 10 lines plus a count of the rest.
+5. **Pending.** Show `pending` in the groups of step 5 of the MCP flow, at most 10 lines plus a count of the rest. If `pending.truncated` is true, say the list may be incomplete.
 6. **Focus.** Recommend up to 5 focus items with a reason each, as in step 6 of the MCP flow, and build `today` from the person's choice as in step 7. Ask for other blockers in their language, keeping their answers verbatim.
 7. Ask whether they need support from anyone, without being blocked. Put their answer verbatim in `support`; "no" means an empty list.
 8. Build the final JSON (`org`, `yesterday`, `today`, `blockers`, `support`) and show it in a readable form (a short list per section, plus the raw JSON). Items are `{ "text": "...", "ref": { "kind": "...", "url": "https://...", "title": "..." } }`, where `ref` is optional, `url` must be http or https, and `title` is at most 200 characters.

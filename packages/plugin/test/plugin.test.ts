@@ -173,6 +173,14 @@ describe('daily skill', () => {
       expect([...positions].sort((a, b) => a - b)).toEqual(positions);
     }
     expect(skill).toContain('`plan`, `pending`, `warnings`');
+    expect(skill).toContain('`"review_required"` or null means no review decision yet');
+    expect(skill).toContain('including their own drafts and those with checks pending or null');
+    for (const flow of [mcpFlow, cliFlow]) {
+      const pendingStep = flow.slice(flow.search(/^\d+\. \*\*Pending\.\*\*/m));
+      expect(pendingStep.slice(0, pendingStep.search(/^\d+\. \*\*Focus/m))).toContain(
+        'If `pending.truncated` is true, say the list may be incomplete.',
+      );
+    }
   });
 
   test('suggestions are decided by the person', () => {
