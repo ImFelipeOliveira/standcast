@@ -181,10 +181,12 @@ describe('landing', () => {
       expect(metaContent(html, 'og:image:alt')?.length, page.file).toBeGreaterThan(0);
       expect(metaContent(html, 'robots'), page.file).toBe('max-image-preview:large');
       expect(metaContent(html, 'theme-color')).toBeDefined();
-      const icon = links.find((link) => attr(link, 'rel') === 'icon');
-      expect(icon && attr(icon, 'type'), page.file).toBe('image/png');
-      expect(icon && attr(icon, 'href'), page.file).toBe('/favicon.png');
-      expect(icon && attr(icon, 'sizes'), page.file).toBe('96x96');
+      const [svgIcon, pngIcon] = links.filter((link) => attr(link, 'rel') === 'icon');
+      expect(svgIcon && attr(svgIcon, 'type'), page.file).toBe('image/svg+xml');
+      expect(svgIcon && attr(svgIcon, 'href'), page.file).toBe('/favicon.svg');
+      expect(pngIcon && attr(pngIcon, 'type'), page.file).toBe('image/png');
+      expect(pngIcon && attr(pngIcon, 'href'), page.file).toBe('/favicon.png');
+      expect(pngIcon && attr(pngIcon, 'sizes'), page.file).toBe('96x96');
       expect(links.some((link) => attr(link, 'rel') === 'stylesheet')).toBe(true);
     }
   });
@@ -335,8 +337,11 @@ describe('landing', () => {
     expect(favicon.readUInt32BE(20)).toBe(96);
     expect(favicon.equals(readFileSync(join(PUBLIC, 'brand/logo-96.png')))).toBe(true);
     for (const file of htmlFiles()) {
-      const icon = tags(read(file), 'link').find((link) => attr(link, 'rel') === 'icon');
-      expect(icon && attr(icon, 'href'), file).toBe('/favicon.png');
+      const icons = tags(read(file), 'link').filter((link) => attr(link, 'rel') === 'icon');
+      expect(
+        icons.map((icon) => attr(icon, 'href')),
+        file,
+      ).toEqual(['/favicon.svg', '/favicon.png']);
     }
     expect(read('_headers')).toContain("img-src 'self' data:;");
   });
