@@ -33,9 +33,13 @@ jobs:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          ahead=$(gh api "repos/$GH_REPO/compare/main...dev" --jq .ahead_by)
-          if [ "$ahead" = "0" ]; then
-            echo "main already contains dev"
+          read -r ahead files < <(gh api "repos/$GH_REPO/compare/main...dev" --jq '"\(.ahead_by) \(.files | length)"')
+          if [ "$ahead" = "0" ] || [ "$files" = "0" ]; then
+            echo "dev has no changes beyond main"
+            open=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number // empty')
+            if [ -n "$open" ]; then
+              gh pr close "$open" --comment "Closed by promote-dev: \`dev\` has no file changes beyond \`main\` (only sync merges). The next merge into \`dev\` opens a new promotion."
+            fi
             exit 0
           fi
           since=$(gh pr list --base main --head dev --state merged --limit 1 --json mergedAt --jq '.[0].mergedAt // empty')
