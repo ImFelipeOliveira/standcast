@@ -185,6 +185,23 @@ const DAILY = {
   blockers: [],
 };
 
+const DAILY_PLAN_RULES = [
+  'never copied into the daily',
+  '✅',
+  '⏸️ no activity found',
+  '❓',
+  'Waiting on you',
+  'Your cards, urgent or high',
+  'In progress',
+  'Approved, ready to merge',
+  'Drafts',
+  'at most 10 lines',
+  'up to 5 focus items',
+  '"ok"',
+  'one line per warning',
+  'Never say that a manager',
+];
+
 const TOOLS = [
   'standcast_decide_suggestion',
   'standcast_get_digest',
@@ -256,6 +273,13 @@ describe('mcp server', () => {
     expect(instructions).toContain('never sent to Standcast');
   });
 
+  test('instructions open the daily with the plan and pending work', async () => {
+    const { client } = await loggedIn();
+    const instructions = client.getInstructions() ?? '';
+    for (const rule of DAILY_PLAN_RULES) expect(instructions).toContain(rule);
+    expect(instructions).not.toMatch(/manager will see/i);
+  });
+
   test('whoami returns the stored login and orgs', async () => {
     const { client } = await loggedIn();
     const result = await client.callTool({ name: 'standcast_whoami', arguments: {} });
@@ -282,6 +306,89 @@ describe('mcp server', () => {
         body: '',
       },
     ]);
+  });
+
+  test('standcast_get_draft passes plan, pending and warnings through, with and without sessions', async () => {
+    const planned = {
+      ...DRAFT,
+      plan: {
+        date: '2026-10-27',
+        items: [
+          {
+            text: 'Finish rate limits',
+            ref: { kind: 'pull_request', url: 'https://github.com/acme/api/pull/40' },
+            status: 'moved',
+            evidence: [
+              {
+                kind: 'commit',
+                url: 'https://github.com/acme/api/commit/abc',
+                at: '2026-10-27T15:00:00.000Z',
+              },
+            ],
+          },
+          { text: 'Talk to design', status: 'unknown', evidence: [] },
+        ],
+      },
+      pending: {
+        items: [
+          {
+            kind: 'review_requested',
+            ref: { kind: 'pull_request', url: 'https://github.com/acme/web/pull/7' },
+            title: 'Checkout page',
+            repo: 'acme/web',
+            since: '2026-10-26T12:00:00.000Z',
+            draft: false,
+            reviewDecision: 'review_required',
+            checks: 'success',
+          },
+          {
+            kind: 'card',
+            ref: { kind: 'card', url: 'https://linear.app/acme/issue/ENG-2/cart' },
+            title: 'Cart totals',
+            since: '2026-10-25T12:00:00.000Z',
+            state: 'In Progress',
+            priority: 'high',
+          },
+        ],
+        truncated: true,
+      },
+      warnings: [{ source: 'linear_plan', code: 'timeout' }],
+    };
+    const { client } = await loggedIn(
+      ORGS,
+      undefined,
+      { '/v1/draft': planned },
+      { STANDCAST_CLAUDE_DIR },
+    );
+    const { tools } = await client.listTools();
+    const schema = tools.find((t) => t.name === 'standcast_get_draft')?.outputSchema;
+    expect(Object.keys(schema?.properties ?? {})).toEqual(
+      expect.arrayContaining(['plan', 'pending', 'warnings']),
+    );
+    expect(schema?.required ?? []).not.toContain('plan');
+    expect(schema?.required ?? []).not.toContain('pending');
+    expect(schema?.required ?? []).not.toContain('warnings');
+    for (const args of [{}, { includeSessions: false }]) {
+      const result = await client.callTool({ name: 'standcast_get_draft', arguments: args });
+      expect(result.isError).toBeFalsy();
+      const out = result.structuredContent as typeof planned;
+      expect(out.plan).toEqual(planned.plan);
+      expect(out.pending).toEqual(planned.pending);
+      expect(out.warnings).toEqual(planned.warnings);
+      const body = fenced(result) as typeof planned;
+      expect(body.plan).toEqual(planned.plan);
+      expect(body.pending).toEqual(planned.pending);
+      expect(body.warnings).toEqual(planned.warnings);
+    }
+  });
+
+  test('standcast_get_draft accepts a null plan', async () => {
+    const { client } = await loggedIn(ORGS, undefined, {
+      '/v1/draft': { ...DRAFT, plan: null, pending: { items: [], truncated: false }, warnings: [] },
+    });
+    const result = await client.callTool({ name: 'standcast_get_draft', arguments: {} });
+    expect(result.isError).toBeFalsy();
+    expect((result.structuredContent as { plan: unknown }).plan).toBeNull();
   });
 
   test('get_draft includes work by default', async () => {

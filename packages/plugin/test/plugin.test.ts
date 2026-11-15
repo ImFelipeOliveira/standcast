@@ -132,6 +132,49 @@ describe('daily skill', () => {
     expect(skill).toContain('the pull request ref when the item has one, otherwise the card ref');
   });
 
+  test('opens with planned against done and recommends focus from pending work, in both flows', () => {
+    for (const rule of [
+      'never copied into the daily',
+      '✅',
+      '⏸️ no activity found',
+      '❓',
+      'Waiting on you',
+      'Your cards, urgent or high',
+      'In progress',
+      'Approved, ready to merge',
+      'Drafts',
+      'at most 10 lines',
+      'up to 5 focus items',
+      '"ok"',
+      'one line per warning',
+      'Never say that a manager',
+    ]) {
+      expect(skill).toContain(rule);
+    }
+    expect(skill).not.toMatch(/manager will see/i);
+    const mcpFlow = skill.slice(
+      skill.indexOf('## Flow with the MCP tools'),
+      skill.indexOf('MCP errors'),
+    );
+    const cliFlow = skill.slice(
+      skill.indexOf('## Flow with the CLI'),
+      skill.indexOf('## Exit codes'),
+    );
+    const steps = [
+      /^\d+\. \*\*Planned against done\.\*\*/m,
+      /^\d+\. Build "yesterday"/m,
+      /^\d+\. \*\*Pending\.\*\*/m,
+      /^\d+\. \*\*Focus\.\*\*/m,
+      /^\d+\. Ask whether they need support from anyone/m,
+    ];
+    for (const flow of [mcpFlow, cliFlow]) {
+      const positions = steps.map((step) => flow.search(step));
+      for (const position of positions) expect(position).toBeGreaterThan(-1);
+      expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+    }
+    expect(skill).toContain('`plan`, `pending`, `warnings`');
+  });
+
   test('suggestions are decided by the person', () => {
     expect(skill).toContain('standcast_decide_suggestion');
     expect(skill).toContain('standcast suggestion ignore');

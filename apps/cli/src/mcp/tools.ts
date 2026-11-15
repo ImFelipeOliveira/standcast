@@ -123,6 +123,12 @@ const draftOut = z.looseObject({
       }),
     )
     .optional(),
+  plan: z
+    .looseObject({ date: z.string(), items: z.array(z.unknown()) })
+    .nullable()
+    .optional(),
+  pending: z.looseObject({ items: z.array(z.unknown()), truncated: z.boolean() }).optional(),
+  warnings: z.array(z.looseObject({ source: z.string(), code: z.string() })).optional(),
   untrusted,
 });
 
@@ -309,7 +315,7 @@ export function registerTools(server: McpServer, io: Io): void {
     {
       title: 'Get the daily draft',
       description:
-        "Builds the draft of yesterday's work from the person's GitHub and Linear activity and, unless includeSessions is false, the person's local AI sessions (Claude Code), read on this machine and never sent to Standcast. work groups activity and sessions into work items: build yesterday as a short summary of at most 5 lines, grouping related work items by project or theme. Use it as a starting point: the person decides what goes in the daily.",
+        "Builds the draft of yesterday's work from the person's GitHub and Linear activity and, unless includeSessions is false, the person's local AI sessions (Claude Code), read on this machine and never sent to Standcast. work groups activity and sessions into work items: build yesterday as a short summary of at most 5 lines, grouping related work items by project or theme. plan (the previous daily's plan against what moved) and pending (the person's open pull requests, review requests and cards) are only for the person; plan is never copied into the daily. warnings names sources that were unavailable. Use it as a starting point: the person decides what goes in the daily.",
       inputSchema: {
         org,
         includeSessions: z
