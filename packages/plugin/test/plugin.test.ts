@@ -174,7 +174,10 @@ describe('daily skill', () => {
     }
     expect(skill).toContain('`plan`, `pending`, `warnings`');
     expect(skill).toContain('`"review_required"` or null means no review decision yet');
-    expect(skill).toContain('including their own drafts and those with checks pending or null');
+    expect(skill).toContain(
+      'including their own drafts, those with checks pending and those not approved with checks null',
+    );
+    expect(skill).toContain('`reviewDecision: "approved"` and `checks: "success"` or null');
     for (const flow of [mcpFlow, cliFlow]) {
       const pendingStep = flow.slice(flow.search(/^\d+\. \*\*Pending\.\*\*/m));
       expect(pendingStep.slice(0, pendingStep.search(/^\d+\. \*\*Focus/m))).toContain(

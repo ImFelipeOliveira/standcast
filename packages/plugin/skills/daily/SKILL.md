@@ -37,8 +37,8 @@ Use this flow when the tools `standcast_get_draft` and `standcast_submit_daily` 
 5. **Pending.** Show `pending.items` in these groups, skipping empty ones:
    - **Waiting on you:** `review_requested` that are not `draft`; `own_pr` with `reviewDecision: "changes_requested"` or `checks: "failure"`.
    - **Your cards, urgent or high:** `card` with `priority` `urgent` or `high`.
-   - **In progress:** the other cards; every other `own_pr`, including their own drafts and those with checks pending or null.
-   - **Approved, ready to merge:** `own_pr` with `reviewDecision: "approved"` and `checks: "success"`.
+   - **In progress:** the other cards; every other `own_pr`, including their own drafts, those with checks pending and those not approved with checks null.
+   - **Approved, ready to merge:** `own_pr` with `reviewDecision: "approved"` and `checks: "success"` or null.
    - **Drafts:** `review_requested` on a `draft` pull request, as one short line.
 
    For `reviewDecision`, `"review_required"` or null means no review decision yet. Show at most 10 lines in total and mention the rest as a count. If `pending.truncated` is true, say the list may be incomplete.
