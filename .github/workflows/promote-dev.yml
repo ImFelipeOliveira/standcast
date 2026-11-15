@@ -23,6 +23,11 @@ jobs:
         with:
           client-id: ${{ vars.AUTOMATION_APP_CLIENT_ID }}
           private-key: ${{ secrets.AUTOMATION_APP_PRIVATE_KEY }}
+      - name: Ensure the promotion label exists
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh label create promotion --color 3B4BC8 --description "dev to main promotion, opened by promote-dev" --force
       - name: Open or update the dev to main pull request
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
@@ -60,9 +65,10 @@ jobs:
               cat managed.md
               printf '\n## Deploy notes\n\n- None yet.\n'
             } > body.md
-            gh pr create --base main --head dev --title "chore: promote dev to main" --body-file body.md
+            gh pr create --base main --head dev --title "chore: promote dev to main" --label promotion --body-file body.md
             exit 0
           fi
+          gh pr edit "$pr" --add-label promotion
           gh pr view "$pr" --json body --jq .body | tr -d '\r' > current.md
           markers=$(awk -v start="$start" -v end="$end" '
             $0 == start { s++; if (!sl) sl = NR }
