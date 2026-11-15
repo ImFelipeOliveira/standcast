@@ -257,7 +257,12 @@ describe('mcp server', () => {
     expect(decide?.annotations?.idempotentHint).toBe(true);
     const writes = ['standcast_submit_daily', 'standcast_decide_suggestion'];
     for (const tool of tools.filter((t) => !writes.includes(t.name))) {
-      expect(tool.annotations?.readOnlyHint).toBe(true);
+      expect(tool.annotations).toMatchObject({
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      });
     }
   });
 
