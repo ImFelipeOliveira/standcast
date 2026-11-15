@@ -8,6 +8,8 @@ Standcast is an open source daily standup tool for software teams. Run `/daily` 
 curl -fsSL https://standcast.app/install.sh | sh
 ```
 
+Or, on macOS, Linux and Windows: `npm install -g standcast`
+
 - [Join the beta](https://standcast.app/beta/)
 - [Install for your org](https://docs.standcast.app/admin/install)
 - [Documentation](https://docs.standcast.app/)
@@ -43,8 +45,8 @@ Collects, consolidates and delivers. You only write.
 Pick the one that fits how you work: the Claude Code plugin, any MCP client or the terminal.
 
 - **Claude Code plugin.** The `/daily` skill drafts, asks for today and blockers, and confirms with you.
-- **Any MCP client.** Cursor, Codex, Claude Desktop and VS Code run the local [MCP server](https://docs.standcast.app/members/mcp).
-- **Terminal.** One binary for macOS, Linux and Windows, checked against SHA256SUMS.
+- **Any MCP client.** Cursor, Codex, Claude Desktop and VS Code run the local [MCP server](https://docs.standcast.app/members/mcp), straight from npm: `npx -y standcast mcp`.
+- **Terminal.** One binary for macOS, Linux and Windows, checked against SHA256SUMS or installed from npm.
 
 ## Integrations
 
