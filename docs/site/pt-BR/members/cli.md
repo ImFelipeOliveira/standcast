@@ -110,7 +110,7 @@ O rascunho também traz `plan`, `pending` e `warnings`, calculados quando você 
 }
 ```
 
-- `plan`: os itens de "hoje" da sua daily anterior, quando ela tem no máximo 7 dias; senão `null`. `status` é `moved`, `not_moved` ou `unknown`, e `evidence` diz o que foi encontrado (`commit`, `review`, `merged`, `closed`, `state_changed` ou `comment`). Ele olha os seus próprios commits, reviews, merges e mudanças nos cards desde essa daily.
+- `plan`: os itens de "hoje" da sua daily anterior, quando ela tem no máximo 7 dias; senão `null`. `status` é `moved`, `not_moved` ou `unknown`, e `evidence` diz o que foi encontrado (`commit`, `review`, `merged`, `closed`, `state_changed` ou `comment`). Conta como andou: seus próprios commits e reviews no pull request, o pull request mergeado ou fechado, uma mudança de estado do card ou um comentário seu no card, desde o início do dia da sua daily anterior.
 - `pending`: o que está esperando por você. `kind` é `own_pr` (um pull request que você abriu), `review_requested` (o seu review foi pedido diretamente, não por um time) ou `card` (atribuído a você, em andamento, ou não iniciado com `priority` urgente ou alta). Os pull requests trazem `draft`, `reviewDecision` e `checks`. `truncated` é `true` quando a lista pode estar incompleta.
 - `warnings`: as fontes que não responderam, cada uma `{ source, code }`. O resto do rascunho ainda vem.
 - Só você vê. Nada disso é guardado, vai para o consolidado ou aparece para gestores ou na API da organização.

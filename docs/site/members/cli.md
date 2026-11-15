@@ -110,7 +110,7 @@ The draft also has `plan`, `pending` and `warnings`, computed when you run the c
 }
 ```
 
-- `plan`: the "today" items of your previous daily, when it is at most 7 days old; otherwise `null`. `status` is `moved`, `not_moved` or `unknown`, and `evidence` says what was found (`commit`, `review`, `merged`, `closed`, `state_changed` or `comment`). It looks at your own commits, reviews, merges and card changes since that daily.
+- `plan`: the "today" items of your previous daily, when it is at most 7 days old; otherwise `null`. `status` is `moved`, `not_moved` or `unknown`, and `evidence` says what was found (`commit`, `review`, `merged`, `closed`, `state_changed` or `comment`). What counts is your own commits and reviews on the pull request, the pull request merged or closed, a state change of the card, or your own comment on the card, from the start of the day of your previous daily.
 - `pending`: what is waiting on you. `kind` is `own_pr` (a pull request you opened), `review_requested` (your review is requested directly, not through a team) or `card` (assigned to you, in progress, or not started with urgent or high `priority`). Pull requests have `draft`, `reviewDecision` and `checks`. `truncated` is `true` when the list may be incomplete.
 - `warnings`: the sources that did not answer, each `{ source, code }`. The rest of the draft still comes back.
 - Only you see them. They are not stored, not in the digest and not visible to managers or in the organization API.

@@ -94,7 +94,7 @@ type DraftWarning = {
 
 - **Which daily.** The previous daily is the latest one of this member in this installation with `date < ctx.date` (the same one `getLastDaily` finds today). `getLastDaily` is extended, or a sibling added, to also return its `payload.today` and `submittedAt`.
 - **Too old.** When that daily's `date` is more than 7 calendar days before `ctx.date`, `plan` is `null` (someone back from a week off does not get a stale plan).
-- **Window.** Evidence is looked for from that daily's `submittedAt` until now.
+- **Window.** Evidence is looked for from the start of that daily's local date in the team's timezone (or from its first submission, when that is earlier) until now. A resubmit later in the day does not move the window.
 - **Direct lookups (Felipe chose this on 2026-11-14).** The general activity feed only sees start and end events (pull request opened or merged, card started or done) and the GitHub commit search only covers default branches, so ongoing work would look idle. Instead, the planned items are looked up directly, in at most two GraphQL requests:
   - **GitHub:** one GraphQL query with one alias per planned pull request (at most 10). For each: `state`, `mergedAt`, `closedAt`, the last 100 commits with `committedDate` and author login, and the reviews authored by the person with `submittedAt`. The owner, repository and number of each pull request are GraphQL variables, never interpolated text. The owner must be the installation's account; a pull request in another owner is `unknown` and is not queried.
   - **Linear:** one GraphQL query with one alias per planned card (at most 10), `issue(id: <identifier>)`, returning the state history entries and the person's comments created in the window. Only cards of the connected workspace are queried; others are `unknown`.
@@ -124,7 +124,7 @@ Grouping in the skill:
 - **Waiting on you:** review requested from you and not a draft; your pull requests with changes requested or failing checks.
 - **Your cards, urgent or high.**
 - **In progress:** your started cards; your pull requests with no review decision yet and passing or pending checks.
-- **Approved, ready to merge:** your pull requests approved with passing checks.
+- **Approved, ready to merge:** your pull requests approved with passing checks or no checks.
 - **Drafts:** review requests on draft pull requests, as one short line.
 
 ### Budget

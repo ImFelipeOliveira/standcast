@@ -91,11 +91,11 @@ The agent builds yesterday as a short summary, at most 5 lines grouped by projec
 
 The draft also carries `plan` and `pending`, computed when you open it.
 
-- `plan` is the list of "today" items of your previous daily, when that daily is at most 7 days old; otherwise it is `null`. Each item is `{ text, ref?, status, evidence }`. `status` is `moved` (with `evidence`: what happened, such as commits, a review, a merge, a card state change or a comment), `not_moved` (no activity found) or `unknown` (the agent asks you). It looks at your own commits, reviews, merges and card changes since that daily.
+- `plan` is the list of "today" items of your previous daily, when that daily is at most 7 days old; otherwise it is `null`. Each item is `{ text, ref?, status, evidence }`. `status` is `moved` (with `evidence`: what happened, such as commits, a review, a merge, a card state change or a comment), `not_moved` (no activity found) or `unknown` (the agent asks you). What counts is your own commits and reviews on the pull request, the pull request merged or closed, a state change of the card, or your own comment on the card, from the start of the day of your previous daily.
 - `pending` is what is waiting on you: `items` and `truncated`. An item is a pull request you opened, a pull request where your review is requested directly (not through a team), or a card assigned to you that is in progress, or not started with urgent or high priority.
 - `warnings` lists the sources that did not answer (GitHub or Linear). The draft still comes back with the rest.
 
-The agent opens with planned against done, then shows the pending work in groups (waiting on you, urgent or high cards, in progress, approved and ready to merge, drafts) and recommends up to 5 focus items. You pick by number, "ok" or your own words, and the picks become "today". Plan and pending are only for you: they are not stored, never copied into the daily and never shown to managers or in the organization API.
+The agent opens with planned against done, then shows the pending work in groups (waiting on you, urgent or high cards, in progress, approved and ready to merge, drafts) and recommends up to 5 focus items. You pick by number, "ok" or your own words, and the picks become "today". Plan and pending are only for you: they are not stored and never shown to managers or in the organization API. The plan is never copied into the daily, and a pending item goes into the daily only when you pick it as a focus item for "today".
 
 ### Suggested blockers
 

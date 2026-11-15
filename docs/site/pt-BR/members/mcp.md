@@ -98,11 +98,11 @@ O agente monta o ontem resumido, em até 5 linhas agrupadas por projeto ou tema,
 
 O rascunho também traz `plan` e `pending`, calculados quando você o abre.
 
-- `plan` é a lista dos itens de "hoje" da sua daily anterior, quando ela tem no máximo 7 dias; senão é `null`. Cada item é `{ text, ref?, status, evidence }`. `status` é `moved` (com a `evidence`: o que aconteceu, como commits, um review, um merge, uma mudança de estado do card ou um comentário), `not_moved` (sem atividade encontrada) ou `unknown` (o agente pergunta para você). Ele olha os seus próprios commits, reviews, merges e mudanças nos cards desde essa daily.
+- `plan` é a lista dos itens de "hoje" da sua daily anterior, quando ela tem no máximo 7 dias; senão é `null`. Cada item é `{ text, ref?, status, evidence }`. `status` é `moved` (com a `evidence`: o que aconteceu, como commits, um review, um merge, uma mudança de estado do card ou um comentário), `not_moved` (sem atividade encontrada) ou `unknown` (o agente pergunta para você). Conta como andou: seus próprios commits e reviews no pull request, o pull request mergeado ou fechado, uma mudança de estado do card ou um comentário seu no card, desde o início do dia da sua daily anterior.
 - `pending` é o que está esperando por você: `items` e `truncated`. Um item é um pull request que você abriu, um pull request em que o seu review foi pedido diretamente (não por um time), ou um card atribuído a você que está em andamento, ou não iniciado com prioridade urgente ou alta.
 - `warnings` lista as fontes que não responderam (GitHub ou Linear). O rascunho ainda vem com o resto.
 
-O agente abre com o planejado contra o feito, mostra o trabalho pendente em grupos (esperando por você, cards urgentes ou de prioridade alta, em andamento, aprovados e prontos para merge, rascunhos) e recomenda até 5 itens de foco. Você escolhe pelo número, "ok" ou com as suas palavras, e a escolha vira o "hoje". Plano e pendências são só seus: não são guardados, nunca são copiados para a daily e nunca aparecem para gestores nem na API da organização.
+O agente abre com o planejado contra o feito, mostra o trabalho pendente em grupos (esperando por você, cards urgentes ou de prioridade alta, em andamento, aprovados e prontos para merge, rascunhos) e recomenda até 5 itens de foco. Você escolhe pelo número, "ok" ou com as suas palavras, e a escolha vira o "hoje". Plano e pendências são só seus: não são guardados e nunca aparecem para gestores nem na API da organização. O plano nunca é copiado para a daily, e um item pendente só entra na daily quando você o escolhe como foco do "hoje".
 
 ## Impedimentos sugeridos
 
