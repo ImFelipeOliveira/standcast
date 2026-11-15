@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.13.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.12.0...standcast-v0.13.0) (2026-11-15)
+
+
+### Features
+
+* **daily:** open the daily with the plan against done and pending work ([#196](https://github.com/ImFelipeOliveira/standcast/issues/196)) ([e60d2e0](https://github.com/ImFelipeOliveira/standcast/commit/e60d2e06546e9a4cefc9d2c37b152becdae47c50))
+
+
+### Bug Fixes
+
+* **landing:** use the SVG favicon, like the docs and the web app ([1b88ada](https://github.com/ImFelipeOliveira/standcast/commit/1b88ada32aba2882cf9c0943e5f3c4b823966239))
+* **landing:** use the SVG favicon, like the docs and the web app ([#193](https://github.com/ImFelipeOliveira/standcast/issues/193)) ([55c95f1](https://github.com/ImFelipeOliveira/standcast/commit/55c95f13ea861f798bba1e86792b18ba1ad0aedd))
+
 ## [0.12.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.11.0...standcast-v0.12.0) (2026-11-15)
 
 
