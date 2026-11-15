@@ -18,10 +18,16 @@ Baixe o binário do seu sistema na [última release](https://github.com/ImFelipe
 
 No macOS ou no Linux, o script de instalação baixa o binário certo, confere com o arquivo `SHA256SUMS` da release e instala em `~/.local/bin/standcast`. Para instalar à mão, baixe o binário e o `SHA256SUMS`, confira o hash do binário e coloque no `PATH` com o nome `standcast`; a aba manual mostra como fazer num Mac com Apple silicon e não instala nada se o hash não bater. No Linux, use `sha256sum -c` no lugar de `shasum -a 256 -c`. A linha `export` coloca `~/.local/bin` no `PATH` só no terminal atual; coloque essa linha no `~/.zshrc`, `~/.bashrc` ou `~/.profile` para mantê-la.
 
+Com Node.js 18 ou mais novo, no macOS, no Linux ou no Windows, dá para instalar pelo npm: o pacote [`standcast`](https://www.npmjs.com/package/standcast) instala o mesmo binário, só o do seu sistema.
+
 ::: code-group
 
 ```bash [Script de instalação]
 curl -fsSL https://standcast.app/install.sh | sh
+```
+
+```bash [npm]
+npm install -g standcast
 ```
 
 ```bash [Manual, Mac com Apple silicon]

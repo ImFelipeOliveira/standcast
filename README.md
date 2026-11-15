@@ -21,6 +21,7 @@
 <p align="center">
   <a href="https://github.com/ImFelipeOliveira/standcast/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/ImFelipeOliveira/standcast/ci.yml?branch=main&amp;label=CI&amp;labelColor=18181b" alt="CI"></a>
   <a href="https://github.com/ImFelipeOliveira/standcast/releases"><img src="https://img.shields.io/github/v/release/ImFelipeOliveira/standcast?include_prereleases&amp;label=release&amp;labelColor=18181b&amp;color=3B4BC8" alt="Latest release"></a>
+  <a href="https://www.npmjs.com/package/standcast"><img src="https://img.shields.io/npm/v/standcast?label=npm&amp;labelColor=18181b&amp;color=3B4BC8" alt="npm"></a>
   <img src="https://img.shields.io/badge/status-public%20beta-3B4BC8?labelColor=18181b" alt="Status: public beta">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-3B4BC8?labelColor=18181b" alt="License: MIT"></a>
 </p>
@@ -70,22 +71,31 @@ Step by step: [Install](https://docs.standcast.app/admin/install).
 
 ### For members
 
-Install the CLI (macOS and Linux) and sign in:
+Install the CLI and sign in. On macOS and Linux:
 
 ```sh
 curl -fsSL https://standcast.app/install.sh | sh
 standcast login
 ```
 
-The script downloads the latest release for your system, checks it against `SHA256SUMS` and installs it to `~/.local/bin/standcast`. Windows binaries are on the [releases page](https://github.com/ImFelipeOliveira/standcast/releases/latest).
+The script downloads the latest release for your system, checks it against `SHA256SUMS` and installs it to `~/.local/bin/standcast`.
+
+On macOS, Linux and Windows with Node.js 18 or later, install it from [npm](https://www.npmjs.com/package/standcast) instead. npm installs the same binary, only the one for your system:
+
+```sh
+npm install -g standcast
+standcast login
+```
+
+The binaries are also on the [releases page](https://github.com/ImFelipeOliveira/standcast/releases/latest).
 
 Then pick how you write your daily:
 
-| Client                                     | Setup                                                                                                               |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| **Claude Code**                            | `/plugin marketplace add ImFelipeOliveira/standcast`, then `/plugin install standcast@standcast`, then run `/daily` |
-| **Cursor, Codex, Claude Desktop, VS Code** | Add the MCP server (`standcast mcp`): [MCP guide](https://docs.standcast.app/members/mcp)                           |
-| **Terminal**                               | `standcast draft` and `standcast submit`: [CLI reference](https://docs.standcast.app/members/cli)                   |
+| Client                                     | Setup                                                                                                                                           |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Claude Code**                            | `/plugin marketplace add ImFelipeOliveira/standcast`, then `/plugin install standcast@standcast`, then run `/daily`                             |
+| **Cursor, Codex, Claude Desktop, VS Code** | Add the MCP server (`standcast mcp`, or `npx -y standcast mcp` without installing the CLI): [MCP guide](https://docs.standcast.app/members/mcp) |
+| **Terminal**                               | `standcast draft` and `standcast submit`: [CLI reference](https://docs.standcast.app/members/cli)                                               |
 
 ## Why Standcast
 
@@ -241,7 +251,7 @@ bun run check-docs
 
 - CI (lint, typecheck, tests against Postgres, docs build) runs on every pull request and on pushes to `dev` and `main`.
 - Feature branches merge into `dev`; `dev` merges into `main` when a release is ready.
-- [release-please](https://github.com/googleapis/release-please) keeps a release PR open on `main` from [Conventional Commits](https://www.conventionalcommits.org). Merging it tags the release and uploads the CLI binaries and `SHA256SUMS`.
+- [release-please](https://github.com/googleapis/release-please) keeps a release PR open on `main` from [Conventional Commits](https://www.conventionalcommits.org). Merging it tags the release, uploads the CLI binaries and `SHA256SUMS`, publishes the CLI to npm as `standcast` and updates its [MCP Registry](https://registry.modelcontextprotocol.io) entry, `io.github.ImFelipeOliveira/standcast`.
 
 ## Contributing
 

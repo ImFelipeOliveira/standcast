@@ -170,10 +170,10 @@ describe('readme', () => {
     expect(readme.indexOf('<picture>')).toBeLessThan(readme.indexOf('\n## '));
   });
 
-  test('has at most four neutral badges', () => {
+  test('has at most five neutral badges', () => {
     const badges = [...readme.matchAll(/<img\b[^>]*src="([^"]*(?:shields\.io|badge\.svg)[^"]*)"/g)];
     expect(badges.length).toBeGreaterThan(0);
-    expect(badges.length).toBeLessThanOrEqual(4);
+    expect(badges.length).toBeLessThanOrEqual(5);
     for (const badge of badges) {
       expect(badge[1], badge[1]).toContain('labelColor=18181b');
     }
