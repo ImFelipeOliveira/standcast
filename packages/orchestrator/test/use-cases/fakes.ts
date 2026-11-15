@@ -295,6 +295,8 @@ export function fakeDeps(opts: FakeOptions = {}) {
         calls.snapshots.push(author);
         return opts.snapshots?.[author] ?? [];
       },
+      listPendingPullRequests: async () => ({ items: [], truncated: false }),
+      lookupPlannedPullRequests: async () => new Map(),
       fetchCodeowners: async (_o, owner, repo, ref) => {
         calls.codeowners.push({ repo: `${owner}/${repo}`, ref });
         return opts.codeowners?.[`${owner}/${repo}`] ?? null;

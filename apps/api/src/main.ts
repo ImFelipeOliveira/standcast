@@ -10,7 +10,9 @@ import {
   getUserProfile,
   listActivity,
   listOpenPullRequestSnapshots,
+  listPendingPullRequests,
   listPullRequestFiles,
+  lookupPlannedPullRequests,
   pullRequestMerged,
   resolveTeamMembers,
 } from '@standcast/github';
@@ -58,6 +60,8 @@ const deps: Deps = {
     pullRequestMerged,
     listPullRequestFiles,
     listOpenPullRequestSnapshots,
+    listPendingPullRequests,
+    lookupPlannedPullRequests,
     fetchCodeowners,
     createCheckRun,
     exchangeWebCode: (code) =>
