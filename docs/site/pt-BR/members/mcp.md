@@ -39,6 +39,16 @@ args = ["mcp"]
 
 Qualquer outro cliente: `{"command": "standcast", "args": ["mcp"]}`.
 
+### Com npx, sem instalar a CLI
+
+A CLI também está no npm como [`standcast`](https://www.npmjs.com/package/standcast), então um cliente com Node.js pode rodá-la pelo `npx`. Entre uma vez com `npx -y standcast login` e use o `npx` como comando:
+
+```json
+{"mcpServers":{"standcast":{"command":"npx","args":["-y","standcast","mcp"]}}}
+```
+
+O npm instala só o binário da sua plataforma: macOS, Linux ou Windows em x64, e macOS ou Linux em arm64. O Standcast também está no [MCP Registry](https://registry.modelcontextprotocol.io) como `io.github.ImFelipeOliveira/standcast`.
+
 ## A regra de confirmação
 
 O Standcast nunca envia uma daily em seu nome sem a sua confirmação explícita. O agente tem que mostrar a daily final e perguntar antes. Além disso, a `standcast_submit_daily` confirma de um destes dois jeitos:

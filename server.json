@@ -1,0 +1,30 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ImFelipeOliveira/standcast",
+  "title": "Standcast",
+  "description": "Write your standup in your AI agent, confirm it, and post a team digest to Slack or Google Chat",
+  "websiteUrl": "https://standcast.app",
+  "repository": {
+    "url": "https://github.com/ImFelipeOliveira/standcast",
+    "source": "github",
+    "id": "1437836984"
+  },
+  "version": "0.13.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "standcast",
+      "version": "0.13.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp"
+        }
+      ]
+    }
+  ]
+}

@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- A CLI está no npm como `standcast`. Um cliente MCP com Node.js pode rodar `npx -y standcast mcp` sem instalar a CLI antes, e o Standcast aparece no MCP Registry como `io.github.ImFelipeOliveira/standcast`. Cada release publica nos dois.
+
 ### 0.13.0 — 15/11/2026
 
 - A `/daily` abre com o que você planejou na daily anterior e se cada item andou, depois lista o que está esperando por você e recomenda até 5 itens de foco para montar o "hoje". Aparece só para você, é calculado quando você abre o rascunho e não é guardado. Se o GitHub ou o Linear não responder, você ainda recebe o rascunho e o agente diz qual fonte ficou indisponível. Veja [Skill do Claude Code](/pt-BR/members/claude-code).
