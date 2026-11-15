@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.1](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.14.0...standcast-v0.14.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **ci:** treat a version npm already has but does not show yet as published ([d8ba029](https://github.com/ImFelipeOliveira/standcast/commit/d8ba029d170a45151604bf130d98d47b2c455b78))
+* **ci:** treat a version npm already has but does not show yet as published ([#211](https://github.com/ImFelipeOliveira/standcast/issues/211)) ([a04d1c3](https://github.com/ImFelipeOliveira/standcast/commit/a04d1c3036938ee001acbd9f2d41e556d7847e1b))
+
 ## [0.14.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.13.1...standcast-v0.14.0) (2026-11-15)
 
 
