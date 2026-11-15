@@ -38,11 +38,18 @@ jobs:
           if [ -n "$since" ]; then
             search="is:merged merged:>$since"
           fi
-          list=$(gh pr list --base dev --state merged --limit 200 --search "$search" \
-            --json number,title,headRefName \
-            --jq '[.[] | select(.headRefName != "main")] | sort_by(.number) | .[] | "- #\(.number) \(.title)"')
+          limit=1000
+          gh pr list --base dev --state merged --limit "$limit" --search "$search" \
+            --json number,title,headRefName > merged.json
+          fetched=$(jq length merged.json)
+          list=$(jq -r '[.[] | select(.headRefName != "main")] | sort_by(.number) | .[] | "- #\(.number) \(.title)"' merged.json)
           if [ -z "$list" ]; then
             list="- No merged pull requests found since the last promotion."
+          fi
+          if [ "$fetched" -ge "$limit" ]; then
+            query=$(jq -rn --arg q "is:pr base:dev $search" '$q | @uri')
+            list="$list
+          - The list stops at $limit pull requests. See the full list: https://github.com/$GH_REPO/pulls?q=$query"
           fi
           start="<!-- promote-dev:start -->"
           end="<!-- promote-dev:end -->"
@@ -56,18 +63,34 @@ jobs:
             gh pr create --base main --head dev --title "chore: promote dev to main" --body-file body.md
             exit 0
           fi
-          gh pr view "$pr" --json body --jq .body > current.md
-          if grep -qF "$start" current.md && grep -qF "$end" current.md; then
-            awk -v start="$start" -v end="$end" -v managed="managed.md" '
-              $0 == start { while ((getline line < managed) > 0) print line; skip = 1; next }
-              $0 == end { skip = 0; next }
-              !skip { print }
-            ' current.md > body.md
-          else
-            {
-              cat managed.md
-              printf '\n'
-              cat current.md
-            } > body.md
-          fi
+          gh pr view "$pr" --json body --jq .body | tr -d '\r' > current.md
+          markers=$(awk -v start="$start" -v end="$end" '
+            $0 == start { s++; if (!sl) sl = NR }
+            $0 == end { e++; if (!el) el = NR }
+            END {
+              if (s == 0 && e == 0) print "none";
+              else if (s == 1 && e == 1 && sl < el) print "ok";
+              else print "invalid";
+            }
+          ' current.md)
+          case "$markers" in
+            ok)
+              awk -v start="$start" -v end="$end" -v managed="managed.md" '
+                $0 == start { while ((getline line < managed) > 0) print line; skip = 1; next }
+                $0 == end { skip = 0; next }
+                !skip { print }
+              ' current.md > body.md
+              ;;
+            none)
+              {
+                cat managed.md
+                printf '\n'
+                cat current.md
+              } > body.md
+              ;;
+            *)
+              echo "::warning::the promotion pull request has broken promote-dev markers; its body was left unchanged"
+              exit 0
+              ;;
+          esac
           gh pr edit "$pr" --body-file body.md
