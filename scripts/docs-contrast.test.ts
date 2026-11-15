@@ -73,16 +73,16 @@ describe('brand tokens', () => {
   test('brand colors are the measured palette', () => {
     expect(token(light, '--vp-c-brand-1').toUpperCase()).toBe('#3446C2');
     expect(token(light, '--vp-c-brand-2').toUpperCase()).toBe('#2F3CA8');
-    expect(token(dark, '--vp-c-brand-1').toUpperCase()).toBe('#8B98F0');
+    expect(token(dark, '--vp-c-brand-1').toUpperCase()).toBe('#A5AFF7');
     expect(token(light, '--vp-c-text-1').toUpperCase()).toBe('#18181B');
     expect(token(light, '--vp-c-text-3').toUpperCase()).toBe('#5B5B66');
     expect(token(dark, '--vp-c-text-1').toUpperCase()).toBe('#EDEDEF');
     expect(token(dark, '--vp-c-text-3').toUpperCase()).toBe('#A1A1AA');
   });
 
-  test('the dark brand color reaches 4.5:1 on the VitePress dark background', () => {
-    expect(token(dark, '--vp-c-bg').toUpperCase()).toBe('#1B1B1F');
-    expect(contrast('#8B98F0', '#1B1B1F')).toBeGreaterThanOrEqual(4.5);
+  test('the dark theme uses the landing background and accent', () => {
+    expect(token(dark, '--vp-c-bg').toUpperCase()).toBe('#0E0E10');
+    expect(contrast('#A5AFF7', '#0E0E10')).toBeGreaterThanOrEqual(4.5);
   });
 
   for (const [theme, vars] of [

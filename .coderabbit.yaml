@@ -36,6 +36,31 @@ reviews:
         - regexes that can backtrack on user input, GraphQL inputs not passed as variables, redirects built from request data;
         - imports of packages not declared in the package's own package.json;
         - dead code, duplicated helpers and tests that would pass without the feature.
+        Then hunt for logic errors, following the "Logic and failure modes" section of the review guide. Trace at least one concrete input through each changed branch and report only what you can show breaking:
+        - off-by-one and boundary mistakes: < against <=, empty lists, one item, exactly the cap, one past the cap, the first and last day of a window;
+        - inverted or wrong conditions, && where || was meant, early returns that skip work the caller relies on;
+        - || used where ?? was meant, and optional fields that rows written before a migration do not have;
+        - async calls without await, array.forEach(async ...), and Promise.all over independent items that leaves partial state on the first failure;
+        - catch blocks that return a default and hide the failure;
+        - values copied from an external source (emails, team membership, identities, tokens) with no refresh or expiry;
+        - lookups across installations that do not pick nobody on more than one match;
+        - values derived from "the person's team" taken from another installation than the one the data belongs to;
+        - permanent errors (no linked identity, not found, revoked token, invalid config) retried as if they were transient;
+        - scheduled jobs that skip sending without recording why;
+        - new config keys, settings or column defaults that change behaviour for existing installations;
+        - behaviour claimed in the pull request description with no code path or no test.
+    - path: "packages/db/migrations/**/*.sql"
+      instructions: |
+        The API runs migrations on start while the previous worker may still be running, so a migration must work with both releases. Flag renames or drops of columns the previous release still uses, new NOT NULL columns without a default, unique indexes or constraints that existing rows may break, and backfills mixed into schema changes. Check that the schema in packages/db/src/schema.ts and the generated snapshot match the SQL.
+    - path: "**/package.json"
+      instructions: |
+        For dependency changes, read the release notes of every version skipped and point out breaking changes or fixes that matter to Standcast. Prefer the latest patch of the target minor. Flag a new runtime dependency that duplicates one already in the workspace, and a package added to the wrong workspace package.
+    - path: "**/*.test.{ts,tsx}"
+      instructions: |
+        Flag tests that depend on timing: a worker started before the state it reads, fixed sleeps, or assertions on counts that a second poll can change. Flag tests that would still pass with the feature removed, and missing cases for the boundaries the change introduces.
+    - path: "apps/*/src/env.ts"
+      instructions: |
+        A new required environment variable makes the service fail at boot until it is set in Railway. Prefer an optional variable with a safe default. Otherwise the pull request must list it under deploy notes and docs/site must document it.
     - path: "packages/orchestrator/src/modules/**"
       instructions: |
         Use cases hold the business rules and throw DomainError with a stable code. Check idempotency on retries, concurrency between two workers, tenant scoping and the anti-surveillance rule. Every new behaviour needs a use-case test without HTTP.

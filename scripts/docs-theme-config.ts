@@ -198,7 +198,7 @@ export function localeThemeConfig(locale: DocsLocale, apiReference: string): Def
 
 export function sharedThemeConfig(): DefaultTheme.Config {
   return {
-    logo: '/logo.svg',
+    logo: { light: '/logo.svg', dark: '/logo-dark.svg', alt: '' },
     siteTitle: 'Standcast',
     externalLinkIcon: true,
     socialLinks: [{ icon: 'github', link: 'https://github.com/ImFelipeOliveira/standcast' }],
