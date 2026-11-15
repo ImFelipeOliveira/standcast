@@ -581,6 +581,17 @@ header.nav {
   color: var(--term-text);
 }
 
+.install-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.install-alt {
+  color: var(--text2);
+  font-size: 14px;
+}
+
 .install code {
   flex: 1;
   min-width: 0;

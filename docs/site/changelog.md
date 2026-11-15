@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- The landing at standcast.app shows `npm install -g standcast` under the install script, and its MCP example runs `npx -y standcast mcp`, so an MCP client works without installing the CLI first.
+
 ### 0.14.1 — 2026-11-15
 
 ### 0.14.0 — 2026-11-15
