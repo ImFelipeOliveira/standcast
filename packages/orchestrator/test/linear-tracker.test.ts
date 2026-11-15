@@ -475,7 +475,10 @@ describe('listAssignedOpen and lookupCards', () => {
       ]),
     );
     expect(fake.linear.calls.queries).toEqual([
-      { name: 'PlannedCards', variables: { userId: 'lin-alice', t0: 'ENG', n0: 1 } },
+      {
+        name: 'PlannedCards',
+        variables: { userId: 'lin-alice', since: since.toISOString(), t0: 'ENG', n0: 1 },
+      },
     ]);
   });
 

@@ -48,7 +48,7 @@ function splitTargets(targets: CardTarget[]): Split[] {
 }
 
 function buildQuery(count: number): string {
-  const declarations = ['$userId: ID!'];
+  const declarations = ['$userId: ID!', '$since: DateTimeOrDuration!'];
   const branches: string[] = [];
   for (let index = 0; index < count; index++) {
     declarations.push(`$t${index}: String!`, `$n${index}: Float!`);
@@ -57,6 +57,7 @@ function buildQuery(count: number): string {
   return `query PlannedCards(${declarations.join(', ')}) {
   issues(
     filter: {
+      assignee: { id: { eq: $userId } }
       or: [
 ${branches.join('\n')}
       ]
@@ -66,15 +67,21 @@ ${branches.join('\n')}
     nodes {
       identifier
       url
-      history(last: 50) { nodes { createdAt toState { name } } }
-      comments(filter: { user: { id: { eq: $userId } } }, last: 20) { nodes { createdAt url } }
+      history(first: 50) { nodes { createdAt toState { name } } }
+      comments(filter: { user: { id: { eq: $userId } }, createdAt: { gte: $since } }, first: 20) {
+        nodes { createdAt url }
+      }
     }
   }
 }`;
 }
 
-function variablesOf(userId: string, splits: Split[]): Record<string, string | number> {
-  const variables: Record<string, string | number> = { userId };
+function variablesOf(
+  userId: string,
+  since: Date,
+  splits: Split[],
+): Record<string, string | number> {
+  const variables: Record<string, string | number> = { userId, since: since.toISOString() };
   splits.forEach((split, index) => {
     variables[`t${index}`] = split.teamKey;
     variables[`n${index}`] = split.number;
@@ -118,11 +125,11 @@ export async function lookupPlannedCards(
   input: { userId: string; since: Date; targets: CardTarget[] },
 ): Promise<Map<string, PlanLookupResult>> {
   const results = new Map<string, PlanLookupResult>();
-  const splits = splitTargets(input.targets);
+  const splits = splitTargets(input.targets).slice(0, PLANNED_PAGE_SIZE);
   if (splits.length === 0) return results;
   const data = await client.query<unknown>(
     buildQuery(splits.length),
-    variablesOf(input.userId, splits),
+    variablesOf(input.userId, input.since, splits),
   );
   const found = new Map<string, PlannedNode>();
   for (const raw of nodesOf(data)) {

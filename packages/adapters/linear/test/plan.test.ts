@@ -43,12 +43,14 @@ describe('lookupPlannedCards', () => {
     const sent = JSON.parse(f.calls[0]?.body ?? '');
     expect(sent.variables).toEqual({
       userId: 'lin-user-1',
+      since: '2026-11-13T12:00:00.000Z',
       t0: 'SECRET',
       n0: 41,
       t1: 'OTHER',
       n1: 7,
     });
     expect(sent.query).toContain('$userId: ID!');
+    expect(sent.query).toContain('$since: DateTimeOrDuration!');
     expect(sent.query).toContain('$t0: String!');
     expect(sent.query).toContain('$n0: Float!');
     expect(sent.query).toContain('$t1: String!');
@@ -56,8 +58,11 @@ describe('lookupPlannedCards', () => {
     expect(sent.query).toContain('{ team: { key: { eq: $t0 } }, number: { eq: $n0 } }');
     expect(sent.query).toContain('{ team: { key: { eq: $t1 } }, number: { eq: $n1 } }');
     expect(sent.query).toContain('first: 10');
-    expect(sent.query).toContain('history(last: 50)');
-    expect(sent.query).toContain('comments(filter: { user: { id: { eq: $userId } } }, last: 20)');
+    expect(sent.query).toContain('history(first: 50)');
+    expect(sent.query).toContain(
+      'comments(filter: { user: { id: { eq: $userId } }, createdAt: { gte: $since } }, first: 20)',
+    );
+    expect(sent.query).not.toContain('last:');
     for (const value of ['SECRET', 'OTHER', '41', 'lin-user-1', 'acme']) {
       expect(sent.query).not.toContain(value);
     }
@@ -138,8 +143,46 @@ describe('lookupPlannedCards', () => {
       ],
     });
     const sent = JSON.parse(f.calls[0]?.body ?? '');
-    expect(sent.variables).toEqual({ userId: 'u', t0: 'ENG', n0: 12 });
+    expect(sent.variables).toEqual({ userId: 'u', since: since.toISOString(), t0: 'ENG', n0: 12 });
     expect(results.get(cardKey('ENG-12'))).toEqual({ ok: true, evidence: [] });
+  });
+
+  test('lookupPlannedCards scopes every card to the person and leaves unassigned cards unknown', async () => {
+    const f = reply([issue('ENG-12')]);
+
+    const results = await lookupPlannedCards(createLinearClient('t', f.fetch), {
+      userId: 'lin-user-1',
+      since,
+      targets: [target('ENG-12'), target('PRIV-9')],
+    });
+
+    const sent = JSON.parse(f.calls[0]?.body ?? '');
+    expect(sent.query).toMatch(/filter: \{\s*assignee: \{ id: \{ eq: \$userId \} \}\s*or: \[/);
+    expect(sent.query).not.toContain('lin-user-1');
+    expect(sent.variables.userId).toBe('lin-user-1');
+    expect(results.get(cardKey('PRIV-9'))).toEqual({ ok: false });
+    expect(results.get(cardKey('ENG-12'))).toEqual({ ok: true, evidence: [] });
+  });
+
+  test('lookupPlannedCards looks up only the first ten valid targets', async () => {
+    const targets = Array.from({ length: 11 }, (_, i) => target(`ENG-${i + 1}`));
+    const f = reply(targets.map((t) => issue(t.identifier)));
+
+    const results = await lookupPlannedCards(createLinearClient('t', f.fetch), {
+      userId: 'u',
+      since,
+      targets: [{ key: cardKey('bad'), identifier: 'bad', url: 'x' }, ...targets],
+    });
+
+    const sent = JSON.parse(f.calls[0]?.body ?? '');
+    expect(sent.query.match(/number: \{ eq: \$n\d+ \}/g)).toHaveLength(10);
+    expect(sent.query).toContain('$n9: Float!');
+    expect(sent.query).not.toContain('$n10');
+    expect(sent.variables.n9).toBe(10);
+    expect(sent.variables).not.toHaveProperty('t10');
+    expect(results.size).toBe(10);
+    expect(results.has(cardKey('ENG-10'))).toBe(true);
+    expect(results.has(cardKey('ENG-11'))).toBe(false);
   });
 
   test('lookupPlannedCards makes no request without targets', async () => {
@@ -173,7 +216,7 @@ describe('lookupPlannedCards', () => {
       targets: [{ key: cardKey('$x-1'), identifier: '$x-1', url: 'x' }, target('ENG-5')],
     });
     const sent = JSON.parse(f.calls[0]?.body ?? '');
-    expect(sent.variables).toEqual({ userId: 'u', t0: 'ENG', n0: 5 });
+    expect(sent.variables).toEqual({ userId: 'u', since: since.toISOString(), t0: 'ENG', n0: 5 });
     expect(sent.query).not.toContain('$x');
     expect(results.get(cardKey('ENG-5'))).toEqual({ ok: true, evidence: [] });
   });
