@@ -395,7 +395,7 @@ describe('listActivity and listStaleInProgress', () => {
 describe('listAssignedOpen and lookupCards', () => {
   const since = new Date('2026-11-13T12:00:00Z');
   const target = (identifier: string, workspace = 'acme') => ({
-    key: cardKey(identifier),
+    key: cardKey(workspace, identifier),
     identifier,
     url: `https://linear.app/${workspace}/issue/${identifier}`,
   });
@@ -460,7 +460,7 @@ describe('listAssignedOpen and lookupCards', () => {
     expect(results).toEqual(
       new Map([
         [
-          cardKey('ENG-1'),
+          cardKey('acme', 'ENG-1'),
           {
             ok: true,
             evidence: [

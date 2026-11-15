@@ -26,8 +26,23 @@ describe('planTargets', () => {
       { key: 'pr:acme/api#7', owner: 'acme', repo: 'api', number: 7 },
     ]);
     expect(targets.cards).toHaveLength(1);
-    expect(targets.cards[0]?.key).toBe('card:ENG-12');
+    expect(targets.cards[0]?.key).toBe('card:acme/ENG-12');
     expect(targets.cards[0]?.identifier).toBe('ENG-12');
+  });
+
+  test('keeps the same identifier in two workspaces as two cards', () => {
+    const acme = card('https://linear.app/acme/issue/ENG-12/x');
+    const other = card('https://linear.app/other/issue/ENG-12/y');
+    for (const items of [
+      [acme, other],
+      [other, acme],
+    ]) {
+      expect(
+        planTargets(items, 'acme')
+          .cards.map((target) => target.key)
+          .sort(),
+      ).toEqual(['card:acme/ENG-12', 'card:other/ENG-12']);
+    }
   });
 
   test('caps each kind at PLAN_LOOKUP_CAP', () => {
@@ -56,7 +71,7 @@ describe('buildPlan', () => {
   ];
   const results = new Map<string, PlanLookupResult>([
     ['pr:acme/api#7', { ok: true, evidence }],
-    ['card:ENG-12', { ok: true, evidence: [] }],
+    ['card:acme/ENG-12', { ok: true, evidence: [] }],
     ['pr:acme/api#9', { ok: false }],
   ]);
 
@@ -95,6 +110,25 @@ describe('buildPlan', () => {
       results,
     });
     expect(plan.items.map((i) => i.status)).toEqual(['moved', 'moved']);
+  });
+});
+
+describe('buildPlan across Linear workspaces', () => {
+  test('never applies one workspace result to the same identifier in another', () => {
+    const acme = card('https://linear.app/acme/issue/ENG-12/x', 'acme');
+    const other = card('https://linear.app/Other/issue/eng-12', 'other');
+    const evidence = [{ kind: 'state_changed' as const, url: acme.ref?.url ?? '', at: 't' }];
+    const results = new Map<string, PlanLookupResult>([
+      ['card:acme/ENG-12', { ok: true, evidence }],
+    ]);
+    for (const items of [
+      [acme, other],
+      [other, acme],
+    ]) {
+      const plan = buildPlan({ date: '2026-11-14', items, results });
+      const status = Object.fromEntries(plan.items.map((item) => [item.text, item.status]));
+      expect(status).toEqual({ acme: 'moved', other: 'unknown' });
+    }
   });
 });
 

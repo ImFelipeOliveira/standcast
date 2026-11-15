@@ -4,12 +4,15 @@ import {
   type PlanEvidence,
   type PlanEvidenceKind,
   type PlanLookupResult,
+  parseLinearIssueUrl,
 } from '@standcast/core';
 import { z } from 'zod';
 import { nodesOf } from './activity';
 import type { LinearClient } from './client';
 
 export const PLANNED_PAGE_SIZE = 10;
+const HISTORY_PAGE_SIZE = 50;
+const COMMENT_PAGE_SIZE = 20;
 
 const IDENTIFIER = /^([A-Za-z][A-Za-z0-9]*)-(\d+)$/;
 
@@ -67,8 +70,8 @@ ${branches.join('\n')}
     nodes {
       identifier
       url
-      history(first: 50) { nodes { createdAt toState { name } } }
-      comments(filter: { user: { id: { eq: $userId } }, createdAt: { gte: $since } }, first: 20) {
+      history(first: ${HISTORY_PAGE_SIZE}) { nodes { createdAt toState { name } } }
+      comments(filter: { user: { id: { eq: $userId } }, createdAt: { gte: $since } }, first: ${COMMENT_PAGE_SIZE}) {
         nodes { createdAt url }
       }
     }
@@ -120,6 +123,30 @@ function evidenceOf(issue: PlannedNode, since: Date): PlanEvidence[] {
   );
 }
 
+function keyOf(url: string, identifier: string): string | null {
+  const parsed = parseLinearIssueUrl(url);
+  return parsed ? cardKey(parsed.workspace, identifier) : null;
+}
+
+function historyMayBeTruncated(issue: PlannedNode, since: Date): boolean {
+  const nodes = issue.history?.nodes ?? [];
+  if (nodes.length < HISTORY_PAGE_SIZE) return false;
+  const times = nodes.map((node) => new Date(node.createdAt).getTime());
+  if (times.some((time) => Number.isNaN(time))) return true;
+  return Math.min(...times) >= since.getTime();
+}
+
+function commentsMayBeTruncated(issue: PlannedNode): boolean {
+  return (issue.comments?.nodes ?? []).length >= COMMENT_PAGE_SIZE;
+}
+
+function resultOf(issue: PlannedNode, since: Date): PlanLookupResult {
+  const evidence = evidenceOf(issue, since);
+  if (evidence.length > 0) return { ok: true, evidence };
+  if (historyMayBeTruncated(issue, since) || commentsMayBeTruncated(issue)) return { ok: false };
+  return { ok: true, evidence };
+}
+
 export async function lookupPlannedCards(
   client: LinearClient,
   input: { userId: string; since: Date; targets: CardTarget[] },
@@ -134,14 +161,14 @@ export async function lookupPlannedCards(
   const found = new Map<string, PlannedNode>();
   for (const raw of nodesOf(data)) {
     const parsed = plannedNode.safeParse(raw);
-    if (parsed.success) found.set(cardKey(parsed.data.identifier), parsed.data);
+    if (!parsed.success) continue;
+    const key = keyOf(parsed.data.url, parsed.data.identifier);
+    if (key) found.set(key, parsed.data);
   }
   for (const { target } of splits) {
-    const issue = found.get(cardKey(target.identifier));
-    results.set(
-      target.key,
-      issue ? { ok: true, evidence: evidenceOf(issue, input.since) } : { ok: false },
-    );
+    const key = keyOf(target.url, target.identifier);
+    const issue = key ? found.get(key) : undefined;
+    results.set(target.key, issue ? resultOf(issue, input.since) : { ok: false });
   }
   return results;
 }

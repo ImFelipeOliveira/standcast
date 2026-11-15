@@ -42,8 +42,8 @@ export function pullRequestKey(owner: string, repo: string, number: number): str
   return `pr:${owner.toLowerCase()}/${repo.toLowerCase()}#${number}`;
 }
 
-export function cardKey(identifier: string): string {
-  return `card:${identifier.toUpperCase()}`;
+export function cardKey(workspace: string, identifier: string): string {
+  return `card:${workspace.toLowerCase()}/${identifier.toUpperCase()}`;
 }
 
 function keyOf(item: Item): string | null {
@@ -52,7 +52,7 @@ function keyOf(item: Item): string | null {
   const pull = parsePullRequestUrl(url);
   if (pull) return pullRequestKey(pull.owner, pull.repo, pull.number);
   const issue = parseLinearIssueUrl(url);
-  return issue ? cardKey(issue.identifier) : null;
+  return issue ? cardKey(issue.workspace, issue.identifier) : null;
 }
 
 export function planTargets(
@@ -80,7 +80,7 @@ export function planTargets(
     }
     const issue = parseLinearIssueUrl(url);
     if (!issue) continue;
-    const key = cardKey(issue.identifier);
+    const key = cardKey(issue.workspace, issue.identifier);
     if (cards.has(key) || cards.size >= PLAN_LOOKUP_CAP) continue;
     cards.set(key, { key, identifier: issue.identifier, url });
   }

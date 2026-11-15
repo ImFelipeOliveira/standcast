@@ -7,12 +7,14 @@ import type {
 } from '@standcast/core';
 import { type GraphqlError, queryGraphql } from './graphql';
 
+const COMMIT_PAGE_SIZE = 100;
+
 const PLANNED_PULL_REQUEST_FRAGMENT = `fragment PlannedPullRequest on PullRequest {
   url
   merged
   mergedAt
   closedAt
-  commits(last: 100) { nodes { commit { committedDate author { user { login } } } } }
+  commits(last: ${COMMIT_PAGE_SIZE}) { nodes { commit { committedDate author { user { login } } } } }
   reviews(author: $login, last: 20) { nodes { submittedAt url } }
 }`;
 
@@ -112,7 +114,9 @@ function hasUnattributedCommits(pull: PlannedPull, since: Date): boolean {
 
 function resultOf(pull: PlannedPull, login: string, since: Date): PlanLookupResult {
   const evidence = evidenceOf(pull, login, since);
-  if (evidence.length === 0 && hasUnattributedCommits(pull, since)) return { ok: false };
+  if (evidence.length > 0) return { ok: true, evidence };
+  if (hasUnattributedCommits(pull, since)) return { ok: false };
+  if ((pull.commits?.nodes ?? []).length >= COMMIT_PAGE_SIZE) return { ok: false };
   return { ok: true, evidence };
 }
 

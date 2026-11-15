@@ -203,6 +203,44 @@ describe('lookupPlannedPullRequests', () => {
     });
   });
 
+  test('lookupPlannedPullRequests leaves a full commit page without evidence unknown', async () => {
+    const full = target('acme', 'api', 1);
+    const short = target('acme', 'api', 2);
+    const reviewed = target('acme', 'api', 3);
+    const others = (count: number): Commit[] =>
+      Array.from({ length: count }, (_, i) => ({
+        committedDate: new Date(Date.parse('2026-11-13T13:00:00Z') + i * 60_000).toISOString(),
+        login: 'bob',
+      }));
+    const { octokit } = octokitWith({
+      'POST /graphql': {
+        body: JSON.stringify({
+          data: {
+            p0: pull('https://github.com/acme/api/pull/1', { commits: others(100) }),
+            p1: pull('https://github.com/acme/api/pull/2', { commits: others(99) }),
+            p2: pull('https://github.com/acme/api/pull/3', {
+              commits: others(100),
+              reviews: [{ submittedAt: '2026-11-13T18:00:00Z', url: 'https://github.com/r/3' }],
+            }),
+          },
+        }),
+      },
+    });
+
+    const results = await lookupPlannedPullRequests(octokit, {
+      login: 'alice',
+      since,
+      targets: [full, short, reviewed],
+    });
+
+    expect(results.get(full.key)).toEqual({ ok: false });
+    expect(results.get(short.key)).toEqual({ ok: true, evidence: [] });
+    expect(results.get(reviewed.key)).toEqual({
+      ok: true,
+      evidence: [{ kind: 'review', url: 'https://github.com/r/3', at: '2026-11-13T18:00:00.000Z' }],
+    });
+  });
+
   test('lookupPlannedPullRequests marks an alias with errors as not ok and keeps the others', async () => {
     const kept = target('acme', 'api', 1);
     const deleted = target('acme', 'api', 2);

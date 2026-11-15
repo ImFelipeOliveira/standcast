@@ -7,7 +7,7 @@ const since = new Date('2026-11-13T12:00:00.000Z');
 
 function target(identifier: string, workspace = 'acme'): CardTarget {
   return {
-    key: cardKey(identifier),
+    key: cardKey(workspace, identifier),
     identifier,
     url: `https://linear.app/${workspace}/issue/${identifier}`,
   };
@@ -77,8 +77,8 @@ describe('lookupPlannedCards', () => {
       targets: [target('ENG-12'), target('OLD-3')],
     });
 
-    expect(results.get(cardKey('OLD-3'))).toEqual({ ok: false });
-    expect(results.get(cardKey('ENG-12'))).toEqual({ ok: true, evidence: [] });
+    expect(results.get(cardKey('acme', 'OLD-3'))).toEqual({ ok: false });
+    expect(results.get(cardKey('acme', 'ENG-12'))).toEqual({ ok: true, evidence: [] });
     expect(results.size).toBe(2);
   });
 
@@ -111,7 +111,7 @@ describe('lookupPlannedCards', () => {
       targets: [target('ENG-12'), target('ENG-13')],
     });
 
-    expect(results.get(cardKey('ENG-12'))).toEqual({
+    expect(results.get(cardKey('acme', 'ENG-12'))).toEqual({
       ok: true,
       evidence: [
         {
@@ -126,7 +126,99 @@ describe('lookupPlannedCards', () => {
         },
       ],
     });
-    expect(results.get(cardKey('ENG-13'))).toEqual({ ok: true, evidence: [] });
+    expect(results.get(cardKey('acme', 'ENG-13'))).toEqual({ ok: true, evidence: [] });
+  });
+
+  test('lookupPlannedCards leaves a card of another workspace with the same identifier unknown', async () => {
+    const f = reply([issue('ENG-12')]);
+    const results = await lookupPlannedCards(createLinearClient('t', f.fetch), {
+      userId: 'u',
+      since,
+      targets: [target('ENG-12', 'other'), target('ENG-12')],
+    });
+    expect(results.get(cardKey('other', 'ENG-12'))).toEqual({ ok: false });
+    expect(results.get(cardKey('acme', 'ENG-12'))).toEqual({ ok: true, evidence: [] });
+  });
+
+  test('lookupPlannedCards counts a state change and a comment exactly at since', async () => {
+    const at = '2026-11-13T12:00:00.000Z';
+    const f = reply([
+      issue(
+        'ENG-12',
+        [{ createdAt: at, toState: { name: 'In Progress' } }],
+        [{ createdAt: at, url: 'https://linear.app/acme/comment/edge' }],
+      ),
+    ]);
+
+    const results = await lookupPlannedCards(createLinearClient('t', f.fetch), {
+      userId: 'u',
+      since,
+      targets: [target('ENG-12')],
+    });
+
+    expect(results.get(cardKey('acme', 'ENG-12'))).toEqual({
+      ok: true,
+      evidence: [
+        { kind: 'state_changed', url: 'https://linear.app/acme/issue/ENG-12/title-slug', at },
+        { kind: 'comment', url: 'https://linear.app/acme/comment/edge', at },
+      ],
+    });
+  });
+
+  test('lookupPlannedCards leaves a full history page without evidence unknown when it may miss in-window entries', async () => {
+    const minutes = (count: number, from: string): Change[] =>
+      Array.from({ length: count }, (_, i) => ({
+        createdAt: new Date(new Date(from).getTime() + i * 60_000).toISOString(),
+        toState: null,
+      }));
+    const f = reply([
+      issue('ENG-1', minutes(50, '2026-11-13T12:00:00.000Z')),
+      issue('ENG-2', [
+        ...minutes(1, '2026-11-13T11:00:00.000Z'),
+        ...minutes(49, '2026-11-13T13:00:00.000Z'),
+      ]),
+      issue('ENG-3', minutes(49, '2026-11-13T13:00:00.000Z')),
+      issue('ENG-4', minutes(50, '2026-11-13T13:00:00.000Z'), [
+        { createdAt: '2026-11-13T14:00:00.000Z', url: 'https://linear.app/acme/comment/c' },
+      ]),
+    ]);
+
+    const results = await lookupPlannedCards(createLinearClient('t', f.fetch), {
+      userId: 'u',
+      since,
+      targets: ['ENG-1', 'ENG-2', 'ENG-3', 'ENG-4'].map((id) => target(id)),
+    });
+
+    expect(results.get(cardKey('acme', 'ENG-1'))).toEqual({ ok: false });
+    expect(results.get(cardKey('acme', 'ENG-2'))).toEqual({ ok: true, evidence: [] });
+    expect(results.get(cardKey('acme', 'ENG-3'))).toEqual({ ok: true, evidence: [] });
+    expect(results.get(cardKey('acme', 'ENG-4'))).toEqual({
+      ok: true,
+      evidence: [
+        {
+          kind: 'comment',
+          url: 'https://linear.app/acme/comment/c',
+          at: '2026-11-13T14:00:00.000Z',
+        },
+      ],
+    });
+  });
+
+  test('lookupPlannedCards leaves a full comment page without evidence unknown', async () => {
+    const comments = Array.from({ length: 20 }, (_, i) => ({
+      createdAt: 'not a date',
+      url: `https://linear.app/acme/comment/${i}`,
+    }));
+    const f = reply([issue('ENG-1', [], comments), issue('ENG-2', [], comments.slice(0, 19))]);
+
+    const results = await lookupPlannedCards(createLinearClient('t', f.fetch), {
+      userId: 'u',
+      since,
+      targets: [target('ENG-1'), target('ENG-2')],
+    });
+
+    expect(results.get(cardKey('acme', 'ENG-1'))).toEqual({ ok: false });
+    expect(results.get(cardKey('acme', 'ENG-2'))).toEqual({ ok: true, evidence: [] });
   });
 
   test('lookupPlannedCards matches identifiers regardless of case', async () => {
@@ -136,7 +228,7 @@ describe('lookupPlannedCards', () => {
       since,
       targets: [
         {
-          key: cardKey('eng-12'),
+          key: cardKey('acme', 'eng-12'),
           identifier: 'eng-12',
           url: 'https://linear.app/acme/issue/eng-12',
         },
@@ -144,7 +236,7 @@ describe('lookupPlannedCards', () => {
     });
     const sent = JSON.parse(f.calls[0]?.body ?? '');
     expect(sent.variables).toEqual({ userId: 'u', since: since.toISOString(), t0: 'ENG', n0: 12 });
-    expect(results.get(cardKey('ENG-12'))).toEqual({ ok: true, evidence: [] });
+    expect(results.get(cardKey('acme', 'ENG-12'))).toEqual({ ok: true, evidence: [] });
   });
 
   test('lookupPlannedCards scopes every card to the person and leaves unassigned cards unknown', async () => {
@@ -160,8 +252,8 @@ describe('lookupPlannedCards', () => {
     expect(sent.query).toMatch(/filter: \{\s*assignee: \{ id: \{ eq: \$userId \} \}\s*or: \[/);
     expect(sent.query).not.toContain('lin-user-1');
     expect(sent.variables.userId).toBe('lin-user-1');
-    expect(results.get(cardKey('PRIV-9'))).toEqual({ ok: false });
-    expect(results.get(cardKey('ENG-12'))).toEqual({ ok: true, evidence: [] });
+    expect(results.get(cardKey('acme', 'PRIV-9'))).toEqual({ ok: false });
+    expect(results.get(cardKey('acme', 'ENG-12'))).toEqual({ ok: true, evidence: [] });
   });
 
   test('lookupPlannedCards looks up only the first ten valid targets', async () => {
@@ -171,7 +263,7 @@ describe('lookupPlannedCards', () => {
     const results = await lookupPlannedCards(createLinearClient('t', f.fetch), {
       userId: 'u',
       since,
-      targets: [{ key: cardKey('bad'), identifier: 'bad', url: 'x' }, ...targets],
+      targets: [{ key: cardKey('acme', 'bad'), identifier: 'bad', url: 'x' }, ...targets],
     });
 
     const sent = JSON.parse(f.calls[0]?.body ?? '');
@@ -181,8 +273,8 @@ describe('lookupPlannedCards', () => {
     expect(sent.variables.n9).toBe(10);
     expect(sent.variables).not.toHaveProperty('t10');
     expect(results.size).toBe(10);
-    expect(results.has(cardKey('ENG-10'))).toBe(true);
-    expect(results.has(cardKey('ENG-11'))).toBe(false);
+    expect(results.has(cardKey('acme', 'ENG-10'))).toBe(true);
+    expect(results.has(cardKey('acme', 'ENG-11'))).toBe(false);
   });
 
   test('lookupPlannedCards makes no request without targets', async () => {
@@ -198,14 +290,14 @@ describe('lookupPlannedCards', () => {
 
   test('lookupPlannedCards skips malformed identifiers without a request', async () => {
     const f = reply([]);
-    const bad: CardTarget = { key: cardKey('ENG 12'), identifier: 'ENG 12', url: 'x' };
+    const bad: CardTarget = { key: cardKey('acme', 'ENG 12'), identifier: 'ENG 12', url: 'x' };
     const results = await lookupPlannedCards(createLinearClient('t', f.fetch), {
       userId: 'u',
       since,
-      targets: [bad, { ...bad, key: cardKey('12-ENG'), identifier: '12-ENG' }],
+      targets: [bad, { ...bad, key: cardKey('acme', '12-ENG'), identifier: '12-ENG' }],
     });
     expect(f.calls).toHaveLength(0);
-    expect(results.get(cardKey('ENG 12'))).toBeUndefined();
+    expect(results.get(cardKey('acme', 'ENG 12'))).toBeUndefined();
   });
 
   test('lookupPlannedCards indexes variables only over well-formed identifiers', async () => {
@@ -213,12 +305,12 @@ describe('lookupPlannedCards', () => {
     const results = await lookupPlannedCards(createLinearClient('t', f.fetch), {
       userId: 'u',
       since,
-      targets: [{ key: cardKey('$x-1'), identifier: '$x-1', url: 'x' }, target('ENG-5')],
+      targets: [{ key: cardKey('acme', '$x-1'), identifier: '$x-1', url: 'x' }, target('ENG-5')],
     });
     const sent = JSON.parse(f.calls[0]?.body ?? '');
     expect(sent.variables).toEqual({ userId: 'u', since: since.toISOString(), t0: 'ENG', n0: 5 });
     expect(sent.query).not.toContain('$x');
-    expect(results.get(cardKey('ENG-5'))).toEqual({ ok: true, evidence: [] });
+    expect(results.get(cardKey('acme', 'ENG-5'))).toEqual({ ok: true, evidence: [] });
   });
 
   test('lookupPlannedCards rethrows a graphql error', async () => {
