@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.11.0...standcast-v0.12.0) (2026-11-15)
+
+
+### Features
+
+* **docs:** match the documentation theme to the landing ([f20374c](https://github.com/ImFelipeOliveira/standcast/commit/f20374ce7d89f7003470a69f45dad35c35e41353))
+* **docs:** match the documentation theme to the landing ([#186](https://github.com/ImFelipeOliveira/standcast/issues/186)) ([d3e75c4](https://github.com/ImFelipeOliveira/standcast/commit/d3e75c4d4ba5a616e3e2da63e35411f5018bf705))
+
 ## [0.11.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.10.0...standcast-v0.11.0) (2026-11-14)
 
 
