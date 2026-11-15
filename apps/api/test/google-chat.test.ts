@@ -312,7 +312,7 @@ describe('POST /webhooks/google-chat', () => {
     const text = ((await res.json()) as { text: string }).text;
     expect(text).toContain('standcast login');
     expect(text).toContain('google_chat: users/123');
-    expect(text).toContain('O seu id no Google Chat é users/123');
+    expect(text).not.toContain('O seu id no Google Chat é users/123');
   });
 
   test('a direct message without a valid user answers the login hint without an id', async () => {
@@ -511,7 +511,7 @@ describe('google chat link button', () => {
     expect(body.privateMessageViewer).toEqual({ name: 'users/123' });
     expect(body.text).toContain('No Standcast account uses this email');
     expect(body.text).toContain('google_chat: users/123');
-    expect(body.text).toContain('Nenhuma conta do Standcast usa este e-mail');
+    expect(body.text).not.toContain('Nenhuma conta do Standcast usa este e-mail');
     expect(await db.select().from(memberIdentities)).toEqual([]);
   });
 

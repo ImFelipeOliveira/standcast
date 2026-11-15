@@ -112,7 +112,7 @@ describe('handleGoogleChatEvent in a room', () => {
     const code = CODE.exec(text)?.[1] ?? '';
     expect(code).toHaveLength(8);
     expect(text).toContain('Settings → Google Chat');
-    expect(text).toContain('Configuração → Google Chat');
+    expect(text).not.toContain('Configuração → Google Chat');
     const row = (await db.select().from(googleChatSpaces)).find(
       (r) => r.spaceName === 'spaces/AAAA',
     );
@@ -120,6 +120,24 @@ describe('handleGoogleChatEvent in a room', () => {
     expect(row?.displayName).toBe('Alpha room');
     expect(row?.linkCodeHash).toBe(createHash('sha256').update(code).digest('hex'));
     expect(row?.linkCodeExpiresAt?.getTime()).toBe(deps.now().getTime() + 24 * 60 * 60 * 1000);
+  });
+
+  test('the code comes in the language of the team set on the space', async () => {
+    const { deps } = await setup(googleConfig({ language: 'pt-BR' }));
+    const text = (await handleGoogleChatEvent(deps, added()))?.text ?? '';
+    expect(text).toContain('Configuração → Google Chat');
+    expect(text).not.toContain('Settings → Google Chat');
+  });
+
+  test('the code is in English when no team or teams with different languages use the space', async () => {
+    const { deps } = await setup(googleConfig({ language: 'pt-BR' }));
+    const unknown = (await handleGoogleChatEvent(deps, added('spaces/ZZZZ')))?.text ?? '';
+    expect(unknown).toContain('Settings → Google Chat');
+    expect(unknown).not.toContain('Configuração → Google Chat');
+    await seedOrg(googleConfig({ language: 'en' }), { id: OTHER, accountLogin: 'beta' });
+    const mixed = (await handleGoogleChatEvent(deps, added()))?.text ?? '';
+    expect(mixed).toContain('Settings → Google Chat');
+    expect(mixed).not.toContain('Configuração → Google Chat');
   });
 
   test('a new add replaces the previous code', async () => {
@@ -295,8 +313,8 @@ describe('linkGoogleChatSpace', () => {
     expect(await getConnection(db, INST, 'google-chat', KEY)).toBeNull();
   });
 
-  test('linking announces the organization in the space, in both languages', async () => {
-    const { deps, isMember, member } = await setup();
+  test('linking announces the organization in the space, in the language of its team', async () => {
+    const { deps, isMember, member } = await setup(googleConfig({ language: 'pt-BR' }));
     const google = fakeChat();
     deps.chatFor = async (_installationId, provider) =>
       provider === 'google-chat' ? google.chat : null;
@@ -307,8 +325,22 @@ describe('linkGoogleChatSpace', () => {
     expect(google.posted).toHaveLength(1);
     expect(google.posted[0]?.channel).toBe('spaces/AAAA');
     expect(google.posted[0]?.msg.fallbackText).toContain('acme');
-    expect(google.posted[0]?.msg.fallbackText).toContain('remove the app');
     expect(google.posted[0]?.msg.fallbackText).toContain('remova o app');
+    expect(google.posted[0]?.msg.fallbackText).not.toContain('remove the app');
+    expect(google.posted[0]?.msg.blocks).toHaveLength(1);
+  });
+
+  test('linking a space no team uses yet announces it in English', async () => {
+    const { deps, isMember, member } = await setup(googleConfig({ language: 'pt-BR' }));
+    const google = fakeChat();
+    deps.chatFor = async (_installationId, provider) =>
+      provider === 'google-chat' ? google.chat : null;
+    await linkGoogleChatSpace(deps, isMember, member, {
+      installationId: INST,
+      code: await issueCode(deps, 'spaces/ZZZZ'),
+    });
+    expect(google.posted[0]?.msg.fallbackText).toContain('remove the app');
+    expect(google.posted[0]?.msg.fallbackText).not.toContain('remova o app');
   });
 
   test('a failed announcement still links the space', async () => {
@@ -517,9 +549,9 @@ describe('handleGoogleChatEvent in a direct message', () => {
     const reply = await handleGoogleChatEvent(deps, dm('stranger@other.com'));
     expect(reply?.text).toContain('standcast login');
     expect(reply?.text).toContain('No Standcast account uses this email');
-    expect(reply?.text).toContain('Nenhuma conta do Standcast usa este e-mail');
+    expect(reply?.text).not.toContain('Nenhuma conta do Standcast usa este e-mail');
     expect(reply?.text).toContain('Your Google Chat id is users/123');
-    expect(reply?.text).toContain('O seu id no Google Chat é users/123');
+    expect(reply?.text).not.toContain('O seu id no Google Chat é users/123');
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
     const missing = await handleGoogleChatEvent(deps, dm(undefined));
     expect(missing?.text).toContain('No Standcast account uses this email');
@@ -607,7 +639,7 @@ describe('handleGoogleChatEvent in a direct message', () => {
     await setIdentity(db, 13, member.id, 'google-chat', 'users/555');
     const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
     expect(reply?.text).toContain('more than one GitHub account');
-    expect(reply?.text).toContain('mais de uma conta do GitHub');
+    expect(reply?.text).not.toContain('mais de uma conta do GitHub');
     expect(reply?.text).toContain('google_chat');
     expect(reply?.text).toContain('google_chat: users/123');
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
@@ -706,8 +738,16 @@ describe('handleGoogleChatEvent from a space', () => {
     expect(reply?.privateTo).toBe('users/123');
     expect(reply?.text).toContain('No Standcast account uses this email');
     expect(reply?.text).toContain('google_chat: users/123');
-    expect(reply?.text).toContain('O seu id no Google Chat é users/123');
+    expect(reply?.text).not.toContain('O seu id no Google Chat é users/123');
     expect(await db.select().from(memberIdentities)).toEqual([]);
+  });
+
+  test('an unknown email answers in the language of the team on the space', async () => {
+    const { deps } = await setup(googleConfig({ language: 'pt-BR' }));
+    await bindElsewhere('spaces/AAAA', INST);
+    const reply = await handleGoogleChatEvent(deps, click('alice@personal.com'));
+    expect(reply?.text).toContain('O seu id no Google Chat é users/123');
+    expect(reply?.text).not.toContain('No Standcast account uses this email');
   });
 
   test('an email shared by two accounts answers the ambiguous message privately', async () => {
