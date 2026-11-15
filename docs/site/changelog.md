@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- Google Chat messages come in one language only. The link code, the notice that a space was linked and the app's answers use the `language` of the teams on that space or of your teams in `standcast.yml`, and English when Standcast cannot tell or the teams have different languages. Before, they came in English with Portuguese below.
+
 ### 0.13.0 — 2026-11-15
 
 - `/daily` opens with what you planned in your previous daily and whether each item moved, then lists what is waiting on you and recommends up to 5 focus items to build "today". It is shown only to you, computed when you open the draft and not stored. If GitHub or Linear does not answer, you still get the draft and the agent says which source was unavailable. See [Claude Code skill](/members/claude-code).

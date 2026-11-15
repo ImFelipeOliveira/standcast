@@ -21,7 +21,7 @@ If the Google Chat card in the web app says "Google Chat is not available on thi
 1. In Google Chat, open the space where the digest should go.
 2. Open the space menu, choose **Apps & integrations**, then **Add apps**, and pick **Standcast**.
 
-The app posts a message in the space, in English and Portuguese, with a link code:
+The app posts a message in the space with a link code. It is in the `language` of the teams whose `chat.channel` is this space in `standcast.yml`, and in English when no team uses the space yet or its teams have different languages:
 
 > Standcast is in this space. To get digests here, an admin of your GitHub organization pastes this code in Standcast, Settings → Google Chat: `K7QF3MZP`. The code is valid for 24 hours.
 
@@ -44,7 +44,7 @@ If the code does not work:
 | Too many attempts. Wait a minute and try again. | Wait a minute. Link attempts are limited to 10 per minute. |
 | This organization already has 20 linked spaces, the maximum. Unlink one first. | An organization can link up to 20 spaces. Unlink one you no longer use. |
 
-Once linked, the app posts in the space, in English and Portuguese, which organization now gets digests there. If that is not your organization, remove the app from the space to undo the link.
+Once linked, the app posts in the space which organization now gets digests there, in the language of the teams on the space, or in English as above. If that is not your organization, remove the app from the space to undo the link.
 
 A space can be linked to one organization only. Pasting the code is what proves your organization may post there: the space name in `standcast.yml` alone is not enough.
 
@@ -89,7 +89,7 @@ All three ways do the same thing. Standcast matches the email of your Google acc
 | I found your account, but none of your organizations has connected Google Chat to Standcast yet. Ask an admin to link a space, then message me again. | Link a space first, then message the app again. |
 | This email belongs to more than one GitHub account on Standcast, so I linked none of them. Ask an admin to set `google_chat` for you under `members` in standcast.yml, or keep the email only on your own GitHub account and run `standcast login` again. | Two or more GitHub accounts signed in to Standcast share this email, so Standcast links none of them. In each of their organizations that use Google Chat, it also removes the Google Chat links of those accounts and any link to this Google Chat user. Map the person by hand, as below, or remove the email from the other accounts. |
 
-The answer is in the team's language when Standcast knows it, otherwise in English and Portuguese. When no account or more than one account has the email, the app also tells the person their Google Chat id (`users/` followed by digits), ready for the mapping below.
+The answer is in one language only: the language of your teams, or of the teams on the space when you click the button or mention the app there. When Standcast cannot tell, or your teams have different languages, it is in English. When no account or more than one account has the email, the app also tells the person their Google Chat id (`users/` followed by digits), ready for the mapping below.
 
 GitHub sends Standcast your verified emails when you run `standcast login` or sign in to the web app. Your primary email always matches. Your other verified emails match only for 30 days after that sign-in, so an email you remove from GitHub stops matching by then. After you add and verify your Google email on GitHub, sign in again in one of these ways and message the app within 30 days. If your GitHub account has 1,000 emails or more, Standcast cannot read them all and keeps the list from your previous sign-in until its 30 days run out; ask an admin to map you by hand, as below.
 

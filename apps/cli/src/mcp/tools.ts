@@ -301,7 +301,12 @@ export function registerTools(server: McpServer, io: Io): void {
         login: z.string(),
         orgs: z.array(z.object({ installationId: z.number(), login: z.string() })),
       },
-      annotations: { readOnlyHint: true, openWorldHint: false },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
     },
     () =>
       respond(async () => {
@@ -326,7 +331,12 @@ export function registerTools(server: McpServer, io: Io): void {
           ),
       },
       outputSchema: draftOut,
-      annotations: { readOnlyHint: true, openWorldHint: false },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
     },
     (input) =>
       respond(
@@ -446,7 +456,12 @@ export function registerTools(server: McpServer, io: Io): void {
         'Lists the teams the person manages, or every team for an organization admin. Only these teams can be read with the other manager tools.',
       inputSchema: { org },
       outputSchema: page(teamOut),
-      annotations: { readOnlyHint: true, openWorldHint: false },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
     },
     (input) =>
       respond(
@@ -466,7 +481,12 @@ export function registerTools(server: McpServer, io: Io): void {
         'Returns the digest delivery of a team on one date, with who had not sent the daily, or null when there is none. Limited to the last 90 days.',
       inputSchema: { org, team, date: day.describe('Standup date, YYYY-MM-DD.') },
       outputSchema: { digest: digestOut.nullable(), untrusted },
-      annotations: { readOnlyHint: true, openWorldHint: false },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
     },
     (input) =>
       respond(
@@ -498,7 +518,12 @@ export function registerTools(server: McpServer, io: Io): void {
         cursor,
       },
       outputSchema: page(dailyOut),
-      annotations: { readOnlyHint: true, openWorldHint: false },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
     },
     (input) =>
       respond(
@@ -530,7 +555,12 @@ export function registerTools(server: McpServer, io: Io): void {
         cursor,
       },
       outputSchema: page(blockerOut),
-      annotations: { readOnlyHint: true, openWorldHint: false },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
     },
     (input) =>
       respond(
