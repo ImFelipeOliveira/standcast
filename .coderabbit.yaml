@@ -13,9 +13,9 @@ reviews:
     base_branches:
       - dev
       - main
-    ignore_title_keywords:
-      - "chore: promote dev to main"
-      - "chore(main): release standcast"
+    labels:
+      - "!promotion"
+      - "!autorelease: pending"
   path_filters:
     - "!bun.lock"
     - "!CHANGELOG.md"
