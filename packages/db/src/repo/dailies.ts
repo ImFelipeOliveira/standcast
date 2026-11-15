@@ -93,9 +93,14 @@ export async function getPreviousDaily(
   installationId: number,
   memberId: string,
   before: string,
-): Promise<{ date: string; submittedAt: Date; today: Item[] } | null> {
+): Promise<{ date: string; submittedAt: Date; firstSubmittedAt: Date; today: Item[] } | null> {
   const [row] = await db
-    .select({ date: dailies.date, submittedAt: dailies.submittedAt, payload: dailies.payload })
+    .select({
+      date: dailies.date,
+      submittedAt: dailies.submittedAt,
+      firstSubmittedAt: dailies.firstSubmittedAt,
+      payload: dailies.payload,
+    })
     .from(dailies)
     .where(
       and(
@@ -106,7 +111,14 @@ export async function getPreviousDaily(
     )
     .orderBy(desc(dailies.date))
     .limit(1);
-  return row ? { date: row.date, submittedAt: row.submittedAt, today: row.payload.today } : null;
+  return row
+    ? {
+        date: row.date,
+        submittedAt: row.submittedAt,
+        firstSubmittedAt: row.firstSubmittedAt,
+        today: row.payload.today,
+      }
+    : null;
 }
 
 export async function listDailies(

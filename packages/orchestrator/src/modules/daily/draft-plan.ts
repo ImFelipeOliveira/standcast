@@ -4,6 +4,7 @@ import {
   type PlanLookupResult,
   planIsFresh,
   planTargets,
+  startOfLocalDay,
 } from '@standcast/core';
 import { getPreviousDaily } from '@standcast/db';
 import type { Deps } from '../../deps';
@@ -23,7 +24,12 @@ export async function loadPlan(
   if (!previous || !planIsFresh(previous.date, ctx.date)) return null;
   const targets = planTargets(previous.today, ctx.owner);
   const login = ctx.member.login;
-  const since = previous.submittedAt;
+  const since = new Date(
+    Math.min(
+      previous.firstSubmittedAt.getTime(),
+      startOfLocalDay(previous.date, ctx.mine[0].timezone).getTime(),
+    ),
+  );
   const none: Lookups = new Map();
   const [pulls, cards] = await Promise.all([
     fromSource('github_plan', ctx, warn, none, async (): Promise<Lookups> => {

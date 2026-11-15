@@ -141,6 +141,23 @@ describe('dailies', () => {
     expect(prev?.submittedAt).toBeInstanceOf(Date);
     expect(await getPreviousDaily(db, INST, m.id, '2026-11-12')).toBeNull();
   });
+
+  test('getPreviousDaily keeps the first submission time after a resubmit', async () => {
+    const m = await seed();
+    const put = (submittedAt: Date) =>
+      upsertDaily(db, {
+        installationId: INST,
+        memberId: m.id,
+        date: '2026-11-13',
+        payload: daily('2026-11-13'),
+        submittedAt,
+      });
+    await put(new Date('2026-11-13T12:00:00Z'));
+    await put(new Date('2026-11-13T21:00:00Z'));
+    const prev = await getPreviousDaily(db, INST, m.id, '2026-11-14');
+    expect(prev?.firstSubmittedAt).toEqual(new Date('2026-11-13T12:00:00Z'));
+    expect(prev?.submittedAt).toEqual(new Date('2026-11-13T21:00:00Z'));
+  });
 });
 
 describe('deliveries', () => {

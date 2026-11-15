@@ -394,11 +394,53 @@ describe('getDraft plan against done', () => {
     expect(lookups).toEqual([
       {
         login: 'Alice',
-        since: new Date('2026-10-27T20:00:00Z'),
+        since: new Date('2026-10-27T03:00:00Z'),
         targets: [{ key: 'pr:acme/api#7', owner: 'acme', repo: 'api', number: 7 }],
       },
     ]);
     expect(draft.warnings).toEqual([]);
+  });
+
+  test('a resubmitted daily keeps the plan window from the start of its day', async () => {
+    const { deps, isMember, member } = await setup();
+    const today = [pullItem('ship the api', PULL_ACME)];
+    for (const submittedAt of ['2026-10-27T12:00:00Z', '2026-10-27T21:00:00Z']) {
+      await upsertDaily(db, {
+        installationId: INST,
+        memberId: member.id,
+        date: '2026-10-27',
+        payload: { ...daily, today },
+        submittedAt: new Date(submittedAt),
+      });
+    }
+    const commit = { kind: 'commit' as const, url: PULL_ACME, at: '2026-10-27T15:00:00.000Z' };
+    const sinces: Date[] = [];
+    deps.github.lookupPlannedPullRequests = async (_o, input) => {
+      sinces.push(input.since);
+      const evidence = new Date(commit.at) >= input.since ? [commit] : [];
+      return new Map(input.targets.map((t) => [t.key, { ok: true as const, evidence }]));
+    };
+    const draft = await getDraft(deps, isMember, member, 'acme');
+    expect(sinces).toEqual([new Date('2026-10-27T03:00:00Z')]);
+    expect(draft.plan?.items.map((i) => [i.status, i.evidence])).toEqual([['moved', [commit]]]);
+  });
+
+  test('a daily submitted the next morning opens the window at the start of its date', async () => {
+    const { deps, isMember, member } = await setup();
+    await upsertDaily(db, {
+      installationId: INST,
+      memberId: member.id,
+      date: '2026-10-27',
+      payload: { ...daily, today: [pullItem('ship the api', PULL_ACME)] },
+      submittedAt: new Date('2026-10-28T12:00:00Z'),
+    });
+    const sinces: Date[] = [];
+    deps.github.lookupPlannedPullRequests = async (_o, input) => {
+      sinces.push(input.since);
+      return new Map(input.targets.map((t) => [t.key, { ok: true as const, evidence: [] }]));
+    };
+    await getDraft(deps, isMember, member, 'acme');
+    expect(sinces).toEqual([new Date('2026-10-27T03:00:00Z')]);
   });
 
   test('the plan merges pull request and card lookups', async () => {
@@ -430,7 +472,7 @@ describe('getDraft plan against done', () => {
     expect(planned?.variables).toMatchObject({
       t0: 'ENG',
       n0: 5,
-      since: '2026-10-27T20:00:00.000Z',
+      since: '2026-10-27T03:00:00.000Z',
     });
     expect(draft.warnings).toEqual([]);
   });
