@@ -5,6 +5,7 @@ import { parseLinearIssueUrl } from './linear-ref';
 
 export const PLAN_LOOKUP_CAP = 10;
 export const PLAN_MAX_AGE_DAYS = 7;
+export const PULL_REQUEST_NUMBER_MAX = 2147483647;
 
 export type PlanStatus = 'moved' | 'not_moved' | 'unknown';
 export type PlanEvidenceKind =
@@ -66,7 +67,7 @@ export function planTargets(
     if (!url) continue;
     const pull = parsePullRequestUrl(url);
     if (pull) {
-      if (pull.owner.toLowerCase() !== wanted) continue;
+      if (pull.owner.toLowerCase() !== wanted || pull.number > PULL_REQUEST_NUMBER_MAX) continue;
       const key = pullRequestKey(pull.owner, pull.repo, pull.number);
       if (pullRequests.has(key) || pullRequests.size >= PLAN_LOOKUP_CAP) continue;
       pullRequests.set(key, {

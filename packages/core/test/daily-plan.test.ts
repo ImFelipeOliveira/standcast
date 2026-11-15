@@ -36,6 +36,18 @@ describe('planTargets', () => {
     );
     expect(planTargets(items, 'acme').pullRequests).toHaveLength(PLAN_LOOKUP_CAP);
   });
+
+  test('skips pull request numbers above the GraphQL Int range', () => {
+    const targets = planTargets(
+      [
+        pr('https://github.com/acme/api/pull/2147483648'),
+        pr('https://github.com/acme/api/pull/99999999999999999999'),
+        pr('https://github.com/acme/api/pull/2147483647'),
+      ],
+      'acme',
+    );
+    expect(targets.pullRequests.map((t) => t.number)).toEqual([2147483647]);
+  });
 });
 
 describe('buildPlan', () => {
