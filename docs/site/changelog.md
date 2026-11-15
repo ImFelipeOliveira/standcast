@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+### 0.13.1 — 2026-11-15
+
 - Google Chat messages come in one language only. The link code, the notice that a space was linked and the app's answers use the `language` of the teams on that space or of your teams in `standcast.yml`, and English when Standcast cannot tell or the teams have different languages. Before, they came in English with Portuguese below.
 
 ### 0.13.0 — 2026-11-15
