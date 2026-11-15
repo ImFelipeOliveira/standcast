@@ -192,7 +192,14 @@ jobs:
               tag=backport
               echo "$name@$version is older than latest $latest, publishing it under the backport tag"
             fi
-            npm publish "$dir" --access public --provenance --tag "$tag"
+            if output=$(npm publish "$dir" --access public --provenance --tag "$tag" 2>&1); then
+              echo "$output"
+            elif echo "$output" | grep -q 'cannot publish over the previously published'; then
+              echo "$name@$version was already published, npm had not shown it yet"
+            else
+              echo "$output"
+              exit 1
+            fi
           done < dist/npm-order.txt
       - name: Publish to the MCP registry
         if: steps.npm.outputs.ready == 'true'
