@@ -35,6 +35,17 @@ Managers, admins and the person who wrote the blocker can mark it as resolved, a
 
 Managers and admins see **Remind now** next to a person who has not sent today's daily. It sends the same direct message as the scheduled reminder, at most once a day. It works only on the team's workday and before that team's digest is posted, even when the person is also in a team whose digest comes later.
 
+### Away
+
+Managers and admins see **Mark away** on a person's card, with the first and last away day. **Cancel** ends a period. A person who is away on the day shows **Away** instead of **Remind now**, and has no reminder. Everyone marks and cancels their own periods in **Account**, under **Away**.
+
+- Periods belong to the organization and to the person's GitHub login. You can mark someone who has never run `standcast login`. Once they sign in, they see the period and can cancel it.
+- A period has at most 90 days, counting both ends, cannot start before today and cannot overlap another active one. To change the dates, cancel it and mark again.
+- A manager can mark and cancel for people in the teams they manage. An admin can do it for anyone in the organization.
+- When a manager or admin marks or cancels a period for someone else, that person gets a direct message in the chat of their first team, in the team's language. It says who did it and the dates, and, when the period was marked, how to undo it with `standcast away cancel <id>`. The message needs the person's chat user, from their sign-in or from `members` in `standcast.yml`. Without it, the message is not sent and the period still applies.
+
+See [How it works](/how-it-works#away-periods) for what changes on those days.
+
 ## What the app does not show
 
 Standcast exists to unblock the team, not to watch people:

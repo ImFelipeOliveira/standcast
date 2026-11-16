@@ -212,6 +212,23 @@ standcast suggestion ignore <id>
 - Use `--org <login>` quando você está em mais de uma organização.
 - Um id desconhecido, ou que não é seu, dá `error not_found`. A decisão oposta à já tomada dá `error suggestion_already_decided`. Repetir a mesma decisão funciona.
 
+### `standcast away`
+
+Marca um período em que você está ausente, como férias ou licença. Nesses dias o Standcast não manda lembrete e não lista você entre quem faltou. Veja [Períodos de ausência](/pt-BR/how-it-works#periodos-de-ausencia).
+
+```bash
+standcast away --until 2026-12-31 --from 2026-12-20
+standcast away list
+standcast away cancel <id>
+```
+
+- `--until` é o último dia de ausência e é obrigatório. `--from` é o primeiro dia. O padrão é hoje.
+- Um período tem no máximo 90 dias, contando os dois extremos, e não pode começar antes de hoje. Ele não pode se sobrepor a outro período ativo: cancele e marque de novo para mudar as datas.
+- `standcast away list` mostra os seus períodos ativos com os ids. `standcast away cancel <id>` encerra um, e os lembretes voltam nesses dias. Você pode cancelar um período que um gestor marcou para você.
+- Use `--org <login>` quando você está em mais de uma organização.
+- As datas são `YYYY-MM-DD`. A saída é JSON, na saída padrão.
+- Um período inválido dá `error invalid_away_period`, e uma sobreposição dá `error away_overlap`.
+
 ### `standcast mcp`
 
 Inicia o servidor MCP local pela entrada e saída padrão, para clientes de IA. Veja [Servidor MCP](/pt-BR/members/mcp).

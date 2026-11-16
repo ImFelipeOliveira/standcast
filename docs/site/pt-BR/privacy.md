@@ -94,6 +94,8 @@ O Standcast ainda não se conecta ao Jira, ao ClickUp, ao Asana, ao GitHub Proje
 | Sessões | Um hash SHA-256 de cada token de sessão da CLI e da web, o tipo e quando foi criada e usada pela última vez | Só o hash; o token em si nunca é guardado |
 | Dailies | Data, horário do primeiro e do último envio, os itens de ontem, hoje, impedimentos e pedidos de apoio com os links, e se quem confirmou foi a pessoa (`human`) ou o agente (`agent`) | |
 | Estados de impedimentos | Para cada impedimento que alguém listou: o texto e o link, o primeiro e o último dia em que apareceu, e quando foi resolvido e quem resolveu. Ficam guardados até o app ser desinstalado | |
+| Períodos de ausência | Para cada período: a organização, o login do GitHub da pessoa, o primeiro e o último dia, quem marcou e quando, e quem cancelou e quando | Visíveis à pessoa, aos gestores dos times dela e aos admins da organização |
+| Lista de quem faltou no consolidado | Para cada consolidado, as pessoas que não tinham enviado a daily quando ele foi publicado, sem quem estava ausente | |
 | Sugestões | Para cada impedimento sugerido: o link e o título do pull request (ou do card), o tipo, quando foi percebido e a sua decisão | Visível só para você |
 | Entregas | Para cada consolidado, daily atrasada, lembrete e impedimento encaminhado: time, data, estado, tentativas, o canal e o id da mensagem no Slack ou o espaço e a thread no Google Chat, e o erro, se falhou | |
 | API keys | Nome, os 8 primeiros caracteres depois de `sck_`, escopos, quem criou, datas de criação, último uso e revogação | Só um hash SHA-256 do segredo |
@@ -129,9 +131,9 @@ Quando alguém pede acesso ao beta na página do Standcast, o formulário coleta
 
 | Quem | Vê |
 | --- | --- |
-| Você | O seu rascunho, o seu planejado contra o feito, as suas pendências, os seus impedimentos sugeridos e as suas dailies, pelo seu agente |
+| Você | O seu rascunho, o seu planejado contra o feito, as suas pendências, os seus impedimentos sugeridos e as suas dailies e os seus períodos de ausência, pelo seu agente |
 | Membros do canal do time no Slack ou do espaço do time no Google Chat | O consolidado e as dailies atrasadas na thread dele |
-| Gestores do time | Os consolidados, as dailies e os impedimentos confirmados do time nos últimos 90 dias, pelas tools de gestor do MCP |
+| Gestores do time | Os consolidados, as dailies e os impedimentos confirmados do time nos últimos 90 dias, pelas tools de gestor do MCP; no app web, os períodos de ausência das pessoas dos times deles |
 | Admins da organização | Tudo o que os gestores veem, de todos os times; na página de setup, os controles para conectar e reconectar o Slack, os controles para vincular e desvincular espaços do Google Chat, as API keys e os webhooks |
 | Membros da organização que entram na página de setup | O estado da configuração, o nome do workspace do Slack e os espaços vinculados do Google Chat, só para leitura, e as últimas entregas com falha: as mensagens do time uma a uma, e as mensagens diretas agrupadas por tipo e erro, com o login do destinatário só quando ele não tem identidade no chat. Nunca o texto de impedimentos nem sugestões. Não podem conectar nem trocar o workspace do Slack |
 | Sistemas com uma API key | Times, dailies confirmadas, consolidados e impedimentos, limitados pelos escopos da key |
@@ -153,7 +155,7 @@ As sessões da CLI param de funcionar depois de 90 dias sem uso, e as sessões d
 
 ## Remoção dos dados
 
-- **Desinstale o GitHub App.** O Standcast apaga a instalação e tudo o que pertence a ela: configuração, dailies, estados de impedimentos, entregas, conexão com o Slack e identidades, espaços vinculados do Google Chat, a conexão com o Google Chat e as identidades, API keys, endpoints de webhook e as entregas deles.
+- **Desinstale o GitHub App.** O Standcast apaga a instalação e tudo o que pertence a ela: configuração, dailies, estados de impedimentos, entregas, conexão com o Slack e identidades, espaços vinculados do Google Chat, a conexão com o Google Chat e as identidades, API keys, endpoints de webhook e as entregas deles, e os períodos de ausência.
 - **Remova o app de um espaço do Google Chat, ou desvincule o espaço.** O Standcast apaga esse espaço. Quando a organização fica sem nenhum espaço vinculado, ele também apaga a conexão com o Google Chat; as identidades no Google Chat ficam até você desinstalar o GitHub App. Um espaço que tem o app mas nunca foi vinculado é apagado depois que o código de vínculo expira, ou quando o app é removido dele.
 - **Saia.** O `standcast logout` revoga a sua sessão da CLI no servidor e apaga o arquivo local de credenciais.
 - **O seu cadastro de pessoa.** O seu id de usuário no GitHub, o login e os e-mails verificados não pertencem a uma instalação só, então desinstalar não os remove. Para apagá-los, mande um e-mail ao suporte.

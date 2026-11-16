@@ -125,6 +125,17 @@ To answer:
 
 An ignored suggestion comes back only if the signal changes: a new head commit that is still failing, or a new period without review, after a review is dismissed or the pull request is marked ready for review again. A stale card comes back only if the card is restarted. The agent never adds a suggestion without your answer. See [CLI](/members/cli#standcast-suggestion).
 
+## Away periods
+
+A person can mark a period when they are away, such as vacation or leave. They do it with `standcast away` or the MCP tools, and managers and admins can do it for them in the [web app](/admin/web-app#away). The period is per organization and has at most 90 days. On each day inside it:
+
+- the person gets no reminder, and **Remind now** answers that they are away;
+- the digest does not list them under "Not sent". The digest says nothing about who is away;
+- Today shows them as **Away**, without the **Remind now** button;
+- the scan for suggested blockers does not run for them.
+
+A daily sent during a period counts as usual. The `digest.sent` webhook and `/v1/org/digests` list in `missing` only who did not send and was not away. `/v1/org/digests` returns the list saved when the digest was posted, so a digest posted before this change keeps its earlier list. Nothing else about away periods reaches the API, the webhooks or the setup page.
+
 ## Time zones, workdays and several teams
 
 - **All times are in the team's time zone.** `remind_at` and `digest_at` are local times, `HH:MM`, 24 hours.

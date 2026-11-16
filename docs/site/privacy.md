@@ -94,6 +94,8 @@ Standcast does not connect to Jira, ClickUp, Asana, GitHub Projects, Microsoft T
 | Sessions | A SHA-256 hash of each CLI and web session token, its kind and when it was created and last used | Only the hash; the token itself is never stored |
 | Dailies | Date, first and latest submission time, the yesterday, today, blocker and support request items with their links, and whether the person (`human`) or the agent (`agent`) confirmed it | |
 | Blocker states | For each blocker someone listed: its text and link, the first and last day it was seen, and when it was resolved and who resolved it. Kept until the app is uninstalled | |
+| Away periods | For each period: the organization, the person's GitHub login, the first and last day, who marked it and when, and who cancelled it and when | Visible to the person, the managers of their teams and organization admins |
+| Digest missing list | For each digest, the people who had not sent their daily when it was posted, without those who were away | |
 | Suggestions | For each suggested blocker: the pull request link and title (or the card link and title), the kind, when it was noticed and your decision | Visible only to you |
 | Deliveries | For each digest, late daily, reminder and routed blocker: team, date, status, attempts, the Slack channel and message id or the Google Chat space and thread, and the error if it failed | |
 | API keys | Name, the first 8 characters after `sck_`, scopes, who created it, creation, last use and revocation times | Only a SHA-256 hash of the secret |
@@ -129,9 +131,9 @@ When someone asks for beta access on the Standcast landing page, the form collec
 
 | Who | Sees |
 | --- | --- |
-| You | Your draft, your planned against done, your pending work, your suggested blockers and your own dailies, through your agent |
+| You | Your draft, your planned against done, your pending work, your suggested blockers, your own dailies and your own away periods, through your agent |
 | Members of the team's Slack channel or Google Chat space | The digest and the late dailies in its thread |
-| Team managers | The team's digests, dailies and confirmed blockers for the last 90 days, through the MCP manager tools |
+| Team managers | The team's digests, dailies and confirmed blockers for the last 90 days, through the MCP manager tools; in the web app, the away periods of the people in their teams |
 | Organization admins | Everything managers see, for every team; on the setup page, the Slack connect and reconnect controls, the Google Chat link and unlink controls, API keys and webhooks |
 | Organization members who sign in to the setup page | Configuration status, the Slack workspace name and the linked Google Chat spaces, read-only, and the last failed deliveries: team messages one by one, and direct messages grouped by kind and error, with the recipient's login only when they have no chat identity. Never blocker text or suggestions. They cannot connect or replace the Slack workspace |
 | Systems with an API key | Teams, confirmed dailies, digests and blockers, limited by the key's scopes |
@@ -153,7 +155,7 @@ CLI sessions stop working after 90 days without use, and web sessions after 7 da
 
 ## Removing your data
 
-- **Uninstall the GitHub App.** Standcast deletes the installation and everything that belongs to it: configuration, dailies, blocker states, deliveries, Slack connection and identities, linked Google Chat spaces, the Google Chat connection and identities, API keys, webhook endpoints and their deliveries.
+- **Uninstall the GitHub App.** Standcast deletes the installation and everything that belongs to it: configuration, dailies, blocker states, deliveries, Slack connection and identities, linked Google Chat spaces, the Google Chat connection and identities, API keys, webhook endpoints and their deliveries, and away periods.
 - **Remove the app from a Google Chat space, or unlink it.** Standcast deletes that space. When the organization has no linked space left, it also deletes the Google Chat connection; the Google Chat identities are kept until you uninstall the GitHub App. A space that has the app but was never linked is deleted after its link code expires, or when the app is removed from it.
 - **Sign out.** `standcast logout` revokes your CLI session on the server and deletes the local credentials file.
 - **Your person record.** Your GitHub user id, login and verified emails are not tied to one installation, so uninstalling does not remove them. To delete them, email support.
