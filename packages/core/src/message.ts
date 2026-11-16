@@ -24,6 +24,12 @@ function inlineToText(i: Inline): string {
   return `${i.link.text} (${i.link.url})`;
 }
 
+export function blockGap(prev: Block, next: Block): string {
+  if (prev.type === 'divider' || next.type === 'divider' || next.type === 'list') return '\n';
+  if (prev.type === 'paragraph' && next.type === 'paragraph') return '\n';
+  return '\n\n';
+}
+
 export function toPlainText(blocks: Block[]): string {
   return blocks
     .map((b) => {

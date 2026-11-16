@@ -118,6 +118,38 @@ describe('renderGoogleChat', () => {
     );
   });
 
+  test('blocks that render empty keep the spacing of the block before them', () => {
+    const afterHeading = renderGoogleChat({
+      fallbackText: 'fb',
+      blocks: [
+        { type: 'heading', text: 'Daily' },
+        { type: 'heading', text: '' },
+        { type: 'paragraph', content: ['hello'] },
+      ],
+    });
+    expect(afterHeading.text).toBe('*Daily*\n\nhello');
+    const afterList = renderGoogleChat({
+      fallbackText: 'fb',
+      blocks: [
+        { type: 'list', items: [['a']] },
+        { type: 'list', items: [] },
+        { type: 'paragraph', content: ['hello'] },
+      ],
+    });
+    expect(afterList.text).toBe('• a\n\nhello');
+  });
+
+  test('a message whose blocks all render empty uses the fallback text', () => {
+    const out = renderGoogleChat({
+      fallbackText: 'only fb',
+      blocks: [
+        { type: 'heading', text: '' },
+        { type: 'list', items: [] },
+      ],
+    });
+    expect(out.text).toBe('only fb');
+  });
+
   test('render keeps links and safe mentions only', () => {
     const out = renderGoogleChat({
       fallbackText: 'fb',

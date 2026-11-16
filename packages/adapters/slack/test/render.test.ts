@@ -1,5 +1,11 @@
 import { describe, expect, test } from 'bun:test';
-import { buildBlockerAlert, LINK_CHAT_ACCOUNT_ACTION, type Message } from '@standcast/core';
+import {
+  buildBlockerAlert,
+  buildDigest,
+  LINK_CHAT_ACCOUNT_ACTION,
+  type Message,
+  type TeamConfig,
+} from '@standcast/core';
 import { renderSlack } from '../src/render';
 
 describe('renderSlack blocker alert', () => {
@@ -54,9 +60,57 @@ describe('renderSlack', () => {
     expect(out.text).toBe('fb');
     expect(out.blocks).toEqual([
       { type: 'header', text: { type: 'plain_text', text: 'Title' } },
-      { type: 'section', text: { type: 'mrkdwn', text: 'hello' } },
-      { type: 'section', text: { type: 'mrkdwn', text: '• a\n• b' } },
+      { type: 'section', text: { type: 'mrkdwn', text: 'hello\n• a\n• b' } },
       { type: 'divider' },
+    ]);
+  });
+
+  test('a full digest of six people stays within the slack block limit', () => {
+    const logins = ['ana', 'bia', 'caio', 'duda', 'enzo', 'fabi'];
+    const team = {
+      name: 'backend',
+      language: 'en',
+      members: logins,
+      timezone: 'America/Sao_Paulo',
+      workdays: ['mon', 'tue', 'wed', 'thu', 'fri'],
+    } as unknown as TeamConfig;
+    const out = renderSlack(
+      buildDigest({
+        team,
+        date: '2026-11-16',
+        entries: logins.map((login) => ({
+          login,
+          daily: {
+            org: 'acme',
+            yesterday: [{ text: `${login} did y` }],
+            today: [{ text: `${login} does t` }],
+            blockers: [],
+            support: [],
+          },
+        })),
+        missing: [{ login: 'gabi' }],
+      }),
+    );
+    expect(out.blocks.length).toBeLessThanOrEqual(50);
+    const text = JSON.stringify(out.blocks);
+    for (const login of logins) {
+      expect(text).toContain(`${login} did y`);
+      expect(text).toContain(`${login} does t`);
+    }
+    expect(text).toContain('@gabi');
+  });
+
+  test('text blocks start a new section before passing 3000 chars', () => {
+    const out = renderSlack({
+      fallbackText: 'fb',
+      blocks: [
+        { type: 'paragraph', content: ['a'.repeat(2000)] },
+        { type: 'paragraph', content: ['b'.repeat(2000)] },
+      ],
+    });
+    expect(out.blocks).toEqual([
+      { type: 'section', text: { type: 'mrkdwn', text: 'a'.repeat(2000) } },
+      { type: 'section', text: { type: 'mrkdwn', text: 'b'.repeat(2000) } },
     ]);
   });
 

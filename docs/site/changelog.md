@@ -10,6 +10,9 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- Each daily posted to the chat follows one layout: what was done yesterday, with the dates it covers (on Monday, Friday to Sunday), the focus for today with its date, blockers and support requests. An empty section says so, such as "No blockers.". In Google Chat a blank line separates the sections, and in Slack consecutive text goes in one section so a long digest stays within Slack's block limit.
+- With `chat.post_each_daily: false`, the digest carries each person's daily in that same layout, so blockers and support requests appear in each person's section instead of at the top.
+
 ### 0.16.0 — 2026-11-16
 
 - Delivery records of posted dailies (`daily` and `late_daily`) are removed after 90 days, like the other delivery records about one person. See [Privacy](/privacy#retention).

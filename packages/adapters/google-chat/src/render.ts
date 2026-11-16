@@ -1,5 +1,6 @@
 import {
   type Block,
+  blockGap,
   GOOGLE_CHAT_USER_ID,
   type Inline,
   LINK_CHAT_ACCOUNT_ACTION,
@@ -57,19 +58,13 @@ function renderBlock(b: Block): string | null {
   }
 }
 
-function separator(prev: Block, next: Block): string {
-  if (prev.type === 'divider' || next.type === 'divider' || next.type === 'list') return '\n';
-  if (prev.type === 'paragraph' && next.type === 'paragraph') return '\n';
-  return '\n\n';
-}
-
 function renderBlocks(blocks: Block[]): string {
   let out = '';
   let prev: Block | null = null;
   for (const block of blocks) {
     const text = renderBlock(block);
     if (text === null) continue;
-    out += prev ? separator(prev, block) + text : text;
+    out += prev ? blockGap(prev, block) + text : text;
     prev = block;
   }
   return out;
