@@ -144,7 +144,14 @@ describe('pruneData', () => {
     const { deps } = fakeDeps();
     deps.now = () => NOW;
     const base = { installationId: INST, teamName: '', date: '2026-07-01' };
-    const kinds = ['reminder', 'blocker_route', 'suggestion_dm', 'signal_scan'] as const;
+    const kinds = [
+      'reminder',
+      'blocker_route',
+      'suggestion_dm',
+      'signal_scan',
+      'daily',
+      'late_daily',
+    ] as const;
     for (const kind of kinds) {
       await markDeliverySent(db, { ...base, kind, subject: 'old' });
       await markDeliverySent(db, { ...base, kind, subject: 'recent' });
@@ -152,7 +159,7 @@ describe('pruneData', () => {
     await markDeliverySent(db, { ...base, teamName: 'Alpha', kind: 'digest' });
     await ageDeliveries(['old', ''], daysAgo(91));
     await ageDeliveries(['recent'], daysAgo(89));
-    expect((await pruneData(deps)).personDeliveries).toBe(4);
+    expect((await pruneData(deps)).personDeliveries).toBe(6);
     for (const kind of kinds) {
       expect(await getDelivery(db, { ...base, kind, subject: 'old' })).toBeNull();
       expect(await getDelivery(db, { ...base, kind, subject: 'recent' })).not.toBeNull();

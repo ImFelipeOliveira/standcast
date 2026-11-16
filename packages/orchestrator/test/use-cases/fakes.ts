@@ -42,7 +42,7 @@ teams:
     digest_at: "10:00"
     managers: ${managers}
     members: ${members}
-    chat: { provider: slack, channel: "#alpha" }
+    chat: { provider: slack, channel: "#alpha", post_each_daily: false }
 ${extra}`);
   if (!parsed.ok) throw new Error(JSON.stringify(parsed.errors));
   return parsed.config;

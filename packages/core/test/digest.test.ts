@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import type { TeamConfig } from '../src/config';
-import { buildDigest, buildLateDaily, type DigestEntry } from '../src/digest';
+import { buildDailyPost, buildDigest, buildDigestSummary, type DigestEntry } from '../src/digest';
 import { type Block, type Inline, LINK_CHAT_ACCOUNT_ACTION } from '../src/message';
 
 function team(language: 'pt-BR' | 'en', members: string[]): TeamConfig {
@@ -299,9 +299,13 @@ describe('buildDigest', () => {
   });
 });
 
-describe('buildLateDaily', () => {
+describe('buildDailyPost', () => {
   test('renders one person as a short message', () => {
-    const msg = buildLateDaily(entry('alice', 'U1', { blockers: [{ text: 'stuck' }] }), 'pt-BR');
+    const msg = buildDailyPost(
+      entry('alice', 'U1', { blockers: [{ text: 'stuck' }] }),
+      'pt-BR',
+      true,
+    );
     const text = msg.blocks.map(blockText).join('\n');
     expect(text).toContain('<U1>');
     expect(text).toContain('alice did y');
@@ -311,17 +315,66 @@ describe('buildLateDaily', () => {
   });
 
   test('shows support requests after the blockers', () => {
-    const msg = buildLateDaily(
+    const msg = buildDailyPost(
       entry('alice', 'U1', {
         blockers: [{ text: 'stuck' }],
         support: [{ text: 'need a reviewer' }],
       }),
       'en',
+      true,
     );
     const texts = msg.blocks.map(blockText);
     const idxBlocker = texts.findIndex((t) => t.includes('stuck'));
     const idxSupport = texts.indexOf('🤝 Support requests');
     expect(idxSupport).toBeGreaterThan(idxBlocker);
     expect(texts[idxSupport + 1]).toBe('<U1>: need a reviewer');
+  });
+
+  test('without late has no late line', () => {
+    const msg = buildDailyPost(entry('alice', undefined), 'en', false);
+    expect(msg.fallbackText).not.toContain('Daily sent after the digest');
+    expect(msg.fallbackText).toContain('alice');
+    expect(msg.fallbackText).toContain('alice does t');
+  });
+
+  test('with late opens with the late line', () => {
+    const msg = buildDailyPost(entry('alice', undefined), 'en', true);
+    expect(msg.fallbackText.startsWith('Daily sent after the digest:')).toBe(true);
+  });
+});
+
+describe('buildDigestSummary', () => {
+  test('lists blockers, support and missing without per-person sections', () => {
+    const msg = buildDigestSummary({
+      team: team('en', ['alice', 'bob']),
+      date,
+      entries: [entry('alice', undefined, { blockers: [{ text: 'stuck on deploy' }] })],
+      missing: [{ login: 'bob' }],
+    });
+    expect(msg.fallbackText).toContain('stuck on deploy');
+    expect(msg.fallbackText).toContain('Did not send the daily:');
+    expect(msg.fallbackText).toContain('bob');
+    expect(msg.fallbackText).not.toContain('Today:');
+    expect(msg.fallbackText).not.toContain('alice does t');
+  });
+
+  test('says everyone sent when nothing is open', () => {
+    const msg = buildDigestSummary({
+      team: team('en', ['alice']),
+      date,
+      entries: [entry('alice', undefined)],
+      missing: [],
+    });
+    expect(msg.fallbackText).toContain('Everyone sent the daily and nobody is blocked.');
+  });
+
+  test('says everyone sent in pt-BR', () => {
+    const msg = buildDigestSummary({
+      team: team('pt-BR', ['alice']),
+      date,
+      entries: [entry('alice', undefined)],
+      missing: [],
+    });
+    expect(msg.fallbackText).toContain('Todos enviaram a daily e ninguém está impedido.');
   });
 });

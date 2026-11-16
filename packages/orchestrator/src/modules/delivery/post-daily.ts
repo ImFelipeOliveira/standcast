@@ -1,8 +1,9 @@
 import {
-  buildLateDaily,
+  buildDailyPost,
   type ChatChannel,
   type ChatProvider,
   type MessageRef,
+  postsEachDaily,
   teamsForMember,
 } from '@standcast/core';
 import {
@@ -22,11 +23,13 @@ import { isChannelLinked } from '../chat/chat';
 import { chatUserIdFor } from '../chat/chat-identity';
 import { describeDeliveryError, spaceNotLinked } from './delivery-error';
 
-type LateDailyEntry = Parameters<typeof buildLateDaily>[0];
+type DailyPostEntry = Parameters<typeof buildDailyPost>[0];
 
-export type SendLateDailyJob = { installationId: number; memberId: string; date: string };
+export const POST_DAILY_JOB = 'send-late-daily';
 
-export async function sendLateDaily(deps: WorkerDeps, job: SendLateDailyJob): Promise<void> {
+export type PostDailyJob = { installationId: number; memberId: string; date: string };
+
+export async function postDaily(deps: WorkerDeps, job: PostDailyJob): Promise<void> {
   const installation = await getInstallation(deps.db, job.installationId);
   const config = operationalConfig(installation);
   if (!installation || !config) return;
@@ -38,8 +41,8 @@ export async function sendLateDaily(deps: WorkerDeps, job: SendLateDailyJob): Pr
   if (!found) return;
   const teams = await resolveMemberTeams(deps, installation.id, installation.accountLogin, config);
   const chats = new Map<ChatProvider, ChatChannel | null>();
-  const entries = new Map<ChatProvider, LateDailyEntry>();
-  const lateDailyFor = async (provider: ChatProvider) => {
+  const entries = new Map<ChatProvider, DailyPostEntry>();
+  const postFor = async (provider: ChatProvider) => {
     if (!chats.has(provider)) chats.set(provider, await deps.chatFor(job.installationId, provider));
     let entry = entries.get(provider);
     if (!entry) {
@@ -63,15 +66,22 @@ export async function sendLateDaily(deps: WorkerDeps, job: SendLateDailyJob): Pr
       date: job.date,
       kind: 'digest',
     });
-    if (digest?.status !== 'sent' || !digest.ref) continue;
-    const { chat, entry } = await lateDailyFor(team.chat.provider);
+    const posting = postsEachDaily(team);
+    const digestSent = digest?.status === 'sent';
+    const threadRef = digestSent ? digest.ref : null;
+    if (!posting && !threadRef) continue;
+    const late =
+      !posting || (digestSent && found.firstSubmittedAt.getTime() > digest.updatedAt.getTime());
     const key: DeliveryKey = {
       installationId: job.installationId,
       teamName: team.name,
       date: job.date,
-      kind: 'late_daily',
+      kind: posting ? 'daily' : 'late_daily',
       subject: job.memberId,
     };
+    const other = await getDelivery(deps.db, { ...key, kind: posting ? 'late_daily' : 'daily' });
+    if (other?.status === 'sent') continue;
+    const { chat, entry } = await postFor(team.chat.provider);
     const claim = await claimDelivery(deps.db, key);
     if (claim.status !== 'claimed') continue;
     if (!chat) {
@@ -80,14 +90,13 @@ export async function sendLateDaily(deps: WorkerDeps, job: SendLateDailyJob): Pr
     }
     let ref: MessageRef | undefined;
     try {
-      if (await isChannelLinked(deps, job.installationId, team.chat.provider, digest.ref.channel)) {
-        const msg = buildLateDaily(entry, team.language);
-        const placement =
-          team.chat.lateDaily ?? (team.chat.provider === 'google-chat' ? 'channel' : 'thread');
+      const channel = threadRef && !posting ? threadRef.channel : team.chat.channel;
+      if (await isChannelLinked(deps, job.installationId, team.chat.provider, channel)) {
+        const msg = buildDailyPost(entry, team.language, late);
         ref =
-          placement === 'channel'
-            ? await chat.postToChannel(digest.ref.channel, msg)
-            : await chat.replyInThread(digest.ref, msg);
+          threadRef && !posting
+            ? await chat.replyInThread(threadRef, msg)
+            : await chat.postToChannel(channel, msg);
       }
     } catch (error) {
       await failDelivery(

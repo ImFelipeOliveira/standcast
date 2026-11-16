@@ -5,8 +5,6 @@ export type Weekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 export type Language = 'pt-BR' | 'en';
 export const CHAT_PROVIDERS = ['slack', 'google-chat'] as const;
 export type ChatProvider = (typeof CHAT_PROVIDERS)[number];
-export const LATE_DAILY_PLACEMENTS = ['thread', 'channel'] as const;
-export type LateDailyPlacement = (typeof LATE_DAILY_PLACEMENTS)[number];
 
 export type TeamConfig = {
   name: string;
@@ -17,7 +15,7 @@ export type TeamConfig = {
   language: Language;
   managers: string[];
   members: string[];
-  chat: { provider: ChatProvider; channel: string; lateDaily?: LateDailyPlacement };
+  chat: { provider: ChatProvider; channel: string; postEachDaily?: boolean };
   tracker?: { provider: 'linear' | 'jira'; team: string };
   signals: {
     prReviewHours: number;
@@ -95,7 +93,8 @@ const teamSchema = z.strictObject({
   chat: z.strictObject({
     provider: z.enum(CHAT_PROVIDERS),
     channel: z.string().min(1),
-    late_daily: z.enum(LATE_DAILY_PLACEMENTS).optional(),
+    post_each_daily: z.boolean().optional(),
+    late_daily: z.enum(['thread', 'channel']).optional(),
   }),
   tracker: z
     .strictObject({
@@ -118,6 +117,10 @@ export const SLACK_USER_ID = /^[UW][A-Z0-9]{2,}$/;
 export const GOOGLE_CHAT_USER_ID = /^users\/\d+$/;
 
 export const GOOGLE_CHAT_SPACE = /^spaces\/[A-Za-z0-9_-]+$/;
+
+export function postsEachDaily(team: { chat: TeamConfig['chat'] }): boolean {
+  return team.chat.postEachDaily !== false;
+}
 
 export function isSlackUserId(id: string): boolean {
   return SLACK_USER_ID.test(id);
@@ -200,7 +203,7 @@ function toConfig(raw: RawConfig): StandcastConfig {
         chat: compact({
           provider: t.chat.provider,
           channel: t.chat.channel,
-          lateDaily: t.chat.late_daily,
+          postEachDaily: t.chat.post_each_daily,
         }),
         signals: {
           prReviewHours: t.signals.pr_review_hours,

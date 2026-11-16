@@ -26,6 +26,7 @@ import {
   LINK_TRACKER_IDENTITY_JOB,
   LOAD_CONFIG_JOB,
   NOTIFY_BETA_REQUEST_JOB,
+  POST_DAILY_JOB,
   PRUNE_DATA_JOB,
   RESOLVE_CHECK_SUITE_JOB,
   ROUTE_BLOCKER_JOB,
@@ -43,13 +44,13 @@ import { linkTrackerIdentitiesJob } from './jobs/link-tracker-identities';
 import { linkTrackerIdentityJob } from './jobs/link-tracker-identity';
 import { loadConfigJob } from './jobs/load-config';
 import { notifyBetaRequestJob } from './jobs/notify-beta-request';
+import { postDailyJob } from './jobs/post-daily';
 import { pruneDataJob } from './jobs/prune-data';
 import { resolveCheckSuiteJob } from './jobs/resolve-check-suite';
 import { routeBlockerJob } from './jobs/route-blocker';
 import { scanMemberSignalsJob } from './jobs/scan-member-signals';
 import { sendBlockerAlertsJob } from './jobs/send-blocker-alerts';
 import { sendDigestJob } from './jobs/send-digest';
-import { sendLateDailyJob } from './jobs/send-late-daily';
 import { sendReminderJob } from './jobs/send-reminder';
 import { tickJob } from './jobs/tick';
 import { validateConfigJob } from './jobs/validate-config';
@@ -125,7 +126,7 @@ const stately = { policies: ['stately'] } as const;
 await queue.work('tick', tickJob(deps), plain);
 await queue.work('send-digest', sendDigestJob(deps), keyed);
 await queue.work(SEND_BLOCKER_ALERTS_JOB, sendBlockerAlertsJob(deps), keyed);
-await queue.work('send-late-daily', sendLateDailyJob(deps), plain);
+await queue.work(POST_DAILY_JOB, postDailyJob(deps), plain);
 await queue.work('send-reminder', sendReminderJob(deps), keyed);
 await queue.work(ROUTE_BLOCKER_JOB, routeBlockerJob(deps), keyed);
 await queue.work(SCAN_MEMBER_SIGNALS_JOB, scanMemberSignalsJob(deps), stately);

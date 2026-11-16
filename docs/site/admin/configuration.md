@@ -80,7 +80,7 @@ No other keys are accepted. An unknown key fails validation with `Unrecognized k
 | `members` | list of GitHub logins or GitHub teams, at least one | yes | | `[alice, "@acme/backend"]` |
 | `chat.provider` | `slack` or `google-chat` | yes | | `slack` |
 | `chat.channel` | text, not empty | yes | | `"#daily-backend"` or `spaces/AAAAbbbbCCC` |
-| `chat.late_daily` | `thread` or `channel` | no | `channel` on Google Chat, `thread` on Slack | `thread` |
+| `chat.post_each_daily` | `true` or `false` | no | `true` | `false` |
 | `tracker.provider` | `linear` or `jira` | no | | `linear` |
 | `tracker.team` | text, not empty | with `tracker` | | `BE` |
 | `signals.pr_review_hours` | number greater than 0 | no | `48` | `24` |
@@ -110,7 +110,7 @@ The local time the digest is posted. Quote the value (`"10:00"`) to keep it a st
 
 ### `language`
 
-The language of the digest and of the late dailies posted in its thread: `en` or `pt-BR`. When you leave it out, the team uses English. It does not change what people wrote: dailies are never translated.
+The language of the digest and of the dailies Standcast posts: `en` or `pt-BR`. When you leave it out, the team uses English. It does not change what people wrote: dailies are never translated.
 
 ### `managers`
 
@@ -154,7 +154,8 @@ Where the digest goes.
 - `provider`: `slack` or `google-chat`. Each team picks its own, so one organization can use both.
 - `channel` for Slack: the Slack channel, as `"#name"` (quoted, because `#` starts a comment in YAML) or as a channel id such as `C0123456789`. For a private channel, invite the Standcast bot first. See [Slack](/admin/slack).
 - `channel` for Google Chat: the space name, such as `spaces/AAAAbbbbCCC`. Any other format fails the `standcast.yml` check; if you paste the space link (`https://chat.google.com/room/AAAAbbbbCCC`), the error tells you the name to use. The space must have the Standcast app and be linked to your organization with a code, otherwise the digest fails with `space_not_linked`. See [Google Chat](/admin/google-chat).
-- `late_daily`: where a daily sent after the digest goes. `channel` posts it as a new message in the channel or space. `thread` replies in the digest thread. The default is `channel` on Google Chat and `thread` on Slack.
+- `post_each_daily`: `true` (the default) posts each daily as its own message in the channel or space as soon as it is sent, once per person per day, and the digest at `digest_at` is a summary: blockers, support requests and who did not send. `false` waits for `digest_at` and posts one digest with every daily; a daily sent after it goes as a reply in the digest thread.
+- `late_daily`: from 0.15.0, no longer used. It is still accepted (`thread` or `channel`) so files that set it stay valid, and it has no effect.
 
 ::: code-group
 

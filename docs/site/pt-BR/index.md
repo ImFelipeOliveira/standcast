@@ -33,11 +33,11 @@ Ele resolve três problemas que aparecem quando o time escreve a daily com IA:
  ┌──────────────────────┐ rascunho  ┌────────────────────────┐      ┌───────────────────┐
  │ skill /daily         │ ◀──────── │ API                    │      │ #daily-backend    │
  │ CLI standcast        │           │  · lê o GitHub         │      │                   │
- │ standcast mcp        │ ────────▶ │  · guarda a daily      │ ───▶ │ um consolidado    │
- │ (pessoa confirma)    │   envio   │ Worker                 │      │ por time por dia, │
- └──────────────────────┘           │  · consolidado no      │      │ dailies atrasadas │
-                                    │    digest_at           │      │ na thread         │
-                                    │  · atrasada → thread   │      └───────────────────┘
+ │ standcast mcp        │ ────────▶ │  · guarda a daily      │ ───▶ │ cada daily no     │
+ │ (pessoa confirma)    │   envio   │ Worker                 │      │ envio, um         │
+ └──────────────────────┘           │  · publica cada daily  │      │ consolidado por   │
+                                    │  · consolidado no      │      │ time por dia      │
+                                    │    digest_at           │      └───────────────────┘
                                     └────────────────────────┘
                                                  │
                                                  └──▶ API keys e webhooks para os seus sistemas
@@ -46,8 +46,8 @@ Ele resolve três problemas que aparecem quando o time escreve a daily com IA:
 1. A pessoa roda `/daily` no Claude Code, ou pede a daily a qualquer cliente MCP.
 2. O Standcast monta um rascunho do "ontem" a partir da atividade da pessoa no GitHub desde a última daily: pull requests abertos e mergeados, revisões e commits.
 3. A pessoa ajusta o ontem, escreve o hoje e os impedimentos e confirma. Nada é enviado antes disso.
-4. No `digest_at`, no fuso do time, o Standcast publica uma mensagem no canal do time: impedimentos no topo, depois a daily de cada pessoa e, no fim, quem não enviou.
-5. Uma daily enviada depois do consolidado vai como mensagem nova no espaço, no Google Chat, ou como resposta na thread dele, no Slack.
+4. O Standcast publica a daily no canal do time assim que ela é confirmada.
+5. No `digest_at`, no fuso do time, o Standcast publica o consolidado: impedimentos, pedidos de apoio e quem não enviou. Com `chat.post_each_daily: false`, as dailies esperam o consolidado, que então traz a daily de cada pessoa.
 
 Em volta disso, o Standcast orquestra o dia:
 

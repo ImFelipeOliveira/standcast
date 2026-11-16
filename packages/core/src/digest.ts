@@ -78,36 +78,20 @@ function message(blocks: Block[]): Message {
   return { fallbackText: toPlainText(blocks), blocks };
 }
 
-export function buildDigest(input: {
+type DigestInput = {
   team: TeamConfig;
   date: string;
   entries: DigestEntry[];
   missing: Person[];
-}): Message {
-  const { team, date, missing } = input;
-  const lang = team.language;
-  const entries = orderEntries(team, input.entries);
-  const blocks: Block[] = [
-    {
-      type: 'heading',
-      text: t(lang, 'digestTitle', { team: team.name, date: formatDate(lang, date) }),
-    },
-    ...blockersSection(entries, lang),
-    ...supportSection(entries, lang),
-    ...entries.flatMap((e) => personSection(e, lang)),
-  ];
-  if (missing.length > 0) {
-    const content: Inline[] = [t(lang, 'missing')];
-    missing.forEach((p, i) => {
-      content.push(i === 0 ? ' ' : ', ', personInline(p));
-    });
-    blocks.push({ type: 'paragraph', content });
-  }
-  const people = [...entries, ...missing];
-  if (team.chat?.provider !== 'google-chat' || people.every((p) => p.chatUserId)) {
-    return message(blocks);
-  }
-  return { ...message(blocks), actions: [linkAccountAction(lang)] };
+};
+
+function missingSection(missing: Person[], lang: Language): Block[] {
+  if (missing.length === 0) return [];
+  const content: Inline[] = [t(lang, 'missing')];
+  missing.forEach((p, i) => {
+    content.push(i === 0 ? ' ' : ', ', personInline(p));
+  });
+  return [{ type: 'paragraph', content }];
 }
 
 function linkAccountAction(lang: Language): MessageAction {
@@ -118,9 +102,54 @@ function linkAccountAction(lang: Language): MessageAction {
   };
 }
 
-export function buildLateDaily(entry: DigestEntry, lang: Language): Message {
+function withLinkAction(team: TeamConfig, people: Person[], blocks: Block[]): Message {
+  if (team.chat?.provider !== 'google-chat' || people.every((p) => p.chatUserId)) {
+    return message(blocks);
+  }
+  return { ...message(blocks), actions: [linkAccountAction(team.language)] };
+}
+
+function digestTitle(team: TeamConfig, date: string): Block {
+  return {
+    type: 'heading',
+    text: t(team.language, 'digestTitle', {
+      team: team.name,
+      date: formatDate(team.language, date),
+    }),
+  };
+}
+
+export function buildDigest(input: DigestInput): Message {
+  const { team, date, missing } = input;
+  const lang = team.language;
+  const entries = orderEntries(team, input.entries);
+  const blocks: Block[] = [
+    digestTitle(team, date),
+    ...blockersSection(entries, lang),
+    ...supportSection(entries, lang),
+    ...entries.flatMap((e) => personSection(e, lang)),
+    ...missingSection(missing, lang),
+  ];
+  return withLinkAction(team, [...entries, ...missing], blocks);
+}
+
+export function buildDigestSummary(input: DigestInput): Message {
+  const { team, date, missing } = input;
+  const lang = team.language;
+  const entries = orderEntries(team, input.entries);
+  const open = [
+    ...blockersSection(entries, lang),
+    ...supportSection(entries, lang),
+    ...missingSection(missing, lang),
+  ];
+  const body: Block[] =
+    open.length > 0 ? open : [{ type: 'paragraph', content: [t(lang, 'allSent')] }];
+  return withLinkAction(team, [...entries, ...missing], [digestTitle(team, date), ...body]);
+}
+
+export function buildDailyPost(entry: DigestEntry, lang: Language, late: boolean): Message {
   return message([
-    { type: 'paragraph', content: [t(lang, 'lateDaily')] },
+    ...(late ? [{ type: 'paragraph' as const, content: [t(lang, 'lateDaily')] }] : []),
     ...personSection(entry, lang),
     ...blockersSection([entry], lang),
     ...supportSection([entry], lang),

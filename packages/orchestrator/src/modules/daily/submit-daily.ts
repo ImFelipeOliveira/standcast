@@ -4,6 +4,7 @@ import {
   type Item,
   isPastDue,
   isWorkday,
+  postsEachDaily,
   type StoredDaily,
 } from '@standcast/core';
 import {
@@ -18,6 +19,7 @@ import { logError } from '../../log-error';
 import { type MembershipCheck, type OrgContext, resolveOrgContext } from '../access/org-context';
 import { emitEventSafely } from '../delivery/emit-event';
 import { blockerRouteId, newBlockers, newRoutedBlockers } from '../delivery/events';
+import { POST_DAILY_JOB } from '../delivery/post-daily';
 import { ROUTE_BLOCKER_JOB, type RouteBlockerJob } from '../delivery/route-blocker';
 import { enqueueDigestIfOpen } from '../delivery/send-digest';
 import { recordBlockers } from './blocker-states';
@@ -126,12 +128,16 @@ export async function submitDaily(
   await confirmBlockerSuggestions(deps, ctx, payload.blockers);
   const teams = ctx.mine.map((t) => t.name);
   const late = await isLate(deps, ctx);
-  if (late) {
-    await deps.queue.enqueue('send-late-daily', {
-      installationId: ctx.installationId,
-      memberId: ctx.member.id,
-      date: ctx.date,
-    });
+  if (late || ctx.mine.some(postsEachDaily)) {
+    try {
+      await deps.queue.enqueue(POST_DAILY_JOB, {
+        installationId: ctx.installationId,
+        memberId: ctx.member.id,
+        date: ctx.date,
+      });
+    } catch (error) {
+      logError('daily post enqueue failed', error);
+    }
   }
   await enqueueMissedDigests(deps, ctx);
   const fresh = newBlockers(previous?.payload.blockers, payload.blockers);

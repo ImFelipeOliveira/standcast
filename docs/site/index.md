@@ -33,10 +33,10 @@ It solves three problems that show up once a team writes dailies with AI:
  ┌──────────────────────┐   draft   ┌────────────────────────┐      ┌───────────────────┐
  │ /daily skill         │ ◀──────── │ API                    │      │ #daily-backend    │
  │ standcast CLI        │           │  · reads GitHub        │      │                   │
- │ standcast mcp        │ ────────▶ │  · stores the daily    │ ───▶ │ one digest per    │
- │ (person confirms)    │  submit   │ Worker                 │      │ team per day,     │
- └──────────────────────┘           │  · digest at digest_at │      │ late dailies in   │
-                                    │  · late daily → thread │      │ the thread        │
+ │ standcast mcp        │ ────────▶ │  · stores the daily    │ ───▶ │ each daily when   │
+ │ (person confirms)    │  submit   │ Worker                 │      │ sent, one digest  │
+ └──────────────────────┘           │  · posts each daily    │      │ per team per day  │
+                                    │  · digest at digest_at │      │                   │
                                     └────────────────────────┘      └───────────────────┘
                                                  │
                                                  └──▶ API keys and webhooks for your systems
@@ -45,8 +45,8 @@ It solves three problems that show up once a team writes dailies with AI:
 1. The person runs `/daily` in Claude Code, or asks any MCP client for their daily.
 2. Standcast builds a draft of "yesterday" from the person's GitHub activity since their last daily: pull requests opened and merged, reviews and commits.
 3. The person edits yesterday, writes today and any blockers, and confirms. Nothing is sent before that.
-4. At `digest_at`, in the team's time zone, Standcast posts one message to the team channel: blockers on top, then each person's daily, then who did not send it.
-5. A daily sent after the digest goes as a new message in the space on Google Chat, or as a reply in the digest thread on Slack.
+4. Standcast posts the daily to the team channel as soon as it is confirmed.
+5. At `digest_at`, in the team's time zone, Standcast posts the digest: blockers, support requests and who did not send. With `chat.post_each_daily: false`, dailies wait for the digest instead, which then carries each person's daily.
 
 Around it, Standcast orchestrates the day:
 

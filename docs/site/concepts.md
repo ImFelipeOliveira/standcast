@@ -35,7 +35,7 @@ One person's standup for one date, in one organization. It has four lists:
 - **Blockers:** what stops them. Can be empty.
 - **Support requests:** what they need from someone else without being blocked, such as a review, a decision or a pairing session. Optional, can be empty.
 
-Each item is a line of text, optionally linked to a pull request, issue, commit or card. Sending again on the same day replaces the previous daily. A single daily shows up in the digest of every team the person is in.
+Each item is a line of text, optionally linked to a pull request, issue, commit or card. Sending again on the same day replaces the previous daily. A single daily is posted to every team the person is in.
 
 ## Standup date
 
@@ -47,11 +47,11 @@ The starting point for "yesterday", built by Standcast from the person's GitHub 
 
 ## Digest
 
-One message per team per workday, in Slack or Google Chat, posted at the team's `digest_at`. Blockers come first, then support requests, then each person's daily, then the list of people who did not send it.
+One message per team per workday, in Slack or Google Chat, posted at the team's `digest_at`: the blockers, the support requests and the list of people who did not send the daily, since each daily was already posted when sent. With `chat.post_each_daily: false` it is the full digest: blockers, support requests, each person's daily, then who did not send it.
 
 ## Late daily
 
-A daily sent after the team's digest was posted. It goes as a new message in the space on Google Chat and as a reply in the digest thread on Slack, once per person per day. `chat.late_daily` changes where it goes.
+A daily sent after the team's digest was posted. It is posted as its own message that opens with "Daily sent after the digest", once per person per day. With `chat.post_each_daily: false` it goes as a reply in the digest thread.
 
 ## Confirmation
 
