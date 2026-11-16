@@ -9,6 +9,7 @@ import {
   operationalConfig,
 } from '@standcast/db';
 import type { Deps, WorkerDeps } from '../../deps';
+import { logError } from '../../log-error';
 import { resolveMemberTeams } from '../../teams';
 import { directMessageIdFor, forgetStaleChatIdentity } from '../chat/chat-identity';
 import { describeDeliveryError, isTerminalDeliveryError } from '../delivery/delivery-error';
@@ -41,7 +42,14 @@ export async function sendAwayNotice(deps: WorkerDeps, job: SendAwayNoticeJob): 
     login,
     await resolveMemberTeams(deps, installation.id, installation.accountLogin, config),
   );
-  if (!first) return;
+  if (!first) {
+    logError('away notice skipped', new Error('not_in_team'), {
+      installationId: String(installation.id),
+      periodId: period.id,
+      action: job.action,
+    });
+    return;
+  }
 
   const key: DeliveryKey = {
     installationId: installation.id,

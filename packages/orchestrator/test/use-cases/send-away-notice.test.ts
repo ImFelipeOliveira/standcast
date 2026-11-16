@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import { parseConfig } from '@standcast/core';
 import {
   addMemberInstallation,
@@ -159,6 +159,39 @@ teams:
     expect(directs[0]?.msg.fallbackText).toBe(
       '@alice cancelou as suas férias de 02/11/2026 a 06/11/2026.',
     );
+  });
+
+  test('a notice for a person in no team is skipped with a log that names no person or date', async () => {
+    const { deps, directs, mark } = await setup();
+    const row = await mark('dave');
+    await cancelAwayPeriod(db, { installationId: INST, id: row.id, cancelledBy: row.createdBy });
+    const spy = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await sendAwayNotice(deps, {
+        installationId: INST,
+        periodId: row.id,
+        action: 'cancelled',
+        byLogin: 'alice',
+        date: '2026-10-28',
+      });
+      expect(spy).toHaveBeenCalledTimes(1);
+      const [label, fields] = spy.mock.calls[0] ?? [];
+      expect(label).toBe('away notice skipped');
+      expect(fields).toMatchObject({
+        installationId: String(INST),
+        periodId: row.id,
+        action: 'cancelled',
+        message: 'not_in_team',
+      });
+      const logged = JSON.stringify(spy.mock.calls);
+      for (const value of ['dave', 'alice', '2026-11-02', '2026-11-06', '2026-10-28']) {
+        expect(logged).not.toContain(value);
+      }
+    } finally {
+      spy.mockRestore();
+    }
+    expect(directs).toHaveLength(0);
+    expect(await getDelivery(db, key(`dave:${row.id}:cancelled`))).toBeNull();
   });
 
   test('fails with no_chat_identity without a chat user', async () => {
