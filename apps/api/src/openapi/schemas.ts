@@ -210,6 +210,41 @@ export const SuggestionDecisionSchema = z
   })
   .openapi('SuggestionDecision');
 
+const awayDate = (description: string, example: string) =>
+  z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .openapi({ description, example });
+
+export const AwayPeriodSchema = z
+  .object({
+    id: z.string().openapi({ format: 'uuid' }),
+    login: z.string().openapi({ example: 'alice' }),
+    from: awayDate('First day away, YYYY-MM-DD.', '2026-10-28'),
+    until: awayDate('Last day away, YYYY-MM-DD.', '2026-10-30'),
+    markedBy: z.string().openapi({ example: 'alice' }),
+    markedAt: z.string().openapi({ format: 'date-time' }),
+    mine: z.boolean(),
+  })
+  .openapi('AwayPeriod');
+
+export const AwayListSchema = z.object({ data: z.array(AwayPeriodSchema) }).openapi('AwayList');
+
+export const AwayMarkSchema = z
+  .object({
+    org: z.string().min(1).openapi({ description: 'Login of the organization.', example: 'acme' }),
+    from: awayDate('First day away. Defaults to today.', '2026-10-28').optional(),
+    until: awayDate('Last day away, at most 90 days after the first.', '2026-10-30'),
+  })
+  .strict()
+  .openapi('AwayMark');
+
+export const AwayCancelSchema = z
+  .object({
+    org: z.string().min(1).openapi({ description: 'Login of the organization.', example: 'acme' }),
+  })
+  .openapi('AwayCancel');
+
 export const DRAFT_EXAMPLE = {
   org: 'acme',
   date: '2026-10-28',
