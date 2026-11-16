@@ -3,6 +3,7 @@ import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { type MessageKey, useLang, useT } from '../../i18n';
 import { cn } from '../../lib/utils';
+import { AwayActions, AwayState } from './AwayActions';
 import { formatTime, initials, keyed } from './format';
 import { Avatar, RefLink } from './RefLink';
 
@@ -19,7 +20,7 @@ const REMIND_MESSAGES: Record<Exclude<RemindStatus, 'pending'>, MessageKey> = {
   queued: 'hoje.remind.queued',
   already_sent: 'hoje.remind.already_sent',
   too_late: 'hoje.remind.too_late',
-  away: 'hoje.remind.already_sent',
+  away: 'hoje.remind.away',
   failed: 'setup.actionFailed',
 };
 
@@ -48,6 +49,8 @@ export function SectionLabel({ children }: { children: string }) {
 }
 
 type CardProps = {
+  installationId: number;
+  date: string;
   person: TodayPerson;
   timezone: string;
   canRemind: boolean;
@@ -56,7 +59,16 @@ type CardProps = {
   onView: () => void;
 };
 
-export function DailyCard({ person, timezone, canRemind, remind, onRemind, onView }: CardProps) {
+export function DailyCard({
+  installationId,
+  date,
+  person,
+  timezone,
+  canRemind,
+  remind,
+  onRemind,
+  onView,
+}: CardProps) {
   const t = useT();
   const lang = useLang();
   const daily = person.daily;
@@ -68,7 +80,8 @@ export function DailyCard({ person, timezone, canRemind, remind, onRemind, onVie
   ]
     .filter(Boolean)
     .join(' · ');
-  const showRemind = canRemind && remind !== 'too_late' && remind !== 'queued';
+  const away = person.status === 'away';
+  const showRemind = canRemind && !away && remind !== 'too_late' && remind !== 'queued';
   return (
     <article className="flex flex-col gap-3 rounded-[14px] border border-border bg-surface px-[18px] py-4">
       <div className="flex items-center gap-2.5">
@@ -82,7 +95,16 @@ export function DailyCard({ person, timezone, canRemind, remind, onRemind, onVie
           </Badge>
         ) : null}
       </div>
-      {daily ? (
+      {away && !daily ? (
+        <div className="flex flex-col gap-2.5 rounded-[10px] border border-border border-dashed p-3.5">
+          <AwayState
+            installationId={installationId}
+            login={person.login}
+            date={date}
+            elevated={canRemind}
+          />
+        </div>
+      ) : daily ? (
         <div className="flex flex-col gap-2.5">
           {daily.yesterday.length > 0 ? (
             <div>
@@ -117,6 +139,9 @@ export function DailyCard({ person, timezone, canRemind, remind, onRemind, onVie
           </span>
         </div>
       )}
+      {canRemind && !away ? (
+        <AwayActions installationId={installationId} login={person.login} />
+      ) : null}
     </article>
   );
 }
@@ -124,11 +149,14 @@ export function DailyCard({ person, timezone, canRemind, remind, onRemind, onVie
 export function filterPeople(people: TodayPerson[], filter: DailyFilter): TodayPerson[] {
   if (filter === 'all') return people;
   return people.filter((person) =>
-    filter === 'missing' ? person.status === 'missing' : person.status !== 'missing',
+    filter === 'missing'
+      ? person.status === 'missing'
+      : person.status === 'sent' || person.status === 'late',
   );
 }
 
 type DailiesProps = {
+  installationId: number;
   today: TeamToday;
   filter: DailyFilter;
   onFilter: (filter: DailyFilter) => void;
@@ -137,7 +165,15 @@ type DailiesProps = {
   onView: (login: string) => void;
 };
 
-export function Dailies({ today, filter, onFilter, reminders, onRemind, onView }: DailiesProps) {
+export function Dailies({
+  installationId,
+  today,
+  filter,
+  onFilter,
+  reminders,
+  onRemind,
+  onView,
+}: DailiesProps) {
   const t = useT();
   const people = filterPeople(today.people, filter);
   return (
@@ -176,6 +212,8 @@ export function Dailies({ today, filter, onFilter, reminders, onRemind, onView }
           {people.map((person) => (
             <DailyCard
               key={person.login}
+              installationId={installationId}
+              date={today.date}
               person={person}
               timezone={today.team.timezone}
               canRemind={today.canRemind}

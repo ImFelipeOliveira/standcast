@@ -1,10 +1,16 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import type { AwayPeriod } from '@standcast/orchestrator';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { OrgContext, Session } from '../../api/client';
 import { apiUrl } from '../../api/client';
-import { createQueryClient, orgContextQuery, sessionQuery } from '../../api/queries';
+import {
+  awayPeriodsQuery,
+  createQueryClient,
+  orgContextQuery,
+  sessionQuery,
+} from '../../api/queries';
 import { applyLang } from '../../i18n';
 import { createAppRouter } from '../../router';
 import { sectionOf } from '../../shell/sections';
@@ -27,7 +33,7 @@ const contexts: Record<number, OrgContext> = {
   12: { admin: true, managerOf: [], memberOf: [] },
 };
 
-async function renderAt(path: string, body: Session = session) {
+async function renderAt(path: string, body: Session = session, away?: AwayPeriod[]) {
   globalThis.fetch = mock(async (input: RequestInfo | URL) =>
     String(input).endsWith('/v1/app/session')
       ? Response.json(body)
@@ -37,6 +43,7 @@ async function renderAt(path: string, body: Session = session) {
   for (const [id, context] of Object.entries(contexts)) {
     queryClient.setQueryData(orgContextQuery(Number(id)).queryKey, context);
   }
+  if (away) queryClient.setQueryData(awayPeriodsQuery(11).queryKey, away);
   const router = createAppRouter(queryClient, {
     history: createMemoryHistory({ initialEntries: [path] }),
     isServer: false,
@@ -105,6 +112,30 @@ describe('account page', () => {
     const { html } = await renderAt('/orgs/11/account');
     expect(html).toContain('Sair de todas as sessões do painel');
     expect(html).toContain('A CLI e o plugin continuam conectados');
+  });
+
+  test('away section lists periods with who marked them and a form', async () => {
+    const { html } = await renderAt('/orgs/11/account', session, [
+      {
+        id: 'p-1',
+        login: 'ana',
+        from: '2026-12-01',
+        until: '2026-12-05',
+        markedBy: 'carla',
+        markedAt: '2026-11-01T10:00:00.000Z',
+        mine: true,
+      },
+    ]);
+    expect(html).toContain('Férias');
+    expect(html).toContain('01/12 a 05/12');
+    expect(html).toContain('Marcado por @carla');
+    expect(html).toContain('Cancelar as férias de @ana');
+    expect(html).toContain('type="date"');
+  });
+
+  test('away section is empty without periods', async () => {
+    const { html } = await renderAt('/orgs/11/account', session, []);
+    expect(html).toContain('Nenhum período de férias.');
   });
 
   test('/account opens the first org account page', async () => {

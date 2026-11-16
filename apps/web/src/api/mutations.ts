@@ -1,4 +1,4 @@
-import type { RemindNowResult, SetupStatus } from '@standcast/orchestrator';
+import type { AwayPeriod, RemindNowResult, SetupStatus } from '@standcast/orchestrator';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiDelete, apiPost } from './client';
 import { setupStatusQuery, teamTodayQuery } from './queries';
@@ -142,4 +142,33 @@ export function useRedeliverWebhook(installationId: number) {
       ),
     onSettled: () => queryClient.invalidateQueries(setupStatusQuery(installationId)),
   });
+}
+
+export type MarkAwayInput = { from?: string; until: string; login?: string };
+
+function useAwayMutation<TInput, TResult>(
+  installationId: number,
+  run: (input: TInput) => Promise<TResult>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: run,
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['org', installationId, 'away'] }),
+        queryClient.invalidateQueries({ queryKey: ['org', installationId, 'team'] }),
+      ]),
+  });
+}
+
+export function useMarkAway(installationId: number) {
+  return useAwayMutation(installationId, (input: MarkAwayInput) =>
+    apiPost<AwayPeriod>(`${orgPath(installationId)}/away`, input),
+  );
+}
+
+export function useCancelAway(installationId: number) {
+  return useAwayMutation(installationId, (periodId: string) =>
+    apiPost<void>(`${orgPath(installationId)}/away/${encodeURIComponent(periodId)}/cancel`),
+  );
 }
