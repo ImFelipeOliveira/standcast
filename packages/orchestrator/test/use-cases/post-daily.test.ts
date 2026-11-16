@@ -6,6 +6,7 @@ import {
   setIdentity,
   setInstallationConfig,
   upsertDaily,
+  upsertMember,
 } from '@standcast/db';
 import { ChatDeliveryError } from '@standcast/slack';
 import { googleChatSpaces } from '../../../db/src/schema';
@@ -296,13 +297,41 @@ describe('postDaily on a team that posts each daily', () => {
     expect((await getDelivery(db, dailyKey(job.memberId)))?.status).toBe('sent');
   });
 
-  test('marks the post late after the digest', async () => {
+  test('marks the post late when the daily was first sent after the digest', async () => {
+    const { deps, google } = await postingSetup(true);
+    const bob = await upsertMember(db, { githubUserId: 2, login: 'bob', email: null });
+    await upsertDaily(db, {
+      installationId: INST,
+      memberId: bob.id,
+      date: DATE,
+      payload: daily,
+      submittedAt: new Date(Date.now() + 60_000),
+    });
+    await linkSpace('spaces/AAAA');
+    await postDaily(deps, { installationId: INST, memberId: bob.id, date: DATE });
+    expect(google.posted).toHaveLength(1);
+    expect(google.posted[0]?.msg.fallbackText).toContain('Daily sent after the digest');
+    expect(google.replies).toHaveLength(0);
+  });
+
+  test('a daily first sent before the digest is not marked late when posted after it', async () => {
     const { deps, job, google } = await postingSetup(true);
     await linkSpace('spaces/AAAA');
     await postDaily(deps, job);
     expect(google.posted).toHaveLength(1);
-    expect(google.posted[0]?.msg.fallbackText).toContain('Daily sent after the digest');
-    expect(google.replies).toHaveLength(0);
+    expect(google.posted[0]?.msg.fallbackText).not.toContain('after the digest');
+  });
+
+  test('a daily already posted as a late daily is not posted again', async () => {
+    const { deps, job, google } = await postingSetup(true);
+    const late = { ...dailyKey(job.memberId), kind: 'late_daily' as const };
+    const claim = await claimDelivery(db, late);
+    if (claim.status !== 'claimed') throw new Error('not claimed');
+    await completeDelivery(db, late, claim.token, { channel: 'spaces/AAAA', id: 'm1' });
+    await linkSpace('spaces/AAAA');
+    await postDaily(deps, job);
+    expect(google.posted).toHaveLength(0);
+    expect(await getDelivery(db, dailyKey(job.memberId))).toBeNull();
   });
 
   test('a second run for the same daily posts once', async () => {

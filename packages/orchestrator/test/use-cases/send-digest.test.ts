@@ -300,8 +300,8 @@ describe('sendDigest on a team that posts each daily', () => {
     expect(text).not.toContain('did a thing');
   });
 
-  test('does not enqueue dailies stored while the summary is posted', async () => {
-    const { deps, hooks, queue } = await setup(postingConfig());
+  test('enqueues a post for each daily in the summary and none for dailies stored during it', async () => {
+    const { deps, hooks, queue, alice } = await setup(postingConfig());
     const bob = await upsertMember(db, { githubUserId: 2, login: 'bob', email: null });
     hooks.afterSend = async () => {
       hooks.afterSend = undefined;
@@ -314,6 +314,8 @@ describe('sendDigest on a team that posts each daily', () => {
       });
     };
     await sendDigest(deps, job);
-    expect(queue.enqueued.filter((j) => j.name === 'send-late-daily')).toHaveLength(0);
+    expect(queue.enqueued.filter((j) => j.name === 'send-late-daily').map((j) => j.data)).toEqual([
+      { installationId: INST, memberId: alice.id, date: DATE },
+    ]);
   });
 });

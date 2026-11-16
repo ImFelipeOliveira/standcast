@@ -32,7 +32,10 @@ Teams want to see a daily in the chat the moment a person sends it, not at `dige
 - **Config:** `chat.post_each_daily: true | false`, default `true`, in `standcast.yml`.
   - `true`: each daily is posted as a new message in `chat.channel` when sent. At `digest_at`, the summary.
   - `false`: today's behavior. Full digest at `digest_at`, and a daily sent after it replies in the digest thread.
-- **`chat.late_daily` (PR #222) is removed** before it ships. With `post_each_daily: true` every daily goes to the channel; with `false` the late daily goes to the thread, as before #222. #222 is closed in favor of this PR, and its web-editor fix (keep chat keys when writing `standcast.yml` and when switching provider) carries over for `post_each_daily`.
+- **`chat.late_daily` (PR #222) has no effect.** It shipped in 0.15.0 before this work, so it stays accepted (`thread` or `channel`) to keep files that set it valid, and it is ignored. The web-editor fix from #222 (keep chat keys when writing `standcast.yml` and when switching provider) carries over for `post_each_daily`.
+- **Dailies that were never posted** (sent before the deploy, before a switch to `true`, or whose post failed) are enqueued again when the summary is posted, so they reach the chat; the delivery claim skips the ones already posted.
+- **One post per daily across both flows:** a daily already posted as `late_daily` is not posted again as `daily`, and the other way round.
+- **The late label** follows when the daily was first sent compared with when the digest was posted, not when the post job runs.
 - **One message per person per day.** A second send on the same day updates the stored daily and the webhooks, but posts nothing new, like late dailies today.
 - **Message:** the person, yesterday, today, blockers and support, as the late daily does now. The opening line says "Daily sent after the digest" only when the digest already went out; before that it carries no late label.
 - **Summary at `digest_at`:** the digest title, the blockers section, the support section and the "did not send" line, without the per-person sections. When there are no blockers, no support requests and nobody missing, it says everyone sent and nobody is blocked. The Google Chat "link your account" action stays. `digest.sent` keeps the same payload.

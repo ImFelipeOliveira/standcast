@@ -69,6 +69,20 @@ async function enqueueLateDailies(
   }
 }
 
+async function enqueuePosts(
+  deps: WorkerDeps,
+  job: SendDigestJob,
+  snapshot: Daily[],
+): Promise<void> {
+  for (const daily of snapshot) {
+    await deps.queue.enqueue(POST_DAILY_JOB, {
+      installationId: job.installationId,
+      memberId: daily.memberId,
+      date: job.date,
+    });
+  }
+}
+
 export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<void> {
   const installation = await getInstallation(deps.db, job.installationId);
   const config = operationalConfig(installation);
@@ -163,6 +177,7 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
         missing: missing.map((p) => p.login),
       },
     });
-    if (!postsEachDaily(teamConfig)) await enqueueLateDailies(deps, job, team, snapshot);
+    if (postsEachDaily(teamConfig)) await enqueuePosts(deps, job, snapshot);
+    else await enqueueLateDailies(deps, job, team, snapshot);
   }
 }

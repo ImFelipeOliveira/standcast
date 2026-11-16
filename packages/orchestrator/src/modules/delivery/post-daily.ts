@@ -67,10 +67,11 @@ export async function postDaily(deps: WorkerDeps, job: PostDailyJob): Promise<vo
       kind: 'digest',
     });
     const posting = postsEachDaily(team);
-    const late = digest?.status === 'sent';
-    const threadRef = late ? digest.ref : null;
+    const digestSent = digest?.status === 'sent';
+    const threadRef = digestSent ? digest.ref : null;
     if (!posting && !threadRef) continue;
-    const { chat, entry } = await postFor(team.chat.provider);
+    const late =
+      !posting || (digestSent && found.firstSubmittedAt.getTime() > digest.updatedAt.getTime());
     const key: DeliveryKey = {
       installationId: job.installationId,
       teamName: team.name,
@@ -78,6 +79,9 @@ export async function postDaily(deps: WorkerDeps, job: PostDailyJob): Promise<vo
       kind: posting ? 'daily' : 'late_daily',
       subject: job.memberId,
     };
+    const other = await getDelivery(deps.db, { ...key, kind: posting ? 'late_daily' : 'daily' });
+    if (other?.status === 'sent') continue;
+    const { chat, entry } = await postFor(team.chat.provider);
     const claim = await claimDelivery(deps.db, key);
     if (claim.status !== 'claimed') continue;
     if (!chat) {
