@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/button';
 import { Card, CardDescription, CardTitle } from '../../components/ui/card';
 import { useLang, useT } from '../../i18n';
 import { AwayForm } from '../away/AwayForm';
+import { AwayProblem } from '../away/AwayProblem';
 import { formatShortDate } from '../hoje/format';
 
 function AwayList({ installationId }: { installationId: number }) {
@@ -16,35 +17,38 @@ function AwayList({ installationId }: { installationId: number }) {
   const list = periods.data ?? [];
   if (periods.data && list.length === 0) return <p className="m-0 text-muted">{t('away.none')}</p>;
   return (
-    <ul className="m-0 flex list-none flex-col p-0">
-      {list.map((period) => (
-        <li
-          key={period.id}
-          className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-border border-b py-2.5 last:border-b-0"
-        >
-          <div className="flex flex-col gap-0.5">
-            <span className="font-medium text-text">
-              {t('away.range', {
-                from: formatShortDate(lang, period.from),
-                until: formatShortDate(lang, period.until),
-              })}
-            </span>
-            <span className="font-mono text-[12px] text-muted">
-              {t('away.markedBy', { login: period.markedBy })}
-            </span>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={cancel.isPending}
-            aria-label={t('away.cancelFor', { login: period.login })}
-            onClick={() => cancel.mutate(period.id)}
+    <>
+      <AwayProblem error={cancel.error} />
+      <ul className="m-0 flex list-none flex-col p-0">
+        {list.map((period) => (
+          <li
+            key={period.id}
+            className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-border border-b py-2.5 last:border-b-0"
           >
-            {t('away.cancel')}
-          </Button>
-        </li>
-      ))}
-    </ul>
+            <div className="flex flex-col gap-0.5">
+              <span className="font-medium text-text">
+                {t('away.range', {
+                  from: formatShortDate(lang, period.from),
+                  until: formatShortDate(lang, period.until),
+                })}
+              </span>
+              <span className="font-mono text-[12px] text-muted">
+                {t('away.markedBy', { login: period.markedBy })}
+              </span>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={cancel.isPending}
+              aria-label={t('away.cancelFor', { login: period.login })}
+              onClick={() => cancel.mutate(period.id)}
+            >
+              {t('away.cancel')}
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 

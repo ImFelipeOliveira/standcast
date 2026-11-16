@@ -4,6 +4,7 @@ import { useAwayPeriods } from '../../api/queries';
 import { Button } from '../../components/ui/button';
 import { useLang, useT } from '../../i18n';
 import { AwayForm } from '../away/AwayForm';
+import { AwayProblem } from '../away/AwayProblem';
 import { formatShortDate } from './format';
 
 export function AwayActions({ installationId, login }: { installationId: number; login: string }) {
@@ -49,6 +50,7 @@ function ElevatedAway({
           ? t('away.stateUntil', { date: formatShortDate(lang, current.until) })
           : t('away.state')}
       </span>
+      <AwayProblem error={cancel.error} />
       {current ? (
         <Button
           type="button"

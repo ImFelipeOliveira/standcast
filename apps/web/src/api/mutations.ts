@@ -161,14 +161,22 @@ function useAwayMutation<TInput, TResult>(
   });
 }
 
+export function markAwayRequest(installationId: number, input: MarkAwayInput) {
+  return apiPost<AwayPeriod>(`${orgPath(installationId)}/away`, input);
+}
+
+export function cancelAwayRequest(installationId: number, periodId: string) {
+  return apiPost<void>(`${orgPath(installationId)}/away/${encodeURIComponent(periodId)}/cancel`);
+}
+
 export function useMarkAway(installationId: number) {
   return useAwayMutation(installationId, (input: MarkAwayInput) =>
-    apiPost<AwayPeriod>(`${orgPath(installationId)}/away`, input),
+    markAwayRequest(installationId, input),
   );
 }
 
 export function useCancelAway(installationId: number) {
   return useAwayMutation(installationId, (periodId: string) =>
-    apiPost<void>(`${orgPath(installationId)}/away/${encodeURIComponent(periodId)}/cancel`),
+    cancelAwayRequest(installationId, periodId),
   );
 }
