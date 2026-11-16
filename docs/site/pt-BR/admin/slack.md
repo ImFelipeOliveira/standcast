@@ -14,7 +14,7 @@ Para conectar de novo, por exemplo depois que o app foi removido do Slack ou par
 
 | Escopo | Para quê |
 | --- | --- |
-| `chat:write` | Publicar o consolidado e as dailies atrasadas na thread dele |
+| `chat:write` | Publicar cada daily e o consolidado, e as respostas na thread dele |
 | `chat:write.public` | Publicar em canais públicos sem ser convidado |
 | `channels:read` | Transformar o nome de um `#canal` público no id dele |
 | `groups:read` | Transformar o nome de um `#canal` privado no id dele, nos canais privados para os quais o bot foi convidado |

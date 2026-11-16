@@ -14,7 +14,7 @@ Tracker opcional. Um admin conecta um workspace do Linear na página de setup, s
 
 ### Slack
 
-Um consolidado por time no canal definido no `standcast.yml`, dailies atrasadas na thread desse consolidado, um lembrete por dia e mensagens diretas para impedimentos encaminhados. Veja [Slack](/pt-BR/admin/slack).
+Cada daily e um consolidado por time no canal definido no `standcast.yml`, um lembrete por dia e mensagens diretas para impedimentos encaminhados. Veja [Slack](/pt-BR/admin/slack).
 
 ### Google Chat
 

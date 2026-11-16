@@ -81,7 +81,7 @@ Nenhuma outra chave é aceita. Uma chave desconhecida falha na validação com `
 | `members` | lista de logins ou times do GitHub, pelo menos um | sim | | `[alice, "@acme/backend"]` |
 | `chat.provider` | `slack` ou `google-chat` | sim | | `slack` |
 | `chat.channel` | texto, não vazio | sim | | `"#daily-backend"` ou `spaces/AAAAbbbbCCC` |
-| `chat.late_daily` | `thread` ou `channel` | não | `channel` no Google Chat, `thread` no Slack | `thread` |
+| `chat.post_each_daily` | `true` ou `false` | não | `true` | `false` |
 | `tracker.provider` | `linear` ou `jira` | não | | `linear` |
 | `tracker.team` | texto, não vazio | com `tracker` | | `BE` |
 | `signals.pr_review_hours` | número maior que 0 | não | `48` | `24` |
@@ -111,7 +111,7 @@ O horário local em que o consolidado é publicado. Use aspas (`"10:00"`) para m
 
 ### `language`
 
-O idioma do consolidado e das dailies atrasadas publicadas na thread dele: `en` ou `pt-BR`. Sem essa chave, o time usa inglês. Ela não muda o que as pessoas escreveram: as dailies nunca são traduzidas.
+O idioma do consolidado e das dailies que o Standcast publica: `en` ou `pt-BR`. Sem essa chave, o time usa inglês. Ela não muda o que as pessoas escreveram: as dailies nunca são traduzidas.
 
 ### `managers`
 
@@ -155,7 +155,8 @@ Para onde vai o consolidado.
 - `provider`: `slack` ou `google-chat`. Cada time escolhe o seu, então uma organização pode usar os dois.
 - `channel` no Slack: o canal do Slack, como `"#nome"` (com aspas, porque `#` começa um comentário no YAML) ou como id do canal, por exemplo `C0123456789`. Num canal privado, convide o bot do Standcast antes. Veja [Slack](/pt-BR/admin/slack).
 - `channel` no Google Chat: o nome do espaço, como `spaces/AAAAbbbbCCC`. Outro formato reprova o `standcast.yml`; se você colar o link do espaço (`https://chat.google.com/room/AAAAbbbbCCC`), o erro já diz o nome a usar. O espaço precisa ter o app do Standcast e estar vinculado à sua organização com um código, senão o consolidado falha com `space_not_linked`. Veja [Google Chat](/pt-BR/admin/google-chat).
-- `late_daily`: para onde vai uma daily enviada depois do consolidado. `channel` publica como uma mensagem nova no canal ou no espaço. `thread` responde na thread do consolidado. O padrão é `channel` no Google Chat e `thread` no Slack.
+- `post_each_daily`: `true` (o padrão) publica cada daily como mensagem própria no canal ou no espaço assim que ela é enviada, uma vez por pessoa por dia, e o consolidado no `digest_at` é um resumo: impedimentos, pedidos de apoio e quem não enviou. `false` espera o `digest_at` e publica um consolidado com todas as dailies; uma daily enviada depois dele vai como resposta na thread do consolidado.
+- `late_daily`: da 0.15.0, não é mais usado. Continua aceito (`thread` ou `channel`) para que arquivos que o usam sigam válidos, e não tem efeito.
 
 ::: code-group
 

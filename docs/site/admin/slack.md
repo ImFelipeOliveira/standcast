@@ -14,7 +14,7 @@ To connect again, for example after the app was removed from Slack or to move th
 
 | Scope | Why |
 | --- | --- |
-| `chat:write` | Post the digest and the late dailies in its thread |
+| `chat:write` | Post each daily and the digest, and replies in the digest thread |
 | `chat:write.public` | Post in public channels without being invited |
 | `channels:read` | Turn a public `#channel` name into its id |
 | `groups:read` | Turn a private `#channel` name into its id, for private channels the bot was invited to |
