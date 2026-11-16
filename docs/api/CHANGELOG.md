@@ -4,6 +4,8 @@ Versions match the GitHub releases. During the public beta (0.x), incompatible c
 
 ## Unreleased
 
+## 0.17.0 — 2026-11-16
+
 - Away periods. New session routes `GET /v1/away`, `POST /v1/away` and `POST /v1/away/{periodId}/cancel` (used by the CLI and the MCP tools), and two new error codes, `invalid_away_period` (422) and `away_overlap` (422). `missing` in the `digest.sent` webhook no longer lists people who are away on that date. `missing` in `/v1/org/digests` is now the list stored when the digest was posted, which also leaves out away people and keeps a person listed if they send the daily after the digest; digests posted before this change still compute `missing` when read.
 
 ## 0.16.0 — 2026-11-16
