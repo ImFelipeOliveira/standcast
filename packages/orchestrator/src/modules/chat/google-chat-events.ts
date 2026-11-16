@@ -1,10 +1,10 @@
+import { randomBytes } from 'node:crypto';
 import {
   GOOGLE_CHAT_SPACE,
   GOOGLE_CHAT_USER_ID,
   type Language,
   LINK_CHAT_ACCOUNT_ACTION,
   type MessageKey,
-  type StandcastConfig,
   t,
 } from '@standcast/core';
 import {
@@ -12,17 +12,16 @@ import {
   deleteInstallationIdentities,
   findMembersByEmail,
   getConnectionExternalId,
-  getInstallation,
+  getLinkedGoogleChatSpaceInstallation,
   issueGoogleChatLinkCode,
+  issueGoogleChatSignInToken,
   listGoogleChatSpaceConfigs,
   listMemberInstallations,
   type MemberRow,
-  operationalConfig,
   removeGoogleChatSpace,
   writeIdentityIfConnected,
 } from '@standcast/db';
 import type { Deps } from '../../deps';
-import { logError } from '../../log-error';
 import {
   generateLinkCode,
   googleChatSpaceLanguage,
@@ -45,7 +44,9 @@ export type GoogleChatEvent = {
 
 export type GoogleChatReply = { text: string; privateTo?: string };
 
-type EventDeps = Pick<Deps, 'db' | 'now'>;
+type EventDeps = Pick<Deps, 'db' | 'now' | 'env'>;
+
+export const SIGN_IN_TOKEN_TTL_MS = 15 * 60 * 1000;
 
 const DISPLAY_NAME_LIMIT = 200;
 
@@ -95,106 +96,108 @@ async function removeSpace(deps: EventDeps, spaceName: string): Promise<null> {
   return null;
 }
 
-function teamLanguages(config: StandcastConfig, login: string): Language[] {
-  return config.teams
-    .filter((team) => team.members.some((m) => m.toLowerCase() === login))
-    .map((team) => team.language);
+export async function writeGoogleChatIdentity(
+  deps: Pick<Deps, 'db'>,
+  input: { installationId: number; memberId: string; chatUserId: string },
+): Promise<boolean> {
+  const connectionExternalId = await getConnectionExternalId(
+    deps.db,
+    input.installationId,
+    'google-chat',
+  );
+  if (!connectionExternalId) return false;
+  return writeIdentityIfConnected(deps.db, {
+    installationId: input.installationId,
+    memberId: input.memberId,
+    provider: 'google-chat',
+    connectionExternalId,
+    externalId: input.chatUserId,
+  });
 }
 
-type LinkOutcome = { linked: boolean; languages: Language[] };
+export function generateSignInToken(): string {
+  return randomBytes(32).toString('base64url');
+}
 
-async function linkMember(
+export function signInLinkUrl(publicUrl: string, token: string): string {
+  return `${publicUrl}/link/google-chat?token=${token}`;
+}
+
+async function membersWithEmail(
   deps: EventDeps,
-  member: MemberRow,
-  userName: string,
-): Promise<LinkOutcome> {
-  const login = member.login.toLowerCase();
-  const outcome: LinkOutcome = { linked: false, languages: [] };
-  for (const { installationId } of await listMemberInstallations(deps.db, member.id)) {
-    try {
-      const connectionExternalId = await getConnectionExternalId(
-        deps.db,
-        installationId,
-        'google-chat',
-      );
-      if (!connectionExternalId) continue;
-      const config = operationalConfig(await getInstallation(deps.db, installationId));
-      const written = await writeIdentityIfConnected(deps.db, {
-        installationId,
-        memberId: member.id,
-        provider: 'google-chat',
-        connectionExternalId,
-        externalId: userName,
-      });
-      if (!written) continue;
-      outcome.linked = true;
-      if (config) outcome.languages.push(...teamLanguages(config, login));
-    } catch (error) {
-      logError('google chat identity link failed', error, {
-        installationId: String(installationId),
-        memberId: member.id,
-      });
-    }
-  }
-  return outcome;
-}
-
-async function membersWithEmail(deps: EventDeps, email: string): Promise<MemberRow[]> {
+  email: string,
+  installationId: number,
+): Promise<MemberRow[]> {
   try {
-    return await findMembersByEmail(deps.db, email);
+    const found: MemberRow[] = [];
+    for (const member of await findMembersByEmail(deps.db, email)) {
+      const installations = await listMemberInstallations(deps.db, member.id);
+      if (installations.some((row) => row.installationId === installationId)) found.push(member);
+    }
+    return found;
   } catch {
     throw new Error('google chat member lookup failed');
   }
 }
 
-async function quarantineLinks(
+async function offerSignInLink(
   deps: EventDeps,
-  members: MemberRow[],
-  userName: string,
-): Promise<void> {
-  const memberIds = members.map((member) => member.id);
-  const installations = new Set<number>();
-  for (const member of members) {
-    for (const { installationId } of await listMemberInstallations(deps.db, member.id)) {
-      installations.add(installationId);
-    }
-  }
-  for (const installationId of installations) {
-    if (!(await getConnectionExternalId(deps.db, installationId, 'google-chat'))) continue;
-    await deleteInstallationIdentities(deps.db, installationId, 'google-chat', {
-      memberIds,
-      externalId: userName,
-    });
-  }
+  language: Language,
+  input: { installationId: number; spaceName: string; chatUserId: string; chatEmail: string },
+): Promise<GoogleChatReply> {
+  const token = generateSignInToken();
+  await issueGoogleChatSignInToken(deps.db, {
+    tokenHash: hashLinkCode(token),
+    chatUserId: input.chatUserId,
+    chatEmail: input.chatEmail,
+    installationId: input.installationId,
+    spaceName: input.spaceName,
+    expiresAt: new Date(deps.now().getTime() + SIGN_IN_TOKEN_TTL_MS),
+  });
+  const link = `<${signInLinkUrl(deps.env.publicUrl, token)}|${t(language, 'googleChat.signInLink')}>`;
+  return {
+    text: [
+      t(language, 'googleChat.notFound'),
+      link,
+      t(language, 'googleChat.mapHint', { userId: input.chatUserId }),
+    ].join('\n'),
+  };
 }
 
-async function linkIdentities(
+async function linkIdentity(
   deps: EventDeps,
-  user: GoogleChatEvent['user'],
-  fallback: Language,
+  space: GoogleChatEvent['space'],
+  user: NonNullable<GoogleChatEvent['user']>,
+  language: Language,
 ): Promise<GoogleChatReply> {
-  const email = user?.email?.trim();
-  if (!user || !email || !GOOGLE_CHAT_USER_ID.test(user.name)) {
-    return reply(fallback, 'googleChat.notFound');
+  const installationId = await getLinkedGoogleChatSpaceInstallation(deps.db, space.name);
+  if (installationId === null) return reply(language, 'googleChat.notConnected');
+  const email = user.email?.trim();
+  if (!email) return reply(language, 'googleChat.notFound');
+  const members = await membersWithEmail(deps, email, installationId);
+  if (members.length > 1) {
+    await deleteInstallationIdentities(deps.db, installationId, 'google-chat', {
+      memberIds: members.map((member) => member.id),
+      externalId: user.name,
+    });
+    return replyWithMapHint(language, 'googleChat.ambiguous', user.name);
   }
-  const members = await membersWithEmail(deps, email);
-  if (members.length === 0) return replyWithMapHint(fallback, 'googleChat.notFound', user.name);
-  if (new Set(members.map((member) => member.id)).size > 1) {
-    await quarantineLinks(deps, members, user.name);
-    return replyWithMapHint(fallback, 'googleChat.ambiguous', user.name);
+  const [member] = members;
+  if (!member) {
+    return offerSignInLink(deps, language, {
+      installationId,
+      spaceName: space.name,
+      chatUserId: user.name,
+      chatEmail: email,
+    });
   }
-  const linked: string[] = [];
-  const languages = new Set<Language>();
-  for (const member of members) {
-    const outcome = await linkMember(deps, member, user.name);
-    if (!outcome.linked) continue;
-    linked.push(`@${member.login}`);
-    for (const language of outcome.languages) languages.add(language);
-  }
-  const [only] = languages;
-  const language = languages.size === 1 && only ? only : fallback;
-  if (linked.length === 0) return reply(language, 'googleChat.notConnected');
-  return reply(language, 'googleChat.linked', { logins: linked.join(', ') });
+  const written = await writeGoogleChatIdentity(deps, {
+    installationId,
+    memberId: member.id,
+    chatUserId: user.name,
+  });
+  if (!written) return reply(language, 'googleChat.notConnected');
+  return reply(language, 'googleChat.linked', { logins: `@${member.login}` });
 }
 
 async function linkFromSpace(
@@ -204,7 +207,7 @@ async function linkFromSpace(
 ): Promise<GoogleChatReply | null> {
   if (!user || !GOOGLE_CHAT_USER_ID.test(user.name)) return null;
   const language = await spaceLanguage(deps, space.name);
-  return { ...(await linkIdentities(deps, user, language)), privateTo: user.name };
+  return { ...(await linkIdentity(deps, space, user, language)), privateTo: user.name };
 }
 
 function asksToLink(event: GoogleChatEvent): boolean {
@@ -221,7 +224,7 @@ export async function handleGoogleChatEvent(
   if (event.type === 'REMOVED_FROM_SPACE') return removeSpace(deps, space.name);
   if (isDirectMessage(space)) {
     if (event.type !== 'MESSAGE' && event.type !== 'ADDED_TO_SPACE') return null;
-    return linkIdentities(deps, event.user, 'en');
+    return reply('en', 'googleChat.useSpace');
   }
   if (event.type === 'ADDED_TO_SPACE') return issueLinkCode(deps, space);
   if (asksToLink(event)) return linkFromSpace(deps, space, event.user);

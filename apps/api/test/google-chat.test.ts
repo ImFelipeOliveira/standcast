@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
-import { LINK_CHAT_ACCOUNT_ACTION, parseConfig } from '@standcast/core';
+import { LINK_CHAT_ACCOUNT_ACTION, parseConfig, t } from '@standcast/core';
 import {
   createSession,
   getIdentities,
@@ -297,38 +297,20 @@ describe('POST /webhooks/google-chat', () => {
     expect(await noSpace.json()).toEqual({});
   });
 
-  test('a direct message from an unknown email answers the login hint', async () => {
+  test('a direct message answers that accounts are linked from the team space', async () => {
     const h = await harness();
-    const res = await event(
-      h,
-      {
-        type: 'MESSAGE',
-        space: { name: 'spaces/DM1', type: 'DM', singleUserBotDm: true },
-        user: { name: 'users/123', email: 'nobody@example.com' },
-      },
-      `Bearer ${await token(h, h.keys)}`,
-    );
-    expect(res.status).toBe(200);
-    const text = ((await res.json()) as { text: string }).text;
-    expect(text).toContain('No Standcast account in this organization uses this email');
-    expect(text).toContain('google_chat: users/123');
-    expect(text).not.toContain('O seu id no Google Chat é users/123');
-  });
-
-  test('a direct message without a valid user answers the login hint without an id', async () => {
-    const h = await harness();
-    const res = await event(
-      h,
-      {
-        type: 'MESSAGE',
-        space: { name: 'spaces/DM1', type: 'DM', singleUserBotDm: true },
-        user: { name: 'not-a-user', email: 'nobody@example.com' },
-      },
-      `Bearer ${await token(h, h.keys)}`,
-    );
-    const text = ((await res.json()) as { text: string }).text;
-    expect(text).toContain('No Standcast account in this organization uses this email');
-    expect(text).not.toContain('google_chat:');
+    for (const user of [
+      { name: 'users/123', email: 'nobody@example.com' },
+      { name: 'not-a-user', email: 'nobody@example.com' },
+    ]) {
+      const res = await event(
+        h,
+        { type: 'MESSAGE', space: { name: 'spaces/DM1', type: 'DM', singleUserBotDm: true }, user },
+        `Bearer ${await token(h, h.keys)}`,
+      );
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ text: t('en', 'googleChat.useSpace') });
+    }
   });
 
   test('add-on events are verified against the endpoint url and the add-on service account', async () => {
@@ -377,7 +359,7 @@ describe('POST /webhooks/google-chat', () => {
     expect((await linkSpace(h, h.alice, code ?? '')).status).toBe(201);
   });
 
-  test('an add-on direct message answers the login hint as a create message action', async () => {
+  test('an add-on direct message answers the team space pointer as a create message action', async () => {
     const h = await harness();
     const res = await event(
       h,
@@ -402,8 +384,7 @@ describe('POST /webhooks/google-chat', () => {
     };
     expect(Object.keys(body)).toEqual(['hostAppDataAction']);
     const text = body.hostAppDataAction.chatDataAction.createMessageAction.message.text;
-    expect(text).toContain('No Standcast account in this organization uses this email');
-    expect(text).toContain('google_chat: users/123');
+    expect(text).toBe(t('en', 'googleChat.useSpace'));
   });
 
   test('an add-on removed from space event removes the space and answers nothing', async () => {
