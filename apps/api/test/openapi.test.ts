@@ -154,6 +154,8 @@ describe('internal openapi document', () => {
     const doc = (await res.json()) as Doc;
     expect(doc.openapi).toBe('3.1.0');
     expect(Object.keys(doc.paths).sort()).toEqual([
+      '/v1/away',
+      '/v1/away/{periodId}/cancel',
       '/v1/dailies',
       '/v1/draft',
       '/v1/manage/blockers',

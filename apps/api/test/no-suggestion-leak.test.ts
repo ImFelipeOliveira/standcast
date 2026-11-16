@@ -14,7 +14,13 @@ import {
   upsertDaily,
   WEBHOOK_EVENTS,
 } from '@standcast/db';
-import { createMembershipCheck, getDraft, sendDigest, submitDaily } from '@standcast/orchestrator';
+import {
+  createMembershipCheck,
+  getDraft,
+  markAway,
+  sendDigest,
+  submitDaily,
+} from '@standcast/orchestrator';
 import { sql } from 'drizzle-orm';
 import { db, useCleanDb } from '../../../packages/db/test/setup';
 import {
@@ -439,5 +445,49 @@ describe('suggestions never leak outside the person', () => {
     } finally {
       for (const spy of logs) spy.mockRestore();
     }
+  });
+
+  test('GET /v1/org/digests and the digest.sent webhook payload never contain away fields', async () => {
+    const { deps, alice } = await setup();
+    const isMember = createMembershipCheck(deps);
+    const period = await markAway(deps, isMember, alice, {
+      installationId: INST,
+      login: 'bob',
+      from: DATE,
+      until: '2026-11-03',
+    });
+    await submitDaily(deps, isMember, alice, daily);
+    const chat = fakeChat();
+    await sendDigest(
+      { ...deps, chatFor: async () => chat.chat },
+      { installationId: INST, teamName: 'Alpha', date: DATE },
+    );
+    const forbidden = [period.id, '2026-11-03', 'markedBy', 'markedAt', '"away"', 'Away'];
+    const check = (label: string, output: unknown) => {
+      const text = typeof output === 'string' ? output : JSON.stringify(output);
+      expect(text.length, label).toBeGreaterThan(0);
+      for (const fragment of forbidden) {
+        expect(text.includes(fragment), `${label} leaks ${fragment}`).toBe(false);
+      }
+    };
+    expect(chat.posted).toHaveLength(1);
+    check('digest message', chat.posted[0]?.msg);
+    const envelopes = (await db.execute(
+      sql`SELECT event, payload FROM webhook_deliveries ORDER BY created_at`,
+    )) as unknown as { event: string; payload: unknown }[];
+    expect(envelopes.map((e) => e.event)).toContain('digest.sent');
+    for (const envelope of envelopes) check(`webhook ${envelope.event}`, envelope.payload);
+    const app = createApp(deps, { getClientIp: () => '192.0.2.1' });
+    const key = await createApiKey(db, {
+      installationId: INST,
+      name: 'away',
+      scopes: ['teams:read', 'dailies:read', 'digests:read', 'blockers:read'],
+      createdBy: alice.id,
+    });
+    const digests = await app.request('/v1/org/digests?team=Alpha', {
+      headers: { authorization: `Bearer ${key.key}` },
+    });
+    expect(digests.status).toBe(200);
+    check('/v1/org/digests', await digests.text());
   });
 });

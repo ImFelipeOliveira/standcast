@@ -3,7 +3,7 @@ import { markDeliverySent, setMemberInstallations, upsertMember } from '@standca
 import type { EnqueueOptions } from '@standcast/queue';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { createMembershipCheck, remindNow, submitDaily } from '../../src';
-import { config, daily, fakeDeps, INST, seedMember, seedOrg } from './fakes';
+import { config, daily, fakeDeps, INST, seedAway, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -108,5 +108,12 @@ describe('remindNow', () => {
     await expect(
       remindNow(deps, isMember, alice, { installationId: INST, team: 'Nope', login: 'bob' }),
     ).rejects.toMatchObject({ code: 'not_found' });
+  });
+
+  test('returns away and enqueues nothing', async () => {
+    const { deps, isMember, alice, enqueued } = await setup();
+    await seedAway('carol', '2026-10-28', '2026-10-29');
+    expect(await remindNow(deps, isMember, alice, input('carol'))).toBe('away');
+    expect(enqueued).toEqual([]);
   });
 });

@@ -141,6 +141,13 @@
       "when": 1794603430693,
       "tag": "0019_members_verified_emails",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794848871445,
+      "tag": "0020_away_periods",
+      "breakpoints": true
     }
   ]
 }

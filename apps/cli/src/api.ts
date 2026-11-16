@@ -101,6 +101,38 @@ export const decideSuggestion = (
     body: { org, decision },
   });
 
+export type AwayPeriod = {
+  id: string;
+  login: string;
+  from: string;
+  until: string;
+  markedBy: string;
+  markedAt: string;
+  mine: boolean;
+};
+
+export const listAway = (apiUrl: string, token: string, org: string) =>
+  request<{ data: AwayPeriod[] }>(apiUrl, `/v1/away?org=${encodeURIComponent(org)}`, { token });
+
+export const markAway = (
+  apiUrl: string,
+  token: string,
+  org: string,
+  period: { from?: string; until: string },
+) =>
+  request<AwayPeriod>(apiUrl, '/v1/away', {
+    method: 'POST',
+    token,
+    body: { org, ...period },
+  });
+
+export const cancelAway = (apiUrl: string, token: string, org: string, id: string) =>
+  request<unknown>(apiUrl, `/v1/away/${encodeURIComponent(id)}/cancel`, {
+    method: 'POST',
+    token,
+    body: { org },
+  });
+
 export type Today = { org: string; date: string; teams: string[] };
 
 export const getToday = (apiUrl: string, token: string, org: string) =>

@@ -1,6 +1,7 @@
 import { describe, expect, jest, test } from 'bun:test';
 import { parseConfig, type StandcastConfig } from '@standcast/core';
 import {
+  cancelAwayPeriod,
   claimDelivery,
   completeDelivery,
   getDelivery,
@@ -19,7 +20,17 @@ import {
   runTick,
   sendReminder,
 } from '../../src';
-import { config, daily, fakeChat, fakeDeps, INST, linkSpace, seedMember, seedOrg } from './fakes';
+import {
+  config,
+  daily,
+  fakeChat,
+  fakeDeps,
+  INST,
+  linkSpace,
+  seedAway,
+  seedMember,
+  seedOrg,
+} from './fakes';
 
 useCleanDb();
 
@@ -598,5 +609,78 @@ teams:
     await setInstallationConfig(db, INST, { status: 'unconfigured', reason: 'no_repo' });
     await sendReminder(deps, job('alice'));
     expect(directs).toEqual([]);
+  });
+});
+
+describe('sendReminder and away periods', () => {
+  const away = seedAway;
+
+  test('no reminder on a day inside an away period', async () => {
+    const { deps, directs } = await setup();
+    await identify('alice', 'U1');
+    await away('Alice', '2026-10-27', '2026-10-28');
+    await sendReminder(deps, job('alice'));
+    expect(directs).toHaveLength(0);
+    expect(await getDelivery(db, reminderKey('alice'))).toBeNull();
+  });
+
+  test('a reminder on the day after until', async () => {
+    const { deps, directs } = await setup();
+    await identify('alice', 'U1');
+    await away('alice', '2026-10-26', '2026-10-27');
+    await sendReminder(deps, job('alice'));
+    expect(directs).toHaveLength(1);
+  });
+
+  test('a reminder again after the period is cancelled', async () => {
+    const { deps, directs } = await setup();
+    await identify('alice', 'U1');
+    const period = await away('alice', '2026-10-28', '2026-10-28');
+    if (period === 'overlap') throw new Error('overlap');
+    await sendReminder(deps, job('alice'));
+    expect(directs).toHaveLength(0);
+    await cancelAwayPeriod(db, {
+      installationId: INST,
+      id: period.id,
+      cancelledBy: period.createdBy,
+    });
+    await sendReminder(deps, job('alice'));
+    expect(directs).toHaveLength(1);
+  });
+
+  test('a person in two teams in different time zones is skipped on the matching date in both', async () => {
+    const parsed = parseConfig(`
+teams:
+  - name: Alpha
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [alice]
+    members: [alice]
+    chat: { provider: slack, channel: "#alpha" }
+  - name: Beta
+    timezone: America/New_York
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [alice]
+    members: [alice]
+    chat: { provider: slack, channel: "#beta" }
+`);
+    if (!parsed.ok) throw new Error(JSON.stringify(parsed.errors));
+    const { deps, directs } = await setup(parsed.config);
+    await identify('alice', 'U1');
+    const period = await away('alice', '2026-10-28', '2026-10-28');
+    if (period === 'overlap') throw new Error('overlap');
+    await sendReminder(deps, { ...job('alice'), team: 'Alpha' });
+    await sendReminder(deps, { ...job('alice'), team: 'Beta' });
+    expect(directs).toHaveLength(0);
+    expect(await getDelivery(db, reminderKey('alice'))).toBeNull();
+    await cancelAwayPeriod(db, {
+      installationId: INST,
+      id: period.id,
+      cancelledBy: period.createdBy,
+    });
+    await sendReminder(deps, { ...job('alice'), team: 'Beta' });
+    expect(directs).toHaveLength(1);
   });
 });

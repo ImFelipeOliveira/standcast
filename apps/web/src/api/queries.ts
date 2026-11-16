@@ -1,4 +1,5 @@
 import type {
+  AwayPeriod,
   ConfigValidation,
   EditableConfig,
   OrgBlockers,
@@ -184,4 +185,17 @@ export function configValidationQuery(installationId: number, source: string) {
       apiPost<ConfigValidation>(`/v1/app/orgs/${installationId}/config/validate`, { source }),
     staleTime: Number.POSITIVE_INFINITY,
   });
+}
+
+export function awayPeriodsQuery(installationId: number, login?: string) {
+  const query = login ? `?login=${encodeURIComponent(login)}` : '';
+  return queryOptions({
+    queryKey: ['org', installationId, 'away', login ?? null],
+    queryFn: async () =>
+      (await apiGet<{ data: AwayPeriod[] }>(`/v1/app/orgs/${installationId}/away${query}`)).data,
+  });
+}
+
+export function useAwayPeriods(installationId: number, login?: string, enabled = true) {
+  return useQuery({ ...awayPeriodsQuery(installationId, login), enabled });
 }
