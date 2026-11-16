@@ -156,6 +156,17 @@ export async function deleteGoogleChatSpaceBinding(
   return deleted.length > 0;
 }
 
+export async function getLinkedGoogleChatSpaceInstallation(
+  db: Db,
+  spaceName: string,
+): Promise<number | null> {
+  const [row] = await db
+    .select({ installationId: googleChatSpaces.installationId })
+    .from(googleChatSpaces)
+    .where(and(eq(googleChatSpaces.spaceName, spaceName), isNotNull(googleChatSpaces.linkedAt)));
+  return row?.installationId ?? null;
+}
+
 export async function listGoogleChatSpaces(
   db: Db,
   installationId: number,

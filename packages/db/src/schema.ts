@@ -120,6 +120,23 @@ export const googleChatSpaces = pgTable(
   ],
 );
 
+export const googleChatSignInTokens = pgTable(
+  'google_chat_sign_in_tokens',
+  {
+    tokenHash: text('token_hash').primaryKey(),
+    chatUserId: text('chat_user_id').notNull(),
+    chatEmail: text('chat_email'),
+    installationId: installationId()
+      .notNull()
+      .references(() => installations.id, { onDelete: 'cascade' }),
+    spaceName: text('space_name').notNull(),
+    createdAt: createdAt(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+  },
+  (t) => [index('google_chat_sign_in_tokens_user_idx').on(t.installationId, t.chatUserId)],
+);
+
 export const sessions = pgTable('sessions', {
   tokenHash: text('token_hash').primaryKey(),
   memberId: memberRef(),
