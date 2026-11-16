@@ -176,6 +176,14 @@ const ptBR = {
   'cli.invalidArgs': 'Argumentos inválidos: {message}',
   'cli.suggestionUsage':
     'Uso: standcast suggestion confirm <id> [--org <login>]\n     standcast suggestion ignore <id> [--org <login>]',
+  'cli.awayUsage':
+    'Uso: standcast away <início> <fim> [--login <usuário>] [--org <login>]\n     standcast away list [--org <login>]\n     standcast away cancel <id> [--org <login>]',
+  'cli.awayMarked': 'Ausência registrada de {from} a {until} (id {id}).',
+  'cli.awayCancelled': 'Ausência cancelada (id {id}).',
+  'cli.awayNone': 'Nenhuma ausência registrada.',
+  'away.notice.marked':
+    '@{by} marcou você de férias de {from} a {until}. Você não vai receber lembretes da daily nesses dias. Para desfazer: `standcast away cancel {id}`.',
+  'away.notice.cancelled': '@{by} cancelou as suas férias de {from} a {until}.',
   'cli.unknownCommand': 'Comando desconhecido: {command}',
   'cli.notLoggedIn': 'Você não está autenticado. Execute: standcast login',
   'cli.loggedIn': 'Autenticado como {login}.',
@@ -454,6 +462,14 @@ const en = {
   'cli.invalidArgs': 'Invalid arguments: {message}',
   'cli.suggestionUsage':
     'Usage: standcast suggestion confirm <id> [--org <login>]\n       standcast suggestion ignore <id> [--org <login>]',
+  'cli.awayUsage':
+    'Usage: standcast away <from> <until> [--login <user>] [--org <login>]\n       standcast away list [--org <login>]\n       standcast away cancel <id> [--org <login>]',
+  'cli.awayMarked': 'Away period saved from {from} to {until} (id {id}).',
+  'cli.awayCancelled': 'Away period cancelled (id {id}).',
+  'cli.awayNone': 'No away periods.',
+  'away.notice.marked':
+    "@{by} marked you away from {from} to {until}. You won't get daily reminders on those days. To undo it: `standcast away cancel {id}`.",
+  'away.notice.cancelled': '@{by} cancelled your away period from {from} to {until}.',
   'cli.unknownCommand': 'Unknown command: {command}',
   'cli.notLoggedIn': 'You are not signed in. Run: standcast login',
   'cli.loggedIn': 'Signed in as {login}.',
