@@ -148,6 +148,7 @@ teams:
     const bob = await upsertMember(db, { githubUserId: 2, login: 'bob', email: null });
     await setIdentity(db, INST, bob.id, 'slack', 'U2');
     const row = await mark('bob');
+    await cancelAwayPeriod(db, { installationId: INST, id: row.id, cancelledBy: bob.id });
     await sendAwayNotice(deps, {
       installationId: INST,
       periodId: row.id,
