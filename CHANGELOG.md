@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.14.1...standcast-v0.15.0) (2026-11-16)
+
+
+### Features
+
+* **chat:** pick where a late daily goes with chat.late_daily ([1600955](https://github.com/ImFelipeOliveira/standcast/commit/1600955ae637d79a8c6a07b310491213e1b79f2b))
+* **chat:** pick where a late daily goes with chat.late_daily ([#222](https://github.com/ImFelipeOliveira/standcast/issues/222)) ([851adcd](https://github.com/ImFelipeOliveira/standcast/commit/851adcd7111169721f9ff996a40c2b08b8a965c7))
+
 ## [0.14.1](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.14.0...standcast-v0.14.1) (2026-11-15)
 
 
