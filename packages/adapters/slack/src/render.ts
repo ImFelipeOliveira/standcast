@@ -2,6 +2,8 @@ import { type Block, blockGap, type Inline, isSlackUserId, type Message } from '
 
 const HEADER_LIMIT = 150;
 const SECTION_LIMIT = 3000;
+const BLOCK_LIMIT = 50;
+const TRUNCATION_TAIL = '… see Standcast';
 
 function escapeText(text: string): string {
   return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
@@ -43,13 +45,28 @@ function blockText(b: Block): string {
   return '';
 }
 
+function sections(text: string): object[] {
+  const chunks: string[] = [];
+  let current = '';
+  for (const line of text.split('\n')) {
+    const joined = current ? `${current}\n${line}` : line;
+    if (current && joined.length > SECTION_LIMIT) {
+      chunks.push(current);
+      current = line;
+    } else {
+      current = joined;
+    }
+  }
+  chunks.push(current);
+  return chunks.map((chunk) => section(chunk.trim())).filter((b): b is object => b !== null);
+}
+
 function renderBlocks(blocks: Block[]): object[] {
   const out: object[] = [];
   let text = '';
   let prev: Block | null = null;
   const flush = () => {
-    const done = section(text);
-    if (done) out.push(done);
+    out.push(...sections(text));
     text = '';
     prev = null;
   };
@@ -67,17 +84,15 @@ function renderBlocks(blocks: Block[]): object[] {
     }
     const next = blockText(block);
     if (next.length === 0) continue;
-    const joined = prev ? text + blockGap(prev, block) + next : next;
-    if (prev && joined.length > SECTION_LIMIT) {
-      flush();
-      text = next;
-    } else {
-      text = joined;
-    }
+    text = prev ? text + blockGap(prev, block) + next : next;
     prev = block;
   }
   flush();
-  return out;
+  if (out.length <= BLOCK_LIMIT) return out;
+  return [
+    ...out.slice(0, BLOCK_LIMIT - 1),
+    { type: 'section', text: { type: 'mrkdwn', text: TRUNCATION_TAIL } },
+  ];
 }
 
 export function renderSlack(msg: Message): { text: string; blocks: object[] } {

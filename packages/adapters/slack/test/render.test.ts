@@ -202,6 +202,29 @@ describe('renderSlack', () => {
     expect(out.blocks).toEqual([{ type: 'divider' }]);
   });
 
+  test('a long list is split across sections without losing items', () => {
+    const items = Array.from({ length: 8 }, (_, i) => [`${i}${'x'.repeat(499)}`]);
+    const out = renderSlack({ fallbackText: 'fb', blocks: [{ type: 'list', items }] });
+    const texts = out.blocks.map((b) => (b as { text: { text: string } }).text.text);
+    expect(texts.length).toBe(2);
+    for (const text of texts) expect(text.length).toBeLessThanOrEqual(3000);
+    expect(texts.join('\n')).toBe(items.map(([item]) => `• ${item}`).join('\n'));
+  });
+
+  test('a message past 50 blocks keeps 49 and ends with the tail', () => {
+    const blocks = Array.from({ length: 60 }, (_, i) => ({
+      type: 'heading' as const,
+      text: `h${i}`,
+    }));
+    const out = renderSlack({ fallbackText: 'fb', blocks });
+    expect(out.blocks).toHaveLength(50);
+    expect(out.blocks[48]).toEqual({ type: 'header', text: { type: 'plain_text', text: 'h48' } });
+    expect(out.blocks[49]).toEqual({
+      type: 'section',
+      text: { type: 'mrkdwn', text: '… see Standcast' },
+    });
+  });
+
   test('section text truncated to 3000 chars', () => {
     const out = renderSlack({
       fallbackText: 'fb',
