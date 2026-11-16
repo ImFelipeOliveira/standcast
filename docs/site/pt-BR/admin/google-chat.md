@@ -2,7 +2,7 @@
 
 O Standcast pode publicar o consolidado de um time num espaço do Google Chat em vez de num canal do Slack. O app do Standcast para o Google Chat faz o mesmo que o bot do Slack:
 
-- publica o consolidado do time no espaço no `digest_at`, e as dailies atrasadas na thread dele;
+- publica o consolidado do time no espaço no `digest_at`, e as dailies atrasadas como mensagens novas no espaço (use `chat.late_daily: thread` para responder na thread do consolidado);
 - manda lembretes e impedimentos encaminhados por mensagem direta;
 - manda impedimentos sugeridos por mensagem direta quando o time tem `signals.direct_message: true`.
 

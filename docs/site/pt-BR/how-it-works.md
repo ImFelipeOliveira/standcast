@@ -46,9 +46,9 @@ Existe exatamente um consolidado por time por dia. Se o worker estiver fora do a
 
 ## 10:40 · Bob manda uma daily atrasada
 
-Bob envia a daily depois do consolidado. O Standcast responde na thread do consolidado com a daily dele. A CLI e as tools do MCP devolvem `late: true`.
+Bob envia a daily depois do consolidado. O Standcast publica a daily dele como uma mensagem nova no espaço, no Google Chat, ou como resposta na thread do consolidado, no Slack. `chat.late_daily` muda isso por time. A CLI e as tools do MCP devolvem `late: true`.
 
-Só a primeira daily atrasada do dia vai para a thread. Se o Bob reenviar, o Standcast guarda a nova versão e dispara o webhook, mas não publica uma segunda resposta.
+Só a primeira daily atrasada do dia é publicada. Se o Bob reenviar, o Standcast guarda a nova versão e dispara o webhook, mas não publica uma segunda resposta.
 
 ## Encaminhamento de impedimentos
 

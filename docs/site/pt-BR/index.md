@@ -47,7 +47,7 @@ Ele resolve três problemas que aparecem quando o time escreve a daily com IA:
 2. O Standcast monta um rascunho do "ontem" a partir da atividade da pessoa no GitHub desde a última daily: pull requests abertos e mergeados, revisões e commits.
 3. A pessoa ajusta o ontem, escreve o hoje e os impedimentos e confirma. Nada é enviado antes disso.
 4. No `digest_at`, no fuso do time, o Standcast publica uma mensagem no canal do time: impedimentos no topo, depois a daily de cada pessoa e, no fim, quem não enviou.
-5. Uma daily enviada depois do consolidado vai como resposta na thread dele.
+5. Uma daily enviada depois do consolidado vai como mensagem nova no espaço, no Google Chat, ou como resposta na thread dele, no Slack.
 
 Em volta disso, o Standcast orquestra o dia:
 

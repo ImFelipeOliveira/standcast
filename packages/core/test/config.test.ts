@@ -118,6 +118,25 @@ describe('parseConfig', () => {
     }
   });
 
+  test('chat.late_daily is thread unless set to channel', () => {
+    const chat = (extra: Record<string, unknown>) => ({
+      chat: { provider: 'google-chat', channel: 'spaces/AAAAxxxxxxx', ...extra },
+    });
+    const unset = parseConfig(toYaml([team(chat({}))]));
+    expect(unset.ok && unset.config.teams[0]?.chat).toEqual({
+      provider: 'google-chat',
+      channel: 'spaces/AAAAxxxxxxx',
+    });
+    const channel = parseConfig(toYaml([team(chat({ late_daily: 'channel' }))]));
+    expect(channel.ok && channel.config.teams[0]?.chat.lateDaily).toBe('channel');
+    const thread = parseConfig(toYaml([team(chat({ late_daily: 'thread' }))]));
+    expect(thread.ok && thread.config.teams[0]?.chat.lateDaily).toBe('thread');
+    const bad = parseConfig(toYaml([team(chat({ late_daily: 'dm' }))]));
+    expect(bad.ok).toBe(false);
+    if (bad.ok) return;
+    expect(bad.errors[0]?.path).toBe('teams.0.chat.late_daily');
+  });
+
   test('a slack channel keeps any name', () => {
     const slack = team({ chat: { provider: 'slack', channel: 'daily-dev' } });
     expect(parseConfig(toYaml([slack])).ok).toBe(true);
