@@ -21,6 +21,7 @@ import {
   getLastDaily,
   getPreviousDaily,
   listDailies,
+  listDigestDeliveries,
   listFailedPersonDeliveryGroups,
   listFailedTeamDeliveries,
   listMemberIdsWithActiveCliSession,
@@ -184,6 +185,19 @@ describe('deliveries', () => {
     expect(await completeDelivery(db, dkey, 1, { channel: 'C1', id: '1.2' })).toBe(true);
     expect(await claimDelivery(db, dkey)).toEqual({ status: 'already_sent' });
     expect((await getDelivery(db, dkey))?.ref).toEqual({ channel: 'C1', id: '1.2' });
+  });
+
+  test('completeDelivery stores missing logins on the digest row', async () => {
+    await seed();
+    await claimDelivery(db, dkey);
+    expect(await completeDelivery(db, dkey, 1, null, { missingLogins: ['bob'] })).toBe(true);
+    const [row] = await listDigestDeliveries(db, INST, { limit: 10 });
+    expect(row?.missingLogins).toEqual(['bob']);
+    const k2 = { ...dkey, date: '2026-10-28' };
+    await claimDelivery(db, k2);
+    await completeDelivery(db, k2, 1, null);
+    const rows = await listDigestDeliveries(db, INST, { limit: 10 });
+    expect(rows.find((r) => r.date === '2026-10-28')?.missingLogins).toBeNull();
   });
 
   test('claimDelivery retries failed up to 3', async () => {
