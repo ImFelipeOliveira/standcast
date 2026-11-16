@@ -42,7 +42,7 @@ Gestores e admins veem **Marcar férias** no card de uma pessoa, com o primeiro 
 - Os períodos pertencem à organização e ao login do GitHub da pessoa. Você pode marcar alguém que nunca rodou `standcast login`. Quando a pessoa entrar, ela vê o período e pode cancelá-lo.
 - Um período tem no máximo 90 dias, contando os dois extremos, não pode começar antes de hoje e não pode se sobrepor a outro ativo. Para mudar as datas, cancele e marque de novo.
 - Um gestor marca e cancela para as pessoas dos times que gerencia. Um admin faz isso para qualquer pessoa da organização.
-- Quando um gestor ou admin marca ou cancela um período para outra pessoa, ela recebe uma mensagem direta no chat do primeiro time dela, no idioma do time. A mensagem diz quem fez e as datas e, quando o período foi marcado, como desfazer com `standcast away cancel <id>`. A mensagem precisa do usuário de chat da pessoa, que vem do login dela ou de `members` no `standcast.yml`. Sem ele, a mensagem não é enviada e o período continua valendo.
+- Quando um gestor ou admin marca ou cancela um período para outra pessoa, ela recebe uma mensagem direta no chat do primeiro time dela, no idioma do time. A mensagem diz quem fez e as datas e, quando o período foi marcado, como desfazer com `standcast away cancel <id> --org <org>`. A mensagem precisa do usuário de chat da pessoa, que vem do login dela ou de `members` no `standcast.yml`. Sem ele, a mensagem não é enviada e o período continua valendo.
 
 Veja [Como funciona](/pt-BR/how-it-works#ferias) para saber o que muda nesses dias.
 

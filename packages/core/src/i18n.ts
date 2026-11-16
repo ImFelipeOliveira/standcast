@@ -176,7 +176,7 @@ const ptBR = {
   'cli.awayUsage':
     'Uso: standcast away --until AAAA-MM-DD [--from AAAA-MM-DD] [--org <login>]\n     standcast away list [--org <login>]\n     standcast away cancel <id> [--org <login>]',
   'away.notice.marked':
-    '@{by} marcou você de férias de {from} a {until}. Você não vai receber lembretes da daily nesses dias. Para desfazer: `standcast away cancel {id}`.',
+    '@{by} marcou você de férias de {from} a {until}. Você não vai receber lembretes da daily nesses dias. Para desfazer: `standcast away cancel {id} --org {org}`.',
   'away.notice.cancelled': '@{by} cancelou as suas férias de {from} a {until}.',
   'cli.unknownCommand': 'Comando desconhecido: {command}',
   'cli.notLoggedIn': 'Você não está autenticado. Execute: standcast login',
@@ -456,7 +456,7 @@ const en = {
   'cli.awayUsage':
     'Usage: standcast away --until YYYY-MM-DD [--from YYYY-MM-DD] [--org <login>]\n       standcast away list [--org <login>]\n       standcast away cancel <id> [--org <login>]',
   'away.notice.marked':
-    "@{by} marked you away from {from} to {until}. You won't get daily reminders on those days. To undo it: `standcast away cancel {id}`.",
+    "@{by} marked you away from {from} to {until}. You won't get daily reminders on those days. To undo it: `standcast away cancel {id} --org {org}`.",
   'away.notice.cancelled': '@{by} cancelled your away period from {from} to {until}.',
   'cli.unknownCommand': 'Unknown command: {command}',
   'cli.notLoggedIn': 'You are not signed in. Run: standcast login',

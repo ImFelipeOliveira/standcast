@@ -71,6 +71,7 @@ export async function sendAwayNotice(deps: WorkerDeps, job: SendAwayNoticeJob): 
       from: period.fromDate,
       until: period.untilDate,
       periodId: period.id,
+      org: installation.accountLogin,
       action: job.action,
     });
     const message: Message = {

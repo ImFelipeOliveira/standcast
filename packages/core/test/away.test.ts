@@ -57,18 +57,24 @@ describe('validateAwayPeriod', () => {
 });
 
 describe('buildAwayNotice', () => {
-  const base = { by: 'bob', from: '2026-12-01', until: '2026-12-05', periodId: 'abc-123' };
+  const base = {
+    by: 'bob',
+    from: '2026-12-01',
+    until: '2026-12-05',
+    periodId: 'abc-123',
+    org: 'acme',
+  };
 
   test('pt-BR marked notice', () => {
     const text = buildAwayNotice('pt-BR', { ...base, action: 'marked' });
     expect(text).toContain('@bob marcou você de férias de 01/12/2026 a 05/12/2026');
-    expect(text).toContain('standcast away cancel abc-123');
+    expect(text).toContain('`standcast away cancel abc-123 --org acme`');
   });
 
   test('en marked notice', () => {
     const text = buildAwayNotice('en', { ...base, action: 'marked' });
     expect(text).toContain('marked you away from 2026-12-01 to 2026-12-05');
-    expect(text).toContain('standcast away cancel abc-123');
+    expect(text).toContain('`standcast away cancel abc-123 --org acme`');
   });
 
   test('cancelled notice in both languages', () => {

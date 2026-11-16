@@ -42,7 +42,7 @@ Managers and admins see **Mark away** on a person's card, with the first and las
 - Periods belong to the organization and to the person's GitHub login. You can mark someone who has never run `standcast login`. Once they sign in, they see the period and can cancel it.
 - A period has at most 90 days, counting both ends, cannot start before today and cannot overlap another active one. To change the dates, cancel it and mark again.
 - A manager can mark and cancel for people in the teams they manage. An admin can do it for anyone in the organization.
-- When a manager or admin marks or cancels a period for someone else, that person gets a direct message in the chat of their first team, in the team's language. It says who did it and the dates, and, when the period was marked, how to undo it with `standcast away cancel <id>`. The message needs the person's chat user, from their sign-in or from `members` in `standcast.yml`. Without it, the message is not sent and the period still applies.
+- When a manager or admin marks or cancels a period for someone else, that person gets a direct message in the chat of their first team, in the team's language. It says who did it and the dates, and, when the period was marked, how to undo it with `standcast away cancel <id> --org <org>`. The message needs the person's chat user, from their sign-in or from `members` in `standcast.yml`. Without it, the message is not sent and the period still applies.
 
 See [How it works](/how-it-works#away-periods) for what changes on those days.
 

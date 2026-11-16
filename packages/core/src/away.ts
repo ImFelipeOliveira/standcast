@@ -35,6 +35,7 @@ export function buildAwayNotice(
     from: string;
     until: string;
     periodId: string;
+    org: string;
     action: 'marked' | 'cancelled';
   },
 ): string {
@@ -43,5 +44,6 @@ export function buildAwayNotice(
     from: formatDate(lang, input.from),
     until: formatDate(lang, input.until),
     id: input.periodId,
+    org: input.org,
   });
 }
