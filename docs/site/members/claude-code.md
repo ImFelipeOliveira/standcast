@@ -27,7 +27,7 @@ Type `/daily`, or ask for it in your words: "my daily", "standup", "what did I d
 7. Asks whether anything blocks you, in your language.
 8. Asks whether you need support from anyone, without being blocked: a review, a decision, a pairing session. "No" leaves the section empty.
 9. Shows the final daily and asks for your explicit confirmation.
-10. Sends it, and tells you if it went to the digest thread because the digest was already posted.
+10. Sends it, and tells you if it was sent after the digest.
 
 If GitHub or Linear does not answer, you still get your draft. The skill says in one line which source was unavailable and goes on with the rest. Only cards assigned to you count.
 

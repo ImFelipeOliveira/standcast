@@ -51,7 +51,7 @@ Uma mensagem por time por dia útil, no Slack ou no Google Chat, publicada no `d
 
 ## Daily atrasada
 
-Uma daily enviada depois que o consolidado do time foi publicado. Ela vai como mensagem nova no espaço, no Google Chat, e como resposta na thread do consolidado, no Slack, uma vez por pessoa por dia. `chat.late_daily` muda para onde ela vai.
+Uma daily enviada depois que o consolidado do time foi publicado. Ela é publicada como mensagem própria, começando com "Daily enviada depois do consolidado", uma vez por pessoa por dia. Com `chat.post_each_daily: false`, ela vai como resposta na thread do consolidado.
 
 ## Confirmação
 

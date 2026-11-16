@@ -10,7 +10,7 @@ Não. Toda daily precisa da sua confirmação explícita. A skill e o servidor M
 
 ## Posso editar a daily depois de enviar?
 
-Sim, envie de novo no mesmo dia. A nova versão substitui a anterior. Se o consolidado já saiu, a sua primeira daily atrasada é publicada (no Google Chat, como mensagem nova no espaço; no Slack, na thread); as versões seguintes ficam guardadas e vão para os webhooks, mas não são publicadas de novo.
+Sim, envie de novo no mesmo dia. A nova versão substitui a anterior. A sua daily é publicada no canal do time uma vez por dia, no primeiro envio; as versões seguintes ficam guardadas, vão para os webhooks e contam no consolidado, mas não são publicadas de novo.
 
 ## Mandei a daily no sábado. Para onde ela foi?
 

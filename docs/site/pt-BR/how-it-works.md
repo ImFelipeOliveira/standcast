@@ -19,7 +19,7 @@ Alice roda `/daily` no Claude Code. A skill pede um rascunho ao Standcast. O Sta
 
 A janela começa no envio da última daily, se ela foi no dia útil anterior ou depois. Senão, começa à meia-noite do dia útil anterior. Na segunda, o dia útil anterior é sexta, então o fim de semana entra. Os cards usam a mesma janela. O rascunho tem até 50 itens no total, do mais recente para o mais antigo. Se o Linear falhar, o rascunho ainda vem com a atividade do GitHub.
 
-Alice ajusta o ontem, escreve o hoje e um impedimento, pede um review da migração dela como pedido de apoio e confirma. O Standcast guarda a daily na data de hoje. Ela pode reenviar até o consolidado sair: vale a última versão.
+Alice ajusta o ontem, escreve o hoje e um impedimento, pede um review da migração dela como pedido de apoio e confirma. O Standcast guarda a daily na data de hoje e publica na hora no `#daily-backend`, como mensagem própria, com o ontem, o hoje, o impedimento e o pedido de apoio dela. Ela pode reenviar: a última versão fica guardada, vai para os webhooks e conta no consolidado, mas nada novo é publicado no canal naquele dia.
 
 ## 09:30 · Lembrete
 
@@ -37,8 +37,11 @@ No `digest_at`, no fuso do time e só em dias úteis, o Standcast publica uma me
 1. o título, com o time e a data;
 2. **Impedimentos**, com quem reportou cada um;
 3. **Pedidos de apoio**, com quem pediu cada um, quando alguém pediu;
-4. o ontem e o hoje de cada pessoa, na ordem de `members` no `standcast.yml`;
-5. quem não enviou a daily.
+4. quem não enviou a daily.
+
+As dailies em si não se repetem: elas foram publicadas no envio. Quando ninguém está impedido, ninguém pediu apoio e todos enviaram, o consolidado diz isso numa linha.
+
+Com `chat.post_each_daily: false`, as dailies não são publicadas no envio. O consolidado então também traz o ontem e o hoje de cada pessoa, na ordem de `members` no `standcast.yml`, entre os pedidos de apoio e quem não enviou.
 
 As pessoas são mencionadas no Slack ou no Google Chat quando o Standcast conhece o usuário delas lá. Senão, aparecem como `@` seguido do login do GitHub, em texto. Veja [Slack](/pt-BR/admin/slack#como-as-pessoas-sao-mencionadas) e [Google Chat](/pt-BR/admin/google-chat#como-as-pessoas-sao-vinculadas).
 
@@ -46,9 +49,9 @@ Existe exatamente um consolidado por time por dia. Se o worker estiver fora do a
 
 ## 10:40 · Bob manda uma daily atrasada
 
-Bob envia a daily depois do consolidado. O Standcast publica a daily dele como uma mensagem nova no espaço, no Google Chat, ou como resposta na thread do consolidado, no Slack. `chat.late_daily` muda isso por time. A CLI e as tools do MCP devolvem `late: true`.
+Bob envia a daily depois do consolidado. O Standcast publica como mensagem própria, começando com "Daily enviada depois do consolidado". Com `chat.post_each_daily: false`, ela vai como resposta na thread do consolidado. A CLI e as tools do MCP devolvem `late: true`.
 
-Só a primeira daily atrasada do dia é publicada. Se o Bob reenviar, o Standcast guarda a nova versão e dispara o webhook, mas não publica uma segunda resposta.
+A daily de cada pessoa é publicada uma vez por dia. Se o Bob reenviar, o Standcast guarda a nova versão e dispara o webhook, mas não publica de novo.
 
 ## Encaminhamento de impedimentos
 

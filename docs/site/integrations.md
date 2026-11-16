@@ -14,7 +14,7 @@ Optional tracker. An admin connects one Linear workspace on the setup page, read
 
 ### Slack
 
-One digest per team in the channel set in `standcast.yml`, late dailies in that digest's thread, one reminder a day, and direct messages for routed blockers. See [Slack](/admin/slack).
+Each daily and one digest per team in the channel set in `standcast.yml`, one reminder a day, and direct messages for routed blockers. See [Slack](/admin/slack).
 
 ### Google Chat
 

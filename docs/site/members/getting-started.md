@@ -80,8 +80,8 @@ In every case, the flow is the same:
 ## 4. After you send it
 
 - Your daily is stored for today's standup date. If you send again the same day, the new version replaces the old one.
-- At the team's `digest_at`, your daily appears in the digest of every team you are in.
-- If the digest already went out, your daily is posted as a reply in the digest thread, and the result says `late: true`.
+- Your daily is posted to the channel of every team you are in right away, and your blockers and support requests appear in the team's digest at `digest_at`. Teams with `chat.post_each_daily: false` show your daily in the digest instead.
+- If the digest already went out, the result says `late: true`, and the post says it was sent after the digest.
 - Webhooks registered by your admin receive a `daily.submitted` event, with your support requests in it, and a `blocker.opened` event for each new blocker.
 
 Something went wrong? See [Troubleshooting](/troubleshooting).

@@ -10,7 +10,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
-- On Google Chat, a daily sent after the digest is posted as a new message in the space instead of a reply in the digest thread. `chat.late_daily` in `standcast.yml` picks it per team: `channel` (the default on Google Chat) or `thread` (the default on Slack). See [Configuration](/admin/configuration#chat).
+- Each daily is posted to the team channel or space as soon as it is sent, once per person per day, and the digest at `digest_at` becomes a summary: blockers, support requests and who did not send. Set `chat.post_each_daily: false` in `standcast.yml` to keep the full digest at `digest_at` with late dailies in its thread. See [Configuration](/admin/configuration#chat).
 - The landing at standcast.app shows `npm install -g standcast` under the install script, and its MCP example runs `npx -y standcast mcp`, so an MCP client works without installing the CLI first.
 
 ### 0.14.1 — 2026-11-15

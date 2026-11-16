@@ -194,7 +194,7 @@ The result:
 {"date":"2026-10-28","teams":["backend"],"late":false}
 ```
 
-`late: true` means the digest had already been posted, so your daily went as a reply in its thread.
+`late: true` means the digest had already been posted when you sent your daily.
 
 `standcast submit` sends what you give it. When an agent calls it for you, the agent must show you the daily and get your confirmation first. The [Claude Code skill](/members/claude-code) and the [MCP server](/members/mcp) enforce that.
 
