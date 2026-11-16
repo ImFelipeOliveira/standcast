@@ -10,7 +10,11 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
-- Cada daily é publicada no canal ou no espaço do time assim que é enviada, uma vez por pessoa por dia, e o consolidado no `digest_at` vira um resumo: impedimentos, pedidos de apoio e quem não enviou. Use `chat.post_each_daily: false` no `standcast.yml` para manter o consolidado completo no `digest_at`, com as dailies atrasadas na thread. Veja [Configuração](/pt-BR/admin/configuration#chat).
+- Cada daily é publicada no canal ou no espaço do time assim que é enviada, uma vez por pessoa por dia, e o consolidado no `digest_at` vira um resumo: impedimentos, pedidos de apoio e quem não enviou. Use `chat.post_each_daily: false` no `standcast.yml` para manter o consolidado completo no `digest_at`, com as dailies atrasadas na thread. Veja [Configuração](/pt-BR/admin/configuration#chat). O `chat.late_daily` da 0.15.0 deixa de ter efeito; ele continua aceito, então arquivos que o usam seguem válidos.
+
+### 0.15.0 — 16/11/2026
+
+- No Google Chat, uma daily enviada depois do consolidado é publicada como mensagem nova no espaço, e não mais como resposta na thread do consolidado. `chat.late_daily` no `standcast.yml` escolhe isso por time: `channel` (o padrão no Google Chat) ou `thread` (o padrão no Slack). Veja [Configuração](/pt-BR/admin/configuration#chat).
 - A landing em standcast.app mostra `npm install -g standcast` embaixo do script de instalação, e o exemplo de MCP roda `npx -y standcast mcp`, então um cliente MCP funciona sem instalar a CLI antes.
 
 ### 0.14.1 — 15/11/2026

@@ -155,6 +155,7 @@ Where the digest goes.
 - `channel` for Slack: the Slack channel, as `"#name"` (quoted, because `#` starts a comment in YAML) or as a channel id such as `C0123456789`. For a private channel, invite the Standcast bot first. See [Slack](/admin/slack).
 - `channel` for Google Chat: the space name, such as `spaces/AAAAbbbbCCC`. Any other format fails the `standcast.yml` check; if you paste the space link (`https://chat.google.com/room/AAAAbbbbCCC`), the error tells you the name to use. The space must have the Standcast app and be linked to your organization with a code, otherwise the digest fails with `space_not_linked`. See [Google Chat](/admin/google-chat).
 - `post_each_daily`: `true` (the default) posts each daily as its own message in the channel or space as soon as it is sent, once per person per day, and the digest at `digest_at` is a summary: blockers, support requests and who did not send. `false` waits for `digest_at` and posts one digest with every daily; a daily sent after it goes as a reply in the digest thread.
+- `late_daily`: from 0.15.0, no longer used. It is still accepted (`thread` or `channel`) so files that set it stay valid, and it has no effect.
 
 ::: code-group
 

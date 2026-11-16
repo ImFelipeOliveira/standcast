@@ -94,6 +94,7 @@ const teamSchema = z.strictObject({
     provider: z.enum(CHAT_PROVIDERS),
     channel: z.string().min(1),
     post_each_daily: z.boolean().optional(),
+    late_daily: z.enum(['thread', 'channel']).optional(),
   }),
   tracker: z
     .strictObject({

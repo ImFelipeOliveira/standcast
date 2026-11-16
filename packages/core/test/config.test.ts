@@ -137,7 +137,12 @@ describe('parseConfig', () => {
     const bad = parseConfig(toYaml([team(chat({ post_each_daily: 'yes' }))]));
     expect(!bad.ok && bad.errors[0]?.path).toBe('teams.0.chat.post_each_daily');
     const old = parseConfig(toYaml([team(chat({ late_daily: 'channel' }))]));
-    expect(old.ok).toBe(false);
+    if (!old.ok) throw new Error('late_daily from 0.15.0 must stay valid');
+    expect(old.config.teams[0]?.chat).toEqual({
+      provider: 'google-chat',
+      channel: 'spaces/AAAAxxxxxxx',
+    });
+    expect(parseConfig(toYaml([team(chat({ late_daily: 'dm' }))])).ok).toBe(false);
   });
 
   test('a slack channel keeps any name', () => {

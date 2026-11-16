@@ -156,6 +156,7 @@ Para onde vai o consolidado.
 - `channel` no Slack: o canal do Slack, como `"#nome"` (com aspas, porque `#` começa um comentário no YAML) ou como id do canal, por exemplo `C0123456789`. Num canal privado, convide o bot do Standcast antes. Veja [Slack](/pt-BR/admin/slack).
 - `channel` no Google Chat: o nome do espaço, como `spaces/AAAAbbbbCCC`. Outro formato reprova o `standcast.yml`; se você colar o link do espaço (`https://chat.google.com/room/AAAAbbbbCCC`), o erro já diz o nome a usar. O espaço precisa ter o app do Standcast e estar vinculado à sua organização com um código, senão o consolidado falha com `space_not_linked`. Veja [Google Chat](/pt-BR/admin/google-chat).
 - `post_each_daily`: `true` (o padrão) publica cada daily como mensagem própria no canal ou no espaço assim que ela é enviada, uma vez por pessoa por dia, e o consolidado no `digest_at` é um resumo: impedimentos, pedidos de apoio e quem não enviou. `false` espera o `digest_at` e publica um consolidado com todas as dailies; uma daily enviada depois dele vai como resposta na thread do consolidado.
+- `late_daily`: da 0.15.0, não é mais usado. Continua aceito (`thread` ou `channel`) para que arquivos que o usam sigam válidos, e não tem efeito.
 
 ::: code-group
 
