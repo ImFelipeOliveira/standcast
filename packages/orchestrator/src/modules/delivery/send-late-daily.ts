@@ -1,5 +1,5 @@
 import {
-  buildLateDaily,
+  buildDailyPost,
   type ChatChannel,
   type ChatProvider,
   type MessageRef,
@@ -23,7 +23,7 @@ import { isChannelLinked } from '../chat/chat';
 import { chatUserIdFor } from '../chat/chat-identity';
 import { describeDeliveryError, spaceNotLinked } from './delivery-error';
 
-type LateDailyEntry = Parameters<typeof buildLateDaily>[0];
+type LateDailyEntry = Parameters<typeof buildDailyPost>[0];
 
 export type SendLateDailyJob = { installationId: number; memberId: string; date: string };
 
@@ -82,7 +82,7 @@ export async function sendLateDaily(deps: WorkerDeps, job: SendLateDailyJob): Pr
     let ref: MessageRef | undefined;
     try {
       if (await isChannelLinked(deps, job.installationId, team.chat.provider, digest.ref.channel)) {
-        const msg = buildLateDaily(entry, team.language);
+        const msg = buildDailyPost(entry, team.language, true);
         ref = postsEachDaily(team)
           ? await chat.postToChannel(digest.ref.channel, msg)
           : await chat.replyInThread(digest.ref, msg);
