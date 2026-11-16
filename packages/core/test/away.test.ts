@@ -35,13 +35,21 @@ describe('validateAwayPeriod', () => {
     );
   });
 
-  test('rejects dates that do not exist or are malformed', () => {
-    expect(validateAwayPeriod({ from: '2026-12-01', until: '2026-02-30', today })).toBe(
+  test('rejects an impossible from date with otherwise valid order and length', () => {
+    expect(validateAwayPeriod({ from: '2027-02-27', until: '2027-03-05', today })).toBe('ok');
+    expect(validateAwayPeriod({ from: '2027-02-30', until: '2027-03-05', today })).toBe(
       'invalid_away_period',
     );
-    expect(validateAwayPeriod({ from: '2026-02-30', until: '2026-03-05', today })).toBe(
+  });
+
+  test('rejects an impossible until date with otherwise valid order and length', () => {
+    expect(validateAwayPeriod({ from: '2027-02-20', until: '2027-02-28', today })).toBe('ok');
+    expect(validateAwayPeriod({ from: '2027-02-20', until: '2027-02-30', today })).toBe(
       'invalid_away_period',
     );
+  });
+
+  test('rejects malformed dates', () => {
     expect(validateAwayPeriod({ from: '2026-12-1', until: '2026-12-05', today })).toBe(
       'invalid_away_period',
     );
