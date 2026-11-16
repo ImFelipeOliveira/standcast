@@ -414,6 +414,8 @@ const PERSON_DELIVERY_KINDS = [
   'blocker_route',
   'suggestion_dm',
   'signal_scan',
+  'daily',
+  'late_daily',
 ] as const satisfies readonly DeliveryKind[];
 
 export async function deletePersonDeliveriesBefore(db: Db, cutoff: Date): Promise<number> {

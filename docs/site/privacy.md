@@ -144,7 +144,7 @@ Standcast does not delete dailies on a schedule today. Dailies and digest delive
 - outgoing webhook delivery logs: after 30 days;
 - expired sessions: removed;
 - resolved suggestions, those whose signal went away: after 90 days;
-- delivery records about one person (reminders, routed blockers, suggestion DMs and scan markers): after 90 days;
+- delivery records about one person (reminders, routed blockers, suggestion DMs, scan markers and posted dailies): after 90 days;
 - Google Chat spaces that were never linked: the day after their link code expires;
 - ignored and confirmed suggestions are kept, so they do not come back;
 - rate limit counters: after about 10 minutes.
