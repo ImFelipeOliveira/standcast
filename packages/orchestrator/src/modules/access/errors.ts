@@ -19,7 +19,9 @@ export type DomainErrorCode =
   | 'invalid_code'
   | 'space_already_linked'
   | 'too_many_spaces'
-  | 'blocker_not_current';
+  | 'blocker_not_current'
+  | 'invalid_away_period'
+  | 'away_overlap';
 
 export class DomainError extends Error {
   constructor(

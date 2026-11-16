@@ -30,6 +30,8 @@ Every error response uses the same envelope:
 | `space_already_linked` | 409 | The Google Chat space is linked to another organization. An admin of that organization must unlink it first. |
 | `too_many_spaces` | 409 | The organization already has 20 linked Google Chat spaces, the maximum. Unlink one before linking another. |
 | `blocker_not_current` | 409 | Only on the web app route that reopens a blocker: the author sent a later daily without it, so it stays resolved. If it still blocks them, they list it again in their next daily. |
+| `invalid_away_period` | 422 | The away period is not valid: `until` is before `from`, `from` is before today in the person's first team, or it is longer than 90 days. |
+| `away_overlap` | 422 | The person already has an active away period on some of these days. Cancel it and mark again to change the dates. |
 | `payload_too_large` | 413 | Only on the GitHub and Google Chat webhook receivers: the body is larger than 1 MB. Nothing was processed. |
 | `rate_limited` | 429 | Too many requests. Wait `Retry-After` seconds, then retry (see Rate limits). |
 | `internal` | 500 | Unexpected server error. Retry with backoff and contact support if it persists. |
