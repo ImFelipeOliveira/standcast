@@ -830,3 +830,101 @@ describe('suggestions', () => {
     expect(await codeOf(notJson)).toBe('invalid_request');
   });
 });
+
+describe('away', () => {
+  function awayPost(h: Harness, token: string | null, path: string, body: unknown) {
+    return h.app.request(path, {
+      method: 'POST',
+      headers: {
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+  }
+
+  async function codeOf(res: Response): Promise<string> {
+    return ((await res.json()) as { error: { code: string } }).error.code;
+  }
+
+  test('mark, list and cancel for the caller', async () => {
+    await seed();
+    const h = harness();
+    const token = await login(h);
+    const created = await awayPost(h, token, '/v1/away', { org: 'acme', until: '2026-10-30' });
+    expect(created.status).toBe(201);
+    const period = (await created.json()) as { id: string; login: string; from: string };
+    expect(period).toMatchObject({
+      login: 'alice',
+      from: '2026-10-28',
+      until: '2026-10-30',
+      markedBy: 'alice',
+      mine: true,
+    });
+    const listed = await get(h, token, '/v1/away?org=acme');
+    expect(listed.status).toBe(200);
+    expect(((await listed.json()) as { data: { id: string }[] }).data.map((p) => p.id)).toEqual([
+      period.id,
+    ]);
+    const overlap = await awayPost(h, token, '/v1/away', { org: 'acme', until: '2026-10-29' });
+    expect(overlap.status).toBe(422);
+    expect(await codeOf(overlap)).toBe('away_overlap');
+    const cancelled = await awayPost(h, token, `/v1/away/${period.id}/cancel`, { org: 'acme' });
+    expect(cancelled.status).toBe(204);
+    const again = await awayPost(h, token, `/v1/away/${period.id}/cancel`, { org: 'acme' });
+    expect(again.status).toBe(404);
+    expect(await codeOf(again)).toBe('not_found');
+    expect(
+      ((await (await get(h, token, '/v1/away?org=acme')).json()) as { data: [] }).data,
+    ).toEqual([]);
+  });
+
+  test('the CLI route refuses a login field', async () => {
+    await seed();
+    const h = harness();
+    const token = await login(h);
+    const res = await awayPost(h, token, '/v1/away', {
+      org: 'acme',
+      until: '2026-10-30',
+      login: 'bob',
+    });
+    expect(res.status).toBe(422);
+    expect(await codeOf(res)).toBe('invalid_request');
+  });
+
+  test('requires a session, an org and a valid period', async () => {
+    await seed();
+    const h = harness();
+    const token = await login(h);
+    expect((await get(h, null, '/v1/away?org=acme')).status).toBe(401);
+    expect((await awayPost(h, null, '/v1/away', { org: 'acme', until: '2026-10-30' })).status).toBe(
+      401,
+    );
+    const noOrg = await get(h, token, '/v1/away');
+    expect(noOrg.status).toBe(422);
+    expect(await codeOf(noOrg)).toBe('invalid_request');
+    const unknown = await get(h, token, '/v1/away?org=nope');
+    expect(unknown.status).toBe(404);
+    const bad = await awayPost(h, token, '/v1/away', { org: 'acme', until: 'tomorrow' });
+    expect(bad.status).toBe(422);
+    expect(await codeOf(bad)).toBe('invalid_request');
+    const past = await awayPost(h, token, '/v1/away', { org: 'acme', until: '2026-10-20' });
+    expect(past.status).toBe(422);
+    expect(await codeOf(past)).toBe('invalid_away_period');
+    const notJson = await h.app.request('/v1/away', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+      body: '{',
+    });
+    expect(notJson.status).toBe(422);
+    expect(await codeOf(notJson)).toBe('invalid_request');
+    const cancelNoOrg = await awayPost(
+      h,
+      token,
+      `/v1/away/${'0'.repeat(8)}-0000-4000-8000-000000000000/cancel`,
+      {},
+    );
+    expect(cancelNoOrg.status).toBe(422);
+    expect(await codeOf(cancelNoOrg)).toBe('invalid_request');
+  });
+});

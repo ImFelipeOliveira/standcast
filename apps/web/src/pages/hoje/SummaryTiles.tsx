@@ -44,8 +44,10 @@ function Tile({
 export function SummaryTiles({ today }: { today: TeamToday }) {
   const t = useT();
   const lang = useLang();
-  const total = today.people.length;
-  const sent = today.people.filter((person) => person.status !== 'missing').length;
+  const total = today.people.filter((person) => person.status !== 'away').length;
+  const sent = today.people.filter(
+    (person) => person.status === 'sent' || person.status === 'late',
+  ).length;
   const stuck = today.blockers.filter((blocker) => blocker.ageDays > 2).length;
   const oldestSupport = today.support.reduce<string | null>(
     (oldest, item) => (oldest === null || item.since < oldest ? item.since : oldest),

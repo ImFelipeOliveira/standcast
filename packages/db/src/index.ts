@@ -1,6 +1,7 @@
 export * from './client';
 export * from './crypto';
 export * from './repo/api-keys';
+export * from './repo/away-periods';
 export * from './repo/beta-requests';
 export * from './repo/blocker-states';
 export * from './repo/connections';
@@ -15,6 +16,7 @@ export * from './repo/suggestions';
 export * from './repo/webhooks';
 export type {
   ApiKeyScope,
+  AwayPeriodRow,
   BlockerStateRow,
   DeliveryRow,
   InstallationRow,

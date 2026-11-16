@@ -153,7 +153,8 @@ export type DeliveryKind =
   | 'suggestion_dm'
   | 'signal_scan'
   | 'blocker_alert'
-  | 'blocker_alert_post';
+  | 'blocker_alert_post'
+  | 'away_notice';
 
 export const deliveries = pgTable(
   'deliveries',
@@ -168,6 +169,7 @@ export const deliveries = pgTable(
     attempts: integer('attempts').notNull().default(0),
     ref: jsonb('ref').$type<MessageRef>(),
     error: text('error'),
+    missingLogins: text('missing_logins').array(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [unique().on(t.installationId, t.teamName, t.date, t.kind, t.subject)],
@@ -212,6 +214,22 @@ export const blockerStates = pgTable(
     alertedTeams: text('alerted_teams').array().notNull().default(sql`'{}'::text[]`),
   },
   (t) => [unique().on(t.installationId, t.authorMemberId, t.blockerId)],
+);
+
+export const awayPeriods = pgTable(
+  'away_periods',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    installationId: installationRef(),
+    login: text('login').notNull(),
+    fromDate: date('from_date', { mode: 'string' }).notNull(),
+    untilDate: date('until_date', { mode: 'string' }).notNull(),
+    createdBy: memberRef('created_by'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+    cancelledBy: uuid('cancelled_by').references(() => members.id, { onDelete: 'set null' }),
+  },
+  (t) => [index('away_periods_login_idx').on(t.installationId, t.login, t.untilDate)],
 );
 
 export const API_KEY_SCOPES = [
@@ -291,6 +309,7 @@ export type InstallationRow = typeof installations.$inferSelect;
 export type WebhookDeliveryRow = typeof webhookDeliveries.$inferSelect;
 export type MemberRow = typeof members.$inferSelect;
 export type DeliveryRow = typeof deliveries.$inferSelect;
+export type AwayPeriodRow = typeof awayPeriods.$inferSelect;
 export type BlockerStateRow = typeof blockerStates.$inferSelect;
 
 export const rateLimits = pgTable(

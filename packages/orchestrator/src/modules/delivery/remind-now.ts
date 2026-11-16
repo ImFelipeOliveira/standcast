@@ -1,4 +1,5 @@
 import {
+  awayLogins,
   getDelivery,
   getInstallationMemberIds,
   getMemberDaily,
@@ -12,7 +13,7 @@ import { digestState, loadTeamAccess, remindWindowOpen } from '../access/team-ac
 
 export type RemindNowInput = { installationId: number; team: string; login: string };
 
-export type RemindNowResult = 'queued' | 'already_sent' | 'too_late';
+export type RemindNowResult = 'queued' | 'already_sent' | 'too_late' | 'away';
 
 export async function remindNow(
   deps: Deps,
@@ -34,6 +35,7 @@ export async function remindNow(
   if (memberId && (await getMemberDaily(deps.db, installationId, memberId, date))) {
     return 'already_sent';
   }
+  if ((await awayLogins(deps.db, installationId, [login], date)).has(login)) return 'away';
   const reminder = await getDelivery(deps.db, {
     installationId,
     teamName: '',

@@ -124,12 +124,15 @@ Every tool that takes `org` accepts it as optional. When you belong to a single 
 | `standcast_get_draft` | `org?`, `includeSessions?` (default `true`) | The draft of yesterday's work, built from your GitHub and Linear activity, plus `plan`, `pending` and `warnings`, and `work` grouped with your local AI sessions |
 | `standcast_submit_daily` | `org?`, `yesterday`, `today`, `blockers`, `support?` (what you need from someone else without being blocked; empty when missing), `confirmed?` (`true` when the client has no elicitation) | `{ date, teams, late, confirmation }` |
 | `standcast_decide_suggestion` | `org?`, `id`, `decision` (`confirmed` or `ignored`) | `{ id, decision }` |
+| `standcast_away_mark` | `org?`, `from?` (defaults to today), `until` | The new away period, with its `id`. Marks only you |
+| `standcast_away_list` | `org?` | Your active away periods, each with its `id` |
+| `standcast_away_cancel` | `org?`, `id` | Cancels an away period by id: one of yours, or, if you manage a team the person is in or are an organization admin, someone else's. That person gets a direct message |
 | `standcast_list_teams` | `org?` | The teams you can read |
 | `standcast_get_digest` | `org?`, `team`, `date` | `{ digest }`: the team digest on that date, or `null` |
 | `standcast_list_dailies` | `org?`, `team`, `from`, `to`, `cursor?` | A page of the team's confirmed dailies, each with its `support` requests |
 | `standcast_list_blockers` | `org?`, `team`, `from?`, `to?`, `cursor?` | A page of the team's confirmed blockers |
 
-Every tool declares an input schema, an output schema and annotations, and returns its result as `structuredContent`. Every tool except `standcast_submit_daily` and `standcast_decide_suggestion` is read-only. `standcast_submit_daily` is not destructive and is idempotent: sending again the same day replaces the previous daily. `standcast_decide_suggestion` is not destructive and is idempotent: repeating the same decision changes nothing. Dates are `YYYY-MM-DD`.
+Every tool declares an input schema, an output schema and annotations, and returns its result as `structuredContent`. Every tool except `standcast_submit_daily`, `standcast_decide_suggestion`, `standcast_away_mark` and `standcast_away_cancel` is read-only. `standcast_away_mark` and `standcast_away_list` act only for you; `standcast_away_cancel` can also cancel someone else's period, as described above. The agent must confirm the dates with you before it marks or cancels a period. `standcast_submit_daily` is not destructive and is idempotent: sending again the same day replaces the previous daily. `standcast_decide_suggestion` is not destructive and is idempotent: repeating the same decision changes nothing. Dates are `YYYY-MM-DD`.
 
 ### Your AI sessions
 

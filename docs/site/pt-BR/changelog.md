@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- Férias. A pessoa marca férias ou licença com `standcast away --until YYYY-MM-DD` ou pelas tools do MCP, e gestores e admins marcam no app web. Nesses dias não há lembrete, a pessoa não aparece como faltante no consolidado, e Hoje mostra a pessoa como de férias. Nada sobre quem está ausente aparece no consolidado. Veja [Férias](/pt-BR/how-it-works#ferias) e [`standcast away`](/pt-BR/members/cli#standcast-away).
+
 ### 0.16.0 — 16/11/2026
 
 - Os registros de entrega das dailies publicadas (`daily` e `late_daily`) são apagados depois de 90 dias, como os outros registros de entrega sobre uma pessoa. Veja [Privacidade](/pt-BR/privacy#retencao).

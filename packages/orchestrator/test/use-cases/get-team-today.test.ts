@@ -10,7 +10,16 @@ import {
   recordBlockers,
   submitDaily,
 } from '../../src';
-import { config, daily, type FakeOptions, fakeDeps, INST, seedMember, seedOrg } from './fakes';
+import {
+  config,
+  daily,
+  type FakeOptions,
+  fakeDeps,
+  INST,
+  seedAway,
+  seedMember,
+  seedOrg,
+} from './fakes';
 
 useCleanDb();
 
@@ -108,12 +117,13 @@ describe('getTeamToday', () => {
       everSent: true,
     });
     expect(today.people).toEqual([
-      { login: 'alice', status: 'missing', submittedAt: null, daily: null },
+      { login: 'alice', status: 'missing', submittedAt: null, daily: null, away: null },
       {
         login: 'bob',
         status: 'sent',
         submittedAt: '2026-10-28T12:00:00.000Z',
         daily: { yesterday: daily.yesterday, today: daily.today, blockers: [], support: [] },
+        away: null,
       },
       {
         login: 'carol',
@@ -125,6 +135,7 @@ describe('getTeamToday', () => {
           blockers: [],
           support: [{ text: 'pair on infra' }],
         },
+        away: null,
       },
     ]);
     expect(JSON.stringify(today)).not.toContain('2026-10-27');
@@ -433,5 +444,64 @@ teams:
     await expect(
       getTeamToday(deps, isMember, alice, { installationId: 99, team: 'Alpha' }),
     ).rejects.toMatchObject({ code: 'forbidden' });
+  });
+  test('an away person carries the period covering the displayed team date, for elevated viewers only', async () => {
+    const parsed = parseConfig(`
+teams:
+  - name: Tokyo
+    timezone: Asia/Tokyo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [dave]
+    members: [bob, dave]
+    chat: { provider: slack, channel: "#tokyo" }
+  - name: Alpha
+    timezone: America/Los_Angeles
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [alice]
+    members: [alice, bob, carol]
+    chat: { provider: slack, channel: "#alpha" }
+`);
+    if (!parsed.ok) throw new Error(JSON.stringify(parsed.errors));
+    const { deps, isMember, alice, carol, setNow } = await setup({}, parsed.config);
+    setNow(new Date('2026-11-03T02:00:00Z'));
+    const period = await seedAway('bob', '2026-10-30', '2026-11-02');
+    if (period === 'overlap') throw new Error('overlap');
+    const manager = await getTeamToday(deps, isMember, alice, {
+      installationId: INST,
+      team: 'Alpha',
+    });
+    expect(manager.date).toBe('2026-11-02');
+    expect(manager.people.find((p) => p.login === 'bob')).toMatchObject({
+      status: 'away',
+      away: { id: period.id, from: '2026-10-30', until: '2026-11-02' },
+    });
+    expect(manager.people.find((p) => p.login === 'carol')?.away).toBeNull();
+    const member = await getTeamToday(deps, isMember, carol, {
+      installationId: INST,
+      team: 'Alpha',
+    });
+    expect(member.people.find((p) => p.login === 'bob')).toMatchObject({
+      status: 'away',
+      away: null,
+    });
+  });
+
+  test('status is away for an away person without a daily, sent when they sent one', async () => {
+    const { deps, isMember, alice, carol } = await setup();
+    await store(carol, '2026-10-28', {});
+    for (const login of ['bob', 'carol']) {
+      await seedAway(login, '2026-10-28', '2026-10-28');
+    }
+    const today = await getTeamToday(deps, isMember, alice, {
+      installationId: INST,
+      team: 'Alpha',
+    });
+    expect(today.people.map((p) => [p.login, p.status])).toEqual([
+      ['alice', 'missing'],
+      ['bob', 'away'],
+      ['carol', 'sent'],
+    ]);
   });
 });
