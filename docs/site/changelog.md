@@ -10,7 +10,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
-- Away periods. A person marks vacation or leave with `standcast away --until YYYY-MM-DD` or the MCP tools, and managers and admins mark it in the web app. On those days there is no reminder, the person is not listed as missing in the digest and in `missing` of `digest.sent` and `/v1/org/digests`, and Today shows them as away. Nothing about who is away appears in the digest. See [Away periods](/how-it-works#away-periods) and [`standcast away`](/members/cli#standcast-away).
+- Away periods. A person marks vacation or leave with `standcast away --until YYYY-MM-DD` or the MCP tools, and managers and admins mark it in the web app. On those days there is no reminder, the person is not listed as missing in the digest, and Today shows them as away. Nothing about who is away appears in the digest. See [Away periods](/how-it-works#away-periods) and [`standcast away`](/members/cli#standcast-away).
 - On Google Chat, a daily sent after the digest is posted as a new message in the space instead of a reply in the digest thread. `chat.late_daily` in `standcast.yml` picks it per team: `channel` (the default on Google Chat) or `thread` (the default on Slack). See [Configuration](/admin/configuration#chat).
 - The landing at standcast.app shows `npm install -g standcast` under the install script, and its MCP example runs `npx -y standcast mcp`, so an MCP client works without installing the CLI first.
 

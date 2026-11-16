@@ -10,7 +10,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
-- Férias. A pessoa marca férias ou licença com `standcast away --until YYYY-MM-DD` ou pelas tools do MCP, e gestores e admins marcam no app web. Nesses dias não há lembrete, a pessoa não aparece como faltante no consolidado nem em `missing` do `digest.sent` e do `/v1/org/digests`, e Hoje mostra a pessoa como de férias. Nada sobre quem está ausente aparece no consolidado. Veja [Férias](/pt-BR/how-it-works#ferias) e [`standcast away`](/pt-BR/members/cli#standcast-away).
+- Férias. A pessoa marca férias ou licença com `standcast away --until YYYY-MM-DD` ou pelas tools do MCP, e gestores e admins marcam no app web. Nesses dias não há lembrete, a pessoa não aparece como faltante no consolidado, e Hoje mostra a pessoa como de férias. Nada sobre quem está ausente aparece no consolidado. Veja [Férias](/pt-BR/how-it-works#ferias) e [`standcast away`](/pt-BR/members/cli#standcast-away).
 - No Google Chat, uma daily enviada depois do consolidado é publicada como mensagem nova no espaço, e não mais como resposta na thread do consolidado. `chat.late_daily` no `standcast.yml` escolhe isso por time: `channel` (o padrão no Google Chat) ou `thread` (o padrão no Slack). Veja [Configuração](/pt-BR/admin/configuration#chat).
 - A landing em standcast.app mostra `npm install -g standcast` embaixo do script de instalação, e o exemplo de MCP roda `npx -y standcast mcp`, então um cliente MCP funciona sem instalar a CLI antes.
 
