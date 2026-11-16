@@ -137,7 +137,7 @@ Uma pessoa pode marcar um período de férias, ou de licença. Ela faz isso com 
 - Hoje mostra **Férias até** a data no lugar de **Lembrar agora**, para quem não enviou a daily;
 - a varredura de impedimentos sugeridos não roda para ela.
 
-Uma daily enviada durante o período conta normalmente. O webhook `digest.sent` e o `/v1/org/digests` listam em `missing` só quem não enviou e não estava de férias. O `/v1/org/digests` devolve a lista guardada quando o consolidado foi publicado, então um consolidado publicado antes desta mudança mantém a lista anterior. Nada mais sobre férias chega à API, aos webhooks nem à página de setup.
+Uma daily enviada durante o período conta normalmente. O webhook `digest.sent` e o `/v1/org/digests` listam em `missing` só quem não enviou e não estava de férias. O `/v1/org/digests` devolve a lista guardada quando o consolidado foi publicado. Um consolidado publicado antes desta mudança não tem lista guardada, então `missing` é calculado na leitura, a partir dos membros atuais do time e de quem já enviou a daily daquela data. As férias são gerenciadas só pelas rotas de sessão que a CLI, o servidor MCP e o app web usam. Nada sobre elas chega à API da organização (`/v1/org/*`), à API de gestão (`/v1/manage/*`), aos webhooks nem à página de setup.
 
 ## Fuso, dias úteis e vários times
 

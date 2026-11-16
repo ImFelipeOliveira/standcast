@@ -137,7 +137,7 @@ A person can mark a period when they are away, such as vacation or leave. They d
 - Today shows **Away until** the date instead of **Remind now**, for those who have not sent;
 - the scan for suggested blockers does not run for them.
 
-A daily sent during a period counts as usual. The `digest.sent` webhook and `/v1/org/digests` list in `missing` only who did not send and was not away. `/v1/org/digests` returns the list saved when the digest was posted, so a digest posted before this change keeps its earlier list. Nothing else about away periods reaches the API, the webhooks or the setup page.
+A daily sent during a period counts as usual. The `digest.sent` webhook and `/v1/org/digests` list in `missing` only who did not send and was not away. `/v1/org/digests` returns the list saved when the digest was posted. For a digest posted before this change there is no saved list, so `missing` is computed when read, from the current team members and who has sent the daily for that date. Away periods are managed only through the session routes that the CLI, the MCP server and the web app use. Nothing about them reaches the org API (`/v1/org/*`), the manage API (`/v1/manage/*`), the webhooks or the setup page.
 
 ## Time zones, workdays and several teams
 
