@@ -10,7 +10,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
-- Cada daily publicada no chat segue um formato: o que foi realizado ontem, com os dias que cobre (na segunda, de sexta a domingo), o foco para hoje com a data, impedimentos e solicitações de apoio. Uma seção vazia diz isso, como "Nenhum impedimento.". No Google Chat, uma linha em branco separa as seções, e no Slack o texto seguido vai numa seção só, para um consolidado longo caber no limite de blocos do Slack.
+- Cada daily publicada no chat segue um formato: o que foi realizado ontem, com os dias que cobre (na segunda, de sexta a domingo), o foco para hoje com a data, impedimentos e solicitações de apoio. Uma seção vazia diz isso, como "Nenhum impedimento.", e cada link vai numa linha própria abaixo do item, depois de 🔗. No Google Chat, uma linha em branco separa as seções, e no Slack o texto seguido vai numa seção só, para um consolidado longo caber no limite de blocos do Slack.
 - Com `chat.post_each_daily: false`, o consolidado traz a daily de cada pessoa nesse mesmo formato, então impedimentos e pedidos de apoio aparecem na seção de cada pessoa, e não no topo.
 
 ### 0.16.0 — 16/11/2026

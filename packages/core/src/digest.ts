@@ -25,7 +25,11 @@ function refLabel(ref: NonNullable<Item['ref']>, fallback: string): string {
 
 function itemInlines(item: Item): Inline[] {
   if (!item.ref) return [item.text];
-  return [item.text, ' ', { link: { text: refLabel(item.ref, item.text), url: item.ref.url } }];
+  return [
+    item.text,
+    '\n   🔗 ',
+    { link: { text: refLabel(item.ref, item.text), url: item.ref.url } },
+  ];
 }
 
 function orderEntries(team: TeamConfig, entries: DigestEntry[]): DigestEntry[] {

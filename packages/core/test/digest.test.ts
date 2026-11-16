@@ -282,6 +282,17 @@ describe('buildDigest', () => {
     expect(json).toContain('{"link":{"text":"plain ref","url":"https://x.test/2"}}');
   });
 
+  test('each link goes on its own line under the item, with the link emoji', () => {
+    const e = entry('bob', 'U2', {
+      yesterday: [
+        { text: 'fixed it', ref: { kind: 'pull_request', url: 'https://x.test/1', title: 'PR 1' } },
+        { text: 'no link' },
+      ],
+    });
+    const texts = buildDigest({ ...base, entries: [e] }).blocks.map(blockText);
+    expect(texts).toContain('fixed it\n   🔗 PR 1\nno link');
+  });
+
   test('github and linear refs get a short label instead of the title', () => {
     const e = entry('bob', 'U2', {
       yesterday: [

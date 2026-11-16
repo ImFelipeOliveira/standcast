@@ -1,5 +1,11 @@
 import { describe, expect, test } from 'bun:test';
-import { buildBlockerAlert, LINK_CHAT_ACCOUNT_ACTION, type Message } from '@standcast/core';
+import {
+  buildBlockerAlert,
+  buildDailyPost,
+  LINK_CHAT_ACCOUNT_ACTION,
+  type Message,
+  type TeamConfig,
+} from '@standcast/core';
 import { GOOGLE_CHAT_TEXT_LIMIT, MARKUP_BREAKER, renderGoogleChat } from '../src';
 
 describe('renderGoogleChat blocker alert', () => {
@@ -148,6 +154,38 @@ describe('renderGoogleChat', () => {
       ],
     });
     expect(out.text).toBe('only fb');
+  });
+
+  test('a daily item puts its link on the next line', () => {
+    const msg = buildDailyPost(
+      {
+        login: 'ana',
+        daily: {
+          org: 'acme',
+          yesterday: [],
+          today: [
+            {
+              text: 'ship it',
+              ref: { kind: 'card', url: 'https://linear.app/acme/issue/MKT-9/x', title: 'x' },
+            },
+          ],
+          blockers: [],
+          support: [],
+        },
+      },
+      {
+        name: 'backend',
+        language: 'pt-BR',
+        members: ['ana'],
+        timezone: 'America/Sao_Paulo',
+        workdays: ['mon', 'tue', 'wed', 'thu', 'fri'],
+      } as unknown as TeamConfig,
+      '2026-11-16',
+      false,
+    );
+    expect(renderGoogleChat(msg).text).toContain(
+      '• ship it\n   🔗 <https://linear.app/acme/issue/MKT-9/x|MKT-9>',
+    );
   });
 
   test('render keeps links and safe mentions only', () => {
