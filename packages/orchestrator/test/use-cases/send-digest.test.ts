@@ -10,7 +10,7 @@ import {
 } from '@standcast/db';
 import { ChatDeliveryError } from '@standcast/slack';
 import { db, useCleanDb } from '../../../db/test/setup';
-import { DIGEST_POST_DEADLINE_MS, sendDigest, sendLateDaily } from '../../src';
+import { DIGEST_POST_DEADLINE_MS, postDaily, sendDigest } from '../../src';
 import {
   config,
   daily,
@@ -119,7 +119,12 @@ describe('sendDigest', () => {
     if (!team) throw new Error('no team');
     const { deps, posted, alice } = await setup({
       ...base,
-      teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
+      teams: [
+        {
+          ...team,
+          chat: { provider: 'google-chat', channel: 'spaces/AAAA', postEachDaily: false },
+        },
+      ],
     });
     await setIdentity(db, INST, alice.id, 'google-chat', 'users/111');
     await linkSpace('spaces/AAAA');
@@ -149,7 +154,11 @@ describe('sendDigest', () => {
       ...base,
       teams: [
         team,
-        { ...team, name: 'Beta', chat: { provider: 'google-chat', channel: 'spaces/BBBB' } },
+        {
+          ...team,
+          name: 'Beta',
+          chat: { provider: 'google-chat', channel: 'spaces/BBBB', postEachDaily: false },
+        },
       ],
     });
     await setIdentity(db, INST, alice.id, 'google-chat', 'users/111');
@@ -219,7 +228,7 @@ describe('sendDigest', () => {
       { installationId: INST, memberId: bob.id, date: DATE },
       { installationId: INST, memberId: alice.id, date: DATE },
     ]);
-    await sendLateDaily(deps, { installationId: INST, memberId: bob.id, date: DATE });
+    await postDaily(deps, { installationId: INST, memberId: bob.id, date: DATE });
     expect(replies).toHaveLength(1);
     expect(replies[0]?.ref).toEqual({ channel: 'C1', id: '1.0' });
     expect(replies[0]?.msg.fallbackText).toContain('bob in flight');
@@ -303,5 +312,46 @@ describe('sendDigest', () => {
     await sendDigest(deps, job);
     const [row] = await listDigestDeliveries(db, INST, { limit: 10 });
     expect(row?.missingLogins).toEqual([]);
+  });
+});
+
+function postingConfig(): StandcastConfig {
+  const base = config();
+  const [team] = base.teams;
+  if (!team) throw new Error('no team');
+  return { ...base, teams: [{ ...team, chat: { provider: 'slack', channel: '#alpha' } }] };
+}
+
+describe('sendDigest on a team that posts each daily', () => {
+  test('posts the summary without per-person sections', async () => {
+    const { deps, posted } = await setup(postingConfig());
+    await upsertMember(db, { githubUserId: 2, login: 'bob', email: null });
+    await sendDigest(deps, job);
+    expect(posted).toHaveLength(1);
+    const text = posted[0]?.msg.fallbackText ?? '';
+    expect(text).toContain('Daily — Alpha');
+    expect(text).toContain('Did not send the daily');
+    expect(text).toContain('@bob');
+    expect(text).not.toContain('Today:');
+    expect(text).not.toContain('did a thing');
+  });
+
+  test('enqueues a post for each daily in the summary and none for dailies stored during it', async () => {
+    const { deps, hooks, queue, alice } = await setup(postingConfig());
+    const bob = await upsertMember(db, { githubUserId: 2, login: 'bob', email: null });
+    hooks.afterSend = async () => {
+      hooks.afterSend = undefined;
+      await upsertDaily(db, {
+        installationId: INST,
+        memberId: bob.id,
+        date: DATE,
+        payload: daily,
+        submittedAt: new Date('2026-10-28T13:00:01Z'),
+      });
+    };
+    await sendDigest(deps, job);
+    expect(queue.enqueued.filter((j) => j.name === 'send-late-daily').map((j) => j.data)).toEqual([
+      { installationId: INST, memberId: alice.id, date: DATE },
+    ]);
   });
 });

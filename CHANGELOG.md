@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.16.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.15.0...standcast-v0.16.0) (2026-11-16)
+
+
+### Features
+
+* **chat:** post each daily when it is sent and turn the digest into a summary ([#225](https://github.com/ImFelipeOliveira/standcast/issues/225)) ([2f2d09e](https://github.com/ImFelipeOliveira/standcast/commit/2f2d09e2d312d60bcadc4218858421c8f7b03ffc))
+* **config:** add chat.post_each_daily and drop chat.late_daily ([fc187d5](https://github.com/ImFelipeOliveira/standcast/commit/fc187d5f6bdf0f68332b4aa8356199ce32e872b2))
+* **core:** daily post and digest summary messages ([b9889fb](https://github.com/ImFelipeOliveira/standcast/commit/b9889fb16dbe357b7bea9b63652f506efa155b8c))
+* **delivery:** post each daily to the team channel when it is sent ([ff3e88d](https://github.com/ImFelipeOliveira/standcast/commit/ff3e88d07271bf1629cd6ff8087b62d0e72bfaf9))
+* **digest:** post each daily on submit and send a summary at digest_at ([614bff9](https://github.com/ImFelipeOliveira/standcast/commit/614bff9bfb3080bf8ebcf2d6eca76efd740e6dba))
+
+
+### Bug Fixes
+
+* address review on per-daily posting ([bc76b83](https://github.com/ImFelipeOliveira/standcast/commit/bc76b831cd3fc896150707696c6d0fe7ca3ea286))
+* **delivery:** post never-posted dailies with the summary, one post per daily across flows, late label by first send ([1e4243c](https://github.com/ImFelipeOliveira/standcast/commit/1e4243c4da3515ac42e7f2a6f446ae32c5521dd2))
+* **retention:** prune posted daily deliveries after 90 days ([#226](https://github.com/ImFelipeOliveira/standcast/issues/226)) ([5f61851](https://github.com/ImFelipeOliveira/standcast/commit/5f618518f0a7ca2f38317fe2ffb56c127081e493))
+* **retention:** prune posted daily deliveries after 90 days and drop unused kind labels ([45f4584](https://github.com/ImFelipeOliveira/standcast/commit/45f458465bb2ea0ff76e675922e62ecddf18e682))
+
+## [0.15.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.14.1...standcast-v0.15.0) (2026-11-16)
+
+
+### Features
+
+* **chat:** pick where a late daily goes with chat.late_daily ([1600955](https://github.com/ImFelipeOliveira/standcast/commit/1600955ae637d79a8c6a07b310491213e1b79f2b))
+* **chat:** pick where a late daily goes with chat.late_daily ([#222](https://github.com/ImFelipeOliveira/standcast/issues/222)) ([851adcd](https://github.com/ImFelipeOliveira/standcast/commit/851adcd7111169721f9ff996a40c2b08b8a965c7))
+
 ## [0.14.1](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.14.0...standcast-v0.14.1) (2026-11-15)
 
 

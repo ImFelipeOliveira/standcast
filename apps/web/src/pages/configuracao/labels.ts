@@ -51,6 +51,7 @@ type FailureKind =
 export const FAILURE_KIND_LABELS: Record<FailureKind, MessageKey> = {
   digest: 'setup.failed.kind.digest',
   late_daily: 'setup.failed.kind.late_daily',
+  daily: 'setup.failed.kind.daily',
   reminder: 'setup.failed.kind.reminder',
   blocker_route: 'setup.failed.kind.blocker_route',
 };

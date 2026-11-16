@@ -1,11 +1,13 @@
 import {
   buildDigest,
+  buildDigestSummary,
   CHAT_PROVIDERS,
   ChatDeliveryError,
   type DigestEntry,
   type MemberTeam,
   type MessageRef,
   type Person,
+  postsEachDaily,
 } from '@standcast/core';
 import {
   awayLogins,
@@ -26,6 +28,7 @@ import { isChannelLinked } from '../chat/chat';
 import { chatUserIdsFor } from '../chat/chat-identity';
 import { describeDeliveryError, spaceNotLinked } from './delivery-error';
 import { emitEventSafely } from './emit-event';
+import { POST_DAILY_JOB } from './post-daily';
 
 export const DIGEST_POST_DEADLINE_MS = 5 * 60 * 1000;
 
@@ -59,7 +62,21 @@ async function enqueueLateDailies(
   for (const daily of current) {
     const before = snapshot.find((d) => d.memberId === daily.memberId);
     if (before && daily.submittedAt.getTime() <= before.submittedAt.getTime()) continue;
-    await deps.queue.enqueue('send-late-daily', {
+    await deps.queue.enqueue(POST_DAILY_JOB, {
+      installationId: job.installationId,
+      memberId: daily.memberId,
+      date: job.date,
+    });
+  }
+}
+
+async function enqueuePosts(
+  deps: WorkerDeps,
+  job: SendDigestJob,
+  snapshot: Daily[],
+): Promise<void> {
+  for (const daily of snapshot) {
+    await deps.queue.enqueue(POST_DAILY_JOB, {
       installationId: job.installationId,
       memberId: daily.memberId,
       date: job.date,
@@ -145,7 +162,12 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
     }
     ref = await chat.postToChannel(
       team.chat.channel,
-      buildDigest({ team, date: job.date, entries, missing }),
+      (postsEachDaily(teamConfig) ? buildDigestSummary : buildDigest)({
+        team,
+        date: job.date,
+        entries,
+        missing,
+      }),
     );
   } catch (error) {
     await failDelivery(deps.db, key, claim.token, describeDeliveryError(error, provider));
@@ -162,6 +184,7 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
         missing: missing.map((p) => p.login),
       },
     });
-    await enqueueLateDailies(deps, job, team, snapshot);
+    if (postsEachDaily(teamConfig)) await enqueuePosts(deps, job, snapshot);
+    else await enqueueLateDailies(deps, job, team, snapshot);
   }
 }

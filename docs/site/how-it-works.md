@@ -19,7 +19,7 @@ Alice runs `/daily` in Claude Code. The skill asks Standcast for a draft. Standc
 
 The window starts when she sent her last daily, if that was on or after the previous workday. Otherwise it starts at midnight of the previous workday. On Monday, the previous workday is Friday, so the weekend is covered. The cards use the same window. The draft has up to 50 items in total, newest first. If Linear fails, the draft still comes back with the GitHub activity.
 
-Alice edits yesterday, writes today and one blocker, asks for a review on her migration as a support request, and confirms. Standcast stores the daily for today's date. She can send it again until the digest goes out: the last version wins.
+Alice edits yesterday, writes today and one blocker, asks for a review on her migration as a support request, and confirms. Standcast stores the daily for today's date and posts it right away to `#daily-backend` as its own message, with her yesterday, today, blocker and support request. She can send it again: the last version is stored, goes to the webhooks and counts in the digest, but nothing new is posted in the channel that day.
 
 ## 09:30 · Reminder
 
@@ -37,18 +37,21 @@ At `digest_at`, in the team's time zone and only on workdays, Standcast posts on
 1. the title, with the team and the date;
 2. **Blockers**, with who reported each one;
 3. **Support requests**, with who asked for each one, when anyone did;
-4. each person's yesterday and today, in the order of `members` in `standcast.yml`;
-5. the people who did not send the daily.
+4. the people who did not send the daily.
+
+The dailies themselves are not repeated: they were posted when sent. When nobody is blocked, nobody asked for support and everyone sent, the digest says so in one line.
+
+With `chat.post_each_daily: false`, dailies are not posted when sent. The digest then also carries each person's yesterday and today, in the order of `members` in `standcast.yml`, between the support requests and the people who did not send.
 
 People are mentioned in Slack or Google Chat when Standcast knows their user there. Otherwise they appear as `@` followed by their GitHub login, as plain text. See [Slack](/admin/slack#how-people-are-mentioned) and [Google Chat](/admin/google-chat#how-people-are-linked).
 
-There is exactly one digest per team per day. If the worker is down at 10:00, the digest goes out when it comes back, as long as that is within 120 minutes. After 12:00 the worker no longer sends it on its own: the first daily sent that day after 12:00 sends the digest, with every daily sent so far. A failed post is retried up to 3 attempts in total, and the error shows up on the setup page.
+There is exactly one digest per team per day. If the worker is down at 10:00, the digest goes out when it comes back, as long as that is within 120 minutes. After 12:00 the worker no longer sends it on its own: the first daily sent that day after 12:00 sends the digest: the summary of blockers, support requests and who did not send, or, with `chat.post_each_daily: false`, every daily sent so far. A failed post is retried up to 3 attempts in total, and the error shows up on the setup page.
 
 ## 10:40 · Bob sends a late daily
 
-Bob sends his daily after the digest. Standcast posts his daily as a new message in the space on Google Chat, or as a reply in the digest thread on Slack. `chat.late_daily` changes this per team. The CLI and the MCP tools tell him `late: true`.
+Bob sends his daily after the digest. Standcast posts it as its own message, opening with "Daily sent after the digest". With `chat.post_each_daily: false`, it goes as a reply in the digest thread instead. The CLI and the MCP tools tell him `late: true`.
 
-Only the first late daily of the day is posted. If Bob sends again, Standcast stores the new version and sends the webhook, but does not post a second reply.
+Each person's daily is posted once a day. If Bob sends again, Standcast stores the new version and sends the webhook, but does not post it again.
 
 ## Blocker routing
 

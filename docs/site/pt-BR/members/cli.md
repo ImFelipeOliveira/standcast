@@ -194,7 +194,7 @@ O resultado:
 {"date":"2026-10-28","teams":["backend"],"late":false}
 ```
 
-`late: true` quer dizer que o consolidado já tinha sido publicado, então a sua daily foi como resposta na thread dele.
+`late: true` quer dizer que o consolidado já tinha sido publicado quando você enviou a daily.
 
 O `standcast submit` envia o que você passar. Quando um agente o chama por você, o agente tem que mostrar a daily e pedir a sua confirmação antes. A [skill do Claude Code](/pt-BR/members/claude-code) e o [servidor MCP](/pt-BR/members/mcp) garantem isso.
 

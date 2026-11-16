@@ -27,7 +27,7 @@ Digite `/daily`, ou peça do seu jeito: "minha daily", "standup", "o que eu fiz 
 7. Pergunta se algo está travando você, no seu idioma.
 8. Pergunta se você precisa de apoio de alguém, sem estar travado: um review, uma decisão, um pareamento. "Não" deixa a seção vazia.
 9. Mostra a daily final e pede a sua confirmação explícita.
-10. Envia e avisa se ela foi para a thread do consolidado porque ele já tinha sido publicado.
+10. Envia e avisa se ela foi enviada depois do consolidado.
 
 Se o GitHub ou o Linear não responder, você ainda recebe o rascunho. A skill diz em uma linha qual fonte ficou indisponível e segue com o resto. Só contam os cards atribuídos a você.
 
@@ -87,7 +87,7 @@ Claude:  Daily final da acme, 2026-10-28:
          - Um review no PR da migração antes de sexta
          Posso enviar?
 Você:    Pode.
-Claude:  Enviada para 2026-10-28. Ela entra no consolidado do backend.
+Claude:  Enviada para 2026-10-28. Ela é publicada no canal do backend.
 ```
 
 ## Quando algo falha

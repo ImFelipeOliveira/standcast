@@ -28,7 +28,7 @@ O token do bot do app do Slack permite que o Standcast:
 
 - busque um usuário do Slack pelo e-mail, para mencionar as pessoas no consolidado;
 - liste canais, para transformar `#canal` no id do canal;
-- publique o consolidado e as respostas na thread dele;
+- publique cada daily, o consolidado e as respostas na thread dele;
 - envie mensagens diretas: lembretes, impedimentos encaminhados e, se o time ativar `signals.direct_message`, impedimentos sugeridos.
 
 Ele não lê mensagens de nenhum canal ou conversa.
@@ -37,7 +37,7 @@ Ele não lê mensagens de nenhum canal ou conversa.
 
 O app do Standcast para o Google Chat chama a API do Google Chat como ele mesmo, com o escopo `chat.bot`. Ele permite que o Standcast:
 
-- publique o consolidado e as respostas na thread dele, nos espaços que têm o app e estão vinculados à sua organização;
+- publique cada daily, o consolidado e as respostas na thread dele, nos espaços que têm o app e estão vinculados à sua organização;
 - confira se o espaço de um time existe e tem o app;
 - confira se um usuário definido em `members.<login>.google_chat` participa de um dos seus espaços vinculados, antes de mandar uma mensagem direta para ele;
 - encontre o espaço de mensagem direta com uma pessoa e envie mensagens diretas: lembretes, impedimentos encaminhados e, se o time ativar `signals.direct_message`, impedimentos sugeridos.
@@ -97,7 +97,7 @@ O Standcast ainda não se conecta ao Jira, ao ClickUp, ao Asana, ao GitHub Proje
 | Períodos de férias | Para cada período: a organização, o login do GitHub da pessoa, o primeiro e o último dia, quem marcou e quando, e quem cancelou e quando | Visíveis à pessoa, aos gestores dos times dela e aos admins da organização. Os colegas de time veem só que a pessoa está de férias hoje, em Hoje no app web |
 | Lista de quem faltou no consolidado | Para cada consolidado, as pessoas que não tinham enviado a daily quando ele foi publicado, sem quem estava de férias | |
 | Sugestões | Para cada impedimento sugerido: o link e o título do pull request (ou do card), o tipo, quando foi percebido e a sua decisão | Visível só para você |
-| Entregas | Para cada consolidado, daily atrasada, lembrete e impedimento encaminhado: time, data, estado, tentativas, o canal e o id da mensagem no Slack ou o espaço e a thread no Google Chat, e o erro, se falhou | |
+| Entregas | Para cada consolidado, daily, daily atrasada, lembrete e impedimento encaminhado: time, data, estado, tentativas, o canal e o id da mensagem no Slack ou o espaço e a thread no Google Chat, e o erro, se falhou | |
 | API keys | Nome, os 8 primeiros caracteres depois de `sck_`, escopos, quem criou, datas de criação, último uso e revogação | Só um hash SHA-256 do segredo |
 | Endpoints de webhook | URL, eventos, estado e número de falhas | Segredo de assinatura criptografado com AES-256-GCM |
 | Entregas de webhook | O payload do evento enviado (que pode conter o texto da daily), estado, tentativas, último código de resposta ou erro | |
@@ -132,7 +132,7 @@ Quando alguém pede acesso ao beta na página do Standcast, o formulário coleta
 | Quem | Vê |
 | --- | --- |
 | Você | O seu rascunho, o seu planejado contra o feito, as suas pendências, os seus impedimentos sugeridos e as suas dailies e os seus períodos de férias, pelo seu agente |
-| Membros do canal do time no Slack ou do espaço do time no Google Chat | O consolidado e as dailies atrasadas na thread dele |
+| Membros do canal do time no Slack ou do espaço do time no Google Chat | Cada daily como mensagem própria e o consolidado; com `chat.post_each_daily: false`, o consolidado com todas as dailies e as atrasadas na thread dele |
 | Gestores do time | Os consolidados, as dailies e os impedimentos confirmados do time nos últimos 90 dias, pelas tools de gestor do MCP; no app web, os períodos de férias das pessoas dos times deles |
 | Admins da organização | Tudo o que os gestores veem, de todos os times; na página de setup, os controles para conectar e reconectar o Slack, os controles para vincular e desvincular espaços do Google Chat, as API keys e os webhooks |
 | Membros da organização que entram na página de setup | O estado da configuração, o nome do workspace do Slack e os espaços vinculados do Google Chat, só para leitura, e as últimas entregas com falha: as mensagens do time uma a uma, e as mensagens diretas agrupadas por tipo e erro, com o login do destinatário só quando ele não tem identidade no chat. Nunca o texto de impedimentos nem sugestões. Não podem conectar nem trocar o workspace do Slack |
@@ -146,7 +146,7 @@ Hoje o Standcast não apaga dailies de forma programada. Dailies e entregas de c
 - logs de entrega de webhook de saída: depois de 30 dias;
 - sessões expiradas: removidas;
 - sugestões resolvidas, aquelas cujo sinal deixou de existir: depois de 90 dias;
-- registros de entrega sobre uma pessoa (lembretes, impedimentos encaminhados, DMs de sugestão e marcadores de varredura): depois de 90 dias;
+- registros de entrega sobre uma pessoa (lembretes, impedimentos encaminhados, DMs de sugestão, marcadores de varredura e dailies publicadas): depois de 90 dias;
 - espaços do Google Chat que nunca foram vinculados: no dia seguinte ao vencimento do código de vínculo;
 - sugestões ignoradas e confirmadas são mantidas, para não voltarem;
 - contadores de limite de taxa: depois de uns 10 minutos.

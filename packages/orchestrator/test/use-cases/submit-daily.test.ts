@@ -269,3 +269,54 @@ describe('submitDaily', () => {
     }
   });
 });
+
+describe('submitDaily on a team that posts each daily', () => {
+  function postingConfig() {
+    const base = config();
+    const [team] = base.teams;
+    if (!team) throw new Error('no team');
+    return {
+      ...base,
+      teams: [{ ...team, chat: { provider: 'slack' as const, channel: '#alpha' } }],
+    };
+  }
+
+  test('enqueues the post on time', async () => {
+    const { deps, isMember, member, queue } = await setup(postingConfig());
+    const result = await submitDaily(deps, isMember, member, daily);
+    expect(result.late).toBe(false);
+    expect(queue.enqueued).toEqual([
+      {
+        name: 'send-late-daily',
+        data: { installationId: INST, memberId: member.id, date: '2026-10-28' },
+      },
+    ]);
+  });
+
+  test('a failing post enqueue does not stop the rest of the submit', async () => {
+    const { deps, isMember, member, queue } = await setup(postingConfig());
+    const enqueue = deps.queue.enqueue.bind(deps.queue);
+    deps.queue.enqueue = async (name, data, opts) => {
+      if (name === 'send-late-daily') throw new Error('queue down');
+      return enqueue(name, data, opts);
+    };
+    const spy = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const result = await submitDaily(deps, isMember, member, {
+        ...daily,
+        blockers: [{ text: 'Need prod access' }],
+      });
+      expect(result.date).toBe('2026-10-28');
+      expect(queue.enqueued.map((j) => j.name)).toEqual(['route-blocker']);
+      expect(JSON.stringify(spy.mock.calls)).toContain('queue down');
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  test('does not enqueue before the digest when post_each_daily is false', async () => {
+    const { deps, isMember, member, queue } = await setup();
+    await submitDaily(deps, isMember, member, daily);
+    expect(queue.enqueued.filter((j) => j.name === 'send-late-daily')).toHaveLength(0);
+  });
+});

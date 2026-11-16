@@ -147,6 +147,7 @@ export const dailies = pgTable(
 export type DeliveryKind =
   | 'digest'
   | 'late_daily'
+  | 'daily'
   | 'reminder'
   | 'blocker_route'
   | 'suggestion_dm'

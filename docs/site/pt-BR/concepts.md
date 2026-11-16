@@ -35,7 +35,7 @@ A daily de uma pessoa para uma data, numa organização. Ela tem quatro listas:
 - **Impedimentos:** o que a trava. Pode ficar vazia.
 - **Pedidos de apoio:** o que ela precisa de outra pessoa sem estar travada, como um review, uma decisão ou um pareamento. Opcional, pode ficar vazia.
 
-Cada item é uma linha de texto, com link opcional para um pull request, issue, commit ou card. Enviar de novo no mesmo dia substitui a daily anterior. Uma única daily aparece no consolidado de todos os times da pessoa.
+Cada item é uma linha de texto, com link opcional para um pull request, issue, commit ou card. Enviar de novo no mesmo dia substitui a daily anterior. Uma única daily é publicada em todos os times da pessoa.
 
 ## Data da daily
 
@@ -47,11 +47,11 @@ O ponto de partida do "ontem", montado pelo Standcast a partir da atividade da p
 
 ## Consolidado
 
-Uma mensagem por time por dia útil, no Slack ou no Google Chat, publicada no `digest_at` do time. Primeiro os impedimentos, depois os pedidos de apoio, depois a daily de cada pessoa e, no fim, a lista de quem não enviou.
+Uma mensagem por time por dia útil, no Slack ou no Google Chat, publicada no `digest_at` do time: os impedimentos, os pedidos de apoio e a lista de quem não enviou a daily, já que cada daily foi publicada no envio. Com `chat.post_each_daily: false`, é o consolidado completo: impedimentos, pedidos de apoio, a daily de cada pessoa e, no fim, quem não enviou.
 
 ## Daily atrasada
 
-Uma daily enviada depois que o consolidado do time foi publicado. Ela vai como mensagem nova no espaço, no Google Chat, e como resposta na thread do consolidado, no Slack, uma vez por pessoa por dia. `chat.late_daily` muda para onde ela vai.
+Uma daily enviada depois que o consolidado do time foi publicado. Ela é publicada como mensagem própria, começando com "Daily enviada depois do consolidado", uma vez por pessoa por dia. Com `chat.post_each_daily: false`, ela vai como resposta na thread do consolidado.
 
 ## Confirmação
 
