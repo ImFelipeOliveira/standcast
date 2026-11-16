@@ -350,7 +350,7 @@ const awayMark = createRoute({
   tags: ['Away'],
   summary: 'Mark myself away',
   description:
-    'Marks the caller as away from `from` (default today) to `until`, both inclusive and at most 90 days long. It cannot overlap another active period. A notice is posted to the team chat. Marking someone else is only available in the web app.\n\nMarca a pessoa como ausente de `from` (padrão hoje) até `until`, ambos inclusive e com no máximo 90 dias. Não pode sobrepor outro período ativo. Um aviso é publicado no chat do time. Marcar outra pessoa só é possível no app web.',
+    'Marks the caller as away from `from` (default today) to `until`, both inclusive and at most 90 days long. It cannot overlap another active period. Nothing is posted to the team chat. Marking someone else is only available in the web app.\n\nMarca a pessoa como ausente de `from` (padrão hoje) até `until`, ambos inclusive e com no máximo 90 dias. Não pode sobrepor outro período ativo. Nada é publicado no chat do time. Marcar outra pessoa só é possível no app web.',
   security: [{ session: [] }],
   request: {
     body: {
@@ -385,7 +385,7 @@ const awayCancel = createRoute({
   tags: ['Away'],
   summary: 'Cancel an away period',
   description:
-    "Cancels one of the caller's own away periods. A notice is posted to the team chat.\n\nCancela um período de ausência da própria pessoa. Um aviso é publicado no chat do time.",
+    "Cancels an active away period by id: one of the caller's own, or one of a person on a team the caller manages, or anyone's in the organization for an admin. Otherwise it returns `forbidden`. Nothing is posted to the team chat. When the caller cancels someone else's period, that person gets a direct message.\n\nCancela um período de ausência ativo pelo id: um da própria pessoa, um de alguém de um time que ela gerencia, ou de qualquer pessoa da organização se ela for admin. Fora isso, devolve `forbidden`. Nada é publicado no chat do time. Quando cancela o período de outra pessoa, essa pessoa recebe uma mensagem direta.",
   security: [{ session: [] }],
   request: {
     params: z.object({
