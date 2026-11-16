@@ -123,7 +123,7 @@ export const en: Record<MessageKey, string> = {
   'away.mark': 'Mark away',
   'away.save': 'Save',
   'away.cancel': 'Cancel',
-  'away.cancelFor': 'Cancel away period of @{login}',
+  'away.cancelFor': 'Cancel away period of @{login} from {from} to {until}',
   'away.markFor': 'Mark @{login} away',
   'away.range': '{from} to {until}',
   'away.markedBy': 'Marked by @{login}',

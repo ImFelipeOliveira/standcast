@@ -129,7 +129,7 @@ describe('account page', () => {
     expect(html).toContain('Férias');
     expect(html).toContain('01/12 a 05/12');
     expect(html).toContain('Marcado por @carla');
-    expect(html).toContain('Cancelar as férias de @ana');
+    expect(html).toContain('aria-label="Cancelar as férias de @ana de 01/12 a 05/12"');
     expect(html).toContain('type="date"');
   });
 

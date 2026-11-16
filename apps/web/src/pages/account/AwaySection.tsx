@@ -40,7 +40,11 @@ function AwayList({ installationId }: { installationId: number }) {
               type="button"
               variant="outline"
               disabled={cancel.isPending}
-              aria-label={t('away.cancelFor', { login: period.login })}
+              aria-label={t('away.cancelFor', {
+                login: period.login,
+                from: formatShortDate(lang, period.from),
+                until: formatShortDate(lang, period.until),
+              })}
               onClick={() => cancel.mutate(period.id)}
             >
               {t('away.cancel')}

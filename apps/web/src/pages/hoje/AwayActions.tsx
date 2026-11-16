@@ -52,7 +52,11 @@ function UpcomingAway({ installationId, login }: { installationId: number; login
               type="button"
               variant="outline"
               disabled={cancel.isPending}
-              aria-label={t('away.cancelFor', { login })}
+              aria-label={t('away.cancelFor', {
+                login,
+                from: formatShortDate(lang, period.from),
+                until: formatShortDate(lang, period.until),
+              })}
               onClick={() => cancel.mutate(period.id)}
             >
               {t('away.cancel')}
@@ -110,7 +114,11 @@ function ElevatedAway({
         variant="outline"
         className="self-start"
         disabled={cancel.isPending}
-        aria-label={t('away.cancelFor', { login })}
+        aria-label={t('away.cancelFor', {
+          login,
+          from: formatShortDate(lang, away.from),
+          until: formatShortDate(lang, away.until),
+        })}
         onClick={() => cancel.mutate(away.id)}
       >
         {t('away.cancel')}

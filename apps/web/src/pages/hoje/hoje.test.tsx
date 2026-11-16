@@ -596,7 +596,8 @@ describe('hoje', () => {
     const card = blockerCard(html, '@diego');
     expect(card).toContain('10/11 a 14/11');
     expect(card).toContain('01/12 a 03/12');
-    expect(card.match(/aria-label="Cancelar as férias de @diego"/g)).toHaveLength(2);
+    expect(card).toContain('aria-label="Cancelar as férias de @diego de 10/11 a 14/11"');
+    expect(card).toContain('aria-label="Cancelar as férias de @diego de 01/12 a 03/12"');
     expect(card).toContain('Marcar férias');
   });
 

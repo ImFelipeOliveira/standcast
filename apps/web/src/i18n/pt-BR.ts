@@ -123,7 +123,7 @@ export const ptBR = {
   'away.mark': 'Marcar férias',
   'away.save': 'Salvar',
   'away.cancel': 'Cancelar',
-  'away.cancelFor': 'Cancelar as férias de @{login}',
+  'away.cancelFor': 'Cancelar as férias de @{login} de {from} a {until}',
   'away.markFor': 'Marcar férias de @{login}',
   'away.range': '{from} a {until}',
   'away.markedBy': 'Marcado por @{login}',
