@@ -8,7 +8,7 @@ import { config, fakeDeps, INST, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
-function twoTeams(): StandcastConfig {
+function twoTeams(alpha = '[Alice, bob, carol, Frank]'): StandcastConfig {
   const parsed = parseConfig(`
 teams:
   - name: Alpha
@@ -16,7 +16,7 @@ teams:
     remind_at: "09:00"
     digest_at: "10:00"
     managers: [alice]
-    members: [Alice, bob, carol, Frank]
+    members: ${alpha}
     chat: { provider: slack, channel: "#alpha" }
   - name: Beta
     timezone: America/Sao_Paulo
@@ -299,5 +299,55 @@ describe('cancelAway', () => {
     await cancelAway(deps, isMember, bob, { installationId: INST, periodId: first.id });
     const second = await markAway(deps, isMember, bob, { installationId: INST, ...period });
     expect(second.id).not.toBe(first.id);
+  });
+
+  async function bobLeftEveryTeam() {
+    const fake = await setup();
+    const marked = await markAway(fake.deps, fake.isMember, fake.alice, {
+      installationId: INST,
+      login: 'bob',
+      ...period,
+    });
+    await seedOrg(twoTeams('[Alice, carol, Frank]'));
+    return { ...fake, marked };
+  }
+
+  test('a person in no team can still list and cancel their own period', async () => {
+    const { deps, isMember, bob, marked, notices } = await bobLeftEveryTeam();
+    expect(await listAway(deps, isMember, bob, { installationId: INST })).toEqual([
+      { ...marked, mine: true },
+    ]);
+    await cancelAway(deps, isMember, bob, { installationId: INST, periodId: marked.id });
+    expect(await listAway(deps, isMember, bob, { installationId: INST })).toEqual([]);
+    expect(notices()).toHaveLength(1);
+    await expect(
+      markAway(deps, isMember, bob, { installationId: INST, ...period }),
+    ).rejects.toMatchObject({ code: 'not_in_team' });
+  });
+
+  test('an admin can cancel a period whose login left every team', async () => {
+    const { deps, isMember, carol, roles, marked, notices } = await bobLeftEveryTeam();
+    roles.set('carol', { role: 'admin', state: 'active' });
+    expect(await listAway(deps, isMember, carol, { installationId: INST, login: 'bob' })).toEqual([
+      { ...marked, mine: false },
+    ]);
+    await cancelAway(deps, isMember, carol, { installationId: INST, periodId: marked.id });
+    expect(notices().map((n) => (n.data as { action: string }).action)).toEqual([
+      'marked',
+      'cancelled',
+    ]);
+    await expect(
+      markAway(deps, isMember, carol, { installationId: INST, login: 'bob', ...period }),
+    ).rejects.toMatchObject({ code: 'not_found' });
+  });
+
+  test('a manager cannot cancel a period whose login left every team', async () => {
+    const { deps, isMember, alice, marked } = await bobLeftEveryTeam();
+    await expect(
+      cancelAway(deps, isMember, alice, { installationId: INST, periodId: marked.id }),
+    ).rejects.toMatchObject({ code: 'forbidden' });
+    await expect(
+      listAway(deps, isMember, alice, { installationId: INST, login: 'bob' }),
+    ).rejects.toMatchObject({ code: 'forbidden' });
   });
 });

@@ -53,29 +53,38 @@ async function isAdmin(deps: Deps, caller: AwayCaller): Promise<boolean> {
   );
 }
 
+export type AwayPurpose = 'mark' | 'manage';
+
 export async function awayAccessFor(
   deps: Deps,
   caller: AwayCaller,
   target: string | undefined,
+  purpose: AwayPurpose,
 ): Promise<AwayAccess> {
   const login = (target ?? caller.login).toLowerCase();
   const self = login === caller.login;
   const [first] = teamsForMember(login, caller.teams);
+  const today = first ? dailyDateFor(deps.now(), first) : deps.now().toISOString().slice(0, 10);
   if (self) {
-    if (!first) {
+    if (!first && purpose === 'mark') {
       throw new DomainError('not_in_team', 'you are not in any team of this organization');
     }
-    return { caller, login, self, today: dailyDateFor(deps.now(), first) };
+    return { caller, login, self, today };
   }
+  const forbidden = () => new DomainError('forbidden', 'you cannot act on this person');
   if (!first) {
+    if (purpose === 'manage') {
+      if (!(await isAdmin(deps, caller))) throw forbidden();
+      return { caller, login, self, today };
+    }
     const elevated =
       caller.teams.some((team) => managesTeam(caller.login, team)) || (await isAdmin(deps, caller));
-    if (!elevated) throw new DomainError('forbidden', 'you cannot act on this person');
+    if (!elevated) throw forbidden();
     throw new DomainError('not_found', 'person not found in any team');
   }
   const elevated =
     teamsForMember(login, caller.teams).some((team) => managesTeam(caller.login, team)) ||
     (await isAdmin(deps, caller));
-  if (!elevated) throw new DomainError('forbidden', 'you cannot act on this person');
-  return { caller, login, self, today: dailyDateFor(deps.now(), first) };
+  if (!elevated) throw forbidden();
+  return { caller, login, self, today };
 }

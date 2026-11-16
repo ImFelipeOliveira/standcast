@@ -36,7 +36,7 @@ export async function listAway(
   input: { installationId: number; login?: string },
 ): Promise<AwayPeriod[]> {
   const caller = await loadAwayCaller(deps, isMember, member, input.installationId);
-  const access = await awayAccessFor(deps, caller, input.login);
+  const access = await awayAccessFor(deps, caller, input.login, 'manage');
   const rows = await listAwayPeriods(deps.db, caller.installation.id, access.login, access.today);
   const markers = new Map<string, string>();
   for (const id of new Set(rows.map((row) => row.createdBy))) {

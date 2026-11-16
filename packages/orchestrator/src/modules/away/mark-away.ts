@@ -21,7 +21,7 @@ export async function markAway(
   input: MarkAwayInput,
 ): Promise<AwayPeriod> {
   const caller = await loadAwayCaller(deps, isMember, member, input.installationId);
-  const access = await awayAccessFor(deps, caller, input.login);
+  const access = await awayAccessFor(deps, caller, input.login, 'mark');
   const from = input.from ?? access.today;
   if (validateAwayPeriod({ from, until: input.until, today: access.today }) !== 'ok') {
     throw new DomainError('invalid_away_period', 'the away period is not valid');

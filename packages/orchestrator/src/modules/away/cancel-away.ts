@@ -18,7 +18,7 @@ export async function cancelAway(
   if (!UUID.test(input.periodId)) throw notFound();
   const period = await getAwayPeriod(deps.db, caller.installation.id, input.periodId);
   if (!period || period.cancelledAt) throw notFound();
-  const access = await awayAccessFor(deps, caller, period.login);
+  const access = await awayAccessFor(deps, caller, period.login, 'manage');
   const cancelled = await cancelAwayPeriod(deps.db, {
     installationId: caller.installation.id,
     id: period.id,
