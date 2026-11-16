@@ -20,7 +20,7 @@ import {
   listOrgTeams,
   loadInstallationConfig,
 } from '../../src';
-import { config, fakeDeps, found, INST, seedOrg } from './fakes';
+import { config, fakeDeps, found, INST, seedAway, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -440,6 +440,39 @@ describe('listOrgDigests', () => {
       'status',
       'team',
     ]);
+  });
+
+  test('missing comes from the stored list, so a later away period or team change does not alter it', async () => {
+    await seedOrg(twoTeams());
+    const { deps } = fakeDeps();
+    const key = {
+      installationId: INST,
+      teamName: 'Alpha',
+      date: '2026-10-28',
+      kind: 'digest' as const,
+    };
+    const claim = await claimDelivery(db, key);
+    if (claim.status !== 'claimed') throw new Error('claim');
+    await completeDelivery(
+      db,
+      key,
+      claim.token,
+      { channel: 'C', id: '1' },
+      { missingLogins: ['bob'] },
+    );
+    await submit('bob', '2026-10-28');
+    await seedAway('bob', '2026-10-28', '2026-10-28');
+    const [only] = (await listOrgDigests(deps, INST, {})).data;
+    expect(only?.missing).toEqual(['bob']);
+  });
+
+  test('a digest without a stored list falls back to the current computation', async () => {
+    await seedOrg(twoTeams());
+    const { deps } = fakeDeps();
+    await submit('Alice', '2026-10-28');
+    await digest('Alpha', '2026-10-28', 'sent');
+    const [only] = (await listOrgDigests(deps, INST, {})).data;
+    expect(only?.missing).toEqual(['bob']);
   });
 
   test('filters by team and date range, and ignores late daily deliveries', async () => {

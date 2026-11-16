@@ -127,7 +127,10 @@ const DigestSentSchema = envelope(
     team: z.string(),
     date: z.string(),
     submitted: z.array(z.string()).openapi({ description: 'Logins that sent the daily.' }),
-    missing: z.array(z.string()).openapi({ description: 'Logins that did not send the daily.' }),
+    missing: z.array(z.string()).openapi({
+      description:
+        'Logins that had not sent the daily when the digest was posted, not counting people away on that date.\n\nLogins que não tinham enviado a daily quando o consolidado foi publicado, sem contar quem estava de férias naquela data.',
+    }),
   }),
 ).openapi('DigestSentEvent');
 

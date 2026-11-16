@@ -214,6 +214,7 @@ function TodayView({ installationId, today }: { installationId: number; today: T
             hasDaily={(login) => withDaily.has(login)}
           />
           <Dailies
+            installationId={installationId}
             today={today}
             filter={filter}
             onFilter={setFilter}

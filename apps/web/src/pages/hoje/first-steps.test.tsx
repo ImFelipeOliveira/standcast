@@ -13,7 +13,7 @@ function today(overrides: Partial<TeamToday> = {}): TeamToday {
     chat: { provider: 'slack', url: null },
     canRemind: true,
     canResolve: true,
-    people: [{ login: 'diego', status: 'missing', submittedAt: null, daily: null }],
+    people: [{ login: 'diego', status: 'missing', submittedAt: null, daily: null, away: null }],
     blockers: [],
     support: [],
     shipped: [],
@@ -51,7 +51,13 @@ describe('first steps', () => {
         chat: { provider: 'google-chat', url: null },
         everSubmitted: true,
         people: [
-          { login: 'ana', status: 'sent', submittedAt: '2026-11-03T12:00:00.000Z', daily: null },
+          {
+            login: 'ana',
+            status: 'sent',
+            submittedAt: '2026-11-03T12:00:00.000Z',
+            daily: null,
+            away: null,
+          },
         ],
       }),
       true,

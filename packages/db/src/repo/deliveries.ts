@@ -90,10 +90,17 @@ export async function completeDelivery(
   k: DeliveryKey,
   token: number,
   ref: MessageRef | null,
+  extra?: { missingLogins?: string[] },
 ): Promise<boolean> {
   const rows = await db
     .update(deliveries)
-    .set({ status: 'sent', ref, error: null, updatedAt: sql`now()` })
+    .set({
+      status: 'sent',
+      ref,
+      error: null,
+      ...(extra?.missingLogins ? { missingLogins: extra.missingLogins } : {}),
+      updatedAt: sql`now()`,
+    })
     .where(and(keyFilter(k), eq(deliveries.status, 'pending'), eq(deliveries.attempts, token)))
     .returning({ id: deliveries.id });
   return rows.length > 0;

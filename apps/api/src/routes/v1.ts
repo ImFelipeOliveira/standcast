@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { DailyConfirmation } from '@standcast/core';
 import {
+  cancelAway,
   createMembershipCheck,
   type Deps,
   DomainError,
@@ -8,6 +9,8 @@ import {
   endSession,
   getDraft,
   getToday,
+  listAway,
+  markAway,
   startSession,
   submitDaily,
 } from '@standcast/orchestrator';
@@ -23,6 +26,10 @@ import {
 import { bearerToken, type SessionEnv, sessionAuth } from '../middleware/session-auth';
 import { sessionScheme } from '../openapi/document';
 import {
+  AwayCancelSchema,
+  AwayListSchema,
+  AwayMarkSchema,
+  AwayPeriodSchema,
   DAILY_EXAMPLE,
   DailySubmissionSchema,
   DRAFT_EXAMPLE,
@@ -293,6 +300,118 @@ const suggestionDecision = createRoute({
   },
 });
 
+const AWAY_EXAMPLE = {
+  id: '5f0c2a8e-3b1d-4c7e-9a2f-1d6b8e4c0a17',
+  login: 'alice',
+  from: '2026-10-28',
+  until: '2026-10-30',
+  markedBy: 'alice',
+  markedAt: '2026-10-28T15:00:00.000Z',
+  mine: true,
+};
+
+const AWAY_ACCESS_ERRORS = {
+  401: UNAUTHORIZED,
+  403: errorResponse('The person has no access to the organization.', {
+    forbidden: 'not a member of this organization',
+  }),
+  404: errorResponse('The organization was not found.', {
+    org_not_found: 'organization not found',
+  }),
+  429: RATE_LIMITED,
+};
+
+const awayList = createRoute({
+  method: 'get',
+  path: '/v1/away',
+  tags: ['Away'],
+  summary: 'List my away periods',
+  description:
+    "Lists the caller's own current and upcoming away periods in the organization. While a person is away, they are not reminded and are not listed as missing in the digest.\n\nLista os períodos de ausência atuais e futuros da própria pessoa na organização. Enquanto está ausente, a pessoa não recebe lembrete e não aparece como pendente no consolidado.",
+  security: [{ session: [] }],
+  request: { query: orgQuery },
+  responses: {
+    200: {
+      description: 'The away periods.',
+      headers: rateHeaders,
+      content: {
+        'application/json': { schema: AwayListSchema, example: { data: [AWAY_EXAMPLE] } },
+      },
+    },
+    ...AWAY_ACCESS_ERRORS,
+    422: errorResponse('The request is not valid.', { invalid_request: 'org is required' }),
+  },
+});
+
+const awayMark = createRoute({
+  method: 'post',
+  path: '/v1/away',
+  tags: ['Away'],
+  summary: 'Mark myself away',
+  description:
+    'Marks the caller as away from `from` (default today) to `until`, both inclusive and at most 90 days long. It cannot overlap another active period. Nothing is posted to the team chat. Marking someone else is only available in the web app.\n\nMarca a pessoa como ausente de `from` (padrão hoje) até `until`, ambos inclusive e com no máximo 90 dias. Não pode sobrepor outro período ativo. Nada é publicado no chat do time. Marcar outra pessoa só é possível no app web.',
+  security: [{ session: [] }],
+  request: {
+    body: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: AwayMarkSchema,
+          example: { org: 'acme', until: '2026-10-30' },
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'The period was created.',
+      headers: rateHeaders,
+      content: { 'application/json': { schema: AwayPeriodSchema, example: AWAY_EXAMPLE } },
+    },
+    ...AWAY_ACCESS_ERRORS,
+    422: errorResponse('The request or the period is not valid.', {
+      invalid_request: 'org and until are required',
+      invalid_away_period: 'the period is not valid',
+      away_overlap: 'the period overlaps another one',
+      not_in_team: 'you are not in any team of this organization',
+    }),
+  },
+});
+
+const awayCancel = createRoute({
+  method: 'post',
+  path: '/v1/away/{periodId}/cancel',
+  tags: ['Away'],
+  summary: 'Cancel an away period',
+  description:
+    "Cancels an active away period by id: one of the caller's own, or one of a person on a team the caller manages, or anyone's in the organization for an admin. Otherwise it returns `forbidden`. Nothing is posted to the team chat. When the caller cancels someone else's period, that person gets a direct message.\n\nCancela um período de ausência ativo pelo id: um da própria pessoa, um de alguém de um time que ela gerencia, ou de qualquer pessoa da organização se ela for admin. Fora isso, devolve `forbidden`. Nada é publicado no chat do time. Quando cancela o período de outra pessoa, essa pessoa recebe uma mensagem direta.",
+  security: [{ session: [] }],
+  request: {
+    params: z.object({
+      periodId: z.string().openapi({
+        format: 'uuid',
+        description: 'Away period id.',
+        example: AWAY_EXAMPLE.id,
+      }),
+    }),
+    body: {
+      required: true,
+      content: {
+        'application/json': { schema: AwayCancelSchema, example: { org: 'acme' } },
+      },
+    },
+  },
+  responses: {
+    204: { description: 'The period was cancelled.', headers: rateHeaders },
+    ...AWAY_ACCESS_ERRORS,
+    404: errorResponse('The organization or the period was not found.', {
+      org_not_found: 'organization not found',
+      not_found: 'away period not found',
+    }),
+    422: errorResponse('The request is not valid.', { invalid_request: 'org is required' }),
+  },
+});
+
 const CONFIRMATION_HEADER = 'x-standcast-confirmation';
 
 function confirmationOf(value: string | undefined): DailyConfirmation | undefined {
@@ -305,11 +424,12 @@ const BODY_ERRORS: Record<string, DomainError> = {
 };
 
 const SUGGESTION_DECISION_PATH = /^\/v1\/suggestions\/[^/]+\/decision$/;
+const AWAY_BODY_PATH = /^\/v1\/away(\/[^/]+\/cancel)?$/;
 
 function bodyError(error: Error, path: string): Error {
   const mapped =
     BODY_ERRORS[path] ??
-    (SUGGESTION_DECISION_PATH.test(path)
+    (SUGGESTION_DECISION_PATH.test(path) || AWAY_BODY_PATH.test(path)
       ? new DomainError('invalid_request', 'request body must be JSON')
       : undefined);
   if (error instanceof HTTPException && (error.status === 400 || error.status === 415) && mapped) {
@@ -317,6 +437,12 @@ function bodyError(error: Error, path: string): Error {
   }
   return error;
 }
+
+const invalidOrg =
+  (message: string) =>
+  (result: { success: boolean; error?: z.ZodError }): undefined => {
+    if (!result.success) throw new DomainError('invalid_request', message, result.error?.issues);
+  };
 
 export function v1Routes(deps: Deps, options: V1Options): OpenAPIHono<Env> {
   const app = new OpenAPIHono<Env>();
@@ -331,6 +457,8 @@ export function v1Routes(deps: Deps, options: V1Options): OpenAPIHono<Env> {
     '/v1/today',
     '/v1/dailies',
     '/v1/suggestions/*',
+    '/v1/away',
+    '/v1/away/*',
     '/v1/manage/*',
   ]) {
     app.use(path, sessionAuth(deps, options.getClientIp), subjectRateLimit(deps));
@@ -410,6 +538,39 @@ export function v1Routes(deps: Deps, options: V1Options): OpenAPIHono<Env> {
         );
       }
     },
+  );
+
+  app.openapi(
+    awayList,
+    async (c) => {
+      const data = await listAway(deps, isMember, c.get('member'), {
+        org: c.req.valid('query').org,
+      });
+      return c.json({ data }, 200);
+    },
+    requireOrg,
+  );
+
+  app.openapi(
+    awayMark,
+    async (c) => {
+      const { org, from, until } = c.req.valid('json');
+      const period = await markAway(deps, isMember, c.get('member'), { org, from, until });
+      return c.json(period, 201);
+    },
+    invalidOrg('org and until are required, and login is not accepted'),
+  );
+
+  app.openapi(
+    awayCancel,
+    async (c) => {
+      await cancelAway(deps, isMember, c.get('member'), {
+        org: c.req.valid('json').org,
+        periodId: c.req.valid('param').periodId,
+      });
+      return c.body(null, 204);
+    },
+    invalidOrg('org is required'),
   );
 
   app.route('/', manageRoutes(deps, isMember));

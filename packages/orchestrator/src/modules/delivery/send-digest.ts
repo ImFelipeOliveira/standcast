@@ -10,6 +10,7 @@ import {
   postsEachDaily,
 } from '@standcast/core';
 import {
+  awayLogins,
   claimDelivery,
   completeDelivery,
   type DeliveryKey,
@@ -106,6 +107,7 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
   let ref: MessageRef;
   let entries: DigestEntry[];
   let missing: Person[];
+  let missingLogins: string[];
   try {
     const chat = await deps.chatFor(job.installationId, provider);
     if (!chat) {
@@ -145,10 +147,15 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
     };
     entries = [];
     missing = [];
+    missingLogins = [];
+    const away = await awayLogins(deps.db, job.installationId, team.memberLogins, job.date);
     for (const login of team.memberLogins) {
       const found = snapshot.find((d) => d.login.toLowerCase() === login);
       if (found) entries.push({ ...person(found.login), daily: found.payload });
-      else missing.push(person(login));
+      else if (!away.has(login)) {
+        missing.push(person(login));
+        missingLogins.push(login.toLowerCase());
+      }
     }
     if (deps.now().getTime() - claimedAt > DIGEST_POST_DEADLINE_MS) {
       throw new ChatDeliveryError('deadline_exceeded', 'digest attempt ran past its deadline');
@@ -167,7 +174,7 @@ export async function sendDigest(deps: WorkerDeps, job: SendDigestJob): Promise<
     throw error;
   }
 
-  if (await completeDelivery(deps.db, key, claim.token, ref)) {
+  if (await completeDelivery(deps.db, key, claim.token, ref, { missingLogins })) {
     await emitEventSafely(deps, job.installationId, {
       type: 'digest.sent',
       data: {

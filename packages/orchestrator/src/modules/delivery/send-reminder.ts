@@ -1,5 +1,6 @@
 import { buildReminder, isWorkday, localInstant, teamsForMember } from '@standcast/core';
 import {
+  awayLogins,
   claimDelivery,
   completeDelivery,
   type DeliveryKey,
@@ -34,6 +35,8 @@ export async function sendReminder(deps: WorkerDeps, job: SendReminderJob): Prom
   const teams = job.team === undefined ? mine : mine.filter((team) => team.name === job.team);
   const first = teams[0];
   if (!first) return;
+
+  if ((await awayLogins(deps.db, job.installationId, [login], job.date)).has(login)) return;
 
   const dailies = await listDailies(deps.db, job.installationId, job.date);
   if (dailies.some((d) => d.login.toLowerCase() === login)) return;

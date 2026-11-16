@@ -2,6 +2,7 @@ import { parseArgs } from 'node:util';
 import { stripUnsafeChars, t } from '@standcast/core';
 import pkg from '../../../package.json';
 import { ApiError, NetworkError } from './api';
+import { away } from './commands/away';
 import { draft } from './commands/draft';
 import { login } from './commands/login';
 import { logout } from './commands/logout';
@@ -19,6 +20,8 @@ const OPTIONS = {
   file: { type: 'string' },
   'api-url': { type: 'string' },
   sessions: { type: 'boolean' },
+  from: { type: 'string' },
+  until: { type: 'string' },
 } as const;
 
 const COMMANDS: Record<string, (ctx: Ctx) => Promise<number>> = {
@@ -28,6 +31,7 @@ const COMMANDS: Record<string, (ctx: Ctx) => Promise<number>> = {
   draft,
   submit,
   suggestion,
+  away,
   mcp,
 };
 
@@ -71,6 +75,8 @@ export async function run(argv: string[], io: Io): Promise<number> {
       file: values.file,
       apiUrl: values['api-url'],
       sessions: values.sessions,
+      from: values.from,
+      until: values.until,
     },
     args: positionals.slice(1),
   };

@@ -1,4 +1,5 @@
 export * from './activity';
+export * from './away';
 export * from './blocker-alert';
 export * from './blocker-routed';
 export * from './calendar';

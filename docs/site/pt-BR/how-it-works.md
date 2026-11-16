@@ -128,6 +128,17 @@ Para responder:
 
 Uma sugestão ignorada só volta se o sinal mudar: um novo commit head que ainda falha, ou um novo período sem revisão, depois que uma revisão é descartada ou o pull request volta a ficar pronto para revisão. Um card parado só volta se o card for reiniciado. O agente nunca adiciona uma sugestão sem a sua resposta. Veja [CLI](/pt-BR/members/cli#standcast-suggestion).
 
+## Férias
+
+Uma pessoa pode marcar um período de férias, ou de licença. Ela faz isso com o `standcast away` ou com as tools do MCP, e gestores e admins podem marcar por ela no [app web](/pt-BR/admin/web-app#ferias). O período é por organização e tem no máximo 90 dias. Em cada dia dentro dele:
+
+- a pessoa não recebe lembrete, e **Lembrar agora** responde que ela está de férias;
+- o consolidado não lista a pessoa em "Não enviaram". O consolidado não diz nada sobre quem está de férias;
+- Hoje mostra **Férias até** a data no lugar de **Lembrar agora**, para quem não enviou a daily;
+- a varredura de impedimentos sugeridos não roda para ela.
+
+Uma daily enviada durante o período conta normalmente. O webhook `digest.sent` e o `/v1/org/digests` listam em `missing` só quem não enviou e não estava de férias. O `/v1/org/digests` devolve a lista guardada quando o consolidado foi publicado. Um consolidado publicado antes desta mudança não tem lista guardada, então `missing` é calculado na leitura, a partir dos membros atuais do time e de quem já enviou a daily daquela data. As férias são gerenciadas só pelas rotas de sessão que a CLI, o servidor MCP e o app web usam. Nada sobre elas chega à API da organização (`/v1/org/*`), à API de gestão (`/v1/manage/*`), aos webhooks nem à página de setup.
+
 ## Fuso, dias úteis e vários times
 
 - **Todos os horários são no fuso do time.** `remind_at` e `digest_at` são horários locais, `HH:MM`, 24 horas.

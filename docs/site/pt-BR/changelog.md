@@ -12,6 +12,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 - Cada daily publicada no chat segue um formato: o que foi realizado ontem, com os dias que cobre (na segunda, de sexta a domingo), o foco para hoje com a data, impedimentos e solicitações de apoio. Uma seção vazia diz isso, como "Nenhum impedimento.", e cada link vai numa linha própria abaixo do item, depois de 🔗. No Google Chat, uma linha em branco separa as seções, e no Slack o texto seguido vai numa seção só, para um consolidado longo caber no limite de blocos do Slack.
 - Com `chat.post_each_daily: false`, o consolidado traz a daily de cada pessoa nesse mesmo formato, então impedimentos e pedidos de apoio aparecem na seção de cada pessoa, e não no topo.
+- Férias. A pessoa marca férias ou licença com `standcast away --until YYYY-MM-DD` ou pelas tools do MCP, e gestores e admins marcam no app web. Nesses dias não há lembrete, a pessoa não aparece como faltante no consolidado, e Hoje mostra a pessoa como de férias. Nada sobre quem está ausente aparece no consolidado. Veja [Férias](/pt-BR/how-it-works#ferias) e [`standcast away`](/pt-BR/members/cli#standcast-away).
 
 ### 0.16.0 — 16/11/2026
 

@@ -13,10 +13,13 @@ import {
 import { z } from 'zod';
 import {
   ApiError,
+  cancelAway,
   decideSuggestion,
   getDraft,
   getManage,
   getToday,
+  listAway,
+  markAway,
   NetworkError,
   postDaily,
 } from '../api';
@@ -96,6 +99,16 @@ const blockerOut = z.looseObject({
   author: z.string(),
   date: z.string(),
   teams: z.array(z.string()),
+});
+
+const awayOut = z.looseObject({
+  id: z.string(),
+  login: z.string(),
+  from: z.string(),
+  until: z.string(),
+  markedBy: z.string(),
+  markedAt: z.string(),
+  mine: z.boolean(),
 });
 
 const draftOut = z.looseObject({
@@ -445,6 +458,80 @@ export function registerTools(server: McpServer, io: Io): void {
         const s = await session(io, input.org);
         await decideSuggestion(s.apiUrl, s.token, s.org, input.id, input.decision);
         return { id: input.id, decision: input.decision };
+      }),
+  );
+
+  server.registerTool(
+    'standcast_away_mark',
+    {
+      title: 'Mark myself away',
+      description:
+        'Marks the person as away (vacation, leave) from a date to a date, inclusive, so Standcast stops sending them daily reminders and leaves them off the missing list on those days. It only marks the person themselves. Before calling, you MUST confirm the exact dates with the person. from is optional and defaults to today; until is the last away day. At most 90 days, and it cannot overlap another active period.',
+      inputSchema: {
+        org,
+        from: day.optional().describe('First away day, YYYY-MM-DD. Defaults to today.'),
+        until: day.describe('Last away day, YYYY-MM-DD.'),
+      },
+      outputSchema: awayOut,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    (input) =>
+      respond(async () => {
+        const s = await session(io, input.org);
+        return markAway(s.apiUrl, s.token, s.org, {
+          ...(input.from ? { from: input.from } : {}),
+          until: input.until,
+        });
+      }),
+  );
+
+  server.registerTool(
+    'standcast_away_list',
+    {
+      title: 'List my away periods',
+      description:
+        "Lists the person's active away periods, with the id of each one. Use it to find the id before standcast_away_cancel.",
+      inputSchema: { org },
+      outputSchema: { data: z.array(awayOut) },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    (input) =>
+      respond(async () => {
+        const s = await session(io, input.org);
+        return listAway(s.apiUrl, s.token, s.org);
+      }),
+  );
+
+  server.registerTool(
+    'standcast_away_cancel',
+    {
+      title: 'Cancel an away period',
+      description:
+        'Cancels one of the active away periods of the person, so reminders resume on those days. Before calling, you MUST confirm with the person which period to cancel (show its dates from standcast_away_list).',
+      inputSchema: { org, id: z.string().min(1).describe('Id of the away period to cancel.') },
+      outputSchema: { id: z.string(), cancelled: z.literal(true) },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    (input) =>
+      respond(async () => {
+        const s = await session(io, input.org);
+        await cancelAway(s.apiUrl, s.token, s.org, input.id);
+        return { id: input.id, cancelled: true };
       }),
   );
 

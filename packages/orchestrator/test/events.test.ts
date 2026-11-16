@@ -21,7 +21,16 @@ import {
   sendDigest,
   submitDaily,
 } from '../src';
-import { config, daily, fakeChat, fakeDeps, INST, seedMember, seedOrg } from './use-cases/fakes';
+import {
+  config,
+  daily,
+  fakeChat,
+  fakeDeps,
+  INST,
+  seedAway,
+  seedMember,
+  seedOrg,
+} from './use-cases/fakes';
 
 useCleanDb();
 
@@ -330,6 +339,26 @@ describe('events emitted', () => {
       submitted: ['Alice'],
       missing: ['bob'],
     });
+  });
+
+  test('digest.sent payload missing excludes the away person', async () => {
+    await seedOrg();
+    const alice = await seedMember();
+    await upsertDaily(db, {
+      installationId: INST,
+      memberId: alice.id,
+      date: '2026-10-28',
+      payload: daily,
+      submittedAt: new Date('2026-10-28T12:00:00Z'),
+    });
+    await seedAway('bob', '2026-10-28', '2026-10-28');
+    await endpoint();
+    const fake = fakeDeps();
+    const chat = fakeChat();
+    fake.deps.chatFor = async () => chat.chat;
+    await sendDigest(fake.deps, { installationId: INST, teamName: 'Alpha', date: '2026-10-28' });
+    const rows = await emitted(fake.queue);
+    expect(envelopeOf(rows[0] as { payload: unknown }).data).toMatchObject({ missing: [] });
   });
 
   test('a failing emission never breaks the daily or the digest', async () => {

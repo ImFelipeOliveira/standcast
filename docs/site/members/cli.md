@@ -212,6 +212,23 @@ standcast suggestion ignore <id>
 - Use `--org <login>` when you belong to more than one organization.
 - An unknown id, or one that is not yours, gives `error not_found`. The opposite decision to the one already made gives `error suggestion_already_decided`. Repeating the same decision works.
 
+### `standcast away`
+
+Marks a period when you are away, such as vacation or leave. On those days Standcast does not remind you and does not list you as missing. See [Away periods](/how-it-works#away-periods).
+
+```bash
+standcast away --until 2026-12-31 --from 2026-12-20
+standcast away list
+standcast away cancel <id>
+```
+
+- `--until` is the last away day and is required. `--from` is the first away day. It defaults to today.
+- A period has at most 90 days, counting both ends, and cannot start before today. It cannot overlap another active period: cancel it and mark again to change the dates.
+- `standcast away list` prints your active periods with their ids. `standcast away cancel <id>` ends one, and reminders come back on those days. You can cancel a period a manager marked for you.
+- Use `--org <login>` when you belong to more than one organization.
+- Dates are `YYYY-MM-DD`. The output is JSON, on stdout.
+- An invalid period gives `error invalid_away_period`, and an overlap gives `error away_overlap`.
+
 ### `standcast mcp`
 
 Starts the local MCP server over standard input and output, for AI clients. See [MCP server](/members/mcp).

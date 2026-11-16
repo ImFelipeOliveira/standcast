@@ -8,6 +8,7 @@ import {
   type TeamConfig,
 } from '@standcast/core';
 import {
+  awayLogins,
   getDelivery,
   getInstallationMemberIds,
   listDailies,
@@ -76,8 +77,9 @@ async function enqueueReminders(
         )
         .map((r) => r.subject),
     );
+    const away = await awayLogins(deps.db, installation.id, resolved.memberLogins, date);
     for (const login of resolved.memberLogins) {
-      if (submitted.has(login) || settled.has(login)) continue;
+      if (submitted.has(login) || settled.has(login) || away.has(login)) continue;
       await deps.queue.enqueue(
         'send-reminder',
         { installationId: installation.id, login, date },
