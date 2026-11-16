@@ -440,14 +440,51 @@ describe('hoje', () => {
     expect(blockerCard(html, '@diego')).toContain('Marcar férias');
   });
 
+  test('a manager keeps the away actions after the digest is sent', () => {
+    const base = fixture();
+    const today = fixture({
+      digest: { status: 'sent', sentAt: '2026-11-03T13:00:00.000Z', everSent: true },
+      canRemind: false,
+      canResolve: true,
+      people: [...base.people, { login: 'bia', status: 'away', submittedAt: null, daily: null }],
+    });
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(sessionQuery.queryKey, session);
+    queryClient.setQueryData(teamTodayQuery(11, today.team.name).queryKey, today);
+    queryClient.setQueryData(awayPeriodsQuery(11, 'bia').queryKey, [
+      {
+        id: 'p-1',
+        login: 'bia',
+        from: '2026-11-02',
+        until: '2026-12-05',
+        markedBy: 'carla',
+        markedAt: '2026-11-01T10:00:00.000Z',
+        mine: false,
+      },
+    ]);
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={queryClient}>
+        <HojePage installationId={11} team={today.team.name} />
+      </QueryClientProvider>,
+    );
+    const away = blockerCard(html, '@bia');
+    expect(away).toContain('Férias até 05/12');
+    expect(away).toContain('Cancelar as férias de @bia');
+    const missing = blockerCard(html, '@diego');
+    expect(missing).toContain('Marcar férias');
+    expect(missing).not.toContain('Lembrar agora');
+  });
+
   test('a member who cannot manage sees Away without actions', () => {
     const base = fixture();
     const html = renderPage(
       fixture({
         canRemind: false,
+        canResolve: false,
         people: [...base.people, { login: 'bia', status: 'away', submittedAt: null, daily: null }],
       }),
     );
+    expect(blockerCard(html, '@diego')).not.toContain('Marcar férias');
     const card = blockerCard(html, '@bia');
     expect(card).toContain('Férias');
     expect(card).not.toContain('Férias até');

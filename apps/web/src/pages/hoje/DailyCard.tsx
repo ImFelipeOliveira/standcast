@@ -54,6 +54,7 @@ type CardProps = {
   person: TodayPerson;
   timezone: string;
   canRemind: boolean;
+  canManageAway: boolean;
   remind: RemindStatus | undefined;
   onRemind: () => void;
   onView: () => void;
@@ -65,6 +66,7 @@ export function DailyCard({
   person,
   timezone,
   canRemind,
+  canManageAway,
   remind,
   onRemind,
   onView,
@@ -101,7 +103,7 @@ export function DailyCard({
             installationId={installationId}
             login={person.login}
             date={date}
-            elevated={canRemind}
+            elevated={canManageAway}
           />
         </div>
       ) : daily ? (
@@ -139,7 +141,7 @@ export function DailyCard({
           </span>
         </div>
       )}
-      {canRemind && !away ? (
+      {canManageAway && !away ? (
         <AwayActions installationId={installationId} login={person.login} />
       ) : null}
     </article>
@@ -217,6 +219,7 @@ export function Dailies({
               person={person}
               timezone={today.team.timezone}
               canRemind={today.canRemind}
+              canManageAway={today.canResolve}
               remind={reminders[person.login]}
               onRemind={() => onRemind(person.login)}
               onView={() => onView(person.login)}
