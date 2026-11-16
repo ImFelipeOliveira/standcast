@@ -264,7 +264,11 @@ export async function listBlockerRouteRecipients(
     .orderBy(login);
 }
 
-const TEAM_FAILURE_KINDS = ['digest', 'late_daily'] as const satisfies readonly DeliveryKind[];
+const TEAM_FAILURE_KINDS = [
+  'digest',
+  'late_daily',
+  'daily',
+] as const satisfies readonly DeliveryKind[];
 const PERSON_FAILURE_KINDS = [
   'reminder',
   'blocker_route',

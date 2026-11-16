@@ -9,7 +9,7 @@ import {
 } from '@standcast/db';
 import { ChatDeliveryError } from '@standcast/slack';
 import { db, useCleanDb } from '../../../db/test/setup';
-import { DIGEST_POST_DEADLINE_MS, sendDigest, sendLateDaily } from '../../src';
+import { DIGEST_POST_DEADLINE_MS, postDaily, sendDigest } from '../../src';
 import {
   config,
   daily,
@@ -217,7 +217,7 @@ describe('sendDigest', () => {
       { installationId: INST, memberId: bob.id, date: DATE },
       { installationId: INST, memberId: alice.id, date: DATE },
     ]);
-    await sendLateDaily(deps, { installationId: INST, memberId: bob.id, date: DATE });
+    await postDaily(deps, { installationId: INST, memberId: bob.id, date: DATE });
     expect(replies).toHaveLength(1);
     expect(replies[0]?.ref).toEqual({ channel: 'C1', id: '1.0' });
     expect(replies[0]?.msg.fallbackText).toContain('bob in flight');
