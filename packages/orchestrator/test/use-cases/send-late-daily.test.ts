@@ -139,7 +139,7 @@ describe('sendLateDaily', () => {
         teams: [
           {
             ...team,
-            chat: { provider: 'google-chat', channel: 'spaces/AAAA', lateDaily: 'thread' },
+            chat: { provider: 'google-chat', channel: 'spaces/AAAA', postEachDaily: false },
           },
         ],
       },
