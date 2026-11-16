@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.17.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.16.0...standcast-v0.17.0) (2026-11-16)
+
+
+### Features
+
+* **api:** routes to mark, list and cancel away periods ([e19dc75](https://github.com/ImFelipeOliveira/standcast/commit/e19dc75630de6dd21d5c42403f9b1f4797ad0c44))
+* away periods so people on vacation skip the daily ([#229](https://github.com/ImFelipeOliveira/standcast/issues/229)) ([c40e484](https://github.com/ImFelipeOliveira/standcast/commit/c40e48402ecf28db5e4bb53b9c627a636357f0e3))
+* **away:** mark, list and cancel away periods with a chat notice ([73a9bbd](https://github.com/ImFelipeOliveira/standcast/commit/73a9bbd768543dd657668f9f16a17046c141bd9c))
+* **chat:** put each daily link on its own line with the link emoji ([6d8ac49](https://github.com/ImFelipeOliveira/standcast/commit/6d8ac494b9c1fbba035808c40d4e52455fed7c88))
+* **cli:** standcast away and MCP tools to manage away periods ([8eb5710](https://github.com/ImFelipeOliveira/standcast/commit/8eb5710c98fd39138eb7c82236669c561df16b29))
+* **core:** validate away periods and build the away notice ([3de3aa2](https://github.com/ImFelipeOliveira/standcast/commit/3de3aa25178d719bcf8032f9f81d8d67eba9d94d))
+* **db:** store away periods and the digest's missing list ([f26147b](https://github.com/ImFelipeOliveira/standcast/commit/f26147b483dafc7dcef6ed23400b357518b874ab))
+* **delivery:** skip reminders and the missing list for people who are away ([7b02870](https://github.com/ImFelipeOliveira/standcast/commit/7b02870be74398557a4f876666d394006aadd756))
+* **web:** list and cancel upcoming away periods on Today cards ([30d466a](https://github.com/ImFelipeOliveira/standcast/commit/30d466aa8bd4fa66a0e3a99b9ac12aec95b1ef9a))
+* **web:** mark and cancel away periods on Account and Today ([b7e6723](https://github.com/ImFelipeOliveira/standcast/commit/b7e672381d26fd7abebdc375edac179b46184b2a))
+
+
+### Bug Fixes
+
+* **away:** carry the away period of the team date in Today ([87f7a3c](https://github.com/ImFelipeOliveira/standcast/commit/87f7a3ca9125576b56ade9d2269363d681e76fa6))
+* **away:** let people manage their own periods after leaving every team ([a7916b0](https://github.com/ImFelipeOliveira/standcast/commit/a7916b04161bdcf73827d6d1446cc051aed978c1))
+* **away:** log why an away notice is skipped for a person in no team ([2c8163a](https://github.com/ImFelipeOliveira/standcast/commit/2c8163a5f29c26006c282a46008bef231fe36b17))
+* **away:** name the org in the undo command of the away notice ([f441db8](https://github.com/ImFelipeOliveira/standcast/commit/f441db80c8b07da4d9e7dce26e5cde104b4776ae))
+* **chat:** keep long digests within Slack's block limit ([0afe012](https://github.com/ImFelipeOliveira/standcast/commit/0afe012528ef3d5e3dedad94a10ce684061a3df1))
+* **chat:** lay out each daily like the team template ([6407458](https://github.com/ImFelipeOliveira/standcast/commit/6407458c8ef7f805d7d9c489426393f6189aabfc))
+* **chat:** lay out each daily like the team template ([#230](https://github.com/ImFelipeOliveira/standcast/issues/230)) ([b209bb5](https://github.com/ImFelipeOliveira/standcast/commit/b209bb5805a19c3ef4bee79d338de61594fb343d))
+* **cli:** prefix away MCP tools with standcast_ and drop unused away copy ([966503d](https://github.com/ImFelipeOliveira/standcast/commit/966503d0bbd59f72f964c91147068410843e7fe5))
+* **cli:** reject an empty --from in away ([12e9cf4](https://github.com/ImFelipeOliveira/standcast/commit/12e9cf41a9f77d69ffad5284bf2c03f448b27d43))
+* **core:** match the away usage text to the CLI options ([da221ff](https://github.com/ImFelipeOliveira/standcast/commit/da221ff26d5c72492258fd8a2afeb122e192b546))
+* **delivery:** key away notices on the date computed at enqueue ([b01f7fd](https://github.com/ImFelipeOliveira/standcast/commit/b01f7fdb5449c834b84f9298202fa0a7aad87dd2))
+* **delivery:** skip enqueuing reminders for people away on the date ([71de65d](https://github.com/ImFelipeOliveira/standcast/commit/71de65dc7603c23b688409894636bb1dae3dedff))
+* **signals:** record the scan marker when skipping an away person ([6bf462b](https://github.com/ImFelipeOliveira/standcast/commit/6bf462baad95be47c989339e35a0e047ee46a582))
+* **slack:** split long text across sections and cap a message at 50 blocks ([9054f4d](https://github.com/ImFelipeOliveira/standcast/commit/9054f4dd0eee5a4b7f0e8a19e36a8078b88bcbe1))
+* **web:** keep away actions for managers after the digest is sent ([666ab38](https://github.com/ImFelipeOliveira/standcast/commit/666ab38b11943b19864e03b75d82665f7e2512e9))
+* **web:** name each away cancel button with its dates ([57c4b0b](https://github.com/ImFelipeOliveira/standcast/commit/57c4b0b5d74d5e2ca9b244bb57f798218ee076cd))
+* **web:** show away cancel failures and cover away errors in tests ([a46c870](https://github.com/ImFelipeOliveira/standcast/commit/a46c870ce14d043f1200cca0e0e7ebed188dff5f))
+* **web:** show away errors in the viewer language ([8aef5da](https://github.com/ImFelipeOliveira/standcast/commit/8aef5dacfe1d157c49f6e06d8115a53b889f4a6d))
+* **web:** show away lookup failures with a retry on Today ([27db1c3](https://github.com/ImFelipeOliveira/standcast/commit/27db1c3dc7624fc99d4655d23403901edbb99389))
+
+
+### Refactoring
+
+* **away:** resolve the org login in the away use cases ([ea7f2d2](https://github.com/ImFelipeOliveira/standcast/commit/ea7f2d2677f9035a0f5d3f60fe69236ec2851e1b))
+
 ## [0.16.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.15.0...standcast-v0.16.0) (2026-11-16)
 
 
