@@ -144,7 +144,7 @@ Hoje o Standcast não apaga dailies de forma programada. Dailies e entregas de c
 - logs de entrega de webhook de saída: depois de 30 dias;
 - sessões expiradas: removidas;
 - sugestões resolvidas, aquelas cujo sinal deixou de existir: depois de 90 dias;
-- registros de entrega sobre uma pessoa (lembretes, impedimentos encaminhados, DMs de sugestão e marcadores de varredura): depois de 90 dias;
+- registros de entrega sobre uma pessoa (lembretes, impedimentos encaminhados, DMs de sugestão, marcadores de varredura e dailies publicadas): depois de 90 dias;
 - espaços do Google Chat que nunca foram vinculados: no dia seguinte ao vencimento do código de vínculo;
 - sugestões ignoradas e confirmadas são mantidas, para não voltarem;
 - contadores de limite de taxa: depois de uns 10 minutos.
