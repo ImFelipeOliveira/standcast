@@ -1,6 +1,5 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import type { DailyConfirmation } from '@standcast/core';
-import { listMemberInstallations, type MemberRow } from '@standcast/db';
 import {
   cancelAway,
   createMembershipCheck,
@@ -439,15 +438,6 @@ function bodyError(error: Error, path: string): Error {
   return error;
 }
 
-async function installationOf(deps: Deps, member: MemberRow, org: string): Promise<number> {
-  const wanted = org.toLowerCase();
-  const entry = (await listMemberInstallations(deps.db, member.id)).find(
-    (i) => i.accountLogin.toLowerCase() === wanted,
-  );
-  if (!entry) throw new DomainError('org_not_found', `organization ${org} not found`);
-  return entry.installationId;
-}
-
 const invalidOrg =
   (message: string) =>
   (result: { success: boolean; error?: z.ZodError }): undefined => {
@@ -553,9 +543,10 @@ export function v1Routes(deps: Deps, options: V1Options): OpenAPIHono<Env> {
   app.openapi(
     awayList,
     async (c) => {
-      const member = c.get('member');
-      const installationId = await installationOf(deps, member, c.req.valid('query').org);
-      return c.json({ data: await listAway(deps, isMember, member, { installationId }) }, 200);
+      const data = await listAway(deps, isMember, c.get('member'), {
+        org: c.req.valid('query').org,
+      });
+      return c.json({ data }, 200);
     },
     requireOrg,
   );
@@ -563,10 +554,8 @@ export function v1Routes(deps: Deps, options: V1Options): OpenAPIHono<Env> {
   app.openapi(
     awayMark,
     async (c) => {
-      const member = c.get('member');
       const { org, from, until } = c.req.valid('json');
-      const installationId = await installationOf(deps, member, org);
-      const period = await markAway(deps, isMember, member, { installationId, from, until });
+      const period = await markAway(deps, isMember, c.get('member'), { org, from, until });
       return c.json(period, 201);
     },
     invalidOrg('org and until are required, and login is not accepted'),
@@ -575,10 +564,8 @@ export function v1Routes(deps: Deps, options: V1Options): OpenAPIHono<Env> {
   app.openapi(
     awayCancel,
     async (c) => {
-      const member = c.get('member');
-      const installationId = await installationOf(deps, member, c.req.valid('json').org);
-      await cancelAway(deps, isMember, member, {
-        installationId,
+      await cancelAway(deps, isMember, c.get('member'), {
+        org: c.req.valid('json').org,
         periodId: c.req.valid('param').periodId,
       });
       return c.body(null, 204);

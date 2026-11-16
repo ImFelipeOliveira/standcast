@@ -1,7 +1,7 @@
 import { type AwayPeriodRow, getMemberById, listAwayPeriods, type MemberRow } from '@standcast/db';
 import type { Deps } from '../../deps';
 import type { MembershipCheck } from '../access/org-context';
-import { awayAccessFor, loadAwayCaller } from './away-access';
+import { type AwayOrg, awayAccessFor, loadAwayCaller } from './away-access';
 
 export type AwayPeriod = {
   id: string;
@@ -33,9 +33,9 @@ export async function listAway(
   deps: Deps,
   isMember: MembershipCheck,
   member: MemberRow,
-  input: { installationId: number; login?: string },
+  input: AwayOrg & { login?: string },
 ): Promise<AwayPeriod[]> {
-  const caller = await loadAwayCaller(deps, isMember, member, input.installationId);
+  const caller = await loadAwayCaller(deps, isMember, member, input);
   const access = await awayAccessFor(deps, caller, input.login, 'manage');
   const rows = await listAwayPeriods(deps.db, caller.installation.id, access.login, access.today);
   const markers = new Map<string, string>();

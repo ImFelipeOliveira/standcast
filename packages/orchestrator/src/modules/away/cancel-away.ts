@@ -2,7 +2,7 @@ import { cancelAwayPeriod, getAwayPeriod, type MemberRow } from '@standcast/db';
 import type { Deps } from '../../deps';
 import { DomainError } from '../access/errors';
 import type { MembershipCheck } from '../access/org-context';
-import { awayAccessFor, loadAwayCaller } from './away-access';
+import { type AwayOrg, awayAccessFor, loadAwayCaller } from './away-access';
 import { enqueueAwayNotice } from './send-away-notice';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -11,9 +11,9 @@ export async function cancelAway(
   deps: Deps,
   isMember: MembershipCheck,
   member: MemberRow,
-  input: { installationId: number; periodId: string },
+  input: AwayOrg & { periodId: string },
 ): Promise<void> {
-  const caller = await loadAwayCaller(deps, isMember, member, input.installationId);
+  const caller = await loadAwayCaller(deps, isMember, member, input);
   const notFound = () => new DomainError('not_found', 'away period not found');
   if (!UUID.test(input.periodId)) throw notFound();
   const period = await getAwayPeriod(deps.db, caller.installation.id, input.periodId);

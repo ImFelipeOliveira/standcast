@@ -3,12 +3,11 @@ import { createAwayPeriod, type MemberRow } from '@standcast/db';
 import type { Deps } from '../../deps';
 import { DomainError } from '../access/errors';
 import type { MembershipCheck } from '../access/org-context';
-import { awayAccessFor, loadAwayCaller } from './away-access';
+import { type AwayOrg, awayAccessFor, loadAwayCaller } from './away-access';
 import { type AwayPeriod, toAwayPeriod } from './list-away';
 import { enqueueAwayNotice } from './send-away-notice';
 
-export type MarkAwayInput = {
-  installationId: number;
+export type MarkAwayInput = AwayOrg & {
   login?: string;
   from?: string;
   until: string;
@@ -20,7 +19,7 @@ export async function markAway(
   member: MemberRow,
   input: MarkAwayInput,
 ): Promise<AwayPeriod> {
-  const caller = await loadAwayCaller(deps, isMember, member, input.installationId);
+  const caller = await loadAwayCaller(deps, isMember, member, input);
   const access = await awayAccessFor(deps, caller, input.login, 'mark');
   const from = input.from ?? access.today;
   if (validateAwayPeriod({ from, until: input.until, today: access.today }) !== 'ok') {

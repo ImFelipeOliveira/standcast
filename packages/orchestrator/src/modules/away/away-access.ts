@@ -6,9 +6,11 @@ import { resolveTeams } from '../../teams';
 import { authorizeInstallation } from '../access/authorize-installation';
 import { DomainError } from '../access/errors';
 import { isInstallationAdmin } from '../access/is-installation-admin';
-import type { MembershipCheck } from '../access/org-context';
+import { findMemberOrg, type MembershipCheck } from '../access/org-context';
 
 const ADMIN_CHECK_TIMEOUT_MS = 3000;
+
+export type AwayOrg = { installationId: number } | { org: string };
 
 export type AwayCaller = {
   member: MemberRow;
@@ -28,8 +30,12 @@ export async function loadAwayCaller(
   deps: Deps,
   isMember: MembershipCheck,
   member: MemberRow,
-  installationId: number,
+  scope: AwayOrg,
 ): Promise<AwayCaller> {
+  const installationId =
+    'org' in scope
+      ? (await findMemberOrg(deps, member, scope.org)).installationId
+      : scope.installationId;
   const { member: current, installation } = await authorizeInstallation(
     deps,
     isMember,

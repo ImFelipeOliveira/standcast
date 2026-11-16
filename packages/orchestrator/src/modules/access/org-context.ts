@@ -22,6 +22,19 @@ export type OrgContext = {
 
 export type MembershipCheck = ReturnType<typeof createMembershipCheck>;
 
+export async function findMemberOrg(
+  deps: Deps,
+  member: MemberRow,
+  org: string,
+): Promise<{ installationId: number; accountLogin: string }> {
+  const wanted = org.toLowerCase();
+  const entry = (await listMemberInstallations(deps.db, member.id)).find(
+    (i) => i.accountLogin.toLowerCase() === wanted,
+  );
+  if (!entry) throw new DomainError('org_not_found', `organization ${org} not found`);
+  return entry;
+}
+
 export async function resolveOrgContext(
   deps: Deps,
   isMember: MembershipCheck,
@@ -29,11 +42,7 @@ export async function resolveOrgContext(
   org: string | undefined,
 ): Promise<OrgContext> {
   if (!org) throw new DomainError('invalid_request', 'org is required');
-  const wanted = org.toLowerCase();
-  const entry = (await listMemberInstallations(deps.db, member.id)).find(
-    (i) => i.accountLogin.toLowerCase() === wanted,
-  );
-  if (!entry) throw new DomainError('org_not_found', `organization ${org} not found`);
+  const entry = await findMemberOrg(deps, member, org);
   const installation = await getInstallation(deps.db, entry.installationId);
   const current = installation ? await isMember(installation, member) : null;
   if (!installation || !current) {

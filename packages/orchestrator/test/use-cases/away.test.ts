@@ -84,6 +84,12 @@ describe('markAway and listAway', () => {
     expect(notices()).toEqual([]);
   });
 
+  test('a person marks their own period by org login', async () => {
+    const { deps, isMember, alice } = await setup();
+    const marked = await markAway(deps, isMember, alice, { org: 'acme', ...period });
+    expect(marked).toMatchObject({ login: 'alice', ...period, mine: true });
+  });
+
   test('from defaults to today', async () => {
     const { deps, isMember, bob } = await setup();
     const marked = await markAway(deps, isMember, bob, {
@@ -335,6 +341,28 @@ describe('cancelAway', () => {
     await expect(
       markAway(deps, isMember, bob, { installationId: INST, ...period }),
     ).rejects.toMatchObject({ code: 'not_in_team' });
+  });
+
+  test('by org login, a person in no team can still list and cancel their own period', async () => {
+    const { deps, isMember, bob, marked } = await bobLeftEveryTeam();
+    expect(await listAway(deps, isMember, bob, { org: 'ACME' })).toEqual([
+      { ...marked, mine: true },
+    ]);
+    await cancelAway(deps, isMember, bob, { org: 'acme', periodId: marked.id });
+    expect(await listAway(deps, isMember, bob, { org: 'acme' })).toEqual([]);
+  });
+
+  test('an unknown org login is org_not_found', async () => {
+    const { deps, isMember, bob, marked } = await bobLeftEveryTeam();
+    await expect(listAway(deps, isMember, bob, { org: 'globex' })).rejects.toMatchObject({
+      code: 'org_not_found',
+    });
+    await expect(markAway(deps, isMember, bob, { org: 'globex', ...period })).rejects.toMatchObject(
+      { code: 'org_not_found' },
+    );
+    await expect(
+      cancelAway(deps, isMember, bob, { org: 'globex', periodId: marked.id }),
+    ).rejects.toMatchObject({ code: 'org_not_found' });
   });
 
   test('an admin can cancel a period whose login left every team', async () => {
