@@ -547,14 +547,16 @@ describe('handleGoogleChatEvent in a direct message', () => {
     const { deps } = await setup();
     await bindElsewhere('spaces/AAAA', INST);
     const reply = await handleGoogleChatEvent(deps, dm('stranger@other.com'));
-    expect(reply?.text).toContain('standcast login');
-    expect(reply?.text).toContain('No Standcast account uses this email');
-    expect(reply?.text).not.toContain('Nenhuma conta do Standcast usa este e-mail');
+    expect(reply?.text).toContain('No Standcast account in this organization uses this email');
+    expect(reply?.text).toContain('No Standcast account in this organization uses this email');
+    expect(reply?.text).not.toContain(
+      'Nenhuma conta do Standcast nesta organização usa este e-mail',
+    );
     expect(reply?.text).toContain('Your Google Chat id is users/123');
     expect(reply?.text).not.toContain('O seu id no Google Chat é users/123');
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
     const missing = await handleGoogleChatEvent(deps, dm(undefined));
-    expect(missing?.text).toContain('No Standcast account uses this email');
+    expect(missing?.text).toContain('No Standcast account in this organization uses this email');
     expect(missing?.text).not.toContain('users/123');
   });
 
@@ -582,7 +584,7 @@ describe('handleGoogleChatEvent in a direct message', () => {
     });
     await bindElsewhere('spaces/AAAA', INST);
     const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
-    expect(reply?.text).toContain('No Standcast account uses this email');
+    expect(reply?.text).toContain('No Standcast account in this organization uses this email');
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
   });
 
@@ -599,7 +601,7 @@ describe('handleGoogleChatEvent in a direct message', () => {
       .set({ verifiedEmailsSyncedAt: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000) });
     await bindElsewhere('spaces/AAAA', INST);
     const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
-    expect(reply?.text).toContain('No Standcast account uses this email');
+    expect(reply?.text).toContain('No Standcast account in this organization uses this email');
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
   });
 
@@ -736,7 +738,7 @@ describe('handleGoogleChatEvent from a space', () => {
     await bindElsewhere('spaces/AAAA', INST);
     const reply = await handleGoogleChatEvent(deps, click('alice@personal.com'));
     expect(reply?.privateTo).toBe('users/123');
-    expect(reply?.text).toContain('No Standcast account uses this email');
+    expect(reply?.text).toContain('No Standcast account in this organization uses this email');
     expect(reply?.text).toContain('google_chat: users/123');
     expect(reply?.text).not.toContain('O seu id no Google Chat é users/123');
     expect(await db.select().from(memberIdentities)).toEqual([]);
@@ -747,7 +749,7 @@ describe('handleGoogleChatEvent from a space', () => {
     await bindElsewhere('spaces/AAAA', INST);
     const reply = await handleGoogleChatEvent(deps, click('alice@personal.com'));
     expect(reply?.text).toContain('O seu id no Google Chat é users/123');
-    expect(reply?.text).not.toContain('No Standcast account uses this email');
+    expect(reply?.text).not.toContain('No Standcast account in this organization uses this email');
   });
 
   test('an email shared by two accounts answers the ambiguous message privately', async () => {

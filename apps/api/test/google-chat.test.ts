@@ -310,7 +310,7 @@ describe('POST /webhooks/google-chat', () => {
     );
     expect(res.status).toBe(200);
     const text = ((await res.json()) as { text: string }).text;
-    expect(text).toContain('standcast login');
+    expect(text).toContain('No Standcast account in this organization uses this email');
     expect(text).toContain('google_chat: users/123');
     expect(text).not.toContain('O seu id no Google Chat é users/123');
   });
@@ -327,7 +327,7 @@ describe('POST /webhooks/google-chat', () => {
       `Bearer ${await token(h, h.keys)}`,
     );
     const text = ((await res.json()) as { text: string }).text;
-    expect(text).toContain('standcast login');
+    expect(text).toContain('No Standcast account in this organization uses this email');
     expect(text).not.toContain('google_chat:');
   });
 
@@ -402,7 +402,7 @@ describe('POST /webhooks/google-chat', () => {
     };
     expect(Object.keys(body)).toEqual(['hostAppDataAction']);
     const text = body.hostAppDataAction.chatDataAction.createMessageAction.message.text;
-    expect(text).toContain('standcast login');
+    expect(text).toContain('No Standcast account in this organization uses this email');
     expect(text).toContain('google_chat: users/123');
   });
 
@@ -509,9 +509,9 @@ describe('google chat link button', () => {
     const res = await event(h, clicked('alice@acme.com'), `Bearer ${await token(h, h.keys)}`);
     const body = (await res.json()) as { text: string; privateMessageViewer: unknown };
     expect(body.privateMessageViewer).toEqual({ name: 'users/123' });
-    expect(body.text).toContain('No Standcast account uses this email');
+    expect(body.text).toContain('No Standcast account in this organization uses this email');
     expect(body.text).toContain('google_chat: users/123');
-    expect(body.text).not.toContain('Nenhuma conta do Standcast usa este e-mail');
+    expect(body.text).not.toContain('Nenhuma conta do Standcast nesta organização usa este e-mail');
     expect(await db.select().from(memberIdentities)).toEqual([]);
   });
 
