@@ -130,7 +130,7 @@ When someone asks for beta access on the Standcast landing page, the form collec
 | Who | Sees |
 | --- | --- |
 | You | Your draft, your planned against done, your pending work, your suggested blockers and your own dailies, through your agent |
-| Members of the team's Slack channel or Google Chat space | Each daily, the digest and the late dailies in its thread |
+| Members of the team's Slack channel or Google Chat space | Each daily as its own message and the digest; with `chat.post_each_daily: false`, the digest with every daily and the late dailies in its thread |
 | Team managers | The team's digests, dailies and confirmed blockers for the last 90 days, through the MCP manager tools |
 | Organization admins | Everything managers see, for every team; on the setup page, the Slack connect and reconnect controls, the Google Chat link and unlink controls, API keys and webhooks |
 | Organization members who sign in to the setup page | Configuration status, the Slack workspace name and the linked Google Chat spaces, read-only, and the last failed deliveries: team messages one by one, and direct messages grouped by kind and error, with the recipient's login only when they have no chat identity. Never blocker text or suggestions. They cannot connect or replace the Slack workspace |

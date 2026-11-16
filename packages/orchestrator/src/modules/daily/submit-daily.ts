@@ -129,11 +129,15 @@ export async function submitDaily(
   const teams = ctx.mine.map((t) => t.name);
   const late = await isLate(deps, ctx);
   if (late || ctx.mine.some(postsEachDaily)) {
-    await deps.queue.enqueue(POST_DAILY_JOB, {
-      installationId: ctx.installationId,
-      memberId: ctx.member.id,
-      date: ctx.date,
-    });
+    try {
+      await deps.queue.enqueue(POST_DAILY_JOB, {
+        installationId: ctx.installationId,
+        memberId: ctx.member.id,
+        date: ctx.date,
+      });
+    } catch (error) {
+      logError('daily post enqueue failed', error);
+    }
   }
   await enqueueMissedDigests(deps, ctx);
   const fresh = newBlockers(previous?.payload.blockers, payload.blockers);

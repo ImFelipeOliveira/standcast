@@ -87,7 +87,7 @@ Claude:  Final daily for acme, 2026-10-28:
          - A review on the migration PR before Friday
          Send it?
 You:     Yes.
-Claude:  Sent for 2026-10-28. It goes into the backend digest.
+Claude:  Sent for 2026-10-28. It is posted to the backend channel.
 ```
 
 ## When something fails

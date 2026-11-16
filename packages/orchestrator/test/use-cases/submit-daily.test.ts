@@ -293,6 +293,27 @@ describe('submitDaily on a team that posts each daily', () => {
     ]);
   });
 
+  test('a failing post enqueue does not stop the rest of the submit', async () => {
+    const { deps, isMember, member, queue } = await setup(postingConfig());
+    const enqueue = deps.queue.enqueue.bind(deps.queue);
+    deps.queue.enqueue = async (name, data, opts) => {
+      if (name === 'send-late-daily') throw new Error('queue down');
+      return enqueue(name, data, opts);
+    };
+    const spy = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const result = await submitDaily(deps, isMember, member, {
+        ...daily,
+        blockers: [{ text: 'Need prod access' }],
+      });
+      expect(result.date).toBe('2026-10-28');
+      expect(queue.enqueued.map((j) => j.name)).toEqual(['route-blocker']);
+      expect(JSON.stringify(spy.mock.calls)).toContain('queue down');
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   test('does not enqueue before the digest when post_each_daily is false', async () => {
     const { deps, isMember, member, queue } = await setup();
     await submitDaily(deps, isMember, member, daily);

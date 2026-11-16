@@ -111,7 +111,7 @@ O consolidado menciona cada pessoa vinculada com o usuário dela no Google Chat,
 - **A pessoa não está vinculada.** Lembretes, impedimentos encaminhados e impedimentos sugeridos para ela falham com `no_chat_identity`. O consolidado sai mesmo assim, com `@login`. O botão **Vincular minha conta** aparece só quando `PUBLIC_URL` está definido no worker.
 - **Ninguém para quem um impedimento iria pode ser alcançado.** Quando nenhuma das pessoas que o Standcast escolheu para um impedimento, como quem revisa, os donos do código ou as pessoas do card, tem vínculo com o Google Chat ou um mapeamento confirmado, o impedimento vai para os gestores do time. Nenhuma falha é registrada para as pessoas escolhidas antes. A exceção é uma conferência de participação que estourou o tempo: aí o impedimento não vai para os gestores, e a entrega para essa pessoa falha com `timeout` e é tentada de novo.
 - **A pessoa nunca abriu uma mensagem direta com o app.** O Google Chat só entrega mensagem direta depois que a pessoa falou com o app uma vez numa mensagem direta. Vincular pelo botão ou por uma menção não basta para isso. As entregas para ela falham com `no_dm_space` e não são repetidas. Peça para ela mandar uma mensagem direta para o app.
-- **O espaço não está vinculado à sua organização.** O consolidado e as dailies do time falham com `space_not_linked`. Nada é publicado, e não há nova tentativa. Vincule o espaço com um código.
+- **O espaço não está vinculado à sua organização.** O consolidado e as dailies do time falham com `space_not_linked`, e nada é publicado até o espaço ser vinculado. Não há nova tentativa imediata; uma execução seguinte, como a próxima tentativa do consolidado ou o resumo, tenta a mesma entrega de novo enquanto ela tiver menos de 3 tentativas. Vincule o espaço com um código.
 
 ## Erros de entrega
 
@@ -119,7 +119,7 @@ Quando uma publicação falha, o app web mostra a falha em "Últimas entregas co
 
 | Código do erro | Significado | Como resolver |
 | --- | --- | --- |
-| `space_not_linked` | O espaço do time não está vinculado a esta organização. Não há nova tentativa. | Adicione o app ao espaço e vincule com o código. |
+| `space_not_linked` | O espaço do time não está vinculado a esta organização. Não há nova tentativa imediata; uma execução seguinte tenta de novo enquanto a entrega tiver menos de 3 tentativas. | Adicione o app ao espaço e vincule com o código. |
 | `no_dm_space` | A pessoa ainda não mandou mensagem para o app do Standcast. Não há nova tentativa. | Peça para a pessoa mandar uma mensagem direta para o app. |
 | `channel_not_found` | O espaço não existe, ou o `chat.channel` não é um nome `spaces/...` válido. | Confira o `chat.channel`. Copie o nome do card do Google Chat. |
 | `not_in_channel` | O app não está no espaço, ou não pode publicar ali. | Adicione o app do Standcast ao espaço. |

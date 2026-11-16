@@ -80,7 +80,7 @@ In every case, the flow is the same:
 ## 4. After you send it
 
 - Your daily is stored for today's standup date. If you send again the same day, the new version replaces the old one.
-- Your daily is posted to the channel of every team you are in right away, and your blockers and support requests appear in the team's digest at `digest_at`. Teams with `chat.post_each_daily: false` show your daily in the digest instead.
+- On teams that post each daily (the default), your first send is posted to the team channel right away; a resend replaces the stored daily but is not posted again. Your blockers and support requests appear in the team's digest at `digest_at`. Teams with `chat.post_each_daily: false` post nothing when you send before the digest and show your latest version in the digest instead.
 - If the digest already went out, the result says `late: true`, and the post says it was sent after the digest.
 - Webhooks registered by your admin receive a `daily.submitted` event, with your support requests in it, and a `blocker.opened` event for each new blocker.
 

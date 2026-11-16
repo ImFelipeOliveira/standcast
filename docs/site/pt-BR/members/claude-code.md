@@ -87,7 +87,7 @@ Claude:  Daily final da acme, 2026-10-28:
          - Um review no PR da migração antes de sexta
          Posso enviar?
 Você:    Pode.
-Claude:  Enviada para 2026-10-28. Ela entra no consolidado do backend.
+Claude:  Enviada para 2026-10-28. Ela é publicada no canal do backend.
 ```
 
 ## Quando algo falha

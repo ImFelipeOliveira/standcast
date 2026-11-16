@@ -383,10 +383,29 @@ describe('postDaily on a team that posts each daily', () => {
     expect(googleChat.posted[0]?.channel).toBe('spaces/BBBB');
   });
 
-  test('with post_each_daily false nothing is posted before the digest', async () => {
+  test('a provider failure is recorded on the daily delivery and a retry posts once', async () => {
+    const { deps, job, google } = await postingSetup();
+    await linkSpace('spaces/AAAA');
+    google.failWith(new ChatDeliveryError('ratelimited', 'slow down'));
+    await expect(postDaily(deps, job)).rejects.toBeInstanceOf(ChatDeliveryError);
+    const row = await getDelivery(db, dailyKey(job.memberId));
+    expect(row?.status).toBe('failed');
+    expect(row?.error?.startsWith('ratelimited')).toBe(true);
+    google.failWith(null);
+    await postDaily(deps, job);
+    await postDaily(deps, job);
+    expect(google.posted).toHaveLength(1);
+    expect((await getDelivery(db, dailyKey(job.memberId)))?.status).toBe('sent');
+  });
+
+  test('with post_each_daily false nothing is posted or recorded before the digest', async () => {
     const { deps, job, posted, replies } = await setup(false);
     await postDaily(deps, job);
     expect(posted).toHaveLength(0);
     expect(replies).toHaveLength(0);
+    expect(await getDelivery(db, dailyKey(job.memberId))).toBeNull();
+    expect(
+      await getDelivery(db, { ...dailyKey(job.memberId), kind: 'late_daily' as const }),
+    ).toBeNull();
   });
 });

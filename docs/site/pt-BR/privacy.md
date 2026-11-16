@@ -130,7 +130,7 @@ Quando alguém pede acesso ao beta na página do Standcast, o formulário coleta
 | Quem | Vê |
 | --- | --- |
 | Você | O seu rascunho, o seu planejado contra o feito, as suas pendências, os seus impedimentos sugeridos e as suas dailies, pelo seu agente |
-| Membros do canal do time no Slack ou do espaço do time no Google Chat | Cada daily, o consolidado e as dailies atrasadas na thread dele |
+| Membros do canal do time no Slack ou do espaço do time no Google Chat | Cada daily como mensagem própria e o consolidado; com `chat.post_each_daily: false`, o consolidado com todas as dailies e as atrasadas na thread dele |
 | Gestores do time | Os consolidados, as dailies e os impedimentos confirmados do time nos últimos 90 dias, pelas tools de gestor do MCP |
 | Admins da organização | Tudo o que os gestores veem, de todos os times; na página de setup, os controles para conectar e reconectar o Slack, os controles para vincular e desvincular espaços do Google Chat, as API keys e os webhooks |
 | Membros da organização que entram na página de setup | O estado da configuração, o nome do workspace do Slack e os espaços vinculados do Google Chat, só para leitura, e as últimas entregas com falha: as mensagens do time uma a uma, e as mensagens diretas agrupadas por tipo e erro, com o login do destinatário só quando ele não tem identidade no chat. Nunca o texto de impedimentos nem sugestões. Não podem conectar nem trocar o workspace do Slack |

@@ -67,6 +67,8 @@ describe('toYaml', () => {
     );
     expect(source).toContain('post_each_daily: false');
     const parsed = parseConfig(source);
-    expect(parsed.ok && parsed.config.teams[0]?.chat.postEachDaily).toBe(false);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.config.teams[0]?.chat.postEachDaily).toBe(false);
   });
 });

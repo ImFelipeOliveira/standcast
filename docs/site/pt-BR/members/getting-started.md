@@ -80,7 +80,7 @@ Em todos os casos, o fluxo é o mesmo:
 ## 4. Depois de enviar
 
 - A sua daily fica guardada na data de hoje. Se você reenviar no mesmo dia, a nova versão substitui a anterior.
-- A sua daily é publicada na hora no canal de todos os seus times, e os seus impedimentos e pedidos de apoio aparecem no consolidado do time no `digest_at`. Times com `chat.post_each_daily: false` mostram a sua daily no consolidado.
+- Nos times que publicam cada daily (o padrão), o seu primeiro envio é publicado na hora no canal do time; um reenvio substitui a daily guardada, mas não é publicado de novo. Os seus impedimentos e pedidos de apoio aparecem no consolidado do time no `digest_at`. Times com `chat.post_each_daily: false` não publicam nada quando você envia antes do consolidado e mostram a sua última versão no consolidado.
 - Se o consolidado já saiu, o resultado traz `late: true`, e a publicação diz que ela foi enviada depois do consolidado.
 - Os webhooks cadastrados pelo admin recebem um evento `daily.submitted`, com os seus pedidos de apoio, e um `blocker.opened` para cada impedimento novo.
 
