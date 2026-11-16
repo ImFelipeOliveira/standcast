@@ -134,6 +134,16 @@ const biaAway = {
   away: { id: 'p-1', from: '2026-11-02', until: '2026-12-05' },
 };
 
+const diegoUpcoming = {
+  id: 'p-2',
+  login: 'diego',
+  from: '2026-11-10',
+  until: '2026-11-14',
+  markedBy: 'carla',
+  markedAt: '2026-11-01T10:00:00.000Z',
+  mine: false,
+};
+
 function renderPage(today: TeamToday, login = 'carla'): string {
   const queryClient = createQueryClient();
   queryClient.setQueryData(sessionQuery.queryKey, { ...session, login });
@@ -501,6 +511,43 @@ describe('hoje', () => {
     expect(card).toContain('Férias até 02/11');
     expect(card).toContain('Cancelar as férias de @bia');
     expect(urls.filter((url) => url.includes('login=bia'))).toEqual([]);
+  });
+
+  test('a manager sees the upcoming periods of a member who is not away, each with cancel', () => {
+    const today = fixture();
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(sessionQuery.queryKey, session);
+    queryClient.setQueryData(teamTodayQuery(11, today.team.name).queryKey, today);
+    queryClient.setQueryData(awayPeriodsQuery(11, 'diego').queryKey, [
+      diegoUpcoming,
+      { ...diegoUpcoming, id: 'p-3', from: '2026-12-01', until: '2026-12-03' },
+    ]);
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={queryClient}>
+        <HojePage installationId={11} team={today.team.name} />
+      </QueryClientProvider>,
+    );
+    const card = blockerCard(html, '@diego');
+    expect(card).toContain('10/11 a 14/11');
+    expect(card).toContain('01/12 a 03/12');
+    expect(card.match(/aria-label="Cancelar as férias de @diego"/g)).toHaveLength(2);
+    expect(card).toContain('Marcar férias');
+  });
+
+  test('a member never sees the upcoming periods of someone else', () => {
+    const today = fixture({ canRemind: false, canResolve: false });
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(sessionQuery.queryKey, session);
+    queryClient.setQueryData(teamTodayQuery(11, today.team.name).queryKey, today);
+    queryClient.setQueryData(awayPeriodsQuery(11, 'diego').queryKey, [diegoUpcoming]);
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={queryClient}>
+        <HojePage installationId={11} team={today.team.name} />
+      </QueryClientProvider>,
+    );
+    const card = blockerCard(html, '@diego');
+    expect(card).not.toContain('10/11 a 14/11');
+    expect(card).not.toContain('Cancelar');
   });
 
   test('the away copy exists in English', () => {

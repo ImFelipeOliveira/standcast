@@ -37,7 +37,7 @@ Managers and admins see **Remind now** next to a person who has not sent today's
 
 ### Away
 
-Managers and admins see **Mark away** on a person's card, with the first and last away day. **Cancel** ends a period. A person who is away on the day and has not sent shows **Away until** the date instead of **Remind now**, and has no reminder. A person who is away and sent a daily shows as sent. Everyone marks and cancels their own periods in **Account**, under **Away**.
+Managers and admins see **Mark away** on a person's card, with the first and last away day. The card also lists the person's upcoming periods, each with **Cancel**, which ends it. A person who is away on the day and has not sent shows **Away until** the date instead of **Remind now**, and has no reminder. A person who is away and sent a daily shows as sent. Everyone marks and cancels their own periods in **Account**, under **Away**.
 
 - Periods belong to the organization and to the person's GitHub login. You can mark someone who has never run `standcast login`. Once they sign in, they see the period and can cancel it.
 - A period has at most 90 days, counting both ends, cannot start before today and cannot overlap another active one. To change the dates, cancel it and mark again.

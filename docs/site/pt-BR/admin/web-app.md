@@ -37,7 +37,7 @@ Gestores e admins veem **Lembrar agora** ao lado de quem ainda não enviou a dai
 
 ### Férias
 
-Gestores e admins veem **Marcar férias** no card de uma pessoa, com o primeiro e o último dia. **Cancelar** encerra um período. Quem está de férias no dia e não enviou a daily mostra **Férias até** a data no lugar de **Lembrar agora**, e não recebe lembrete. Quem está de férias e enviou a daily aparece como quem enviou. Cada pessoa marca e cancela os próprios períodos em **Conta**, em **Férias**.
+Gestores e admins veem **Marcar férias** no card de uma pessoa, com o primeiro e o último dia. O card também lista os próximos períodos da pessoa, cada um com **Cancelar**, que o encerra. Quem está de férias no dia e não enviou a daily mostra **Férias até** a data no lugar de **Lembrar agora**, e não recebe lembrete. Quem está de férias e enviou a daily aparece como quem enviou. Cada pessoa marca e cancela os próprios períodos em **Conta**, em **Férias**.
 
 - Os períodos pertencem à organização e ao login do GitHub da pessoa. Você pode marcar alguém que nunca rodou `standcast login`. Quando a pessoa entrar, ela vê o período e pode cancelá-lo.
 - Um período tem no máximo 90 dias, contando os dois extremos, não pode começar antes de hoje e não pode se sobrepor a outro ativo. Para mudar as datas, cancele e marque de novo.
