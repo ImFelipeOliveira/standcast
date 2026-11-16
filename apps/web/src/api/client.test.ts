@@ -10,6 +10,7 @@ import {
   SIGN_IN_MARKER,
   safeNext,
 } from './client';
+import { cancelAwayRequest, markAwayRequest } from './mutations';
 
 const originalFetch = globalThis.fetch;
 const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
@@ -262,5 +263,38 @@ describe('api client', () => {
       '/sign-in?next=%2Forgs%2F11%2Ftoday',
       '/sign-in?next=%2Forgs%2F11%2Ftoday',
     ]);
+  });
+
+  test('cancel away posts to the period with csrf and surfaces the server error', async () => {
+    stubWindow('/orgs/11/account');
+    const calls = stubFetch(({ url }) =>
+      url.endsWith('/v1/app/session')
+        ? json(200, { login: 'ana', avatarUrl: 'x', csrf: 'token-away', installations: [] })
+        : json(404, { error: { code: 'not_found', message: 'gone' } }),
+    );
+    const failure = await cancelAwayRequest(11, 'p 1').catch((error) => error);
+    expect(failure).toBeInstanceOf(ApiError);
+    expect(failure.code).toBe('not_found');
+    const post = calls.find((call) => call.init.method === 'POST');
+    expect(post?.url).toBe(`${apiUrl}/v1/app/orgs/11/away/p%201/cancel`);
+    const headers = post?.init.headers as Record<string, string>;
+    expect(headers['X-Standcast-CSRF']).toBe('token-away');
+  });
+
+  test('mark away posts the period and surfaces away_overlap', async () => {
+    stubWindow('/orgs/11/account');
+    const calls = stubFetch(({ url }) =>
+      url.endsWith('/v1/app/session')
+        ? json(200, { login: 'ana', avatarUrl: 'x', csrf: 'token-away', installations: [] })
+        : json(422, { error: { code: 'away_overlap', message: 'Already away.' } }),
+    );
+    const failure = await markAwayRequest(11, { until: '2026-12-05', login: 'bia' }).catch(
+      (error) => error,
+    );
+    expect(failure).toBeInstanceOf(ApiError);
+    expect(failure.message).toBe('Already away.');
+    const post = calls.find((call) => call.init.method === 'POST');
+    expect(post?.url).toBe(`${apiUrl}/v1/app/orgs/11/away`);
+    expect(post?.init.body).toBe(JSON.stringify({ until: '2026-12-05', login: 'bia' }));
   });
 });

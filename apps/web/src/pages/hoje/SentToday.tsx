@@ -5,7 +5,8 @@ import { useT } from '../../i18n';
 
 export function SentToday({ people }: { people: TodayPerson[] }) {
   const t = useT();
-  const sent = people.filter((person) => person.status !== 'missing');
+  const sent = people.filter((person) => person.status === 'sent' || person.status === 'late');
+  const away = people.filter((person) => person.status === 'away');
   const missing = people.filter((person) => person.status === 'missing');
   return (
     <Card aria-labelledby="hoje-sent" className="gap-3 px-5 py-[18px]">
@@ -16,6 +17,11 @@ export function SentToday({ people }: { people: TodayPerson[] }) {
         {sent.map((person) => (
           <Badge key={person.login} className="bg-accent-soft font-medium text-accent-ink">
             @{person.login}
+          </Badge>
+        ))}
+        {away.map((person) => (
+          <Badge key={person.login} variant="neutral">
+            {t('away.state')} · @{person.login}
           </Badge>
         ))}
         {missing.map((person) => (

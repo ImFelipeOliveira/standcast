@@ -1,4 +1,5 @@
 import {
+  dailyDateFor,
   detectCardSignals,
   detectPullRequestSignals,
   type SignalKind,
@@ -7,6 +8,7 @@ import {
   teamsForMember,
 } from '@standcast/core';
 import {
+  awayLogins,
   getDelivery,
   getInstallation,
   getInstallationMemberIds,
@@ -94,6 +96,11 @@ export async function scanMemberSignals(
   );
   const first = teams[0];
   if (!first) return;
+  const today = job.date ?? dailyDateFor(deps.now(), first);
+  if ((await awayLogins(deps.db, installation.id, [login], today)).has(login)) {
+    if (job.date) await markScanned(deps, installation.id, job.date, login);
+    return;
+  }
 
   const ctx: ScanContext = {
     installationId: installation.id,
@@ -124,15 +131,22 @@ export async function scanMemberSignals(
     });
   }
   if (errors.length > 0) throw errors[0];
-  if (job.date) {
-    await markDeliverySent(deps.db, {
-      installationId: installation.id,
-      teamName: '',
-      date: job.date,
-      kind: 'signal_scan',
-      subject: login,
-    });
-  }
+  if (job.date) await markScanned(deps, installation.id, job.date, login);
+}
+
+async function markScanned(
+  deps: WorkerDeps,
+  installationId: number,
+  date: string,
+  login: string,
+): Promise<void> {
+  await markDeliverySent(deps.db, {
+    installationId,
+    teamName: '',
+    date,
+    kind: 'signal_scan',
+    subject: login,
+  });
 }
 
 async function syncPullRequestSignals(

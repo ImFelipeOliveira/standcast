@@ -41,10 +41,10 @@ export async function listOrgDigests(
   const submitters = await listSubmitters(deps.db, installationId, [
     ...new Set(page.data.map((r) => r.date)),
   ]);
-  const display = await getMemberLogins(
-    deps.db,
-    teams.flatMap((t) => t.memberLogins),
-  );
+  const display = await getMemberLogins(deps.db, [
+    ...teams.flatMap((t) => t.memberLogins),
+    ...page.data.flatMap((r) => r.missingLogins ?? []),
+  ]);
   return {
     data: page.data.map((row) => {
       const members = teams.find((t) => t.name === row.teamName)?.memberLogins ?? [];
@@ -54,7 +54,9 @@ export async function listOrgDigests(
         date: row.date,
         status: row.status,
         sentAt: row.status === 'sent' ? row.updatedAt : null,
-        missing: members.filter((login) => !submitted.has(login)).map((l) => display.get(l) ?? l),
+        missing: (row.missingLogins ?? members.filter((login) => !submitted.has(login))).map(
+          (l) => display.get(l) ?? l,
+        ),
       };
     }),
     nextCursor: page.nextCursor,

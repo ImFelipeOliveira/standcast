@@ -3,9 +3,12 @@ import type { Language } from './config';
 const ptBR = {
   digestTitle: '📅 Daily — {team} — {date}',
   blockers: '🚧 Impedimentos',
-  support: '🤝 Pedidos de apoio',
-  yesterday: '🗓️ Ontem',
-  today: '🎯 Hoje',
+  support: '🤝 Solicitação de apoio',
+  yesterday: '🗓️ O que foi realizado ontem',
+  today: '🎯 Foco para hoje',
+  noBlockers: 'Nenhum impedimento.',
+  noSupport: 'Nenhuma solicitação de apoio.',
+  dateRange: '{from} a {to}',
   missing: '⏳ Não enviaram a daily:',
   allSent: '✅ Todos enviaram a daily e ninguém está impedido.',
   lateDaily: 'Daily enviada depois do consolidado:',
@@ -169,10 +172,15 @@ const ptBR = {
   'web.error.linear_oauth_failed.body':
     'Não foi possível concluir a conexão com o Linear. Tente conectar novamente.',
   'cli.usage':
-    'Uso: standcast <comando> [opções]\n\nComandos:\n  login     Entra com o GitHub\n  logout    Remove as credenciais locais\n  whoami    Mostra o usuário e as organizações\n  draft     Gera o rascunho da daily (JSON)\n  submit    Envia a daily (JSON em --file ou stdin)\n  suggestion confirm|ignore <id>\n            Confirma ou ignora uma sugestão de impedimento do rascunho\n  mcp       Inicia o servidor MCP (stdio) para agentes de IA\n\nOpções:\n  --org <login>      Organização\n  --file <caminho>   Arquivo JSON da daily\n  --api-url <url>    URL da API (STANDCAST_API_URL)\n  --sessions         Inclui as sessões locais de IA no rascunho (draft)\n  --help             Mostra esta ajuda\n  --version          Mostra a versão',
+    'Uso: standcast <comando> [opções]\n\nComandos:\n  login     Entra com o GitHub\n  logout    Remove as credenciais locais\n  whoami    Mostra o usuário e as organizações\n  draft     Gera o rascunho da daily (JSON)\n  submit    Envia a daily (JSON em --file ou stdin)\n  suggestion confirm|ignore <id>\n            Confirma ou ignora uma sugestão de impedimento do rascunho\n  away      Marca, lista ou cancela suas ausências (--until, list, cancel <id>)\n  mcp       Inicia o servidor MCP (stdio) para agentes de IA\n\nOpções:\n  --org <login>      Organização\n  --file <caminho>   Arquivo JSON da daily\n  --api-url <url>    URL da API (STANDCAST_API_URL)\n  --sessions         Inclui as sessões locais de IA no rascunho (draft)\n  --from <data>      Primeiro dia da ausência (away), padrão hoje\n  --until <data>     Último dia da ausência (away), AAAA-MM-DD\n  --help             Mostra esta ajuda\n  --version          Mostra a versão',
   'cli.invalidArgs': 'Argumentos inválidos: {message}',
   'cli.suggestionUsage':
     'Uso: standcast suggestion confirm <id> [--org <login>]\n     standcast suggestion ignore <id> [--org <login>]',
+  'cli.awayUsage':
+    'Uso: standcast away --until AAAA-MM-DD [--from AAAA-MM-DD] [--org <login>]\n     standcast away list [--org <login>]\n     standcast away cancel <id> [--org <login>]',
+  'away.notice.marked':
+    '@{by} marcou você de férias de {from} a {until}. Você não vai receber lembretes da daily nesses dias. Para desfazer: `standcast away cancel {id} --org {org}`.',
+  'away.notice.cancelled': '@{by} cancelou as suas férias de {from} a {until}.',
   'cli.unknownCommand': 'Comando desconhecido: {command}',
   'cli.notLoggedIn': 'Você não está autenticado. Execute: standcast login',
   'cli.loggedIn': 'Autenticado como {login}.',
@@ -280,8 +288,11 @@ const en = {
   digestTitle: '📅 Daily — {team} — {date}',
   blockers: '🚧 Blockers',
   support: '🤝 Support requests',
-  yesterday: '🗓️ Yesterday',
-  today: '🎯 Today',
+  yesterday: '🗓️ Done yesterday',
+  today: '🎯 Focus for today',
+  noBlockers: 'No blockers.',
+  noSupport: 'No support requests.',
+  dateRange: '{from} to {to}',
   missing: '⏳ Did not send the daily:',
   allSent: '✅ Everyone sent the daily and nobody is blocked.',
   lateDaily: 'Daily sent after the digest:',
@@ -444,10 +455,15 @@ const en = {
   'web.error.linear_oauth_failed.title': 'Linear connection failed',
   'web.error.linear_oauth_failed.body': 'Could not finish connecting Linear. Try connecting again.',
   'cli.usage':
-    'Usage: standcast <command> [options]\n\nCommands:\n  login     Sign in with GitHub\n  logout    Remove local credentials\n  whoami    Show the user and organizations\n  draft     Build the daily draft (JSON)\n  submit    Submit the daily (JSON from --file or stdin)\n  suggestion confirm|ignore <id>\n            Confirm or ignore a suggested blocker from the draft\n  mcp       Start the MCP server (stdio) for AI agents\n\nOptions:\n  --org <login>      Organization\n  --file <path>      Daily JSON file\n  --api-url <url>    API URL (STANDCAST_API_URL)\n  --sessions         Add local AI sessions to the draft (draft)\n  --help             Show this help\n  --version          Show the version',
+    'Usage: standcast <command> [options]\n\nCommands:\n  login     Sign in with GitHub\n  logout    Remove local credentials\n  whoami    Show the user and organizations\n  draft     Build the daily draft (JSON)\n  submit    Submit the daily (JSON from --file or stdin)\n  suggestion confirm|ignore <id>\n            Confirm or ignore a suggested blocker from the draft\n  away      Mark, list or cancel your away periods (--until, list, cancel <id>)\n  mcp       Start the MCP server (stdio) for AI agents\n\nOptions:\n  --org <login>      Organization\n  --file <path>      Daily JSON file\n  --api-url <url>    API URL (STANDCAST_API_URL)\n  --sessions         Add local AI sessions to the draft (draft)\n  --from <date>      First away day (away), defaults to today\n  --until <date>     Last away day (away), YYYY-MM-DD\n  --help             Show this help\n  --version          Show the version',
   'cli.invalidArgs': 'Invalid arguments: {message}',
   'cli.suggestionUsage':
     'Usage: standcast suggestion confirm <id> [--org <login>]\n       standcast suggestion ignore <id> [--org <login>]',
+  'cli.awayUsage':
+    'Usage: standcast away --until YYYY-MM-DD [--from YYYY-MM-DD] [--org <login>]\n       standcast away list [--org <login>]\n       standcast away cancel <id> [--org <login>]',
+  'away.notice.marked':
+    "@{by} marked you away from {from} to {until}. You won't get daily reminders on those days. To undo it: `standcast away cancel {id} --org {org}`.",
+  'away.notice.cancelled': '@{by} cancelled your away period from {from} to {until}.',
   'cli.unknownCommand': 'Unknown command: {command}',
   'cli.notLoggedIn': 'You are not signed in. Run: standcast login',
   'cli.loggedIn': 'Signed in as {login}.',
@@ -568,6 +584,11 @@ export function t(
   return template.replace(/\{(\w+)\}/g, (whole, name: string) =>
     name in vars ? String(vars[name]) : whole,
   );
+}
+
+export function formatShortDate(lang: Language, isoDate: string): string {
+  const [, m, d] = isoDate.split('-');
+  return lang === 'pt-BR' ? `${d}/${m}` : `${m}/${d}`;
 }
 
 export function formatDate(lang: Language, isoDate: string): string {

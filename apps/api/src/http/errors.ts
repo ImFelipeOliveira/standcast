@@ -24,6 +24,8 @@ export const STATUS: Record<DomainErrorCode, ContentfulStatusCode> = {
   space_already_linked: 409,
   too_many_spaces: 409,
   blocker_not_current: 409,
+  invalid_away_period: 422,
+  away_overlap: 422,
 };
 
 export function onError(error: Error, c: Context): Response {

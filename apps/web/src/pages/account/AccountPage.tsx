@@ -21,6 +21,7 @@ import { PageHeader } from '../../shell/PageHeader';
 import { roleLabel } from '../../shell/roles';
 import { signOut } from '../../shell/sign-out';
 import { chooseTheme, followSystemTheme, type ThemeChoice, useThemeChoice } from '../../theme';
+import { AwaySection } from './AwaySection';
 
 const GITHUB_PROFILE_URL = 'https://github.com/settings/profile';
 
@@ -255,6 +256,7 @@ export function AccountPage() {
       <div className="flex max-w-[760px] flex-col gap-4">
         <Profile />
         <Preferences />
+        <AwaySection />
         <Sessions />
       </div>
     </>

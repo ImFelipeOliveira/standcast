@@ -19,7 +19,7 @@ Alice runs `/daily` in Claude Code. The skill asks Standcast for a draft. Standc
 
 The window starts when she sent her last daily, if that was on or after the previous workday. Otherwise it starts at midnight of the previous workday. On Monday, the previous workday is Friday, so the weekend is covered. The cards use the same window. The draft has up to 50 items in total, newest first. If Linear fails, the draft still comes back with the GitHub activity.
 
-Alice edits yesterday, writes today and one blocker, asks for a review on her migration as a support request, and confirms. Standcast stores the daily for today's date and posts it right away to `#daily-backend` as its own message, with her yesterday, today, blocker and support request. She can send it again: the last version is stored, goes to the webhooks and counts in the digest, but nothing new is posted in the channel that day.
+Alice edits yesterday, writes today and one blocker, asks for a review on her migration as a support request, and confirms. Standcast stores the daily for today's date and posts it right away to `#daily-backend` as its own message, in this order: what she did yesterday, with the dates it covers (on Monday, Friday to Sunday), her focus for today with the date, blockers and support requests. An empty section says so, such as "No blockers.", and each link goes on its own line under its item, after 🔗. In Google Chat a blank line separates the sections. She can send it again: the last version is stored, goes to the webhooks and counts in the digest, but nothing new is posted in the channel that day.
 
 ## 09:30 · Reminder
 
@@ -41,7 +41,7 @@ At `digest_at`, in the team's time zone and only on workdays, Standcast posts on
 
 The dailies themselves are not repeated: they were posted when sent. When nobody is blocked, nobody asked for support and everyone sent, the digest says so in one line.
 
-With `chat.post_each_daily: false`, dailies are not posted when sent. The digest then also carries each person's yesterday and today, in the order of `members` in `standcast.yml`, between the support requests and the people who did not send.
+With `chat.post_each_daily: false`, dailies are not posted when sent. The digest then carries, after the title, each person's daily in the same layout as the posted daily, in the order of `members` in `standcast.yml`, followed by the people who did not send. Blockers and support requests appear in each person's section instead of at the top.
 
 People are mentioned in Slack or Google Chat when Standcast knows their user there. Otherwise they appear as `@` followed by their GitHub login, as plain text. See [Slack](/admin/slack#how-people-are-mentioned) and [Google Chat](/admin/google-chat#how-people-are-linked).
 
@@ -127,6 +127,17 @@ To answer:
 - **Ignore:** `standcast suggestion ignore <id>`, the MCP tool `standcast_decide_suggestion`, or answer when the `/daily` skill asks you.
 
 An ignored suggestion comes back only if the signal changes: a new head commit that is still failing, or a new period without review, after a review is dismissed or the pull request is marked ready for review again. A stale card comes back only if the card is restarted. The agent never adds a suggestion without your answer. See [CLI](/members/cli#standcast-suggestion).
+
+## Away periods
+
+A person can mark a period when they are away, such as vacation or leave. They do it with `standcast away` or the MCP tools, and managers and admins can do it for them in the [web app](/admin/web-app#away). The period is per organization and has at most 90 days. On each day inside it:
+
+- the person gets no reminder, and **Remind now** answers that they are away;
+- the digest does not list them under "Not sent". The digest says nothing about who is away;
+- Today shows **Away until** the date instead of **Remind now**, for those who have not sent;
+- the scan for suggested blockers does not run for them.
+
+A daily sent during a period counts as usual. The `digest.sent` webhook and `/v1/org/digests` list in `missing` only who did not send and was not away. `/v1/org/digests` returns the list saved when the digest was posted. For a digest posted before this change there is no saved list, so `missing` is computed when read, from the current team members and who has sent the daily for that date. Away periods are managed only through the session routes that the CLI, the MCP server and the web app use. Nothing about them reaches the org API (`/v1/org/*`), the manage API (`/v1/manage/*`), the webhooks or the setup page.
 
 ## Time zones, workdays and several teams
 

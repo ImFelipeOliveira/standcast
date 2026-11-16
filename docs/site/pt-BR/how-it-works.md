@@ -19,7 +19,7 @@ Alice roda `/daily` no Claude Code. A skill pede um rascunho ao Standcast. O Sta
 
 A janela começa no envio da última daily, se ela foi no dia útil anterior ou depois. Senão, começa à meia-noite do dia útil anterior. Na segunda, o dia útil anterior é sexta, então o fim de semana entra. Os cards usam a mesma janela. O rascunho tem até 50 itens no total, do mais recente para o mais antigo. Se o Linear falhar, o rascunho ainda vem com a atividade do GitHub.
 
-Alice ajusta o ontem, escreve o hoje e um impedimento, pede um review da migração dela como pedido de apoio e confirma. O Standcast guarda a daily na data de hoje e publica na hora no `#daily-backend`, como mensagem própria, com o ontem, o hoje, o impedimento e o pedido de apoio dela. Ela pode reenviar: a última versão fica guardada, vai para os webhooks e conta no consolidado, mas nada novo é publicado no canal naquele dia.
+Alice ajusta o ontem, escreve o hoje e um impedimento, pede um review da migração dela como pedido de apoio e confirma. O Standcast guarda a daily na data de hoje e publica na hora no `#daily-backend`, como mensagem própria, nesta ordem: o que foi realizado ontem, com os dias que cobre (na segunda, de sexta a domingo), o foco para hoje com a data, impedimentos e solicitações de apoio. Uma seção vazia diz isso, como "Nenhum impedimento.", e cada link vai numa linha própria abaixo do item, depois de 🔗. No Google Chat, uma linha em branco separa as seções. Ela pode reenviar: a última versão fica guardada, vai para os webhooks e conta no consolidado, mas nada novo é publicado no canal naquele dia.
 
 ## 09:30 · Lembrete
 
@@ -41,7 +41,7 @@ No `digest_at`, no fuso do time e só em dias úteis, o Standcast publica uma me
 
 As dailies em si não se repetem: elas foram publicadas no envio. Quando ninguém está impedido, ninguém pediu apoio e todos enviaram, o consolidado diz isso numa linha.
 
-Com `chat.post_each_daily: false`, as dailies não são publicadas no envio. O consolidado então também traz o ontem e o hoje de cada pessoa, na ordem de `members` no `standcast.yml`, entre os pedidos de apoio e quem não enviou.
+Com `chat.post_each_daily: false`, as dailies não são publicadas no envio. O consolidado então traz, depois do título, a daily de cada pessoa no mesmo formato da daily publicada, na ordem de `members` no `standcast.yml`, seguida de quem não enviou. Impedimentos e pedidos de apoio aparecem na seção de cada pessoa, e não no topo.
 
 As pessoas são mencionadas no Slack ou no Google Chat quando o Standcast conhece o usuário delas lá. Senão, aparecem como `@` seguido do login do GitHub, em texto. Veja [Slack](/pt-BR/admin/slack#como-as-pessoas-sao-mencionadas) e [Google Chat](/pt-BR/admin/google-chat#como-as-pessoas-sao-vinculadas).
 
@@ -127,6 +127,17 @@ Para responder:
 - **Ignorar:** `standcast suggestion ignore <id>`, a tool MCP `standcast_decide_suggestion`, ou responda quando a skill `/daily` perguntar.
 
 Uma sugestão ignorada só volta se o sinal mudar: um novo commit head que ainda falha, ou um novo período sem revisão, depois que uma revisão é descartada ou o pull request volta a ficar pronto para revisão. Um card parado só volta se o card for reiniciado. O agente nunca adiciona uma sugestão sem a sua resposta. Veja [CLI](/pt-BR/members/cli#standcast-suggestion).
+
+## Férias
+
+Uma pessoa pode marcar um período de férias, ou de licença. Ela faz isso com o `standcast away` ou com as tools do MCP, e gestores e admins podem marcar por ela no [app web](/pt-BR/admin/web-app#ferias). O período é por organização e tem no máximo 90 dias. Em cada dia dentro dele:
+
+- a pessoa não recebe lembrete, e **Lembrar agora** responde que ela está de férias;
+- o consolidado não lista a pessoa em "Não enviaram". O consolidado não diz nada sobre quem está de férias;
+- Hoje mostra **Férias até** a data no lugar de **Lembrar agora**, para quem não enviou a daily;
+- a varredura de impedimentos sugeridos não roda para ela.
+
+Uma daily enviada durante o período conta normalmente. O webhook `digest.sent` e o `/v1/org/digests` listam em `missing` só quem não enviou e não estava de férias. O `/v1/org/digests` devolve a lista guardada quando o consolidado foi publicado. Um consolidado publicado antes desta mudança não tem lista guardada, então `missing` é calculado na leitura, a partir dos membros atuais do time e de quem já enviou a daily daquela data. As férias são gerenciadas só pelas rotas de sessão que a CLI, o servidor MCP e o app web usam. Nada sobre elas chega à API da organização (`/v1/org/*`), à API de gestão (`/v1/manage/*`), aos webhooks nem à página de setup.
 
 ## Fuso, dias úteis e vários times
 

@@ -1,5 +1,6 @@
 import { API_KEY_SCOPES, listMemberInstallations, WEBHOOK_EVENTS } from '@standcast/db';
 import {
+  cancelAway,
   createInstallationApiKey,
   createMembershipCheck,
   createWebhookEndpoint,
@@ -18,7 +19,9 @@ import {
   getTeamsSummary,
   getTeamToday,
   linkGoogleChatSpace,
+  listAway,
   logoutWebSession,
+  markAway,
   redeliverWebhook,
   remindNow,
   revokeAllWebSessions,
@@ -57,6 +60,14 @@ const createKeyBody = z.object({
 const createWebhookBody = z.object({
   url: z.string(),
   events: z.array(z.enum(WEBHOOK_EVENTS)),
+});
+
+const awayDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+const markAwayBody = z.object({
+  from: awayDate.optional(),
+  until: awayDate,
+  login: z.string().optional(),
 });
 
 const linkSpaceBody = z.object({ code: z.string() });
@@ -279,6 +290,33 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       login: c.req.param('login'),
     });
     return c.json({ result }, 202);
+  });
+
+  app.get(`${ORG}/away`, async (c) => {
+    const data = await listAway(deps, isMember, c.get('member'), {
+      installationId: installationIdOf(c),
+      login: c.req.query('login'),
+    });
+    return c.json({ data }, 200);
+  });
+
+  app.post(`${ORG}/away`, async (c) => {
+    const { from, until, login } = await parseBody(c, markAwayBody);
+    const period = await markAway(deps, isMember, c.get('member'), {
+      installationId: installationIdOf(c),
+      login,
+      from,
+      until,
+    });
+    return c.json(period, 201);
+  });
+
+  app.post(`${ORG}/away/:periodId/cancel`, async (c) => {
+    await cancelAway(deps, isMember, c.get('member'), {
+      installationId: installationIdOf(c),
+      periodId: c.req.param('periodId'),
+    });
+    return c.body(null, 204);
   });
 
   app.post(`${ORG}/api-keys`, async (c) => {

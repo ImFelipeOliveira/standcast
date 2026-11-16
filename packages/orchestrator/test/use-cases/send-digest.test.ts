@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import type { StandcastConfig } from '@standcast/core';
 import {
   getDelivery,
+  listDigestDeliveries,
   setIdentity,
   setInstallationConfig,
   upsertDaily,
@@ -18,6 +19,7 @@ import {
   flakyDb,
   INST,
   linkSpace,
+  seedAway,
   seedMember,
   seedOrg,
 } from './fakes';
@@ -276,6 +278,40 @@ describe('sendDigest', () => {
     expect(text).toContain('@U0CONF');
     expect(text).not.toContain('@UALICE');
     expect(text).not.toContain('@bob');
+  });
+  test('an away person without a daily is in neither list', async () => {
+    const { deps, posted } = await setup();
+    await upsertMember(db, { githubUserId: 2, login: 'bob', email: null });
+    await seedAway('Bob', DATE, DATE);
+    await sendDigest(deps, job);
+    const text = posted[0]?.msg.fallbackText ?? '';
+    expect(text).toContain('did a thing');
+    expect(text).not.toContain('Did not send the daily');
+    expect(text).not.toContain('bob');
+  });
+
+  test('an away person who sent a daily is an entry', async () => {
+    const { deps, posted } = await setup();
+    await seedAway('alice', DATE, DATE);
+    await sendDigest(deps, job);
+    const text = posted[0]?.msg.fallbackText ?? '';
+    expect(text).toContain('@UALICE');
+    expect(text).toContain('did a thing');
+  });
+
+  test('the digest row stores missing logins', async () => {
+    const { deps } = await setup();
+    await upsertMember(db, { githubUserId: 2, login: 'Bob', email: null });
+    await sendDigest(deps, job);
+    const [row] = await listDigestDeliveries(db, INST, { limit: 10 });
+    expect(row?.missingLogins).toEqual(['bob']);
+  });
+
+  test('a digest with nobody missing stores an empty list', async () => {
+    const { deps } = await setup(config('[alice]'));
+    await sendDigest(deps, job);
+    const [row] = await listDigestDeliveries(db, INST, { limit: 10 });
+    expect(row?.missingLogins).toEqual([]);
   });
 });
 

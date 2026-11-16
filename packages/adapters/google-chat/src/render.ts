@@ -1,5 +1,6 @@
 import {
   type Block,
+  blockGap,
   GOOGLE_CHAT_USER_ID,
   type Inline,
   LINK_CHAT_ACCOUNT_ACTION,
@@ -57,6 +58,18 @@ function renderBlock(b: Block): string | null {
   }
 }
 
+function renderBlocks(blocks: Block[]): string {
+  let out = '';
+  let prev: Block | null = null;
+  for (const block of blocks) {
+    const text = renderBlock(block);
+    if (text === null) continue;
+    out += prev ? blockGap(prev, block) + text : text;
+    prev = block;
+  }
+  return out;
+}
+
 function truncate(text: string): string {
   if (text.length <= GOOGLE_CHAT_TEXT_LIMIT) return text;
   const budget = GOOGLE_CHAT_TEXT_LIMIT - TRUNCATION_TAIL.length - 1;
@@ -111,10 +124,7 @@ export function renderGoogleChat(
   msg: Message,
   options: GoogleChatRenderOptions = {},
 ): GoogleChatPayload {
-  const text = msg.blocks
-    .map(renderBlock)
-    .filter((b): b is string => b !== null)
-    .join('\n');
+  const text = renderBlocks(msg.blocks);
   const payload = { text: truncate(text.trim().length > 0 ? text : escapeText(msg.fallbackText)) };
   const { interactionUrl } = options;
   const actions = (msg.actions ?? []).filter((a) => a.type === LINK_CHAT_ACCOUNT_ACTION);

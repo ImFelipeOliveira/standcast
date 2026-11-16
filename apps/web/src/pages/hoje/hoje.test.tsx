@@ -3,8 +3,14 @@ import type { TeamToday } from '@standcast/orchestrator';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ApiError, apiUrl, forgetSession, type Session } from '../../api/client';
-import { createQueryClient, sessionQuery, teamTodayQuery } from '../../api/queries';
+import {
+  awayPeriodsQuery,
+  createQueryClient,
+  sessionQuery,
+  teamTodayQuery,
+} from '../../api/queries';
 import { applyLang, translate } from '../../i18n';
+import { awayErrorMessage } from '../away/away-error';
 import { errorMessage } from '../configuracao/labels';
 import { Dailies } from './DailyCard';
 import { keyed } from './format';
@@ -56,6 +62,7 @@ function fixture(overrides: Partial<TeamToday> = {}): TeamToday {
           blockers: [],
           support: [],
         },
+        away: null,
       },
       {
         login: 'guilherme',
@@ -72,8 +79,9 @@ function fixture(overrides: Partial<TeamToday> = {}): TeamToday {
             },
           ],
         },
+        away: null,
       },
-      { login: 'diego', status: 'missing', submittedAt: null, daily: null },
+      { login: 'diego', status: 'missing', submittedAt: null, daily: null, away: null },
     ],
     blockers: [
       {
@@ -117,6 +125,24 @@ function fixture(overrides: Partial<TeamToday> = {}): TeamToday {
     ...overrides,
   };
 }
+
+const biaAway = {
+  login: 'bia',
+  status: 'away' as const,
+  submittedAt: null,
+  daily: null,
+  away: { id: 'p-1', from: '2026-11-02', until: '2026-12-05' },
+};
+
+const diegoUpcoming = {
+  id: 'p-2',
+  login: 'diego',
+  from: '2026-11-10',
+  until: '2026-11-14',
+  markedBy: 'carla',
+  markedAt: '2026-11-01T10:00:00.000Z',
+  mine: false,
+};
 
 function renderPage(today: TeamToday, login = 'carla'): string {
   const queryClient = createQueryClient();
@@ -210,14 +236,17 @@ describe('hoje', () => {
   test('filter shows only missing', () => {
     const today = fixture();
     const html = renderToStaticMarkup(
-      <Dailies
-        today={today}
-        filter="missing"
-        onFilter={() => {}}
-        reminders={{}}
-        onRemind={() => {}}
-        onView={() => {}}
-      />,
+      <QueryClientProvider client={createQueryClient()}>
+        <Dailies
+          installationId={11}
+          today={today}
+          filter="missing"
+          onFilter={() => {}}
+          reminders={{}}
+          onRemind={() => {}}
+          onView={() => {}}
+        />
+      </QueryClientProvider>,
     );
     expect(html).toContain('@diego');
     expect(html).toContain('Ainda não enviou a daily de hoje.');
@@ -225,30 +254,102 @@ describe('hoje', () => {
     expect(html).not.toContain('@guilherme');
     expect(html).toMatch(/aria-pressed="true"[^>]*>Faltam</);
     const all = renderToStaticMarkup(
-      <Dailies
-        today={today}
-        filter="all"
-        onFilter={() => {}}
-        reminders={{}}
-        onRemind={() => {}}
-        onView={() => {}}
-      />,
+      <QueryClientProvider client={createQueryClient()}>
+        <Dailies
+          installationId={11}
+          today={today}
+          filter="all"
+          onFilter={() => {}}
+          reminders={{}}
+          onRemind={() => {}}
+          onView={() => {}}
+        />
+      </QueryClientProvider>,
     );
     expect(all).toContain('@ana');
     expect(all).toContain('@diego');
     expect(all).toContain('>PAR-223<');
     const sent = renderToStaticMarkup(
-      <Dailies
-        today={today}
-        filter="sent"
-        onFilter={() => {}}
-        reminders={{}}
-        onRemind={() => {}}
-        onView={() => {}}
-      />,
+      <QueryClientProvider client={createQueryClient()}>
+        <Dailies
+          installationId={11}
+          today={today}
+          filter="sent"
+          onFilter={() => {}}
+          reminders={{}}
+          onRemind={() => {}}
+          onView={() => {}}
+        />
+      </QueryClientProvider>,
     );
     expect(sent).toContain('@ana');
     expect(sent).not.toContain('@diego');
+  });
+
+  test('the sent and missing filters leave away people out', () => {
+    const base = fixture();
+    const today = fixture({
+      people: [
+        ...base.people,
+        {
+          login: 'lia',
+          status: 'late',
+          submittedAt: '2026-11-03T14:00:00.000Z',
+          daily: {
+            yesterday: [],
+            today: [{ text: 'Depois do consolidado' }],
+            blockers: [],
+            support: [],
+          },
+          away: null,
+        },
+        biaAway,
+      ],
+    });
+    const render = (filter: 'sent' | 'missing') =>
+      renderToStaticMarkup(
+        <QueryClientProvider client={createQueryClient()}>
+          <Dailies
+            installationId={11}
+            today={today}
+            filter={filter}
+            onFilter={() => {}}
+            reminders={{}}
+            onRemind={() => {}}
+            onView={() => {}}
+          />
+        </QueryClientProvider>,
+      );
+    const sent = render('sent');
+    expect(sent).toContain('@ana');
+    expect(sent).toContain('@guilherme');
+    expect(sent).toContain('@lia');
+    expect(sent).not.toContain('@diego');
+    expect(sent).not.toContain('@bia');
+    const missing = render('missing');
+    expect(missing).toContain('@diego');
+    expect(missing).not.toContain('@ana');
+    expect(missing).not.toContain('@lia');
+    expect(missing).not.toContain('@bia');
+  });
+
+  test('when everyone is away the count and progress are zero of zero', () => {
+    const html = renderPage(
+      fixture({
+        people: [
+          biaAway,
+          {
+            ...biaAway,
+            login: 'davi',
+            away: { id: 'p-4', from: '2026-11-03', until: '2026-11-03' },
+          },
+        ],
+      }),
+    );
+    expect(html).toMatch(/>0 <span[^>]*>de 0<\/span>/);
+    expect(html).toMatch(/role="progressbar"[^>]*aria-valuemax="0"[^>]*aria-valuenow="0"/);
+    expect(html).toContain('width:0%');
+    expect(html).not.toContain(' · falta');
   });
 
   test('a reopened blocker stays listed until the refetch brings it back', () => {
@@ -326,14 +427,17 @@ describe('hoje', () => {
     const today = fixture();
     const render = (reminders: Record<string, 'queued'>) =>
       renderToStaticMarkup(
-        <Dailies
-          today={today}
-          filter="missing"
-          onFilter={() => {}}
-          reminders={reminders}
-          onRemind={() => {}}
-          onView={() => {}}
-        />,
+        <QueryClientProvider client={createQueryClient()}>
+          <Dailies
+            installationId={11}
+            today={today}
+            filter="missing"
+            onFilter={() => {}}
+            reminders={reminders}
+            onRemind={() => {}}
+            onView={() => {}}
+          />
+        </QueryClientProvider>,
       );
     expect(render({})).toMatch(/<span role="status"[^>]*><\/span>/);
     expect(render({ diego: 'queued' })).toMatch(
@@ -385,6 +489,170 @@ describe('hoje', () => {
     }) as unknown as typeof fetch;
     await createQueryClient().fetchQuery(teamTodayQuery(11, 'back end'));
     expect(urls).toEqual([`${apiUrl}/v1/app/orgs/11/teams/back%20end/today`]);
+  });
+
+  test('away people count as neither sent nor missing and have no remind', () => {
+    const base = fixture();
+    const today = fixture({
+      people: [...base.people, biaAway],
+    });
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(sessionQuery.queryKey, session);
+    queryClient.setQueryData(teamTodayQuery(11, today.team.name).queryKey, today);
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={queryClient}>
+        <HojePage installationId={11} team={today.team.name} />
+      </QueryClientProvider>,
+    );
+    expect(html).toContain('de 3');
+    const card = blockerCard(html, '@bia');
+    expect(card).toContain('Férias até 05/12');
+    expect(card).toContain('Cancelar as férias de @bia');
+    expect(card).not.toContain('Lembrar agora');
+    expect(card).not.toContain('Ainda não enviou');
+    expect(html).toContain('Férias · @bia');
+    expect(html).not.toContain('@bia · falta');
+    expect(blockerCard(html, '@diego')).toContain('Marcar férias');
+  });
+
+  test('a manager keeps the away actions after the digest is sent', () => {
+    const base = fixture();
+    const today = fixture({
+      digest: { status: 'sent', sentAt: '2026-11-03T13:00:00.000Z', everSent: true },
+      canRemind: false,
+      canResolve: true,
+      people: [...base.people, biaAway],
+    });
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(sessionQuery.queryKey, session);
+    queryClient.setQueryData(teamTodayQuery(11, today.team.name).queryKey, today);
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={queryClient}>
+        <HojePage installationId={11} team={today.team.name} />
+      </QueryClientProvider>,
+    );
+    const away = blockerCard(html, '@bia');
+    expect(away).toContain('Férias até 05/12');
+    expect(away).toContain('Cancelar as férias de @bia');
+    const missing = blockerCard(html, '@diego');
+    expect(missing).toContain('Marcar férias');
+    expect(missing).not.toContain('Lembrar agora');
+  });
+
+  test('a member who cannot manage sees Away without actions', () => {
+    const base = fixture();
+    const html = renderPage(
+      fixture({
+        canRemind: false,
+        canResolve: false,
+        people: [
+          ...base.people,
+          { login: 'bia', status: 'away', submittedAt: null, daily: null, away: null },
+        ],
+      }),
+    );
+    expect(blockerCard(html, '@diego')).not.toContain('Marcar férias');
+    const card = blockerCard(html, '@bia');
+    expect(card).toContain('Férias');
+    expect(card).not.toContain('Férias até');
+    expect(card).not.toContain('Cancelar');
+    expect(card).not.toContain('Marcar férias');
+  });
+
+  test('the away card uses the period of the displayed team date without a lookup', () => {
+    const base = fixture();
+    const today = fixture({
+      date: '2026-11-02',
+      people: [
+        ...base.people,
+        { ...biaAway, away: { id: 'p-9', from: '2026-10-30', until: '2026-11-02' } },
+      ],
+    });
+    const urls: string[] = [];
+    globalThis.fetch = mock(async (input: RequestInfo | URL) => {
+      urls.push(String(input));
+      return Response.json({ data: [] });
+    }) as unknown as typeof fetch;
+    const card = blockerCard(renderPage(today), '@bia');
+    expect(card).toContain('Férias até 02/11');
+    expect(card).toContain('Cancelar as férias de @bia');
+    expect(urls.filter((url) => url.includes('login=bia'))).toEqual([]);
+  });
+
+  test('a manager sees the upcoming periods of a member who is not away, each with cancel', () => {
+    const today = fixture();
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(sessionQuery.queryKey, session);
+    queryClient.setQueryData(teamTodayQuery(11, today.team.name).queryKey, today);
+    queryClient.setQueryData(awayPeriodsQuery(11, 'diego').queryKey, [
+      diegoUpcoming,
+      { ...diegoUpcoming, id: 'p-3', from: '2026-12-01', until: '2026-12-03' },
+    ]);
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={queryClient}>
+        <HojePage installationId={11} team={today.team.name} />
+      </QueryClientProvider>,
+    );
+    const card = blockerCard(html, '@diego');
+    expect(card).toContain('10/11 a 14/11');
+    expect(card).toContain('01/12 a 03/12');
+    expect(card).toContain('aria-label="Cancelar as férias de @diego de 10/11 a 14/11"');
+    expect(card).toContain('aria-label="Cancelar as férias de @diego de 01/12 a 03/12"');
+    expect(card).toContain('Marcar férias');
+  });
+
+  test('a member never sees the upcoming periods of someone else', () => {
+    const today = fixture({ canRemind: false, canResolve: false });
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(sessionQuery.queryKey, session);
+    queryClient.setQueryData(teamTodayQuery(11, today.team.name).queryKey, today);
+    queryClient.setQueryData(awayPeriodsQuery(11, 'diego').queryKey, [diegoUpcoming]);
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={queryClient}>
+        <HojePage installationId={11} team={today.team.name} />
+      </QueryClientProvider>,
+    );
+    const card = blockerCard(html, '@diego');
+    expect(card).not.toContain('10/11 a 14/11');
+    expect(card).not.toContain('Cancelar');
+  });
+
+  test('a failed periods lookup shows a translated error with a retry', async () => {
+    const today = fixture();
+    globalThis.fetch = mock(async () =>
+      Response.json({ error: { code: 'unexpected', message: 'db down' } }, { status: 500 }),
+    ) as unknown as typeof fetch;
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(sessionQuery.queryKey, session);
+    queryClient.setQueryData(teamTodayQuery(11, today.team.name).queryKey, today);
+    queryClient.setQueryDefaults(awayPeriodsQuery(11, 'diego').queryKey, { retryOnMount: false });
+    await expect(
+      queryClient.fetchQuery({ ...awayPeriodsQuery(11, 'diego'), retry: false }),
+    ).rejects.toBeInstanceOf(ApiError);
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={queryClient}>
+        <HojePage installationId={11} team={today.team.name} />
+      </QueryClientProvider>,
+    );
+    const card = blockerCard(html, '@diego');
+    expect(card).toContain('role="alert"');
+    expect(card).toContain('Não foi possível carregar as férias.');
+    expect(card).toContain('Tentar de novo');
+    expect(card).not.toContain('db down');
+  });
+
+  test('the away copy exists in English', () => {
+    expect(translate('en', 'away.stateUntil', { date: '05/12' })).toBe('Away until 05/12');
+    expect(translate('pt-BR', 'away.stateUntil', { date: '05/12' })).toBe('Férias até 05/12');
+  });
+
+  test('away errors show translated messages, never the server text', () => {
+    const t = (key: Parameters<typeof translate>[1]) => translate('pt-BR', key);
+    const overlap = new ApiError(422, 'away_overlap', 'Already away on those days.');
+    expect(awayErrorMessage(t, overlap)).toBe(translate('pt-BR', 'away.error.overlap'));
+    expect(awayErrorMessage(t, new ApiError(500, 'internal', 'boom'))).toBe(
+      translate('pt-BR', 'setup.actionFailed'),
+    );
   });
 
   test('refLabel forms', () => {

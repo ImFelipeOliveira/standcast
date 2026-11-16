@@ -7,6 +7,8 @@ useCleanDb();
 const cases: [string, string][] = [
   ['/v1/sessions', 'invalid_request'],
   ['/v1/dailies', 'invalid_daily'],
+  ['/v1/away', 'invalid_request'],
+  ['/v1/away/00000000-0000-4000-8000-000000000000/cancel', 'invalid_request'],
 ];
 
 async function request(path: string, init: RequestInit) {

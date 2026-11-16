@@ -4,6 +4,7 @@ export * from './identity';
 export * from './log-error';
 export * from './membership';
 export * from './modules/access';
+export * from './modules/away';
 export * from './modules/beta';
 export * from './modules/chat';
 export * from './modules/daily';
