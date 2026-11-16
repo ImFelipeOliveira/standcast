@@ -52,6 +52,7 @@ export function toYaml(config: ConfigDraft): string {
       `      provider: ${team.chat.provider}`,
       `      channel: ${scalar(team.chat.channel)}`,
     );
+    if (team.chat.lateDaily) lines.push(`      late_daily: ${team.chat.lateDaily}`);
     if (team.tracker) {
       lines.push(
         '    tracker:',

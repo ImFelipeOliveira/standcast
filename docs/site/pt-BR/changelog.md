@@ -10,6 +10,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- No Google Chat, uma daily enviada depois do consolidado é publicada como mensagem nova no espaço, e não mais como resposta na thread do consolidado. `chat.late_daily` no `standcast.yml` escolhe isso por time: `channel` (o padrão no Google Chat) ou `thread` (o padrão no Slack). Veja [Configuração](/pt-BR/admin/configuration#chat).
 - A landing em standcast.app mostra `npm install -g standcast` embaixo do script de instalação, e o exemplo de MCP roda `npx -y standcast mcp`, então um cliente MCP funciona sem instalar a CLI antes.
 
 ### 0.14.1 — 15/11/2026

@@ -10,7 +10,7 @@ No. Every daily needs your explicit confirmation. The skill and the MCP server a
 
 ## Can I edit my daily after sending it?
 
-Yes, send it again the same day. The new version replaces the old one. If the digest already went out, your first late daily is posted in the thread; later versions are stored and sent to webhooks, but not posted again.
+Yes, send it again the same day. The new version replaces the old one. If the digest already went out, your first late daily is posted (on Google Chat as a new message in the space, on Slack in the thread); later versions are stored and sent to webhooks, but not posted again.
 
 ## I sent my daily on Saturday. Where did it go?
 

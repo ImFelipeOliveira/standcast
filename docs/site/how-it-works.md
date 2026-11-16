@@ -46,9 +46,9 @@ There is exactly one digest per team per day. If the worker is down at 10:00, th
 
 ## 10:40 · Bob sends a late daily
 
-Bob sends his daily after the digest. Standcast replies in the digest thread with his daily. The CLI and the MCP tools tell him `late: true`.
+Bob sends his daily after the digest. Standcast posts his daily as a new message in the space on Google Chat, or as a reply in the digest thread on Slack. `chat.late_daily` changes this per team. The CLI and the MCP tools tell him `late: true`.
 
-Only the first late daily of the day goes to the thread. If Bob sends again, Standcast stores the new version and sends the webhook, but does not post a second reply.
+Only the first late daily of the day is posted. If Bob sends again, Standcast stores the new version and sends the webhook, but does not post a second reply.
 
 ## Blocker routing
 

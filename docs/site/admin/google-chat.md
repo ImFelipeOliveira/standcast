@@ -2,7 +2,7 @@
 
 Standcast can post a team's digest to a Google Chat space instead of a Slack channel. The Standcast app for Google Chat does what the Slack bot does:
 
-- posts the team digest in the space at `digest_at`, and late dailies in its thread;
+- posts the team digest in the space at `digest_at`, and late dailies as new messages in the space (set `chat.late_daily: thread` to reply in the digest thread instead);
 - sends reminders and routed blockers by direct message;
 - sends suggested blockers by direct message when the team has `signals.direct_message: true`.
 

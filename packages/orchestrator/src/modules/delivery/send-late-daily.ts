@@ -81,7 +81,13 @@ export async function sendLateDaily(deps: WorkerDeps, job: SendLateDailyJob): Pr
     let ref: MessageRef | undefined;
     try {
       if (await isChannelLinked(deps, job.installationId, team.chat.provider, digest.ref.channel)) {
-        ref = await chat.replyInThread(digest.ref, buildLateDaily(entry, team.language));
+        const msg = buildLateDaily(entry, team.language);
+        const placement =
+          team.chat.lateDaily ?? (team.chat.provider === 'google-chat' ? 'channel' : 'thread');
+        ref =
+          placement === 'channel'
+            ? await chat.postToChannel(digest.ref.channel, msg)
+            : await chat.replyInThread(digest.ref, msg);
       }
     } catch (error) {
       await failDelivery(

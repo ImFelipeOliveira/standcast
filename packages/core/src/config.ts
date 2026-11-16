@@ -5,6 +5,8 @@ export type Weekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 export type Language = 'pt-BR' | 'en';
 export const CHAT_PROVIDERS = ['slack', 'google-chat'] as const;
 export type ChatProvider = (typeof CHAT_PROVIDERS)[number];
+export const LATE_DAILY_PLACEMENTS = ['thread', 'channel'] as const;
+export type LateDailyPlacement = (typeof LATE_DAILY_PLACEMENTS)[number];
 
 export type TeamConfig = {
   name: string;
@@ -15,7 +17,7 @@ export type TeamConfig = {
   language: Language;
   managers: string[];
   members: string[];
-  chat: { provider: ChatProvider; channel: string };
+  chat: { provider: ChatProvider; channel: string; lateDaily?: LateDailyPlacement };
   tracker?: { provider: 'linear' | 'jira'; team: string };
   signals: {
     prReviewHours: number;
@@ -93,6 +95,7 @@ const teamSchema = z.strictObject({
   chat: z.strictObject({
     provider: z.enum(CHAT_PROVIDERS),
     channel: z.string().min(1),
+    late_daily: z.enum(LATE_DAILY_PLACEMENTS).optional(),
   }),
   tracker: z
     .strictObject({
@@ -194,7 +197,11 @@ function toConfig(raw: RawConfig): StandcastConfig {
         language: t.language,
         managers: t.managers,
         members: t.members,
-        chat: t.chat,
+        chat: compact({
+          provider: t.chat.provider,
+          channel: t.chat.channel,
+          lateDaily: t.chat.late_daily,
+        }),
         signals: {
           prReviewHours: t.signals.pr_review_hours,
           cardStaleDays: t.signals.card_stale_days,
