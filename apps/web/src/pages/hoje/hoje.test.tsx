@@ -286,6 +286,72 @@ describe('hoje', () => {
     expect(sent).not.toContain('@diego');
   });
 
+  test('the sent and missing filters leave away people out', () => {
+    const base = fixture();
+    const today = fixture({
+      people: [
+        ...base.people,
+        {
+          login: 'lia',
+          status: 'late',
+          submittedAt: '2026-11-03T14:00:00.000Z',
+          daily: {
+            yesterday: [],
+            today: [{ text: 'Depois do consolidado' }],
+            blockers: [],
+            support: [],
+          },
+          away: null,
+        },
+        biaAway,
+      ],
+    });
+    const render = (filter: 'sent' | 'missing') =>
+      renderToStaticMarkup(
+        <QueryClientProvider client={createQueryClient()}>
+          <Dailies
+            installationId={11}
+            today={today}
+            filter={filter}
+            onFilter={() => {}}
+            reminders={{}}
+            onRemind={() => {}}
+            onView={() => {}}
+          />
+        </QueryClientProvider>,
+      );
+    const sent = render('sent');
+    expect(sent).toContain('@ana');
+    expect(sent).toContain('@guilherme');
+    expect(sent).toContain('@lia');
+    expect(sent).not.toContain('@diego');
+    expect(sent).not.toContain('@bia');
+    const missing = render('missing');
+    expect(missing).toContain('@diego');
+    expect(missing).not.toContain('@ana');
+    expect(missing).not.toContain('@lia');
+    expect(missing).not.toContain('@bia');
+  });
+
+  test('when everyone is away the count and progress are zero of zero', () => {
+    const html = renderPage(
+      fixture({
+        people: [
+          biaAway,
+          {
+            ...biaAway,
+            login: 'davi',
+            away: { id: 'p-4', from: '2026-11-03', until: '2026-11-03' },
+          },
+        ],
+      }),
+    );
+    expect(html).toMatch(/>0 <span[^>]*>de 0<\/span>/);
+    expect(html).toMatch(/role="progressbar"[^>]*aria-valuemax="0"[^>]*aria-valuenow="0"/);
+    expect(html).toContain('width:0%');
+    expect(html).not.toContain(' · falta');
+  });
+
   test('a reopened blocker stays listed until the refetch brings it back', () => {
     const [stuck, fresh] = fixture().blockers;
     if (!stuck || !fresh) throw new Error('fixture');
