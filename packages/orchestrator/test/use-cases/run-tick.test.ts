@@ -11,7 +11,7 @@ import {
 import type { EnqueueOptions } from '@standcast/queue';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { runTick, SEND_BLOCKER_ALERTS_JOB, scanOffsetSeconds } from '../../src';
-import { config, fakeDeps, INST, seedMember, seedOrg } from './fakes';
+import { config, fakeDeps, INST, seedAway, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -174,6 +174,41 @@ describe('runTick', () => {
         data: { installationId: INST, teamName: 'Alpha', date: '2026-03-08' },
       },
     ]);
+  });
+
+  test('no reminder is enqueued for a person away on that date', async () => {
+    const parsed = parseConfig(`
+teams:
+  - name: Alpha
+    timezone: America/Sao_Paulo
+    remind_at: "09:00"
+    digest_at: "10:00"
+    managers: [Alice]
+    members: [Alice, bob]
+    chat: { provider: slack, channel: "#alpha" }
+`);
+    if (!parsed.ok) throw new Error(JSON.stringify(parsed.errors));
+    await seedOrg(parsed.config);
+    await seedAway('alice', '2026-10-28', '2026-10-30');
+    const fake = fakeDeps();
+    fake.setNow(local('2026-10-28T09:30:00'));
+    await runTick(fake.deps);
+    const reminded = fake.queue.enqueued
+      .filter((j) => j.name === 'send-reminder')
+      .map((j) => (j.data as { login: string }).login);
+    expect(reminded).toEqual(['bob']);
+
+    fake.setNow(local('2026-11-02T09:30:00'));
+    await runTick(fake.deps);
+    const later = fake.queue.enqueued
+      .filter((j) => j.name === 'send-reminder')
+      .map(
+        (j) =>
+          (j.data as { login: string; date: string }).date +
+          ':' +
+          (j.data as { login: string }).login,
+      );
+    expect(later).toContain('2026-11-02:alice');
   });
 
   test('a failing reminder enqueue is logged without payload and does not break the tick', async () => {
