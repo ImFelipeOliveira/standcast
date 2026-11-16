@@ -125,16 +125,16 @@ Para responder:
 
 Uma sugestão ignorada só volta se o sinal mudar: um novo commit head que ainda falha, ou um novo período sem revisão, depois que uma revisão é descartada ou o pull request volta a ficar pronto para revisão. Um card parado só volta se o card for reiniciado. O agente nunca adiciona uma sugestão sem a sua resposta. Veja [CLI](/pt-BR/members/cli#standcast-suggestion).
 
-## Períodos de ausência
+## Férias
 
-Uma pessoa pode marcar um período em que está ausente, como férias ou licença. Ela faz isso com o `standcast away` ou com as tools do MCP, e gestores e admins podem marcar por ela no [app web](/pt-BR/admin/web-app#ausencia). O período é por organização e tem no máximo 90 dias. Em cada dia dentro dele:
+Uma pessoa pode marcar um período de férias, ou de licença. Ela faz isso com o `standcast away` ou com as tools do MCP, e gestores e admins podem marcar por ela no [app web](/pt-BR/admin/web-app#ferias). O período é por organização e tem no máximo 90 dias. Em cada dia dentro dele:
 
-- a pessoa não recebe lembrete, e **Lembrar agora** responde que ela está ausente;
-- o consolidado não lista a pessoa em "Não enviaram". O consolidado não diz nada sobre quem está ausente;
-- Hoje mostra a pessoa como **Férias**, sem o botão **Lembrar agora**;
+- a pessoa não recebe lembrete, e **Lembrar agora** responde que ela está de férias;
+- o consolidado não lista a pessoa em "Não enviaram". O consolidado não diz nada sobre quem está de férias;
+- Hoje mostra **Férias até** a data no lugar de **Lembrar agora**, para quem não enviou a daily;
 - a varredura de impedimentos sugeridos não roda para ela.
 
-Uma daily enviada durante o período conta normalmente. O webhook `digest.sent` e o `/v1/org/digests` listam em `missing` só quem não enviou e não estava ausente. O `/v1/org/digests` devolve a lista guardada quando o consolidado foi publicado, então um consolidado publicado antes desta mudança mantém a lista anterior. Nada mais sobre períodos de ausência chega à API, aos webhooks nem à página de setup.
+Uma daily enviada durante o período conta normalmente. O webhook `digest.sent` e o `/v1/org/digests` listam em `missing` só quem não enviou e não estava de férias. O `/v1/org/digests` devolve a lista guardada quando o consolidado foi publicado, então um consolidado publicado antes desta mudança mantém a lista anterior. Nada mais sobre férias chega à API, aos webhooks nem à página de setup.
 
 ## Fuso, dias úteis e vários times
 

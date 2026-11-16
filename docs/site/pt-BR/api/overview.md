@@ -146,8 +146,8 @@ O `code` é o contrato estável: decida pelo `code`, não pela `message`. A `mes
 | `space_already_linked` | 409 | O espaço do Google Chat está vinculado a outra organização. Um admin dessa organização precisa desvinculá-lo antes. |
 | `too_many_spaces` | 409 | A organização já tem 20 espaços do Google Chat vinculados, o máximo. Desvincule um antes de vincular outro. |
 | `blocker_not_current` | 409 | Só na rota do app web que reabre um impedimento: a pessoa enviou uma daily depois sem ele, então ele continua resolvido. Se ainda atrapalha, ela lista de novo na próxima daily. |
-| `invalid_away_period` | 422 | O período de ausência não é válido: `until` vem antes de `from`, `from` é anterior a hoje no primeiro time da pessoa, ou ele passa de 90 dias. |
-| `away_overlap` | 422 | A pessoa já tem uma ausência ativa em algum desses dias. Cancele e marque de novo para mudar as datas. |
+| `invalid_away_period` | 422 | O período de férias não é válido: `until` vem antes de `from`, `from` é anterior a hoje no primeiro time da pessoa, ou ele passa de 90 dias. |
+| `away_overlap` | 422 | A pessoa já tem um período de férias ativo em algum desses dias. Cancele e marque de novo para mudar as datas. |
 | `payload_too_large` | 413 | Só nos receptores de webhook do GitHub e do Google Chat: o corpo tem mais de 1 MB. Nada foi processado. |
 | `rate_limited` | 429 | Requisições demais. Espere `Retry-After` segundos e tente de novo (veja Limites de taxa). |
 | `internal` | 500 | Erro inesperado no servidor. Tente de novo com backoff e fale com o suporte se persistir. |

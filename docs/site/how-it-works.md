@@ -131,7 +131,7 @@ A person can mark a period when they are away, such as vacation or leave. They d
 
 - the person gets no reminder, and **Remind now** answers that they are away;
 - the digest does not list them under "Not sent". The digest says nothing about who is away;
-- Today shows them as **Away**, without the **Remind now** button;
+- Today shows **Away until** the date instead of **Remind now**, for those who have not sent;
 - the scan for suggested blockers does not run for them.
 
 A daily sent during a period counts as usual. The `digest.sent` webhook and `/v1/org/digests` list in `missing` only who did not send and was not away. `/v1/org/digests` returns the list saved when the digest was posted, so a digest posted before this change keeps its earlier list. Nothing else about away periods reaches the API, the webhooks or the setup page.

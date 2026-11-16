@@ -131,15 +131,15 @@ Toda tool que recebe `org` aceita esse campo como opcional. Quando você está n
 | `standcast_get_draft` | `org?`, `includeSessions?` (padrão `true`) | O rascunho do trabalho de ontem, montado a partir da sua atividade no GitHub e no Linear, mais `plan`, `pending` e `warnings`, e o `work` agrupado com as suas sessões locais de IA |
 | `standcast_submit_daily` | `org?`, `yesterday`, `today`, `blockers`, `support?` (o que você precisa de outra pessoa sem estar travado; vazio quando falta), `confirmed?` (`true` quando o cliente não tem elicitation) | `{ date, teams, late, confirmation }` |
 | `standcast_decide_suggestion` | `org?`, `id`, `decision` (`confirmed` ou `ignored`) | `{ id, decision }` |
-| `standcast_away_mark` | `org?`, `from?` (padrão: hoje), `until` | O novo período de ausência, com o `id`. Marca só você |
-| `standcast_away_list` | `org?` | Os seus períodos de ausência ativos, cada um com o `id` |
-| `standcast_away_cancel` | `org?`, `id` | Cancela um dos seus períodos de ausência |
+| `standcast_away_mark` | `org?`, `from?` (padrão: hoje), `until` | O novo período de férias, com o `id`. Marca só você |
+| `standcast_away_list` | `org?` | Os seus períodos de férias ativos, cada um com o `id` |
+| `standcast_away_cancel` | `org?`, `id` | Cancela um dos seus períodos de férias |
 | `standcast_list_teams` | `org?` | Os times que você pode ler |
 | `standcast_get_digest` | `org?`, `team`, `date` | `{ digest }`: o consolidado do time naquela data, ou `null` |
 | `standcast_list_dailies` | `org?`, `team`, `from`, `to`, `cursor?` | Uma página das dailies confirmadas do time, cada uma com os pedidos de apoio em `support` |
 | `standcast_list_blockers` | `org?`, `team`, `from?`, `to?`, `cursor?` | Uma página dos impedimentos confirmados do time |
 
-Toda tool declara um schema de entrada, um schema de saída e anotações, e devolve o resultado como `structuredContent`. Todas as tools, menos a `standcast_submit_daily`, a `standcast_decide_suggestion`, a `standcast_away_mark` e a `standcast_away_cancel`, são somente leitura. As tools de ausência agem só por você, e o agente tem que confirmar as datas com você antes de marcar ou cancelar um período. A `standcast_submit_daily` não é destrutiva e é idempotente: enviar de novo no mesmo dia substitui a daily anterior. A `standcast_decide_suggestion` não é destrutiva e é idempotente: repetir a mesma decisão não muda nada. As datas são `YYYY-MM-DD`.
+Toda tool declara um schema de entrada, um schema de saída e anotações, e devolve o resultado como `structuredContent`. Todas as tools, menos a `standcast_submit_daily`, a `standcast_decide_suggestion`, a `standcast_away_mark` e a `standcast_away_cancel`, são somente leitura. As tools de férias agem só por você, e o agente tem que confirmar as datas com você antes de marcar ou cancelar um período. A `standcast_submit_daily` não é destrutiva e é idempotente: enviar de novo no mesmo dia substitui a daily anterior. A `standcast_decide_suggestion` não é destrutiva e é idempotente: repetir a mesma decisão não muda nada. As datas são `YYYY-MM-DD`.
 
 ## Suas sessões de IA
 
