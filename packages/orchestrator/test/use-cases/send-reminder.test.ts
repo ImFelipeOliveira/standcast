@@ -659,7 +659,7 @@ teams:
     members: [alice]
     chat: { provider: slack, channel: "#alpha" }
   - name: Beta
-    timezone: Pacific/Auckland
+    timezone: America/New_York
     remind_at: "09:00"
     digest_at: "10:00"
     managers: [alice]
@@ -669,16 +669,18 @@ teams:
     if (!parsed.ok) throw new Error(JSON.stringify(parsed.errors));
     const { deps, directs } = await setup(parsed.config);
     await identify('alice', 'U1');
-    await away('alice', '2026-10-28', '2026-10-28');
+    const period = await away('alice', '2026-10-28', '2026-10-28');
+    if (period === 'overlap') throw new Error('overlap');
     await sendReminder(deps, { ...job('alice'), team: 'Alpha' });
     await sendReminder(deps, { ...job('alice'), team: 'Beta' });
     expect(directs).toHaveLength(0);
-    await sendReminder(deps, {
+    expect(await getDelivery(db, reminderKey('alice'))).toBeNull();
+    await cancelAwayPeriod(db, {
       installationId: INST,
-      login: 'alice',
-      date: '2026-10-29',
-      team: 'Beta',
+      id: period.id,
+      cancelledBy: period.createdBy,
     });
+    await sendReminder(deps, { ...job('alice'), team: 'Beta' });
     expect(directs).toHaveLength(1);
   });
 });
