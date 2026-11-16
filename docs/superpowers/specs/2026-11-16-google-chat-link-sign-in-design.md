@@ -8,7 +8,8 @@ Linking should finish in one go from the chat: click, sign in with GitHub, done.
 
 ## Goals
 
-- When the email lookup finds no account, the app answers privately with a sign-in link. Following it, signing in with GitHub and confirming on one web page links that Google Chat user, with no second click or message in the chat.
+- When the email lookup finds no account, the app answers privately with a sign-in link.
+- The link only links the person in the organization of the Google Chat space where they clicked or mentioned the app, never in their other organizations. Following it, signing in with GitHub and confirming on one web page links that Google Chat user, with no second click or message in the chat.
 - It works whether or not the Google email is a verified email of the GitHub account.
 - The person sees the result on the web page and gets a confirmation in Google Chat.
 
@@ -39,17 +40,17 @@ Picked 1, agreed with the user on 2026-11-16: the token flow proves both sides, 
 
 In `handleGoogleChatEvent` (`packages/orchestrator/src/modules/chat/google-chat-events.ts`), `linkIdentities` answers `googleChat.notFound` when no member has the email. On that answer only, when the event has a valid Google Chat user id (`users/` + digits), the app issues a sign-in token and adds the link to the answer:
 
-- click on **Link my account** or a mention in a space: the answer is already private to the clicker (`privateTo`); the link goes in it.
-- direct message to the app: the DM space has only that person; the link goes in the answer.
+- click on **Link my account** or a mention in a space linked to an installation (`google_chat_spaces.installation_id`, `linked_at` set): the answer is already private to the clicker (`privateTo`); the link goes in it, scoped to that installation. A space not linked to any installation gets today's answer, with no link.
+- direct message to the app: a DM belongs to no organization, so no link is issued. The `notFound` answer tells the person to click **Link my account** under their team's digest, or mention the app in their team's space. *(Claude's call, following the user's rule that the link only applies to the Chat space it came from.)*
 
 The `ambiguous` and `notConnected` answers stay as they are: signing in does not fix them. The map hint (`googleChat.mapHint`) stays under the link for people who cannot sign in.
 
 ### The token
 
 - 32 random bytes, base64url, generated with the same helpers as the space link code (`generateLinkCode`/`hashLinkCode` style). Only the SHA-256 hash is stored.
-- New table `google_chat_sign_in_tokens`: `token_hash` (primary key), `chat_user_id`, `chat_email` (the Google email from the event, nullable), `created_at`, `expires_at`, `used_at` (nullable). No installation id: the Chat user id is global, and linking writes to every installation of the member that has Google Chat connected, as the email path does.
-- Lifetime 15 minutes. Issuing a new token for the same `chat_user_id` deletes that user's unused tokens.
-- Consumed by compare-and-swap: `UPDATE … SET used_at = now WHERE token_hash = $1 AND used_at IS NULL AND expires_at > now RETURNING chat_user_id`. A second use, or an expired token, gets no row.
+- New table `google_chat_sign_in_tokens`: `token_hash` (primary key), `chat_user_id`, `chat_email` (the Google email from the event, nullable), `installation_id` (the installation of the space, foreign key to `installations`, `ON DELETE cascade`), `space_name`, `created_at`, `expires_at`, `used_at` (nullable). Decided by the user on 2026-11-16: the link applies only to the installation of the space where it was issued.
+- Lifetime 15 minutes. Issuing a new token for the same `chat_user_id` and installation deletes that user's unused tokens for that installation.
+- Consumed by compare-and-swap: `UPDATE … SET used_at = now WHERE token_hash = $1 AND used_at IS NULL AND expires_at > now RETURNING chat_user_id, installation_id`. A second use, or an expired token, gets no row.
 - Rows are deleted by the existing prune job 1 day after `expires_at`.
 
 ### The web flow
@@ -58,29 +59,33 @@ Two routes in `apps/api/src/routes/web.tsx`, both thin: they read input, call a 
 
 - `GET /link/google-chat?token=…` shows the confirmation page. It never consumes the token.
   - Without a session it uses the existing `loginRedirect`, so the person goes through `/auth/github/login?next=/link/google-chat?token=…` and comes back to the same URL after GitHub. The token rides in `next` inside the signed login state; it is not logged.
-  - With a session it calls `previewGoogleChatSignInLink(deps, { memberId, token })`, which reads the token without consuming it. A missing, used or expired token shows the "expired" result. Otherwise the page shows the Google email of the Chat account (`chat_email`; the Chat user id when the email is missing), the person's GitHub login, and, when the member is already linked to a different Chat user in any of their installations, that it replaces the current link (with that account's email when known). Buttons: **Link** and **Cancel**.
+  - With a session it calls `previewGoogleChatSignInLink(deps, { memberId, token })`, which reads the token without consuming it. A missing, used or expired token shows the "expired" result. When the signed-in member does not belong to the token's installation (`member_installations`), the page shows the "not in this organization" result without consuming the token. Otherwise the page shows the Google email of the Chat account (`chat_email`; the Chat user id when the email is missing), the person's GitHub login, the organization name (the installation's account login), and, when the member is already linked to a different Chat user in that installation, that it replaces the current link (with that account's email when known). Buttons: **Link** and **Cancel**.
 - `POST /link/google-chat` with the token in the form body and the CSRF field, checked with the existing `readForm`/`verifyCsrf`. It calls `completeGoogleChatSignInLink(deps, { memberId, token })`:
   - consumes the token by CAS (see above);
-  - links `chat_user_id` to the member in every installation of the member with Google Chat connected, with the same per-installation write the email path uses (`linkMember`, `writeIdentityIfConnected`). Extract that write so both paths share it; the email path keeps its behaviour (non-goal), so the checks below run only on this path, before the shared write;
-  - in each installation, skips it when that installation's `standcast.yml` maps this member to a different Google Chat user, or maps another member to this Google Chat user. The mapping wins, as it does at read time today;
-  - in each installation it writes to, removes the Google Chat identity of any other member linked to this same Chat user (one Chat user is one member). A member already linked to a different Chat user gets the new one: the upsert replaces it, and the page already said so. *(Builder-check call by Claude: replace and clear, matching the one-to-one rule the email path enforces with `quarantineLinks`.)*
-- **Cancel** is a link back to `/`; the token is left to expire.### Results
+  - checks again that the member belongs to the token's installation; if not, the result is "not in this organization" (the token is already used, so they need a new one);
+  - links `chat_user_id` to the member in that installation only, with the same per-installation write the email path uses (`writeIdentityIfConnected`). Extract that write so both paths share it; the email path keeps its behaviour (non-goal: it still links every installation with Google Chat connected), so the checks below run only on this path, before the shared write;
+  - skips the write when that installation's `standcast.yml` maps this member to a different Google Chat user, or maps another member to this Google Chat user. The mapping wins, as it does at read time today;
+  - removes, in that installation, the Google Chat identity of any other member linked to this same Chat user (one Chat user is one member). A member already linked to a different Chat user gets the new one: the upsert replaces it, and the page already said so. *(Builder-check call by Claude: replace and clear, matching the one-to-one rule the email path enforces with `quarantineLinks`.)*
+- **Cancel** is a link back to `/`; the token is left to expire.
+
+### Results
 
 The page shows one of these, in the language of the person's teams, English when unknown (same rule as the chat answers):
 
 | Result | Page text (en) |
 | --- | --- |
 | confirmation | Link the Google Chat account fulano@pigz.com.br to your GitHub account @login? (+ "This replaces the link to ciclano@pigz.com.br." when it does) |
-| linked in at least one organization | You're linked, @login. You can close this page. |
+| linked | You're linked in org, @login. You can close this page. |
+| the member is not in the space's organization | Your GitHub account @login is not a member of org on Standcast. Sign in with the GitHub account you use there. |
 | token missing, used or expired | This link expired. Click **Link my account** in Google Chat again. |
-| signed in, but no organization of the member has Google Chat connected | Same text as the chat answer `googleChat.notConnected`. |
-| every candidate installation skipped by an admin mapping | Your admin set your Google Chat account in standcast.yml, so nothing changed. |
+| the installation no longer has Google Chat connected | Same text as the chat answer `googleChat.notConnected`. |
+| skipped by an admin mapping | Your admin set your Google Chat account in standcast.yml, so nothing changed. |
 
 On success the app also sends a direct message to the Chat user with the existing `googleChat.linked` text, through `sendDirect`. When the link replaced a different Chat user of the member, that previous Chat user also gets a direct message saying the account was linked to another Google Chat account, so a hijack does not go unnoticed. *(Claude's call.)* A failed DM is logged with `logError` and does not undo the link.
 
 ### Copy
 
-New `t()` keys in pt-BR and en: the link label in the no-match answer (for example "Entrar com GitHub para vincular" / "Sign in with GitHub to link"), the confirmation page, the four results, and the direct message to a replaced Chat user. `googleChat.notFound` is reworded so it no longer says only "run `standcast login` first": it points to the link, and mentions the web app and the CLI as other ways to sign in.
+New `t()` keys in pt-BR and en: the link label in the no-match answer (for example "Entrar com GitHub para vincular" / "Sign in with GitHub to link"), the confirmation page, the five results, and the direct message to a replaced Chat user. `googleChat.notFound` is reworded so it no longer says only "run `standcast login` first": it points to the link, and mentions the web app and the CLI as other ways to sign in.
 
 ### Docs
 
@@ -91,12 +96,12 @@ New `t()` keys in pt-BR and en: the link label in the no-match answer (for examp
 - The link only appears in an answer private to the clicker, or in their own DM space.
 - Single use, 15 minutes, stored hashed, consumed by CAS.
 - A forwarded link cannot link silently: the confirmation page shows which Google account will be linked, and the POST is CSRF-protected. Someone tricked into confirming another person's Chat account still sees that account's email first, and their previously linked Chat user is told by direct message.
-- The session that consumes it is the person's own GitHub sign-in; the member's installations come from that sign-in, so the link only applies where that GitHub login is a member.
+- The session that consumes it is the person's own GitHub sign-in, and the link only applies to the installation of the space it came from, and only when that GitHub login is a member of it.
 - What is lost compared with the email rule: a person can link their Chat user to any GitHub account they control. The user accepted this.
 
 ## Left to the builder
 
 - Exact page layout, reusing the existing web page components (`Layout`, `ErrorPage`).
 - Whether the link in the chat answer is a text link (`<url|label>`) or a card button; a text link is enough.
-- Test shape: use-case tests against Postgres for issue, preview without consuming, consume, expiry, double use, mapping precedence, replacing a link, clearing another member's link and multi-installation linking; route tests for the redirect through login, the confirmation page, CSRF on the POST and the result pages; event tests for when the link is and is not offered.
+- Test shape: use-case tests against Postgres for issue, preview without consuming, consume, expiry, double use, mapping precedence, replacing a link, clearing another member's link, a member of several installations linked only in the space's one, and a member outside the space's installation; route tests for the redirect through login, the confirmation page, CSRF on the POST and the result pages; event tests for when the link is and is not offered (linked space, unlinked space, DM).
 - How `sendDirect` is reached from the web route's use case (the same chat factory the delivery jobs use).
