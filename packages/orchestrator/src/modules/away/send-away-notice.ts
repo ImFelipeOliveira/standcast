@@ -1,4 +1,4 @@
-import { buildAwayNotice, dailyDateFor, type Message, teamsForMember } from '@standcast/core';
+import { buildAwayNotice, type Message, teamsForMember } from '@standcast/core';
 import {
   claimDelivery,
   completeDelivery,
@@ -20,6 +20,7 @@ export type SendAwayNoticeJob = {
   periodId: string;
   action: 'marked' | 'cancelled';
   byLogin: string;
+  date: string;
 };
 
 export async function enqueueAwayNotice(deps: Deps, job: SendAwayNoticeJob): Promise<void> {
@@ -45,7 +46,7 @@ export async function sendAwayNotice(deps: WorkerDeps, job: SendAwayNoticeJob): 
   const key: DeliveryKey = {
     installationId: installation.id,
     teamName: '',
-    date: dailyDateFor(deps.now(), first),
+    date: job.date,
     kind: 'away_notice',
     subject: `${login}:${period.id}:${job.action}`,
   };

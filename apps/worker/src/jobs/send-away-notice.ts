@@ -6,6 +6,7 @@ const schema = z.object({
   periodId: z.string().min(1),
   action: z.enum(['marked', 'cancelled']),
   byLogin: z.string().min(1),
+  date: z.iso.date(),
 });
 
 export function sendAwayNoticeJob(deps: WorkerDeps): (data: object) => Promise<void> {

@@ -65,6 +65,7 @@ describe('sendAwayNotice', () => {
       periodId: row.id,
       action: 'marked' as const,
       byLogin: 'alice',
+      date: '2026-10-28',
     };
     failWith(new Error('network down'));
     await expect(sendAwayNotice(deps, job)).rejects.toThrow('network down');
@@ -80,6 +81,29 @@ describe('sendAwayNotice', () => {
     expect((await getDelivery(db, key(`bob:${row.id}:marked`)))?.status).toBe('sent');
   });
 
+  test('a retry after midnight keys the delivery on the job date and sends once', async () => {
+    const { deps, directs, failWith, mark, setNow } = await setup();
+    const bob = await upsertMember(db, { githubUserId: 2, login: 'bob', email: null });
+    await setIdentity(db, INST, bob.id, 'slack', 'U2');
+    const row = await mark('bob');
+    const job = {
+      installationId: INST,
+      periodId: row.id,
+      action: 'marked' as const,
+      byLogin: 'alice',
+      date: '2026-10-28',
+    };
+    await sendAwayNotice(deps, job);
+    setNow(new Date('2026-10-29T12:00:00Z'));
+    failWith(null);
+    await sendAwayNotice(deps, job);
+    expect(directs).toHaveLength(1);
+    expect((await getDelivery(db, key(`bob:${row.id}:marked`)))?.status).toBe('sent');
+    expect(
+      await getDelivery(db, { ...key(`bob:${row.id}:marked`), date: '2026-10-29' }),
+    ).toBeNull();
+  });
+
   test('sends the cancelled notice', async () => {
     const { deps, directs, mark } = await setup();
     const bob = await upsertMember(db, { githubUserId: 2, login: 'bob', email: null });
@@ -90,6 +114,7 @@ describe('sendAwayNotice', () => {
       periodId: row.id,
       action: 'cancelled',
       byLogin: 'alice',
+      date: '2026-10-28',
     });
     expect(directs[0]?.msg.fallbackText).toBe(
       '@alice cancelou as suas férias de 02/11/2026 a 06/11/2026.',
@@ -104,6 +129,7 @@ describe('sendAwayNotice', () => {
       periodId: row.id,
       action: 'marked',
       byLogin: 'alice',
+      date: '2026-10-28',
     });
     expect(directs).toHaveLength(0);
     const delivery = await getDelivery(db, key(`carol:${row.id}:marked`));
@@ -120,6 +146,7 @@ describe('sendAwayNotice', () => {
       periodId: row.id,
       action: 'marked',
       byLogin: 'alice',
+      date: '2026-10-28',
     });
     const delivery = await getDelivery(db, key(`bob:${row.id}:marked`));
     expect(delivery?.status).toBe('failed');
@@ -137,6 +164,7 @@ describe('sendAwayNotice', () => {
       periodId: row.id,
       action: 'marked',
       byLogin: 'alice',
+      date: '2026-10-28',
     });
     expect(directs).toHaveLength(0);
     expect(await getDelivery(db, key(`bob:${row.id}:marked`))).toBeNull();

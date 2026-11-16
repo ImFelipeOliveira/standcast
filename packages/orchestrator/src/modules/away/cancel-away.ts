@@ -31,6 +31,7 @@ export async function cancelAway(
       periodId: period.id,
       action: 'cancelled',
       byLogin: caller.login,
+      date: access.today,
     });
   }
 }

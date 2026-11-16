@@ -42,6 +42,7 @@ export async function markAway(
       periodId: row.id,
       action: 'marked',
       byLogin: caller.login,
+      date: access.today,
     });
   }
   return toAwayPeriod(row, caller.login, caller.login);

@@ -104,7 +104,13 @@ describe('markAway and listAway', () => {
     expect(notices()).toEqual([
       {
         name: 'send-away-notice',
-        data: { installationId: INST, periodId: marked.id, action: 'marked', byLogin: 'alice' },
+        data: {
+          installationId: INST,
+          periodId: marked.id,
+          action: 'marked',
+          byLogin: 'alice',
+          date: '2026-10-28',
+        },
         opts: { singletonKey: `away-notice:${INST}:${marked.id}:marked` },
       },
     ]);
@@ -125,9 +131,9 @@ describe('markAway and listAway', () => {
     expect(await listAway(deps, isMember, carol, { installationId: INST, login: 'erin' })).toEqual(
       [],
     );
-    expect(notices().map((n) => (n.data as { action: string }).action)).toEqual([
-      'marked',
-      'cancelled',
+    expect(notices().map((n) => n.data as { action: string; date: string })).toMatchObject([
+      { action: 'marked', date: '2026-10-28' },
+      { action: 'cancelled', date: '2026-10-28' },
     ]);
   });
 
@@ -287,7 +293,13 @@ describe('cancelAway', () => {
     expect(notices().filter((n) => (n.data as { action: string }).action === 'cancelled')).toEqual([
       {
         name: 'send-away-notice',
-        data: { installationId: INST, periodId: marked.id, action: 'cancelled', byLogin: 'alice' },
+        data: {
+          installationId: INST,
+          periodId: marked.id,
+          action: 'cancelled',
+          byLogin: 'alice',
+          date: '2026-10-28',
+        },
         opts: { singletonKey: `away-notice:${INST}:${marked.id}:cancelled` },
       },
     ]);
@@ -332,9 +344,9 @@ describe('cancelAway', () => {
       { ...marked, mine: false },
     ]);
     await cancelAway(deps, isMember, carol, { installationId: INST, periodId: marked.id });
-    expect(notices().map((n) => (n.data as { action: string }).action)).toEqual([
-      'marked',
-      'cancelled',
+    expect(notices().map((n) => n.data as { action: string; date: string })).toMatchObject([
+      { action: 'marked', date: '2026-10-28' },
+      { action: 'cancelled', date: '2026-10-28' },
     ]);
     await expect(
       markAway(deps, isMember, carol, { installationId: INST, login: 'bob', ...period }),
