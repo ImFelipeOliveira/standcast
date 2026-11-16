@@ -3,9 +3,12 @@ import type { Language } from './config';
 const ptBR = {
   digestTitle: '📅 Daily — {team} — {date}',
   blockers: '🚧 Impedimentos',
-  support: '🤝 Pedidos de apoio',
-  yesterday: '🗓️ Ontem',
-  today: '🎯 Hoje',
+  support: '🤝 Solicitação de apoio',
+  yesterday: '🗓️ O que foi realizado ontem',
+  today: '🎯 Foco para hoje',
+  noBlockers: 'Nenhum impedimento.',
+  noSupport: 'Nenhuma solicitação de apoio.',
+  dateRange: '{from} a {to}',
   missing: '⏳ Não enviaram a daily:',
   allSent: '✅ Todos enviaram a daily e ninguém está impedido.',
   lateDaily: 'Daily enviada depois do consolidado:',
@@ -280,8 +283,11 @@ const en = {
   digestTitle: '📅 Daily — {team} — {date}',
   blockers: '🚧 Blockers',
   support: '🤝 Support requests',
-  yesterday: '🗓️ Yesterday',
-  today: '🎯 Today',
+  yesterday: '🗓️ Done yesterday',
+  today: '🎯 Focus for today',
+  noBlockers: 'No blockers.',
+  noSupport: 'No support requests.',
+  dateRange: '{from} to {to}',
   missing: '⏳ Did not send the daily:',
   allSent: '✅ Everyone sent the daily and nobody is blocked.',
   lateDaily: 'Daily sent after the digest:',
@@ -568,6 +574,11 @@ export function t(
   return template.replace(/\{(\w+)\}/g, (whole, name: string) =>
     name in vars ? String(vars[name]) : whole,
   );
+}
+
+export function formatShortDate(lang: Language, isoDate: string): string {
+  const [, m, d] = isoDate.split('-');
+  return lang === 'pt-BR' ? `${d}/${m}` : `${m}/${d}`;
 }
 
 export function formatDate(lang: Language, isoDate: string): string {

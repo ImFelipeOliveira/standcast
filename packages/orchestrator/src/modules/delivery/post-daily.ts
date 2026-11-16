@@ -92,7 +92,7 @@ export async function postDaily(deps: WorkerDeps, job: PostDailyJob): Promise<vo
     try {
       const channel = threadRef && !posting ? threadRef.channel : team.chat.channel;
       if (await isChannelLinked(deps, job.installationId, team.chat.provider, channel)) {
-        const msg = buildDailyPost(entry, team.language, late);
+        const msg = buildDailyPost(entry, team, job.date, late);
         ref =
           threadRef && !posting
             ? await chat.replyInThread(threadRef, msg)

@@ -95,7 +95,27 @@ describe('renderGoogleChat', () => {
         { type: 'paragraph', content: ['end'] },
       ],
     });
-    expect(out).toEqual({ text: '*Daily*\nhello\n• a\n• b\n\nend' });
+    expect(out).toEqual({ text: '*Daily*\n\nhello\n• a\n• b\n\nend' });
+  });
+
+  test('separates digest sections with a blank line', () => {
+    const out = renderGoogleChat({
+      fallbackText: 'fb',
+      blocks: [
+        { type: 'heading', text: 'Daily' },
+        { type: 'heading', text: 'Blockers' },
+        { type: 'list', items: [['b1']] },
+        { type: 'paragraph', content: ['@ana'] },
+        { type: 'paragraph', content: ['Yesterday:'] },
+        { type: 'list', items: [['y1'], ['y2']] },
+        { type: 'paragraph', content: ['Today:'] },
+        { type: 'list', items: [['t1']] },
+        { type: 'paragraph', content: ['Did not send: @bob'] },
+      ],
+    });
+    expect(out.text).toBe(
+      '*Daily*\n\n*Blockers*\n• b1\n\n@ana\nYesterday:\n• y1\n• y2\n\nToday:\n• t1\n\nDid not send: @bob',
+    );
   });
 
   test('render keeps links and safe mentions only', () => {

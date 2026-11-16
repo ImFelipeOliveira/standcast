@@ -4,7 +4,13 @@ import { buildDailyPost, buildDigest, buildDigestSummary, type DigestEntry } fro
 import { type Block, type Inline, LINK_CHAT_ACCOUNT_ACTION } from '../src/message';
 
 function team(language: 'pt-BR' | 'en', members: string[]): TeamConfig {
-  return { name: 'backend', language, members } as unknown as TeamConfig;
+  return {
+    name: 'backend',
+    language,
+    members,
+    timezone: 'America/Sao_Paulo',
+    workdays: ['mon', 'tue', 'wed', 'thu', 'fri'],
+  } as unknown as TeamConfig;
 }
 
 function entry(
@@ -52,36 +58,33 @@ describe('buildDigest', () => {
   const other = entry('bob', 'U2');
   const base = { team: team('en', ['alice', 'bob']), date, missing: [] };
 
-  test('blockers come first', () => {
-    const msg = buildDigest({ ...base, entries: [other, blocked] });
-    expect(msg.blocks[0]?.type).toBe('heading');
-    const section = msg.blocks.slice(1, 4);
-    const json = JSON.stringify(section);
-    expect(json).toContain('{"mention":"U1"}');
-    expect(json).toContain('waiting on infra');
-    const idxBlocker = msg.blocks.findIndex((b) => blockText(b).includes('waiting on infra'));
-    const idxBob = msg.blocks.findIndex((b) => blockText(b).includes('bob did y'));
-    expect(idxBlocker).toBeLessThan(idxBob);
-  });
-
-  test('no blockers section when none', () => {
-    const msg = buildDigest({ ...base, entries: [other] });
-    expect(JSON.stringify(msg.blocks)).not.toContain('Blockers');
-  });
-
-  test('support requests come right after the blockers, with who asked', () => {
-    const asking = entry('bob', 'U2', { support: [{ text: 'need a review on the API PR' }] });
-    const msg = buildDigest({ ...base, entries: [asking, blocked] });
-    const texts = msg.blocks.map(blockText);
-    const idxBlockers = texts.indexOf('🚧 Blockers');
-    const idxSupport = texts.indexOf('🤝 Support requests');
-    const idxAsk = texts.findIndex((t) => t.includes('need a review on the API PR'));
-    const idxAlice = texts.findIndex((t) => t.includes('alice did y'));
-    expect(idxBlockers).toBeGreaterThan(0);
-    expect(idxSupport).toBeGreaterThan(idxBlockers);
-    expect(idxAsk).toBe(idxSupport + 1);
-    expect(idxAlice).toBeGreaterThan(idxAsk);
-    expect(texts[idxAsk]).toBe('<U2>: need a review on the API PR');
+  test('each person follows yesterday, today, blockers, support', () => {
+    const asking = entry('alice', 'U1', {
+      blockers: [{ text: 'waiting on infra' }],
+      support: [{ text: 'need a review on the API PR' }],
+    });
+    const msg = buildDigest({ ...base, entries: [other, asking] });
+    expect(msg.blocks.map(blockText)).toEqual([
+      '📅 Daily — backend — 2026-10-27',
+      '<U1>',
+      '🗓️ Done yesterday (10/26):',
+      'alice did y',
+      '🎯 Focus for today (10/27):',
+      'alice does t',
+      '🚧 Blockers:',
+      'waiting on infra',
+      '🤝 Support requests:',
+      'need a review on the API PR',
+      '<U2>',
+      '🗓️ Done yesterday (10/26):',
+      'bob did y',
+      '🎯 Focus for today (10/27):',
+      'bob does t',
+      '🚧 Blockers:',
+      'No blockers.',
+      '🤝 Support requests:',
+      'No support requests.',
+    ]);
   });
 
   test('support requests are only in their own section', () => {
@@ -92,19 +95,21 @@ describe('buildDigest', () => {
     expect(text.split('pair on the migration')).toHaveLength(2);
   });
 
-  test('no support section when nobody asked, including dailies stored without it', () => {
+  test('dailies stored without support say nobody asked', () => {
     const { support: _, ...stored } = entry('bob', 'U2').daily;
     const msg = buildDigest({
       ...base,
       entries: [{ login: 'bob', chatUserId: 'U2', daily: stored }],
     });
-    expect(JSON.stringify(msg.blocks)).not.toContain('Support requests');
+    expect(msg.blocks.map(blockText)).toContain('No support requests.');
   });
 
-  test('support heading is localized', () => {
-    const asking = entry('bob', 'U2', { support: [{ text: 'ajuda com o deploy' }] });
-    const pt = buildDigest({ ...base, team: team('pt-BR', ['bob']), entries: [asking] });
-    expect(pt.blocks.map(blockText)).toContain('🤝 Pedidos de apoio');
+  test('empty sections are localized', () => {
+    const pt = buildDigest({ ...base, team: team('pt-BR', ['bob']), entries: [other] });
+    const texts = pt.blocks.map(blockText);
+    expect(texts).toContain('🤝 Solicitação de apoio:');
+    expect(texts).toContain('Nenhum impedimento.');
+    expect(texts).toContain('Nenhuma solicitação de apoio.');
   });
 
   test('one section per person in config member order', () => {
@@ -193,7 +198,7 @@ describe('buildDigest', () => {
   test('nobody missing', () => {
     const msg = buildDigest({ ...base, entries: [other] });
     expect(JSON.stringify(msg.blocks)).not.toContain('Did not send');
-    expect(blockText(msg.blocks[msg.blocks.length - 1] as Block)).toContain('bob does t');
+    expect(blockText(msg.blocks[msg.blocks.length - 1] as Block)).toBe('No support requests.');
   });
 
   test('localized', () => {
@@ -211,12 +216,22 @@ describe('buildDigest', () => {
     const cases = [
       {
         lang: 'en' as const,
-        labels: ['🚧 Blockers', '🤝 Support requests', '🗓️ Yesterday:', '🎯 Today:'],
+        labels: [
+          '🚧 Blockers:',
+          '🤝 Support requests:',
+          '🗓️ Done yesterday (10/26):',
+          '🎯 Focus for today (10/27):',
+        ],
         missing: '⏳ Did not send the daily: @carol',
       },
       {
         lang: 'pt-BR' as const,
-        labels: ['🚧 Impedimentos', '🤝 Pedidos de apoio', '🗓️ Ontem:', '🎯 Hoje:'],
+        labels: [
+          '🚧 Impedimentos:',
+          '🤝 Solicitação de apoio:',
+          '🗓️ O que foi realizado ontem (26/10):',
+          '🎯 Foco para hoje (27/10):',
+        ],
         missing: '⏳ Não enviaram a daily: @carol',
       },
     ];
@@ -233,6 +248,26 @@ describe('buildDigest', () => {
       expect(texts[texts.length - 1]).toBe(missing);
       expect(msg.fallbackText).toContain('🚧');
     }
+  });
+
+  test('yesterday spans the days since the previous workday', () => {
+    const monday = '2026-11-16';
+    const pt = buildDigest({
+      team: team('pt-BR', ['alice']),
+      date: monday,
+      entries: [entry('alice', 'U1')],
+      missing: [],
+    });
+    const ptTexts = pt.blocks.map(blockText);
+    expect(ptTexts).toContain('🗓️ O que foi realizado ontem (13/11 a 15/11):');
+    expect(ptTexts).toContain('🎯 Foco para hoje (16/11):');
+    const en = buildDigest({
+      team: team('en', ['alice']),
+      date: monday,
+      entries: [entry('alice', 'U1')],
+      missing: [],
+    });
+    expect(en.blocks.map(blockText)).toContain('🗓️ Done yesterday (11/13 to 11/15):');
   });
 
   test('refs become links', () => {
@@ -303,7 +338,8 @@ describe('buildDailyPost', () => {
   test('renders one person as a short message', () => {
     const msg = buildDailyPost(
       entry('alice', 'U1', { blockers: [{ text: 'stuck' }] }),
-      'pt-BR',
+      team('pt-BR', ['alice']),
+      date,
       true,
     );
     const text = msg.blocks.map(blockText).join('\n');
@@ -320,25 +356,26 @@ describe('buildDailyPost', () => {
         blockers: [{ text: 'stuck' }],
         support: [{ text: 'need a reviewer' }],
       }),
-      'en',
+      team('en', ['alice']),
+      date,
       true,
     );
     const texts = msg.blocks.map(blockText);
     const idxBlocker = texts.findIndex((t) => t.includes('stuck'));
-    const idxSupport = texts.indexOf('🤝 Support requests');
+    const idxSupport = texts.indexOf('🤝 Support requests:');
     expect(idxSupport).toBeGreaterThan(idxBlocker);
-    expect(texts[idxSupport + 1]).toBe('<U1>: need a reviewer');
+    expect(texts[idxSupport + 1]).toBe('need a reviewer');
   });
 
   test('without late has no late line', () => {
-    const msg = buildDailyPost(entry('alice', undefined), 'en', false);
+    const msg = buildDailyPost(entry('alice', undefined), team('en', ['alice']), date, false);
     expect(msg.fallbackText).not.toContain('Daily sent after the digest');
     expect(msg.fallbackText).toContain('alice');
     expect(msg.fallbackText).toContain('alice does t');
   });
 
   test('with late opens with the late line', () => {
-    const msg = buildDailyPost(entry('alice', undefined), 'en', true);
+    const msg = buildDailyPost(entry('alice', undefined), team('en', ['alice']), date, true);
     expect(msg.fallbackText.startsWith('Daily sent after the digest:')).toBe(true);
   });
 });

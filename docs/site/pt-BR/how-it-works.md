@@ -19,7 +19,7 @@ Alice roda `/daily` no Claude Code. A skill pede um rascunho ao Standcast. O Sta
 
 A janela começa no envio da última daily, se ela foi no dia útil anterior ou depois. Senão, começa à meia-noite do dia útil anterior. Na segunda, o dia útil anterior é sexta, então o fim de semana entra. Os cards usam a mesma janela. O rascunho tem até 50 itens no total, do mais recente para o mais antigo. Se o Linear falhar, o rascunho ainda vem com a atividade do GitHub.
 
-Alice ajusta o ontem, escreve o hoje e um impedimento, pede um review da migração dela como pedido de apoio e confirma. O Standcast guarda a daily na data de hoje e publica na hora no `#daily-backend`, como mensagem própria, com o ontem, o hoje, o impedimento e o pedido de apoio dela. Ela pode reenviar: a última versão fica guardada, vai para os webhooks e conta no consolidado, mas nada novo é publicado no canal naquele dia.
+Alice ajusta o ontem, escreve o hoje e um impedimento, pede um review da migração dela como pedido de apoio e confirma. O Standcast guarda a daily na data de hoje e publica na hora no `#daily-backend`, como mensagem própria, nesta ordem: o que foi realizado ontem, com os dias que cobre (na segunda, de sexta a domingo), o foco para hoje com a data, impedimentos e solicitações de apoio. Uma seção vazia diz isso, como "Nenhum impedimento.". No Google Chat, uma linha em branco separa as seções. Ela pode reenviar: a última versão fica guardada, vai para os webhooks e conta no consolidado, mas nada novo é publicado no canal naquele dia.
 
 ## 09:30 · Lembrete
 
@@ -41,7 +41,7 @@ No `digest_at`, no fuso do time e só em dias úteis, o Standcast publica uma me
 
 As dailies em si não se repetem: elas foram publicadas no envio. Quando ninguém está impedido, ninguém pediu apoio e todos enviaram, o consolidado diz isso numa linha.
 
-Com `chat.post_each_daily: false`, as dailies não são publicadas no envio. O consolidado então também traz o ontem e o hoje de cada pessoa, na ordem de `members` no `standcast.yml`, entre os pedidos de apoio e quem não enviou.
+Com `chat.post_each_daily: false`, as dailies não são publicadas no envio. O consolidado então traz, depois do título, a daily de cada pessoa no mesmo formato da daily publicada, na ordem de `members` no `standcast.yml`, seguida de quem não enviou. Impedimentos e pedidos de apoio aparecem na seção de cada pessoa, e não no topo.
 
 As pessoas são mencionadas no Slack ou no Google Chat quando o Standcast conhece o usuário delas lá. Senão, aparecem como `@` seguido do login do GitHub, em texto. Veja [Slack](/pt-BR/admin/slack#como-as-pessoas-sao-mencionadas) e [Google Chat](/pt-BR/admin/google-chat#como-as-pessoas-sao-vinculadas).
 

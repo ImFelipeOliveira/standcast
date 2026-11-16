@@ -1,7 +1,8 @@
+import { addCalendarDays, previousWorkday } from './calendar';
 import type { Language, TeamConfig } from './config';
 import type { DailyContent, Item } from './daily';
 import { githubRefLabel } from './github-ref';
-import { formatDate, t } from './i18n';
+import { formatDate, formatShortDate, t } from './i18n';
 import { parseLinearIssueUrl } from './linear-ref';
 import {
   type Block,
@@ -39,16 +40,32 @@ function orderEntries(team: TeamConfig, entries: DigestEntry[]): DigestEntry[] {
   return [...ordered, ...remaining];
 }
 
-function personSection(entry: DigestEntry, lang: Language): Block[] {
-  const blocks: Block[] = [{ type: 'paragraph', content: [personInline(entry)] }];
-  const { yesterday, today } = entry.daily;
-  if (yesterday.length > 0) {
-    blocks.push({ type: 'paragraph', content: [`${t(lang, 'yesterday')}:`] });
-    blocks.push({ type: 'list', items: yesterday.map(itemInlines) });
-  }
-  blocks.push({ type: 'paragraph', content: [`${t(lang, 'today')}:`] });
-  blocks.push({ type: 'list', items: today.map(itemInlines) });
-  return blocks;
+function yesterdaySpan(team: TeamConfig, date: string): string {
+  const lang = team.language;
+  const from = formatShortDate(lang, previousWorkday(date, team));
+  const to = formatShortDate(lang, addCalendarDays(date, -1));
+  return from === to ? to : t(lang, 'dateRange', { from, to });
+}
+
+function topic(label: string, items: Item[], empty: string): Block[] {
+  return [
+    { type: 'paragraph', content: [`${label}:`] },
+    { type: 'list', items: items.length > 0 ? items.map(itemInlines) : empty ? [[empty]] : [] },
+  ];
+}
+
+function personSection(entry: DigestEntry, team: TeamConfig, date: string): Block[] {
+  const lang = team.language;
+  const { yesterday, today, blockers, support = [] } = entry.daily;
+  return [
+    { type: 'paragraph', content: [personInline(entry)] },
+    ...(yesterday.length > 0
+      ? topic(`${t(lang, 'yesterday')} (${yesterdaySpan(team, date)})`, yesterday, '')
+      : []),
+    ...topic(`${t(lang, 'today')} (${formatShortDate(lang, date)})`, today, ''),
+    ...topic(t(lang, 'blockers'), blockers, t(lang, 'noBlockers')),
+    ...topic(t(lang, 'support'), support, t(lang, 'noSupport')),
+  ];
 }
 
 function attributedSection(
@@ -125,9 +142,7 @@ export function buildDigest(input: DigestInput): Message {
   const entries = orderEntries(team, input.entries);
   const blocks: Block[] = [
     digestTitle(team, date),
-    ...blockersSection(entries, lang),
-    ...supportSection(entries, lang),
-    ...entries.flatMap((e) => personSection(e, lang)),
+    ...entries.flatMap((e) => personSection(e, team, date)),
     ...missingSection(missing, lang),
   ];
   return withLinkAction(team, [...entries, ...missing], blocks);
@@ -147,11 +162,15 @@ export function buildDigestSummary(input: DigestInput): Message {
   return withLinkAction(team, [...entries, ...missing], [digestTitle(team, date), ...body]);
 }
 
-export function buildDailyPost(entry: DigestEntry, lang: Language, late: boolean): Message {
+export function buildDailyPost(
+  entry: DigestEntry,
+  team: TeamConfig,
+  date: string,
+  late: boolean,
+): Message {
+  const lang = team.language;
   return message([
     ...(late ? [{ type: 'paragraph' as const, content: [t(lang, 'lateDaily')] }] : []),
-    ...personSection(entry, lang),
-    ...blockersSection([entry], lang),
-    ...supportSection([entry], lang),
+    ...personSection(entry, team, date),
   ]);
 }
