@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+### 0.15.0 — 2026-11-16
+
 - On Google Chat, a daily sent after the digest is posted as a new message in the space instead of a reply in the digest thread. `chat.late_daily` in `standcast.yml` picks it per team: `channel` (the default on Google Chat) or `thread` (the default on Slack). See [Configuration](/admin/configuration#chat).
 - The landing at standcast.app shows `npm install -g standcast` under the install script, and its MCP example runs `npx -y standcast mcp`, so an MCP client works without installing the CLI first.
 
