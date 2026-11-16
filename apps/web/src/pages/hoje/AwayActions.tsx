@@ -13,6 +13,24 @@ function UpcomingAway({ installationId, login }: { installationId: number; login
   const lang = useLang();
   const periods = useAwayPeriods(installationId, login);
   const cancel = useCancelAway(installationId);
+  if (periods.isError) {
+    return (
+      <div
+        role="alert"
+        className="flex flex-wrap items-center gap-2 rounded-[9px] border border-bad-line bg-bad-soft px-3 py-2 text-[13px] text-bad-ink2"
+      >
+        <span>{t('away.loadFailed')}</span>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={periods.isFetching}
+          onClick={() => periods.refetch()}
+        >
+          {t('error.retry')}
+        </Button>
+      </div>
+    );
+  }
   const list = periods.data ?? [];
   if (list.length === 0) return null;
   return (

@@ -550,6 +550,30 @@ describe('hoje', () => {
     expect(card).not.toContain('Cancelar');
   });
 
+  test('a failed periods lookup shows a translated error with a retry', async () => {
+    const today = fixture();
+    globalThis.fetch = mock(async () =>
+      Response.json({ error: { code: 'unexpected', message: 'db down' } }, { status: 500 }),
+    ) as unknown as typeof fetch;
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(sessionQuery.queryKey, session);
+    queryClient.setQueryData(teamTodayQuery(11, today.team.name).queryKey, today);
+    queryClient.setQueryDefaults(awayPeriodsQuery(11, 'diego').queryKey, { retryOnMount: false });
+    await expect(
+      queryClient.fetchQuery({ ...awayPeriodsQuery(11, 'diego'), retry: false }),
+    ).rejects.toBeInstanceOf(ApiError);
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={queryClient}>
+        <HojePage installationId={11} team={today.team.name} />
+      </QueryClientProvider>,
+    );
+    const card = blockerCard(html, '@diego');
+    expect(card).toContain('role="alert"');
+    expect(card).toContain('Não foi possível carregar as férias.');
+    expect(card).toContain('Tentar de novo');
+    expect(card).not.toContain('db down');
+  });
+
   test('the away copy exists in English', () => {
     expect(translate('en', 'away.stateUntil', { date: '05/12' })).toBe('Away until 05/12');
     expect(translate('pt-BR', 'away.stateUntil', { date: '05/12' })).toBe('Férias até 05/12');
