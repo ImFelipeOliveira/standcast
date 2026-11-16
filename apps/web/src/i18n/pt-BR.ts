@@ -130,6 +130,11 @@ export const ptBR = {
   'away.state': 'Férias',
   'away.stateUntil': 'Férias até {date}',
   'away.loadFailed': 'Não foi possível carregar as férias.',
+  'away.error.overlap': 'Já existem férias marcadas em alguns desses dias.',
+  'away.error.invalidPeriod':
+    'Confira as datas: o fim não pode ser antes do início, o início não pode ser antes de hoje e as férias duram no máximo 90 dias.',
+  'away.error.notInTeam': 'Essa pessoa não está em nenhum time desta organização.',
+  'away.error.forbidden': 'Só quem gerencia o time da pessoa ou um admin pode fazer isso.',
   'hoje.shipped.title': 'Entregue ontem',
   'hoje.shipped.empty': 'Nenhum PR ou card citado nas dailies de ontem.',
   'hoje.sent.title': 'Quem já enviou hoje',

@@ -9,7 +9,7 @@ export function AwayProblem({ error }: { error: unknown }) {
       role="alert"
       className="m-0 rounded-[9px] border border-bad-line bg-bad-soft px-3 py-2 text-[13px] text-bad-ink2"
     >
-      {awayErrorMessage(t('setup.actionFailed'), error)}
+      {awayErrorMessage(t, error)}
     </p>
   );
 }

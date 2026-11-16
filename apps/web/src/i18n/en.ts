@@ -130,6 +130,11 @@ export const en: Record<MessageKey, string> = {
   'away.state': 'Away',
   'away.stateUntil': 'Away until {date}',
   'away.loadFailed': 'Could not load the away periods.',
+  'away.error.overlap': 'There is already an away period on some of these days.',
+  'away.error.invalidPeriod':
+    'Check the dates: the end cannot be before the start, the start cannot be before today, and a period is at most 90 days.',
+  'away.error.notInTeam': 'This person is not in any team of this organization.',
+  'away.error.forbidden': 'Only a manager of their team or an admin can do this.',
   'hoje.shipped.title': 'Shipped yesterday',
   'hoje.shipped.empty': "No PR or card mentioned in yesterday's dailies.",
   'hoje.sent.title': 'Who sent today',

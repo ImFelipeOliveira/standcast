@@ -497,10 +497,13 @@ describe('hoje', () => {
     expect(translate('pt-BR', 'away.stateUntil', { date: '05/12' })).toBe('Férias até 05/12');
   });
 
-  test('away errors show the server message', () => {
+  test('away errors show translated messages, never the server text', () => {
+    const t = (key: Parameters<typeof translate>[1]) => translate('pt-BR', key);
     const overlap = new ApiError(422, 'away_overlap', 'Already away on those days.');
-    expect(awayErrorMessage('fallback', overlap)).toBe('Already away on those days.');
-    expect(awayErrorMessage('fallback', new ApiError(500, 'internal', 'boom'))).toBe('fallback');
+    expect(awayErrorMessage(t, overlap)).toBe(translate('pt-BR', 'away.error.overlap'));
+    expect(awayErrorMessage(t, new ApiError(500, 'internal', 'boom'))).toBe(
+      translate('pt-BR', 'setup.actionFailed'),
+    );
   });
 
   test('refLabel forms', () => {
