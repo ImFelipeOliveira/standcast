@@ -224,9 +224,9 @@ const GROUPING_RULES = [
 ];
 
 const TOOLS = [
-  'away_cancel',
-  'away_list',
-  'away_mark',
+  'standcast_away_cancel',
+  'standcast_away_list',
+  'standcast_away_mark',
   'standcast_decide_suggestion',
   'standcast_get_digest',
   'standcast_get_draft',
@@ -275,8 +275,8 @@ describe('mcp server', () => {
     const writes = [
       'standcast_submit_daily',
       'standcast_decide_suggestion',
-      'away_mark',
-      'away_cancel',
+      'standcast_away_mark',
+      'standcast_away_cancel',
     ];
     for (const tool of tools.filter((t) => !writes.includes(t.name))) {
       expect(tool.annotations).toMatchObject({
@@ -477,18 +477,18 @@ describe('mcp server', () => {
   test('away tools tell the agent to confirm with the person', async () => {
     const { client } = await loggedIn();
     const { tools } = await client.listTools();
-    for (const name of ['away_mark', 'away_cancel']) {
+    for (const name of ['standcast_away_mark', 'standcast_away_cancel']) {
       expect(tools.find((t) => t.name === name)?.description).toContain('confirm');
     }
-    const mark = tools.find((t) => t.name === 'away_mark');
+    const mark = tools.find((t) => t.name === 'standcast_away_mark');
     expect(mark?.inputSchema.required).toEqual(['until']);
     expect(Object.keys(mark?.inputSchema.properties ?? {})).not.toContain('login');
   });
 
-  test('away_mark sends org, from and until and never a login', async () => {
+  test('standcast_away_mark sends org, from and until and never a login', async () => {
     const { client, api } = await loggedIn();
     const result = await client.callTool({
-      name: 'away_mark',
+      name: 'standcast_away_mark',
       arguments: { from: '2026-11-20', until: '2026-11-30' },
     });
     expect(result.isError).toBeFalsy();
@@ -500,24 +500,30 @@ describe('mcp server', () => {
       from: '2026-11-20',
       until: '2026-11-30',
     });
-    const bad = await client.callTool({ name: 'away_mark', arguments: { until: 'soon' } });
+    const bad = await client.callTool({
+      name: 'standcast_away_mark',
+      arguments: { until: 'soon' },
+    });
     expect(bad.isError).toBe(true);
     expect(api.seen).toHaveLength(1);
   });
 
-  test('away_mark without from omits it', async () => {
+  test('standcast_away_mark without from omits it', async () => {
     const { client, api } = await loggedIn();
-    await client.callTool({ name: 'away_mark', arguments: { until: '2026-11-30' } });
+    await client.callTool({ name: 'standcast_away_mark', arguments: { until: '2026-11-30' } });
     expect(JSON.parse(api.seen[0]?.body ?? '')).toEqual({ org: 'acme', until: '2026-11-30' });
   });
 
-  test('away_list returns the periods and away_cancel cancels one', async () => {
+  test('standcast_away_list returns the periods and standcast_away_cancel cancels one', async () => {
     const { client, api } = await loggedIn();
-    const list = await client.callTool({ name: 'away_list', arguments: {} });
+    const list = await client.callTool({ name: 'standcast_away_list', arguments: {} });
     expect(list.isError).toBeFalsy();
     expect(list.structuredContent).toEqual({ data: [AWAY] });
     expect(api.seen[0]).toMatchObject({ method: 'GET', path: '/v1/away?org=acme' });
-    const cancel = await client.callTool({ name: 'away_cancel', arguments: { id: AWAY.id } });
+    const cancel = await client.callTool({
+      name: 'standcast_away_cancel',
+      arguments: { id: AWAY.id },
+    });
     expect(cancel.isError).toBeFalsy();
     expect(cancel.structuredContent).toEqual({ id: AWAY.id, cancelled: true });
     expect(api.seen[1]).toMatchObject({ method: 'POST', path: `/v1/away/${AWAY.id}/cancel` });
@@ -845,9 +851,9 @@ describe('mcp server', () => {
       standcast_list_dailies: { team: 'backend', from: '2026-10-20', to: '2026-10-27' },
       standcast_list_blockers: { team: 'backend' },
       standcast_decide_suggestion: { id: SUGGESTION_ID, decision: 'ignored' },
-      away_mark: { until: '2026-11-30' },
-      away_list: {},
-      away_cancel: { id: AWAY.id },
+      standcast_away_mark: { until: '2026-11-30' },
+      standcast_away_list: {},
+      standcast_away_cancel: { id: AWAY.id },
     };
     for (const [name, args] of Object.entries(calls)) {
       const result = await client.callTool({ name, arguments: args });

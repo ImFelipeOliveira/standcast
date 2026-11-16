@@ -462,7 +462,7 @@ export function registerTools(server: McpServer, io: Io): void {
   );
 
   server.registerTool(
-    'away_mark',
+    'standcast_away_mark',
     {
       title: 'Mark myself away',
       description:
@@ -491,11 +491,11 @@ export function registerTools(server: McpServer, io: Io): void {
   );
 
   server.registerTool(
-    'away_list',
+    'standcast_away_list',
     {
       title: 'List my away periods',
       description:
-        "Lists the person's active away periods, with the id of each one. Use it to find the id before away_cancel.",
+        "Lists the person's active away periods, with the id of each one. Use it to find the id before standcast_away_cancel.",
       inputSchema: { org },
       outputSchema: { data: z.array(awayOut) },
       annotations: {
@@ -513,11 +513,11 @@ export function registerTools(server: McpServer, io: Io): void {
   );
 
   server.registerTool(
-    'away_cancel',
+    'standcast_away_cancel',
     {
       title: 'Cancel an away period',
       description:
-        'Cancels one of the active away periods of the person, so reminders resume on those days. Before calling, you MUST confirm with the person which period to cancel (show its dates from away_list).',
+        'Cancels one of the active away periods of the person, so reminders resume on those days. Before calling, you MUST confirm with the person which period to cancel (show its dates from standcast_away_list).',
       inputSchema: { org, id: z.string().min(1).describe('Id of the away period to cancel.') },
       outputSchema: { id: z.string(), cancelled: z.literal(true) },
       annotations: {
