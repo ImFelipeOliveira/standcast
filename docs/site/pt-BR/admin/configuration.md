@@ -81,6 +81,7 @@ Nenhuma outra chave é aceita. Uma chave desconhecida falha na validação com `
 | `members` | lista de logins ou times do GitHub, pelo menos um | sim | | `[alice, "@acme/backend"]` |
 | `chat.provider` | `slack` ou `google-chat` | sim | | `slack` |
 | `chat.channel` | texto, não vazio | sim | | `"#daily-backend"` ou `spaces/AAAAbbbbCCC` |
+| `chat.late_daily` | `thread` ou `channel` | não | `channel` no Google Chat, `thread` no Slack | `thread` |
 | `tracker.provider` | `linear` ou `jira` | não | | `linear` |
 | `tracker.team` | texto, não vazio | com `tracker` | | `BE` |
 | `signals.pr_review_hours` | número maior que 0 | não | `48` | `24` |
@@ -154,6 +155,7 @@ Para onde vai o consolidado.
 - `provider`: `slack` ou `google-chat`. Cada time escolhe o seu, então uma organização pode usar os dois.
 - `channel` no Slack: o canal do Slack, como `"#nome"` (com aspas, porque `#` começa um comentário no YAML) ou como id do canal, por exemplo `C0123456789`. Num canal privado, convide o bot do Standcast antes. Veja [Slack](/pt-BR/admin/slack).
 - `channel` no Google Chat: o nome do espaço, como `spaces/AAAAbbbbCCC`. Outro formato reprova o `standcast.yml`; se você colar o link do espaço (`https://chat.google.com/room/AAAAbbbbCCC`), o erro já diz o nome a usar. O espaço precisa ter o app do Standcast e estar vinculado à sua organização com um código, senão o consolidado falha com `space_not_linked`. Veja [Google Chat](/pt-BR/admin/google-chat).
+- `late_daily`: para onde vai uma daily enviada depois do consolidado. `channel` publica como uma mensagem nova no canal ou no espaço. `thread` responde na thread do consolidado. O padrão é `channel` no Google Chat e `thread` no Slack.
 
 ::: code-group
 

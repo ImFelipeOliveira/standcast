@@ -59,4 +59,14 @@ describe('toYaml', () => {
     const parsed = parseConfig(source);
     expect(parsed.ok && parsed.config.teams[0]?.signals.blockerAlertDays).toBe(3);
   });
+
+  test('late_daily is written only when set', () => {
+    expect(toYaml(config())).not.toContain('late_daily');
+    const source = toYaml(
+      config({ chat: { provider: 'google-chat', channel: 'spaces/AAAA', lateDaily: 'channel' } }),
+    );
+    expect(source).toContain('late_daily: channel');
+    const parsed = parseConfig(source);
+    expect(parsed.ok && parsed.config.teams[0]?.chat.lateDaily).toBe('channel');
+  });
 });

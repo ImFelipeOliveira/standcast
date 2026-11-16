@@ -227,6 +227,7 @@ function TeamForm({
           onChange={(provider) =>
             set({
               chat: {
+                ...team.chat,
                 provider,
                 channel: provider === 'google-chat' ? 'spaces/' : '#daily',
               },

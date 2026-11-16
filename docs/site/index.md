@@ -46,7 +46,7 @@ It solves three problems that show up once a team writes dailies with AI:
 2. Standcast builds a draft of "yesterday" from the person's GitHub activity since their last daily: pull requests opened and merged, reviews and commits.
 3. The person edits yesterday, writes today and any blockers, and confirms. Nothing is sent before that.
 4. At `digest_at`, in the team's time zone, Standcast posts one message to the team channel: blockers on top, then each person's daily, then who did not send it.
-5. A daily sent after the digest goes as a reply in the digest thread.
+5. A daily sent after the digest goes as a new message in the space on Google Chat, or as a reply in the digest thread on Slack.
 
 Around it, Standcast orchestrates the day:
 

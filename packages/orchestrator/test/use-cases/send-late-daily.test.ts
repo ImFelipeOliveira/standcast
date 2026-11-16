@@ -127,7 +127,7 @@ describe('sendLateDaily', () => {
     expect(row?.status).toBe('pending');
   });
 
-  test('late daily for a google-chat team replies in thread', async () => {
+  test('late daily for a google-chat team replies in thread when late_daily is thread', async () => {
     const { deps, replies, job } = await setup(true, GOOGLE_DIGEST_REF);
     const base = config();
     const team = base.teams[0];
@@ -136,7 +136,12 @@ describe('sendLateDaily', () => {
       status: 'configured',
       config: {
         ...base,
-        teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
+        teams: [
+          {
+            ...team,
+            chat: { provider: 'google-chat', channel: 'spaces/AAAA', lateDaily: 'thread' },
+          },
+        ],
       },
     });
     await setIdentity(db, INST, job.memberId, 'slack', 'UALICE');
@@ -152,6 +157,36 @@ describe('sendLateDaily', () => {
     const text = google.replies[0]?.msg.fallbackText ?? '';
     expect(text).toContain('late work');
     expect(text).toContain('@users/111');
+    const row = await getDelivery(db, {
+      ...digestKey,
+      kind: 'late_daily',
+      subject: job.memberId,
+    });
+    expect(row?.status).toBe('sent');
+  });
+
+  test('late daily for a google-chat team posts a new message in the space by default', async () => {
+    const { deps, replies, job } = await setup(true, GOOGLE_DIGEST_REF);
+    const base = config();
+    const team = base.teams[0];
+    if (!team) throw new Error('no team');
+    await setInstallationConfig(db, INST, {
+      status: 'configured',
+      config: {
+        ...base,
+        teams: [{ ...team, chat: { provider: 'google-chat', channel: 'spaces/AAAA' } }],
+      },
+    });
+    await linkSpace(GOOGLE_DIGEST_REF.channel);
+    const google = fakeChat();
+    deps.chatFor = async (_installationId, provider) =>
+      provider === 'google-chat' ? google.chat : null;
+    await sendLateDaily(deps, job);
+    expect(replies).toHaveLength(0);
+    expect(google.replies).toHaveLength(0);
+    expect(google.posted).toHaveLength(1);
+    expect(google.posted[0]?.channel).toBe(GOOGLE_DIGEST_REF.channel);
+    expect(google.posted[0]?.msg.fallbackText).toContain('late work');
     const row = await getDelivery(db, {
       ...digestKey,
       kind: 'late_daily',

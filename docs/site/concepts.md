@@ -51,7 +51,7 @@ One message per team per workday, in Slack or Google Chat, posted at the team's 
 
 ## Late daily
 
-A daily sent after the team's digest was posted. It goes as a reply in the digest thread, once per person per day.
+A daily sent after the team's digest was posted. It goes as a new message in the space on Google Chat and as a reply in the digest thread on Slack, once per person per day. `chat.late_daily` changes where it goes.
 
 ## Confirmation
 
