@@ -21,10 +21,10 @@ export async function away(ctx: Ctx): Promise<number> {
     ctx.io.stdout(`${JSON.stringify({ id, cancelled: true })}\n`);
     return EXIT.ok;
   }
-  if (action !== undefined || !until) throw usage;
+  if (action !== undefined || !until || from === '') throw usage;
   const { credentials, apiUrl } = await requireBoundCredentials(ctx);
   const period = await markAway(apiUrl, credentials.token, resolveOrg(ctx, credentials), {
-    ...(from ? { from } : {}),
+    ...(from === undefined ? {} : { from }),
     until,
   });
   ctx.io.stdout(`${JSON.stringify(period)}\n`);

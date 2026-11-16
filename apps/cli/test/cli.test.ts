@@ -402,6 +402,15 @@ describe('away', () => {
     expect(api.seen).toHaveLength(0);
   });
 
+  test('an empty --from prints the usage and exits 1 without calling the API', async () => {
+    const api = serve(() => json(PERIOD, 201));
+    const ctx = await loggedIn(api.url, one);
+    expect(await run(['away', '--from', '', '--until', '2026-11-30'], ctx.io)).toBe(1);
+    expect(ctx.err.join('')).toContain('standcast away list');
+    expect(ctx.out.join('')).toBe('');
+    expect(api.seen).toHaveLength(0);
+  });
+
   test('help lists the away command', async () => {
     const ctx = await makeIo();
     expect(await run(['--help'], ctx.io)).toBe(0);
