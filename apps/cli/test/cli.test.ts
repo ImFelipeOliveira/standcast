@@ -320,6 +320,96 @@ describe('suggestion', () => {
   });
 });
 
+describe('away', () => {
+  const ID = '7a1d3c52-8e0b-4f6a-b2c9-3d5e7f901a24';
+  const PERIOD = {
+    id: ID,
+    login: 'alice',
+    from: '2026-11-20',
+    until: '2026-11-30',
+    markedBy: 'alice',
+    markedAt: '2026-11-16T12:00:00.000Z',
+    mine: true,
+  };
+  const one = [ORGS[0] as (typeof ORGS)[number]];
+
+  test('away --until posts without from and prints the period as JSON', async () => {
+    const api = serve(() => json(PERIOD, 201));
+    const ctx = await loggedIn(api.url, one);
+    expect(await run(['away', '--until', '2026-11-30'], ctx.io)).toBe(0);
+    expect(api.seen[0]).toMatchObject({ method: 'POST', path: '/v1/away', auth: 'Bearer sc_tok' });
+    expect(JSON.parse(api.seen[0]?.body ?? '')).toEqual({ org: 'acme', until: '2026-11-30' });
+    expect(JSON.parse(ctx.out.join(''))).toEqual(PERIOD);
+  });
+
+  test('away --from --until --org sends all three and never a login', async () => {
+    const api = serve(() => json(PERIOD, 201));
+    const ctx = await loggedIn(api.url);
+    expect(
+      await run(['away', '--from', '2026-11-20', '--until', '2026-11-30', '--org', 'beta'], ctx.io),
+    ).toBe(0);
+    expect(JSON.parse(api.seen[0]?.body ?? '')).toEqual({
+      org: 'beta',
+      from: '2026-11-20',
+      until: '2026-11-30',
+    });
+  });
+
+  test('away list prints the periods as a JSON array', async () => {
+    const api = serve(() => json({ data: [PERIOD] }));
+    const ctx = await loggedIn(api.url);
+    expect(await run(['away', 'list', '--org', 'beta'], ctx.io)).toBe(0);
+    expect(api.seen[0]).toMatchObject({ method: 'GET', path: '/v1/away?org=beta' });
+    expect(JSON.parse(ctx.out.join(''))).toEqual([PERIOD]);
+  });
+
+  test('away cancel posts the cancel and prints the id', async () => {
+    const api = serve(() => new Response(null, { status: 204 }));
+    const ctx = await loggedIn(api.url, one);
+    expect(await run(['away', 'cancel', ID], ctx.io)).toBe(0);
+    expect(api.seen[0]).toMatchObject({ method: 'POST', path: `/v1/away/${ID}/cancel` });
+    expect(JSON.parse(api.seen[0]?.body ?? '')).toEqual({ org: 'acme' });
+    expect(JSON.parse(ctx.out.join(''))).toEqual({ id: ID, cancelled: true });
+  });
+
+  test('the cancel id is path encoded', async () => {
+    const api = serve(() => new Response(null, { status: 204 }));
+    const ctx = await loggedIn(api.url, one);
+    expect(await run(['away', 'cancel', '../x'], ctx.io)).toBe(0);
+    expect(api.seen[0]?.path).toBe('/v1/away/..%2Fx/cancel');
+  });
+
+  test('API errors exit 1 with the code', async () => {
+    const api = serve(() =>
+      json({ error: { code: 'away_overlap', message: 'overlaps an active period' } }, 422),
+    );
+    const ctx = await loggedIn(api.url, one);
+    expect(await run(['away', '--until', '2026-11-30'], ctx.io)).toBe(1);
+    expect(ctx.err.join('')).toContain('error away_overlap: overlaps an active period');
+  });
+
+  test('a missing --until or extra positionals print the usage and exit 1 without calling the API', async () => {
+    const api = serve(() => json({}));
+    const ctx = await loggedIn(api.url, one);
+    expect(await run(['away'], ctx.io)).toBe(1);
+    expect(await run(['away', '--from', '2026-11-20'], ctx.io)).toBe(1);
+    expect(await run(['away', 'now', '--until', '2026-11-30'], ctx.io)).toBe(1);
+    expect(await run(['away', 'cancel'], ctx.io)).toBe(1);
+    expect(await run(['away', 'cancel', ID, 'extra'], ctx.io)).toBe(1);
+    expect(await run(['away', 'list', 'extra'], ctx.io)).toBe(1);
+    expect(ctx.err.join('')).toContain('standcast away list');
+    expect(ctx.out.join('')).toBe('');
+    expect(api.seen).toHaveLength(0);
+  });
+
+  test('help lists the away command', async () => {
+    const ctx = await makeIo();
+    expect(await run(['--help'], ctx.io)).toBe(0);
+    expect(ctx.out.join('')).toContain('away');
+    expect(ctx.out.join('')).toContain('--until');
+  });
+});
+
 describe('submit', () => {
   test('submit validates locally', async () => {
     const api = serve(() => json({}));
