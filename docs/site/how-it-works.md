@@ -19,7 +19,7 @@ Alice runs `/daily` in Claude Code. The skill asks Standcast for a draft. Standc
 
 The window starts when she sent her last daily, if that was on or after the previous workday. Otherwise it starts at midnight of the previous workday. On Monday, the previous workday is Friday, so the weekend is covered. The cards use the same window. The draft has up to 50 items in total, newest first. If Linear fails, the draft still comes back with the GitHub activity.
 
-Alice edits yesterday, writes today and one blocker, asks for a review on her migration as a support request, and confirms. Standcast stores the daily for today's date and posts it right away to `#daily-backend` as its own message, with her yesterday, today, blocker and support request. She can send it again: the last version is stored, goes to the webhooks and counts in the digest, but nothing new is posted in the channel that day.
+Alice edits yesterday, writes today and one blocker, asks for a review on her migration as a support request, and confirms. Standcast stores the daily for today's date and posts it right away to `#daily-backend` as its own message, in this order: what she did yesterday, with the dates it covers (on Monday, Friday to Sunday), her focus for today with the date, blockers and support requests. An empty section says so, such as "No blockers.", and each link goes on its own line under its item, after 🔗. In Google Chat a blank line separates the sections. She can send it again: the last version is stored, goes to the webhooks and counts in the digest, but nothing new is posted in the channel that day.
 
 ## 09:30 · Reminder
 
@@ -41,7 +41,7 @@ At `digest_at`, in the team's time zone and only on workdays, Standcast posts on
 
 The dailies themselves are not repeated: they were posted when sent. When nobody is blocked, nobody asked for support and everyone sent, the digest says so in one line.
 
-With `chat.post_each_daily: false`, dailies are not posted when sent. The digest then also carries each person's yesterday and today, in the order of `members` in `standcast.yml`, between the support requests and the people who did not send.
+With `chat.post_each_daily: false`, dailies are not posted when sent. The digest then carries, after the title, each person's daily in the same layout as the posted daily, in the order of `members` in `standcast.yml`, followed by the people who did not send. Blockers and support requests appear in each person's section instead of at the top.
 
 People are mentioned in Slack or Google Chat when Standcast knows their user there. Otherwise they appear as `@` followed by their GitHub login, as plain text. See [Slack](/admin/slack#how-people-are-mentioned) and [Google Chat](/admin/google-chat#how-people-are-linked).
 
