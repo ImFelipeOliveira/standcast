@@ -94,7 +94,7 @@ Standcast does not connect to Jira, ClickUp, Asana, GitHub Projects, Microsoft T
 | Sessions | A SHA-256 hash of each CLI and web session token, its kind and when it was created and last used | Only the hash; the token itself is never stored |
 | Dailies | Date, first and latest submission time, the yesterday, today, blocker and support request items with their links, and whether the person (`human`) or the agent (`agent`) confirmed it | |
 | Blocker states | For each blocker someone listed: its text and link, the first and last day it was seen, and when it was resolved and who resolved it. Kept until the app is uninstalled | |
-| Away periods | For each period: the organization, the person's GitHub login, the first and last day, who marked it and when, and who cancelled it and when | Visible to the person, the managers of their teams and organization admins |
+| Away periods | For each period: the organization, the person's GitHub login, the first and last day, who marked it and when, and who cancelled it and when | Visible to the person, the managers of their teams and organization admins. Teammates see only that the person is away today, on Today in the web app |
 | Digest missing list | For each digest, the people who had not sent their daily when it was posted, without those who were away | |
 | Suggestions | For each suggested blocker: the pull request link and title (or the card link and title), the kind, when it was noticed and your decision | Visible only to you |
 | Deliveries | For each digest, late daily, reminder and routed blocker: team, date, status, attempts, the Slack channel and message id or the Google Chat space and thread, and the error if it failed | |
@@ -141,7 +141,7 @@ When someone asks for beta access on the Standcast landing page, the form collec
 
 ## Retention
 
-Standcast does not delete dailies on a schedule today. Dailies and digest deliveries stay while the app is installed. Some data is removed automatically:
+Standcast does not delete dailies on a schedule today. Dailies and digest deliveries stay while the app is installed. Away periods, including past and cancelled ones, are kept until the GitHub App is uninstalled. Some data is removed automatically:
 
 - outgoing webhook delivery logs: after 30 days;
 - expired sessions: removed;

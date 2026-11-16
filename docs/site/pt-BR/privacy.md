@@ -94,7 +94,7 @@ O Standcast ainda não se conecta ao Jira, ao ClickUp, ao Asana, ao GitHub Proje
 | Sessões | Um hash SHA-256 de cada token de sessão da CLI e da web, o tipo e quando foi criada e usada pela última vez | Só o hash; o token em si nunca é guardado |
 | Dailies | Data, horário do primeiro e do último envio, os itens de ontem, hoje, impedimentos e pedidos de apoio com os links, e se quem confirmou foi a pessoa (`human`) ou o agente (`agent`) | |
 | Estados de impedimentos | Para cada impedimento que alguém listou: o texto e o link, o primeiro e o último dia em que apareceu, e quando foi resolvido e quem resolveu. Ficam guardados até o app ser desinstalado | |
-| Períodos de férias | Para cada período: a organização, o login do GitHub da pessoa, o primeiro e o último dia, quem marcou e quando, e quem cancelou e quando | Visíveis à pessoa, aos gestores dos times dela e aos admins da organização |
+| Períodos de férias | Para cada período: a organização, o login do GitHub da pessoa, o primeiro e o último dia, quem marcou e quando, e quem cancelou e quando | Visíveis à pessoa, aos gestores dos times dela e aos admins da organização. Os colegas de time veem só que a pessoa está de férias hoje, em Hoje no app web |
 | Lista de quem faltou no consolidado | Para cada consolidado, as pessoas que não tinham enviado a daily quando ele foi publicado, sem quem estava de férias | |
 | Sugestões | Para cada impedimento sugerido: o link e o título do pull request (ou do card), o tipo, quando foi percebido e a sua decisão | Visível só para você |
 | Entregas | Para cada consolidado, daily atrasada, lembrete e impedimento encaminhado: time, data, estado, tentativas, o canal e o id da mensagem no Slack ou o espaço e a thread no Google Chat, e o erro, se falhou | |
@@ -141,7 +141,7 @@ Quando alguém pede acesso ao beta na página do Standcast, o formulário coleta
 
 ## Retenção
 
-Hoje o Standcast não apaga dailies de forma programada. Dailies e entregas de consolidado ficam guardadas enquanto o app estiver instalado. Alguns dados são removidos automaticamente:
+Hoje o Standcast não apaga dailies de forma programada. Dailies e entregas de consolidado ficam guardadas enquanto o app estiver instalado. Os períodos de férias, inclusive os passados e os cancelados, ficam guardados até o GitHub App ser desinstalado. Alguns dados são removidos automaticamente:
 
 - logs de entrega de webhook de saída: depois de 30 dias;
 - sessões expiradas: removidas;
