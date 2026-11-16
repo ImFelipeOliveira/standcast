@@ -177,7 +177,7 @@ const ptBR = {
   'cli.suggestionUsage':
     'Uso: standcast suggestion confirm <id> [--org <login>]\n     standcast suggestion ignore <id> [--org <login>]',
   'cli.awayUsage':
-    'Uso: standcast away <início> <fim> [--login <usuário>] [--org <login>]\n     standcast away list [--org <login>]\n     standcast away cancel <id> [--org <login>]',
+    'Uso: standcast away --until AAAA-MM-DD [--from AAAA-MM-DD] [--org <login>]\n     standcast away list [--org <login>]\n     standcast away cancel <id> [--org <login>]',
   'cli.awayMarked': 'Ausência registrada de {from} a {until} (id {id}).',
   'cli.awayCancelled': 'Ausência cancelada (id {id}).',
   'cli.awayNone': 'Nenhuma ausência registrada.',
@@ -463,7 +463,7 @@ const en = {
   'cli.suggestionUsage':
     'Usage: standcast suggestion confirm <id> [--org <login>]\n       standcast suggestion ignore <id> [--org <login>]',
   'cli.awayUsage':
-    'Usage: standcast away <from> <until> [--login <user>] [--org <login>]\n       standcast away list [--org <login>]\n       standcast away cancel <id> [--org <login>]',
+    'Usage: standcast away --until YYYY-MM-DD [--from YYYY-MM-DD] [--org <login>]\n       standcast away list [--org <login>]\n       standcast away cancel <id> [--org <login>]',
   'cli.awayMarked': 'Away period saved from {from} to {until} (id {id}).',
   'cli.awayCancelled': 'Away period cancelled (id {id}).',
   'cli.awayNone': 'No away periods.',
