@@ -19,6 +19,7 @@ const REMIND_MESSAGES: Record<Exclude<RemindStatus, 'pending'>, MessageKey> = {
   queued: 'hoje.remind.queued',
   already_sent: 'hoje.remind.already_sent',
   too_late: 'hoje.remind.too_late',
+  away: 'hoje.remind.already_sent',
   failed: 'setup.actionFailed',
 };
 

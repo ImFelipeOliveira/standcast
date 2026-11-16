@@ -17,7 +17,7 @@ import { ChatDeliveryError } from '@standcast/slack';
 import { suggestions } from '../../../db/src/schema';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { nullTracker, scanMemberSignals } from '../../src';
-import { fakeChat, fakeDeps, INST, seedMember, seedOrg } from './fakes';
+import { fakeChat, fakeDeps, INST, seedAway, seedMember, seedOrg } from './fakes';
 
 useCleanDb();
 
@@ -143,6 +143,16 @@ describe('scanMemberSignals', () => {
       { fingerprint: FP, state: 'pending', notified: false },
     ]);
     expect(s.calls.snapshots).toEqual(['alice', 'alice']);
+  });
+
+  test('no signals are created while the person is away', async () => {
+    const s = await setup();
+    s.snapshots.alice = [pr()];
+    await seedAway('alice', '2026-10-28', '2026-10-28');
+    await s.scan();
+    await scanMemberSignals(s.deps, { installationId: INST, login: 'Alice', date: '2026-10-28' });
+    expect(await s.pending()).toEqual([]);
+    expect(s.calls.snapshots).toEqual([]);
   });
 
   test('a PR younger than pr_review_hours creates nothing', async () => {

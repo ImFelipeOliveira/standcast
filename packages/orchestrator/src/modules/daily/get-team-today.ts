@@ -9,6 +9,7 @@ import {
   type Ref,
 } from '@standcast/core';
 import {
+  awayLogins,
   getConnectionInfo,
   getInstallationMemberIds,
   hasSentDigest,
@@ -41,7 +42,7 @@ export type TodayDaily = { yesterday: Item[]; today: Item[]; blockers: Item[]; s
 
 export type TodayPerson = {
   login: string;
-  status: 'sent' | 'late' | 'missing';
+  status: 'sent' | 'late' | 'missing' | 'away';
   submittedAt: string | null;
   daily: TodayDaily | null;
 };
@@ -275,13 +276,21 @@ export async function getTeamToday(
       .filter((row) => logins.includes(row.login.toLowerCase()))
       .map((row) => [row.login.toLowerCase(), row]),
   );
+  const away = await awayLogins(deps.db, access.installation.id, logins, date);
   const rows = logins.flatMap((login) => {
     const row = byLogin.get(login);
     return row ? [row] : [];
   });
   const people = logins.map((login): TodayPerson => {
     const row = byLogin.get(login);
-    if (!row) return { login, status: 'missing', submittedAt: null, daily: null };
+    if (!row) {
+      return {
+        login,
+        status: away.has(login) ? 'away' : 'missing',
+        submittedAt: null,
+        daily: null,
+      };
+    }
     const late = digest.sentAt !== null && row.firstSubmittedAt.getTime() > digest.sentAt.getTime();
     return {
       login,

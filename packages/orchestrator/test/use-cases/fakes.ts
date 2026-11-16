@@ -9,6 +9,7 @@ import {
   type StandcastConfig,
 } from '@standcast/core';
 import {
+  createAwayPeriod,
   type Db,
   issueGoogleChatLinkCode,
   redeemGoogleChatLinkCode,
@@ -474,5 +475,20 @@ export async function linkSpace(spaceName: string, installationId = INST): Promi
     now,
     maxSpaces: 100,
     connection: { secret: 'google-chat-app', key: new Uint8Array(32).fill(7) },
+  });
+}
+
+export async function seedAway(login: string, from: string, until: string) {
+  const creator = await upsertMember(db, {
+    githubUserId: 9000,
+    login: 'away-creator',
+    email: null,
+  });
+  return createAwayPeriod(db, {
+    installationId: INST,
+    login,
+    from,
+    until,
+    createdBy: creator.id,
   });
 }

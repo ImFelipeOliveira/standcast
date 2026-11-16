@@ -10,7 +10,16 @@ import {
   recordBlockers,
   submitDaily,
 } from '../../src';
-import { config, daily, type FakeOptions, fakeDeps, INST, seedMember, seedOrg } from './fakes';
+import {
+  config,
+  daily,
+  type FakeOptions,
+  fakeDeps,
+  INST,
+  seedAway,
+  seedMember,
+  seedOrg,
+} from './fakes';
 
 useCleanDb();
 
@@ -433,5 +442,21 @@ teams:
     await expect(
       getTeamToday(deps, isMember, alice, { installationId: 99, team: 'Alpha' }),
     ).rejects.toMatchObject({ code: 'forbidden' });
+  });
+  test('status is away for an away person without a daily, sent when they sent one', async () => {
+    const { deps, isMember, alice, carol } = await setup();
+    await store(carol, '2026-10-28', {});
+    for (const login of ['bob', 'carol']) {
+      await seedAway(login, '2026-10-28', '2026-10-28');
+    }
+    const today = await getTeamToday(deps, isMember, alice, {
+      installationId: INST,
+      team: 'Alpha',
+    });
+    expect(today.people.map((p) => [p.login, p.status])).toEqual([
+      ['alice', 'missing'],
+      ['bob', 'away'],
+      ['carol', 'sent'],
+    ]);
   });
 });

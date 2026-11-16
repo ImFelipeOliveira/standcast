@@ -1,4 +1,5 @@
 import {
+  dailyDateFor,
   detectCardSignals,
   detectPullRequestSignals,
   type SignalKind,
@@ -7,6 +8,7 @@ import {
   teamsForMember,
 } from '@standcast/core';
 import {
+  awayLogins,
   getDelivery,
   getInstallation,
   getInstallationMemberIds,
@@ -94,6 +96,8 @@ export async function scanMemberSignals(
   );
   const first = teams[0];
   if (!first) return;
+  const today = job.date ?? dailyDateFor(deps.now(), first);
+  if ((await awayLogins(deps.db, installation.id, [login], today)).has(login)) return;
 
   const ctx: ScanContext = {
     installationId: installation.id,
