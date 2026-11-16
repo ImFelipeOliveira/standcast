@@ -62,6 +62,7 @@ function fixture(overrides: Partial<TeamToday> = {}): TeamToday {
           blockers: [],
           support: [],
         },
+        away: null,
       },
       {
         login: 'guilherme',
@@ -78,8 +79,9 @@ function fixture(overrides: Partial<TeamToday> = {}): TeamToday {
             },
           ],
         },
+        away: null,
       },
-      { login: 'diego', status: 'missing', submittedAt: null, daily: null },
+      { login: 'diego', status: 'missing', submittedAt: null, daily: null, away: null },
     ],
     blockers: [
       {
@@ -123,6 +125,14 @@ function fixture(overrides: Partial<TeamToday> = {}): TeamToday {
     ...overrides,
   };
 }
+
+const biaAway = {
+  login: 'bia',
+  status: 'away' as const,
+  submittedAt: null,
+  daily: null,
+  away: { id: 'p-1', from: '2026-11-02', until: '2026-12-05' },
+};
 
 function renderPage(today: TeamToday, login = 'carla'): string {
   const queryClient = createQueryClient();
@@ -408,22 +418,11 @@ describe('hoje', () => {
   test('away people count as neither sent nor missing and have no remind', () => {
     const base = fixture();
     const today = fixture({
-      people: [...base.people, { login: 'bia', status: 'away', submittedAt: null, daily: null }],
+      people: [...base.people, biaAway],
     });
     const queryClient = createQueryClient();
     queryClient.setQueryData(sessionQuery.queryKey, session);
     queryClient.setQueryData(teamTodayQuery(11, today.team.name).queryKey, today);
-    queryClient.setQueryData(awayPeriodsQuery(11, 'bia').queryKey, [
-      {
-        id: 'p-1',
-        login: 'bia',
-        from: '2026-11-02',
-        until: '2026-12-05',
-        markedBy: 'carla',
-        markedAt: '2026-11-01T10:00:00.000Z',
-        mine: false,
-      },
-    ]);
     const html = renderToStaticMarkup(
       <QueryClientProvider client={queryClient}>
         <HojePage installationId={11} team={today.team.name} />
@@ -446,22 +445,11 @@ describe('hoje', () => {
       digest: { status: 'sent', sentAt: '2026-11-03T13:00:00.000Z', everSent: true },
       canRemind: false,
       canResolve: true,
-      people: [...base.people, { login: 'bia', status: 'away', submittedAt: null, daily: null }],
+      people: [...base.people, biaAway],
     });
     const queryClient = createQueryClient();
     queryClient.setQueryData(sessionQuery.queryKey, session);
     queryClient.setQueryData(teamTodayQuery(11, today.team.name).queryKey, today);
-    queryClient.setQueryData(awayPeriodsQuery(11, 'bia').queryKey, [
-      {
-        id: 'p-1',
-        login: 'bia',
-        from: '2026-11-02',
-        until: '2026-12-05',
-        markedBy: 'carla',
-        markedAt: '2026-11-01T10:00:00.000Z',
-        mine: false,
-      },
-    ]);
     const html = renderToStaticMarkup(
       <QueryClientProvider client={queryClient}>
         <HojePage installationId={11} team={today.team.name} />
@@ -481,7 +469,10 @@ describe('hoje', () => {
       fixture({
         canRemind: false,
         canResolve: false,
-        people: [...base.people, { login: 'bia', status: 'away', submittedAt: null, daily: null }],
+        people: [
+          ...base.people,
+          { login: 'bia', status: 'away', submittedAt: null, daily: null, away: null },
+        ],
       }),
     );
     expect(blockerCard(html, '@diego')).not.toContain('Marcar férias');
@@ -490,6 +481,26 @@ describe('hoje', () => {
     expect(card).not.toContain('Férias até');
     expect(card).not.toContain('Cancelar');
     expect(card).not.toContain('Marcar férias');
+  });
+
+  test('the away card uses the period of the displayed team date without a lookup', () => {
+    const base = fixture();
+    const today = fixture({
+      date: '2026-11-02',
+      people: [
+        ...base.people,
+        { ...biaAway, away: { id: 'p-9', from: '2026-10-30', until: '2026-11-02' } },
+      ],
+    });
+    const urls: string[] = [];
+    globalThis.fetch = mock(async (input: RequestInfo | URL) => {
+      urls.push(String(input));
+      return Response.json({ data: [] });
+    }) as unknown as typeof fetch;
+    const card = blockerCard(renderPage(today), '@bia');
+    expect(card).toContain('Férias até 02/11');
+    expect(card).toContain('Cancelar as férias de @bia');
+    expect(urls.filter((url) => url.includes('login=bia'))).toEqual([]);
   });
 
   test('the away copy exists in English', () => {

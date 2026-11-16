@@ -42,8 +42,14 @@ const backendToday: TeamToday = {
   canRemind: false,
   canResolve: false,
   people: [
-    { login: 'ana', status: 'sent', submittedAt: '2026-11-03T09:00:00.000Z', daily: null },
-    { login: 'bruno', status: 'missing', submittedAt: null, daily: null },
+    {
+      login: 'ana',
+      status: 'sent',
+      submittedAt: '2026-11-03T09:00:00.000Z',
+      daily: null,
+      away: null,
+    },
+    { login: 'bruno', status: 'missing', submittedAt: null, daily: null, away: null },
   ],
   blockers: [],
   support: [],

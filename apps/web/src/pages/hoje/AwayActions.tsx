@@ -1,6 +1,6 @@
+import type { TodayAway } from '@standcast/orchestrator';
 import { useState } from 'react';
 import { useCancelAway } from '../../api/mutations';
-import { useAwayPeriods } from '../../api/queries';
 import { Button } from '../../components/ui/button';
 import { useLang, useT } from '../../i18n';
 import { AwayForm } from '../away/AwayForm';
@@ -32,37 +32,31 @@ export function AwayActions({ installationId, login }: { installationId: number;
 function ElevatedAway({
   installationId,
   login,
-  date,
+  away,
 }: {
   installationId: number;
   login: string;
-  date: string;
+  away: TodayAway;
 }) {
   const t = useT();
   const lang = useLang();
-  const periods = useAwayPeriods(installationId, login);
   const cancel = useCancelAway(installationId);
-  const current = periods.data?.find((period) => period.from <= date && date <= period.until);
   return (
     <>
       <span className="text-muted">
-        {current
-          ? t('away.stateUntil', { date: formatShortDate(lang, current.until) })
-          : t('away.state')}
+        {t('away.stateUntil', { date: formatShortDate(lang, away.until) })}
       </span>
       <AwayProblem error={cancel.error} />
-      {current ? (
-        <Button
-          type="button"
-          variant="outline"
-          className="self-start"
-          disabled={cancel.isPending}
-          aria-label={t('away.cancelFor', { login })}
-          onClick={() => cancel.mutate(current.id)}
-        >
-          {t('away.cancel')}
-        </Button>
-      ) : null}
+      <Button
+        type="button"
+        variant="outline"
+        className="self-start"
+        disabled={cancel.isPending}
+        aria-label={t('away.cancelFor', { login })}
+        onClick={() => cancel.mutate(away.id)}
+      >
+        {t('away.cancel')}
+      </Button>
     </>
   );
 }
@@ -70,15 +64,15 @@ function ElevatedAway({
 export function AwayState({
   installationId,
   login,
-  date,
+  away,
   elevated,
 }: {
   installationId: number;
   login: string;
-  date: string;
+  away: TodayAway | null;
   elevated: boolean;
 }) {
   const t = useT();
-  if (!elevated) return <span className="text-muted">{t('away.state')}</span>;
-  return <ElevatedAway installationId={installationId} login={login} date={date} />;
+  if (!elevated || !away) return <span className="text-muted">{t('away.state')}</span>;
+  return <ElevatedAway installationId={installationId} login={login} away={away} />;
 }

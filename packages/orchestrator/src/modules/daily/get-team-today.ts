@@ -9,7 +9,7 @@ import {
   type Ref,
 } from '@standcast/core';
 import {
-  awayLogins,
+  awayPeriodsOn,
   getConnectionInfo,
   getInstallationMemberIds,
   hasSentDigest,
@@ -40,11 +40,14 @@ const SUPPORT_WINDOW_DAYS = 14;
 
 export type TodayDaily = { yesterday: Item[]; today: Item[]; blockers: Item[]; support: Item[] };
 
+export type TodayAway = { id: string; from: string; until: string };
+
 export type TodayPerson = {
   login: string;
   status: 'sent' | 'late' | 'missing' | 'away';
   submittedAt: string | null;
   daily: TodayDaily | null;
+  away: TodayAway | null;
 };
 
 export type TodayBlocker = {
@@ -276,7 +279,12 @@ export async function getTeamToday(
       .filter((row) => logins.includes(row.login.toLowerCase()))
       .map((row) => [row.login.toLowerCase(), row]),
   );
-  const away = await awayLogins(deps.db, access.installation.id, logins, date);
+  const away = new Map(
+    (await awayPeriodsOn(deps.db, access.installation.id, logins, date)).map((period) => [
+      period.login,
+      { id: period.id, from: period.fromDate, until: period.untilDate },
+    ]),
+  );
   const rows = logins.flatMap((login) => {
     const row = byLogin.get(login);
     return row ? [row] : [];
@@ -284,11 +292,13 @@ export async function getTeamToday(
   const people = logins.map((login): TodayPerson => {
     const row = byLogin.get(login);
     if (!row) {
+      const period = away.get(login);
       return {
         login,
-        status: away.has(login) ? 'away' : 'missing',
+        status: period ? 'away' : 'missing',
         submittedAt: null,
         daily: null,
+        away: period && access.elevated ? period : null,
       };
     }
     const late = digest.sentAt !== null && row.firstSubmittedAt.getTime() > digest.sentAt.getTime();
@@ -302,6 +312,7 @@ export async function getTeamToday(
         blockers: row.payload.blockers,
         support: row.payload.support ?? [],
       },
+      away: null,
     };
   });
   const [blockers, support, chatUrl, everSent, everSubmitted] = await Promise.all([

@@ -95,15 +95,15 @@ export async function listAwayPeriods(
     .limit(LIST_LIMIT);
 }
 
-export async function awayLogins(
+export async function awayPeriodsOn(
   db: Db,
   installationId: number,
   logins: string[],
   date: string,
-): Promise<Set<string>> {
-  if (logins.length === 0) return new Set();
-  const rows = await db
-    .selectDistinct({ login: awayPeriods.login })
+): Promise<AwayPeriodRow[]> {
+  if (logins.length === 0) return [];
+  return db
+    .select()
     .from(awayPeriods)
     .where(
       and(
@@ -117,5 +117,14 @@ export async function awayLogins(
         gte(awayPeriods.untilDate, date),
       ),
     );
+}
+
+export async function awayLogins(
+  db: Db,
+  installationId: number,
+  logins: string[],
+  date: string,
+): Promise<Set<string>> {
+  const rows = await awayPeriodsOn(db, installationId, logins, date);
   return new Set(rows.map((r) => r.login));
 }

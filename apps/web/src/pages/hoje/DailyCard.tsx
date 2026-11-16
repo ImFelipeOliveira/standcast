@@ -50,7 +50,6 @@ export function SectionLabel({ children }: { children: string }) {
 
 type CardProps = {
   installationId: number;
-  date: string;
   person: TodayPerson;
   timezone: string;
   canRemind: boolean;
@@ -62,7 +61,6 @@ type CardProps = {
 
 export function DailyCard({
   installationId,
-  date,
   person,
   timezone,
   canRemind,
@@ -102,7 +100,7 @@ export function DailyCard({
           <AwayState
             installationId={installationId}
             login={person.login}
-            date={date}
+            away={person.away}
             elevated={canManageAway}
           />
         </div>
@@ -215,7 +213,6 @@ export function Dailies({
             <DailyCard
               key={person.login}
               installationId={installationId}
-              date={today.date}
               person={person}
               timezone={today.team.timezone}
               canRemind={today.canRemind}
