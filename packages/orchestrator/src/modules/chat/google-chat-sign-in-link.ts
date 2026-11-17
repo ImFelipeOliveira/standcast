@@ -7,7 +7,6 @@ import {
 } from '@standcast/core';
 import {
   consumeGoogleChatSignInToken,
-  deleteInstallationIdentities,
   findGoogleChatSignInToken,
   type GoogleChatSignInToken,
   getConnectionExternalId,
@@ -20,7 +19,7 @@ import {
   operationalConfig,
 } from '@standcast/db';
 import type { Deps } from '../../deps';
-import { logError } from '../../log-error';
+import { guarded } from '../../guarded';
 import { writeGoogleChatIdentity } from './google-chat-events';
 import { googleChatSpaceLanguage, hashLinkCode } from './link-google-chat-space';
 
@@ -30,6 +29,8 @@ export type ChatLinkPreview =
   | (ChatLinkContext & { status: 'confirm'; account: string; replaces: boolean })
   | (ChatLinkContext & { status: ChatLinkFailure });
 export type ChatLinkResult = ChatLinkContext & { status: 'linked' | ChatLinkFailure };
+
+export const GOOGLE_CHAT_LINK_NOTICE_TIMEOUT_MS = 3000;
 
 type LinkInput = { member: MemberRow; token: string };
 
@@ -107,14 +108,16 @@ async function sendNotice(
   userId: string,
   text: string,
 ): Promise<void> {
-  try {
-    await chat.sendDirect(userId, {
+  await guarded(
+    chat.sendDirect(userId, {
       fallbackText: text,
       blocks: [{ type: 'paragraph', content: [text] }],
-    });
-  } catch (error) {
-    logError('google chat link notice failed', error, { installationId: String(installationId) });
-  }
+    }),
+    undefined,
+    GOOGLE_CHAT_LINK_NOTICE_TIMEOUT_MS,
+    'google chat link notice failed',
+    { installationId: String(installationId) },
+  );
 }
 
 async function notifyLinked(
@@ -124,14 +127,14 @@ async function notifyLinked(
   chatUserId: string,
   previous: string | null,
 ): Promise<void> {
-  let chat: ChatChannel | null;
-  try {
-    chat = await deps.chatFor(installationId, 'google-chat');
-    if (!chat) throw new Error('no_chat_connection');
-  } catch (error) {
-    logError('google chat link notice failed', error, { installationId: String(installationId) });
-    return;
-  }
+  const chat = await guarded(
+    deps.chatFor(installationId, 'google-chat'),
+    null,
+    GOOGLE_CHAT_LINK_NOTICE_TIMEOUT_MS,
+    'google chat link notice failed',
+    { installationId: String(installationId) },
+  );
+  if (!chat) return;
   const { language, login, org } = context;
   await sendNotice(
     chat,
@@ -160,18 +163,15 @@ export async function completeGoogleChatSignInLink(
     hashLinkCode(input.token),
     deps.now(),
   );
-  if (!consumed) return { ...expired(input.member).context, status: 'expired' };
+  if (!consumed) return { ...checked.context, status: 'expired' };
   const { installationId, chatUserId } = consumed;
   const { member } = input;
   const previous = await getIdentityByLogin(deps.db, installationId, 'google-chat', member.login);
-  await deleteInstallationIdentities(deps.db, installationId, 'google-chat', {
-    memberIds: [],
-    externalId: chatUserId,
-  });
   const written = await writeGoogleChatIdentity(deps, {
     installationId,
     memberId: member.id,
     chatUserId,
+    takeFromOthers: true,
   });
   if (!written) return { ...checked.context, status: 'not_connected' };
   await notifyLinked(

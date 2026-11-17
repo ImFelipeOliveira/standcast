@@ -1,4 +1,4 @@
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull, ne, sql } from 'drizzle-orm';
 import type { Db } from '../client';
 import { decryptSecret, encryptSecret } from '../crypto';
 import { connections, memberIdentities, type Provider } from '../schema';
@@ -66,6 +66,7 @@ export async function writeIdentityIfConnected(
     provider: Provider;
     connectionExternalId: string;
     externalId: string | null;
+    takeFromOthers?: boolean;
   },
 ): Promise<boolean> {
   const { installationId, memberId, provider, connectionExternalId, externalId } = input;
@@ -89,6 +90,18 @@ export async function writeIdentityIfConnected(
           ),
         );
       return true;
+    }
+    if (input.takeFromOthers) {
+      await tx
+        .delete(memberIdentities)
+        .where(
+          and(
+            eq(memberIdentities.installationId, installationId),
+            eq(memberIdentities.provider, provider),
+            eq(memberIdentities.externalId, externalId),
+            ne(memberIdentities.memberId, memberId),
+          ),
+        );
     }
     await tx
       .insert(memberIdentities)

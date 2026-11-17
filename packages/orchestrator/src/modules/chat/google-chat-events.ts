@@ -98,7 +98,7 @@ async function removeSpace(deps: EventDeps, spaceName: string): Promise<null> {
 
 export async function writeGoogleChatIdentity(
   deps: Pick<Deps, 'db'>,
-  input: { installationId: number; memberId: string; chatUserId: string },
+  input: { installationId: number; memberId: string; chatUserId: string; takeFromOthers?: boolean },
 ): Promise<boolean> {
   const connectionExternalId = await getConnectionExternalId(
     deps.db,
@@ -112,6 +112,7 @@ export async function writeGoogleChatIdentity(
     provider: 'google-chat',
     connectionExternalId,
     externalId: input.chatUserId,
+    takeFromOthers: input.takeFromOthers,
   });
 }
 

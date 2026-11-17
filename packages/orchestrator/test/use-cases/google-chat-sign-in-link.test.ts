@@ -1,4 +1,4 @@
-import { describe, expect, spyOn, test } from 'bun:test';
+import { describe, expect, jest, spyOn, test } from 'bun:test';
 import { parseConfig, type StandcastConfig, t } from '@standcast/core';
 import {
   findGoogleChatSignInToken,
@@ -10,7 +10,12 @@ import {
 } from '@standcast/db';
 import { connections } from '../../../db/src/schema';
 import { db, useCleanDb } from '../../../db/test/setup';
-import { completeGoogleChatSignInLink, hashLinkCode, previewGoogleChatSignInLink } from '../../src';
+import {
+  completeGoogleChatSignInLink,
+  GOOGLE_CHAT_LINK_NOTICE_TIMEOUT_MS,
+  hashLinkCode,
+  previewGoogleChatSignInLink,
+} from '../../src';
 import { fakeChat, fakeDeps, INST, linkSpace, seedOrg } from './fakes';
 
 useCleanDb();
@@ -135,6 +140,42 @@ describe('completeGoogleChatSignInLink', () => {
     expect(await stillFound(deps.now())).toBe(true);
   });
 
+  test('google chat disconnected between the check and the write keeps the other member link', async () => {
+    const { deps, ana } = await setup();
+    const bob = await upsertMember(db, { githubUserId: 6, login: 'bob', email: null });
+    await setMemberInstallations(db, bob.id, [INST]);
+    await setIdentity(db, INST, bob.id, 'google-chat', 'users/1');
+    const real = deps.db;
+    deps.db = new Proxy(real, {
+      get(target, prop, receiver) {
+        if (prop !== 'transaction') return Reflect.get(target, prop, receiver);
+        return async (...args: Parameters<typeof real.transaction>) => {
+          await target.delete(connections);
+          return target.transaction(...args);
+        };
+      },
+    });
+    expect((await completeGoogleChatSignInLink(deps, { member: ana, token: TOKEN })).status).toBe(
+      'not_connected',
+    );
+    expect(await getIdentityByLogin(db, INST, 'google-chat', 'bob')).toBe('users/1');
+    expect(await getIdentityByLogin(db, INST, 'google-chat', 'ana')).toBeNull();
+  });
+
+  test('a token consumed after the check is expired in the space language', async () => {
+    const { deps, ana } = await setup();
+    const start = deps.now().getTime();
+    let calls = 0;
+    deps.now = () => new Date(start + (calls++ === 0 ? 0 : 16 * 60 * 1000));
+    expect(await completeGoogleChatSignInLink(deps, { member: ana, token: TOKEN })).toEqual({
+      status: 'expired',
+      language: 'pt-BR',
+      login: 'ana',
+      org: 'acme',
+    });
+    expect(await getIdentityByLogin(db, INST, 'google-chat', 'ana')).toBeNull();
+  });
+
   test('an admin mapping to another chat user is mapped', async () => {
     const { deps, ana } = await setup({ members: 'members:\n  Ana: { google_chat: users/999 }' });
     expect((await previewGoogleChatSignInLink(deps, { member: ana, token: TOKEN })).status).toBe(
@@ -199,5 +240,39 @@ describe('completeGoogleChatSignInLink', () => {
       spy.mockRestore();
     }
     expect(await getIdentityByLogin(db, INST, 'google-chat', 'ana')).toBe('users/1');
+  });
+
+  test('a confirmation message that never answers times out, is logged and still links', async () => {
+    const { deps, ana, chat } = await setup();
+    chat.sendDirect = () => {
+      queueMicrotask(() => jest.advanceTimersByTime(GOOGLE_CHAT_LINK_NOTICE_TIMEOUT_MS + 1));
+      return new Promise(() => {});
+    };
+    const spy = spyOn(console, 'error').mockImplementation(() => {});
+    jest.useFakeTimers();
+    try {
+      expect((await completeGoogleChatSignInLink(deps, { member: ana, token: TOKEN })).status).toBe(
+        'linked',
+      );
+      expect(JSON.stringify(spy.mock.calls)).toContain('google chat link notice failed');
+    } finally {
+      jest.useRealTimers();
+      spy.mockRestore();
+    }
+    expect(await getIdentityByLogin(db, INST, 'google-chat', 'ana')).toBe('users/1');
+  });
+
+  test('without a chat connection the confirmation is skipped quietly', async () => {
+    const { deps, ana } = await setup();
+    deps.chatFor = async () => null;
+    const spy = spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect((await completeGoogleChatSignInLink(deps, { member: ana, token: TOKEN })).status).toBe(
+        'linked',
+      );
+      expect(spy).not.toHaveBeenCalled();
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
