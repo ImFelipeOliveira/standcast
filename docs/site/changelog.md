@@ -10,6 +10,9 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- Google Chat: when no member of the space's organization has your Google email, **Link my account** and a mention now answer with a private sign-in link. It goes through GitHub sign-in to a confirmation page, and confirming links your Google Chat user without the emails having to match. Signing in first is no longer needed.
+- Google Chat links, by email or by sign-in link, now apply only to the organization of the space where you click or mention the app. A direct message to the app no longer links: it tells you to use your team's space. When a link replaces another Google Chat account of yours, that account gets a direct message.
+
 ### 0.17.0 — 2026-11-16
 
 - Each daily posted to the chat follows one layout: what was done yesterday, with the dates it covers (on Monday, Friday to Sunday), the focus for today with its date, blockers and support requests. An empty section says so, such as "No blockers.", and each link goes on its own line under its item, after 🔗. In Google Chat a blank line separates the sections, and in Slack consecutive text goes in one section so a long digest stays within Slack's block limit.

@@ -6,11 +6,12 @@ import {
   insertWebhookDeliveries,
   insertWebhookEndpoint,
   issueGoogleChatLinkCode,
+  issueGoogleChatSignInToken,
   listRecentWebhookDeliveries,
   markDeliverySent,
   upsertBetaRequest,
 } from '@standcast/db';
-import { googleChatSpaces } from '../../../db/src/schema';
+import { googleChatSignInTokens, googleChatSpaces } from '../../../db/src/schema';
 import {
   ageDeliveries,
   insertAgedSessions,
@@ -215,5 +216,25 @@ describe('pruneData', () => {
       { name: 'spaces/LINKED', linked: true, code: null },
       { name: 'spaces/PENDING', linked: false, code: 'hash-spaces/PENDING' },
     ]);
+  });
+
+  test('prune removes sign-in tokens a day after they expire', async () => {
+    await seedOrg();
+    const issue = (hash: string, expiresAt: Date) =>
+      issueGoogleChatSignInToken(db, {
+        tokenHash: hash,
+        chatUserId: `users/${hash}`,
+        chatEmail: null,
+        installationId: INST,
+        spaceName: 'spaces/A',
+        expiresAt,
+      });
+    await issue('1', daysAgo(2));
+    await issue('2', new Date(NOW.getTime() - 60 * 60 * 1000));
+    const { deps } = fakeDeps();
+    deps.now = () => NOW;
+    expect((await pruneData(deps)).googleChatSignInTokens).toBe(1);
+    const rows = await db.select().from(googleChatSignInTokens);
+    expect(rows.map((r) => r.chatUserId)).toEqual(['users/2']);
   });
 });

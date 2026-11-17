@@ -44,7 +44,7 @@ Each team posts to Slack or Google Chat, set per team in `standcast.yml`. Connec
 
 **Slack.** An admin clicks **Connect Slack** and approves the app in the Slack workspace. The Slack step then shows a check, the **Connected** badge and "Connected to" the workspace name, and a **Reconnect Slack** button to connect again. Other members see the connection read-only. While Slack is not connected yet, they see "Only an admin can connect or reconnect Slack." See [Slack](/admin/slack) for the permissions and for private channels.
 
-**Google Chat.** Add the Standcast app to the Google Chat space; it posts a link code. An admin pastes the code in the **Google Chat** step, or in the Google Chat card of the [web app](/admin/web-app), and clicks **Link space**. Then each person sends the app a direct message once, to link their Google Chat user. See [Google Chat](/admin/google-chat).
+**Google Chat.** Add the Standcast app to the Google Chat space; it posts a link code. An admin pastes the code in the **Google Chat** step, or in the Google Chat card of the [web app](/admin/web-app), and clicks **Link space**. Then each person clicks **Link my account** under the team digest, or mentions the app in the space, to link their Google Chat user. See [Google Chat](/admin/google-chat).
 
 ## 4. Create `standcast.yml`
 
@@ -76,7 +76,7 @@ teams:
 
 Delete the team for the chat you do not use. Change the team name, time zone, times, people and channel, then commit. For Google Chat, the channel is the space name from the Google Chat card. The file must be at the **root** of the repository, on the default branch. If neither `.github-private` nor `.github` exists, the page shows **Create the .github-private repository** instead, which opens GitHub's new repository form with your organization as the owner, the name filled in and the visibility set to private. If the GitHub App only has access to selected repositories, the page also says so and shows **Choose repositories on GitHub**: after you create the repository, add it to the app there, or Standcast will not find it.
 
-The template lists your login. For a larger team, prefer a GitHub team (`members: ["@org/team-slug"]`), so the file lists no logins, and leave out the top-level `members` map: people are linked by the verified email of their GitHub account when they run `standcast login`, and in Google Chat by a direct message to the app. `members.<login>` overrides are only for exceptions, and they are rejected in a public repository. See [Identity mapping](/admin/configuration#identity-mapping).
+The template lists your login. For a larger team, prefer a GitHub team (`members: ["@org/team-slug"]`), so the file lists no logins, and leave out the top-level `members` map: people are linked by the verified email of their GitHub account when they run `standcast login`, and in Google Chat by a click or a mention in the team's space. `members.<login>` overrides are only for exceptions, and they are rejected in a public repository. See [Identity mapping](/admin/configuration#identity-mapping).
 
 Full reference: [standcast.yml](/admin/configuration).
 
@@ -125,6 +125,6 @@ When a push to any branch of the `.github-private` or `.github` repository touch
 ## Next steps
 
 - Ask each member to follow [Write your first daily](/members/getting-started). People are matched to their Slack user when they sign in, so they should sign in after Slack is connected.
-- On Google Chat, ask each member to sign in, then send the Standcast app a direct message once.
+- On Google Chat, ask each member to click **Link my account** under the team digest or mention the app in the space. Signing in first is optional.
 - If you use Linear, ask each member to sign in after Linear is connected, so their Linear user is linked.
 - Create [API keys](/admin/api-keys) or [webhooks](/admin/webhooks) if other systems need the data.
