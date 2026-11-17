@@ -1,5 +1,7 @@
 import type {
   AwayPeriod,
+  ChatLinkPreview,
+  ChatLinkResult,
   ConfigValidation,
   EditableConfig,
   OrgBlockers,
@@ -26,6 +28,22 @@ export function createQueryClient(): QueryClient {
       },
     },
   });
+}
+
+type WithoutLanguage<T> = T extends unknown ? Omit<T, 'language'> : never;
+export type ChatLinkPreviewView = WithoutLanguage<ChatLinkPreview>;
+export type ChatLinkResultView = WithoutLanguage<ChatLinkResult>;
+
+export function chatLinkQuery(token: string) {
+  return queryOptions({
+    queryKey: ['google-chat-link', token],
+    queryFn: () =>
+      apiGet<ChatLinkPreviewView>(`/v1/app/google-chat/link?token=${encodeURIComponent(token)}`),
+  });
+}
+
+export function useChatLinkPreview(token: string) {
+  return useQuery(chatLinkQuery(token));
 }
 
 export const sessionQuery = queryOptions({

@@ -10,7 +10,7 @@ Os lembretes vão só para quem ainda não enviou a daily, no máximo uma vez po
 
 O Standcast não conhece o seu usuário no Slack, então não consegue mandar um lembrete nem um impedimento encaminhado. A entrega com falha aparece na página de setup. Rode `standcast login` de novo depois que o Slack foi conectado, ou peça ao admin para adicionar `members.<seu-login>.slack` no `standcast.yml`. Veja [Meu nome aparece como @login](#meu-nome-aparece-como-login).
 
-No Google Chat, o Standcast não conhece o seu usuário no Google Chat. Clique em **Vincular minha conta** embaixo do consolidado do time, mande uma mensagem direta para o app do Standcast no Google Chat, ou peça ao admin para adicionar `members.<seu-login>.google_chat`. Vincular a conta não abre uma mensagem direta, então mande uma mensagem direta para o app do Standcast para receber lembretes. Veja [O Google Chat não me vincula](#o-google-chat-nao-me-vincula).
+No Google Chat, o Standcast não conhece o seu usuário no Google Chat. Clique em **Vincular minha conta** embaixo do consolidado do time, ou peça ao admin para adicionar `members.<seu-login>.google_chat`. Vincular a conta não abre uma mensagem direta, então mande uma mensagem direta para o app do Standcast para receber lembretes. Veja [O Google Chat não me vincula](#o-google-chat-nao-me-vincula).
 
 ## `no_route_target`
 
@@ -43,9 +43,9 @@ Para encerrar o app web em todos os navegadores de uma vez (por exemplo, num com
 
 ## O Google Chat não me vincula
 
-Você se vincula no Google Chat clicando em **Vincular minha conta** embaixo do consolidado do time, mencionando o app do Standcast num espaço ou mandando uma mensagem direta para o app. Veja a resposta do app, que só você vê:
+Você se vincula no Google Chat pelo espaço do seu time, clicando em **Vincular minha conta** embaixo do consolidado do time ou mencionando o app do Standcast ali. Uma mensagem direta para o app não vincula. Veja a resposta do app, que só você vê:
 
-1. **"Nenhuma conta do Standcast usa este e-mail"**: rode `standcast login` primeiro e mande uma mensagem para o app de novo. Se a sua conta do Google usa um e-mail diferente da sua conta do GitHub, peça ao admin para adicionar `members.<seu-login>.google_chat` com o seu id de usuário, como `users/123456789`.
+1. **"Nenhuma conta do Standcast nesta organização usa este e-mail"**: abra o link para entrar que vem na resposta, entre com o GitHub e confirme. Funciona mesmo quando o seu e-mail do Google não está na sua conta do GitHub. Se o link expirou, clique de novo. Se você não consegue entrar, peça ao admin para adicionar `members.<seu-login>.google_chat` com o seu id de usuário, como `users/123456789`.
 2. **"nenhuma organização sua conectou o Google Chat"**: um admin precisa vincular um espaço antes. Veja [Google Chat](/pt-BR/admin/google-chat#_2-vincule-o-espaco).
 3. **Nenhuma resposta**: o app pode ainda não estar disponível no seu Google Workspace. Veja [Disponibilidade](/pt-BR/admin/google-chat#disponibilidade).
 
@@ -129,4 +129,4 @@ Ele falhou 20 entregas seguidas. Corrija o receptor, adicione o endpoint de novo
 
 Um push ou pull request no repositório `.github-private` ou `.github` alterou o `standcast.yml` e ele tem erros. Abra o check: cada erro é uma anotação na linha dele, e o resumo lista todos. Corrija e faça push de novo. Enquanto isso, a última versão válida continua valendo. Se o arquivo não existe, não há check.
 
-Quando o título é "standcast.yml expõe dados pessoais", o arquivo é válido mas está em um repositório público com overrides de identidade em `members`. Mova o arquivo para o `.github-private` (ou torne o repositório privado), ou remova os overrides e deixe as pessoas se vincularem pelo e-mail verificado da conta do GitHub no `standcast login` e, no Google Chat, por uma mensagem direta para o app. Veja [Mapeamento de identidades](/pt-BR/admin/configuration#mapeamento-de-identidades).
+Quando o título é "standcast.yml expõe dados pessoais", o arquivo é válido mas está em um repositório público com overrides de identidade em `members`. Mova o arquivo para o `.github-private` (ou torne o repositório privado), ou remova os overrides e deixe as pessoas se vincularem pelo e-mail verificado da conta do GitHub no `standcast login` e, no Google Chat, por um clique ou uma menção no espaço do time. Veja [Mapeamento de identidades](/pt-BR/admin/configuration#mapeamento-de-identidades).

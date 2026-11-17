@@ -45,7 +45,7 @@ O app do Standcast para o Google Chat chama a API do Google Chat como ele mesmo,
 O Google só manda um evento para o Standcast quando o app é adicionado a um espaço, removido de um espaço, recebe uma mensagem direta, é mencionado num espaço, ou quando alguém clica em **Vincular minha conta** embaixo de um consolidado. Desses eventos, o Standcast usa:
 
 - o nome do espaço (`spaces/...`) e o nome de exibição dele, para vincular o espaço à sua organização;
-- de uma mensagem direta, de uma menção ou de um clique, o id de usuário no Google Chat e o e-mail dessa pessoa, só para vincular a pessoa à conta dela no Standcast. A resposta a uma menção ou a um clique só aparece para essa pessoa.
+- de uma menção ou de um clique, o id de usuário no Google Chat e o e-mail dessa pessoa, só para vincular a pessoa à conta dela no Standcast, na organização desse espaço. Uma mensagem direta só recebe resposta, sem vínculo. A resposta a uma menção ou a um clique só aparece para essa pessoa.
 
 O Standcast não guarda nada do texto das mensagens que as pessoas mandam para o app. Ele não lê mensagens nos espaços e não busca pessoas pelo e-mail no Google Chat. Um clique vincula só a pessoa que clicou; ninguém fica sabendo nada de outra pessoa por ele.
 
@@ -88,6 +88,7 @@ O Standcast ainda não se conecta ao Jira, ao ClickUp, ao Asana, ao GitHub Proje
 | Conexão com o Slack | Id e nome do workspace e o token do bot | Token do bot criptografado com AES-256-GCM |
 | Espaços do Google Chat | Para cada espaço que tem o app: o nome e o nome de exibição, quando o app foi adicionado e, depois do vínculo, a organização e quando foi vinculado. Enquanto há um código de vínculo pendente, um hash SHA-256 do código e quando ele expira. Um código expirado é apagado, e um espaço que nunca foi vinculado também, por uma limpeza que roda uma vez por dia, no máximo no dia seguinte ao vencimento do código | Só o hash do código de vínculo |
 | Identidade no Google Chat | O id de usuário do Google Chat de cada pessoa, por instalação. O e-mail nunca é guardado | |
+| Token de login do Google Chat | Criado quando alguém clica em **Vincular minha conta** ou menciona o app e nenhum membro da organização do espaço tem o e-mail dela: um hash SHA-256 do token, o id de usuário no Google Chat, o e-mail do Google, a organização, o nome do espaço e quando foi criado, vence e foi usado. O token vence em 15 minutos e só funciona uma vez. Uma limpeza que roda uma vez por dia o apaga na primeira execução pelo menos 1 dia depois que ele vence, então ele pode ficar guardado por até uns 2 dias depois de vencer | Só o hash do token |
 | Conexão com o Google Chat | Marca o Google Chat como conectado na instalação, com o nome do primeiro espaço vinculado | |
 | Conexão com o Linear | Id, nome e chave da URL do workspace e os tokens de acesso e de renovação | Tokens criptografados com AES-256-GCM |
 | Identidade no Linear | O id de usuário do Linear de cada pessoa, por instalação. O e-mail nunca é guardado | |
@@ -148,6 +149,7 @@ Hoje o Standcast não apaga dailies de forma programada. Dailies e entregas de c
 - sugestões resolvidas, aquelas cujo sinal deixou de existir: depois de 90 dias;
 - registros de entrega sobre uma pessoa (lembretes, impedimentos encaminhados, DMs de sugestão, marcadores de varredura e dailies publicadas): depois de 90 dias;
 - espaços do Google Chat que nunca foram vinculados: no dia seguinte ao vencimento do código de vínculo;
+- tokens de login do Google Chat: na primeira limpeza diária pelo menos 1 dia depois dos 15 minutos de validade, então até uns 2 dias depois;
 - sugestões ignoradas e confirmadas são mantidas, para não voltarem;
 - contadores de limite de taxa: depois de uns 10 minutos.
 

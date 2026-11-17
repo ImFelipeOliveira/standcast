@@ -20,6 +20,7 @@ import { configQuery, orgContextQuery, sessionQuery, useSetupStatus } from './ap
 import { useT } from './i18n';
 import { AccountPage } from './pages/account/AccountPage';
 import { BlockersPage } from './pages/blockers/BlockersPage';
+import { ChatLinkPage } from './pages/chat-link/ChatLinkPage';
 import { ConfigEditor, configEditUrl } from './pages/configuracao/ConfigEditor';
 import { ConfiguracaoPage, LoadError } from './pages/configuracao/ConfiguracaoPage';
 import { PeopleTab } from './pages/configuracao/PeopleTab';
@@ -204,6 +205,22 @@ const accountRoute = createRoute({
     return (
       <main className="mx-auto box-border flex min-h-screen max-w-[808px] flex-col gap-6 px-4 pb-12 text-sm leading-normal">
         <AccountPage />
+      </main>
+    );
+  },
+});
+
+const chatLinkRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/link/google-chat',
+  validateSearch: (search: Record<string, unknown>): { token: string } => ({
+    token: typeof search.token === 'string' ? search.token : '',
+  }),
+  component: function GoogleChatLink() {
+    const { token } = chatLinkRoute.useSearch();
+    return (
+      <main className="mx-auto box-border flex min-h-screen max-w-[808px] flex-col gap-6 px-4 pb-12 text-sm leading-normal">
+        <ChatLinkPage key={token} token={token} />
       </main>
     );
   },
@@ -458,6 +475,7 @@ export const routeTree = rootRoute.addChildren([
   signInRoute,
   signedOutRoute,
   accountRoute,
+  chatLinkRoute,
   orgRoute.addChildren([
     orgIndexRoute,
     orgAccountRoute,

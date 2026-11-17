@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
-import { LINK_CHAT_ACCOUNT_ACTION, parseConfig, type StandcastConfig } from '@standcast/core';
+import { LINK_CHAT_ACCOUNT_ACTION, parseConfig, type StandcastConfig, t } from '@standcast/core';
 import {
+  findGoogleChatSignInToken,
   getConnection,
   getDelivery,
   getIdentities,
@@ -15,7 +16,13 @@ import {
   upsertDaily,
   upsertMember,
 } from '@standcast/db';
-import { googleChatSpaces, memberIdentities, members } from '../../../db/src/schema';
+import {
+  connections,
+  googleChatSignInTokens,
+  googleChatSpaces,
+  memberIdentities,
+  members,
+} from '../../../db/src/schema';
 import { db, useCleanDb } from '../../../db/test/setup';
 import {
   chatUserIdFor,
@@ -518,44 +525,166 @@ describe('unlinkGoogleChatSpace', () => {
 });
 
 describe('handleGoogleChatEvent in a direct message', () => {
-  test('dm links the member in every connected installation', async () => {
-    const { deps, member } = await setup();
-    await seedOrg(googleConfig(), { id: OTHER, accountLogin: 'beta' });
-    await seedOrg(googleConfig(), { id: 13, accountLogin: 'gamma' });
-    await setMemberInstallations(db, member.id, [INST, OTHER, 13]);
+  test('a direct message links nobody and points to the team space', async () => {
+    const { deps } = await setup();
     await bindElsewhere('spaces/AAAA', INST);
-    await bindElsewhere('spaces/BBBB', OTHER);
-    const reply = await handleGoogleChatEvent(deps, dm('ALICE@acme.com'));
-    expect(reply).toEqual({ text: "You're linked, @Alice." });
-    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
-    expect((await getIdentities(db, OTHER, 'google-chat')).get('alice')).toBe('users/123');
-    expect((await getIdentities(db, 13, 'google-chat')).size).toBe(0);
-  });
-
-  test('added to a dm links too, in the team language', async () => {
-    const { deps } = await setup(googleConfig({ language: 'pt-BR' }));
-    await bindElsewhere('spaces/AAAA', INST);
-    const reply = await handleGoogleChatEvent(deps, {
+    const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
+    expect(reply).toEqual({ text: t('en', 'googleChat.useSpace') });
+    const onAdd = await handleGoogleChatEvent(deps, {
       ...dm('alice@acme.com'),
       type: 'ADDED_TO_SPACE',
     });
-    expect(reply).toEqual({ text: 'Vínculo feito, @Alice.' });
+    expect(onAdd).toEqual({ text: t('en', 'googleChat.useSpace') });
+    expect(await db.select().from(memberIdentities)).toEqual([]);
+    expect(await db.select().from(googleChatSignInTokens)).toEqual([]);
+  });
+});
+
+const click = (
+  email: string | undefined,
+  user = 'users/123',
+  action: string | null = LINK_CHAT_ACCOUNT_ACTION,
+  space = 'spaces/AAAA',
+): GoogleChatEvent => ({
+  type: 'CARD_CLICKED',
+  space: { name: space, type: 'ROOM', spaceType: 'SPACE' },
+  user: { name: user, ...(email === undefined ? {} : { email }) },
+  ...(action === null ? {} : { action }),
+});
+
+const SIGN_IN_TOKEN = /https:\/\/app\.test\/link\/google-chat\?token=([A-Za-z0-9_-]+)\|/;
+
+function signInTokenHash(text: string | undefined): string {
+  const token = SIGN_IN_TOKEN.exec(text ?? '')?.[1];
+  if (!token) throw new Error('no sign-in link in reply');
+  return createHash('sha256').update(token).digest('hex');
+}
+
+describe('handleGoogleChatEvent link from a space', () => {
+  test('the link button links the member and answers only to them', async () => {
+    const { deps } = await setup();
+    await bindElsewhere('spaces/AAAA', INST);
+    const reply = await handleGoogleChatEvent(deps, click('alice@acme.com'));
+    expect(reply).toEqual({ text: "You're linked, @Alice.", privateTo: 'users/123' });
     expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
   });
 
-  test('unknown email links nobody', async () => {
+  test('links only in the space organization', async () => {
+    const { deps, member } = await setup();
+    await seedOrg(googleConfig(), { id: OTHER, accountLogin: 'beta' });
+    await setMemberInstallations(db, member.id, [INST, OTHER]);
+    await bindElsewhere('spaces/AAAA', INST);
+    await bindElsewhere('spaces/BBBB', OTHER);
+    const reply = await handleGoogleChatEvent(deps, click('ALICE@acme.com'));
+    expect(reply).toEqual({ text: "You're linked, @Alice.", privateTo: 'users/123' });
+    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
+    expect((await getIdentities(db, OTHER, 'google-chat')).size).toBe(0);
+  });
+
+  test('clicking twice keeps one identity', async () => {
     const { deps } = await setup();
     await bindElsewhere('spaces/AAAA', INST);
-    const reply = await handleGoogleChatEvent(deps, dm('stranger@other.com'));
-    expect(reply?.text).toContain('standcast login');
-    expect(reply?.text).toContain('No Standcast account uses this email');
-    expect(reply?.text).not.toContain('Nenhuma conta do Standcast usa este e-mail');
-    expect(reply?.text).toContain('Your Google Chat id is users/123');
+    await handleGoogleChatEvent(deps, click('alice@acme.com'));
+    const again = await handleGoogleChatEvent(deps, click('alice@acme.com'));
+    expect(again).toEqual({ text: "You're linked, @Alice.", privateTo: 'users/123' });
+    const rows = await db.select().from(memberIdentities);
+    expect(rows.map((row) => [row.provider, row.externalId])).toEqual([
+      ['google-chat', 'users/123'],
+    ]);
+  });
+
+  test('a chat user already linked without an email match is told they are linked and gets no link', async () => {
+    const { deps, member } = await setup();
+    await bindElsewhere('spaces/AAAA', INST);
+    await setIdentity(db, INST, member.id, 'google-chat', 'users/123');
+    const reply = await handleGoogleChatEvent(deps, click('alice@personal.com'));
+    expect(reply).toEqual({
+      text: t('en', 'googleChat.linked', { logins: `@${member.login}` }),
+      privateTo: 'users/123',
+    });
+    expect(await db.select().from(googleChatSignInTokens)).toEqual([]);
+    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
+  });
+
+  test('a member found by email only in another organization gets the sign-in link', async () => {
+    const { deps, member } = await setup();
+    await seedOrg(googleConfig(), { id: OTHER, accountLogin: 'beta' });
+    await setMemberInstallations(db, member.id, [OTHER]);
+    await bindElsewhere('spaces/AAAA', INST);
+    await bindElsewhere('spaces/BBBB', OTHER);
+    const reply = await handleGoogleChatEvent(deps, click('alice@acme.com'));
+    expect(reply?.text).toContain('https://app.test/link/google-chat?token=');
+    expect(reply?.text).toContain(t('en', 'googleChat.signInLink'));
+    expect(await db.select().from(memberIdentities)).toEqual([]);
+    const tokens = await db.select().from(googleChatSignInTokens);
+    expect(tokens).toHaveLength(1);
+    expect(tokens[0]).toMatchObject({
+      installationId: INST,
+      chatUserId: 'users/123',
+      chatEmail: 'alice@acme.com',
+    });
+  });
+
+  test('an unknown email gets a private sign-in link scoped to the space', async () => {
+    const { deps } = await setup();
+    await bindElsewhere('spaces/AAAA', INST);
+    const reply = await handleGoogleChatEvent(deps, click('stranger@other.com'));
+    expect(reply?.privateTo).toBe('users/123');
+    const lines = reply?.text.split('\n') ?? [];
+    expect(lines[0]).toBe(t('en', 'googleChat.notFound'));
+    expect(lines[1]).toMatch(
+      new RegExp(
+        `^<https://app\\.test/link/google-chat\\?token=[A-Za-z0-9_-]+\\|${t('en', 'googleChat.signInLink')}>$`,
+      ),
+    );
+    expect(lines[2]).toBe(t('en', 'googleChat.mapHint', { userId: 'users/123' }));
     expect(reply?.text).not.toContain('O seu id no Google Chat é users/123');
-    expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
-    const missing = await handleGoogleChatEvent(deps, dm(undefined));
-    expect(missing?.text).toContain('No Standcast account uses this email');
-    expect(missing?.text).not.toContain('users/123');
+    const token = await findGoogleChatSignInToken(db, signInTokenHash(reply?.text), deps.now());
+    expect(token).toEqual({
+      chatUserId: 'users/123',
+      chatEmail: 'stranger@other.com',
+      installationId: INST,
+      spaceName: 'spaces/AAAA',
+    });
+    expect(await db.select().from(memberIdentities)).toEqual([]);
+  });
+
+  test('a click without an email answers not found without a link or a token', async () => {
+    const { deps } = await setup();
+    await bindElsewhere('spaces/AAAA', INST);
+    const reply = await handleGoogleChatEvent(deps, click(undefined));
+    expect(reply).toEqual({ text: t('en', 'googleChat.notFound'), privateTo: 'users/123' });
+    expect(await db.select().from(googleChatSignInTokens)).toEqual([]);
+  });
+
+  test('an unknown email answers in the language of the team on the space', async () => {
+    const { deps } = await setup(googleConfig({ language: 'pt-BR' }));
+    await bindElsewhere('spaces/AAAA', INST);
+    const reply = await handleGoogleChatEvent(deps, click('alice@personal.com'));
+    expect(reply?.text).toContain('O seu id no Google Chat é users/123');
+    expect(reply?.text).toContain(t('pt-BR', 'googleChat.signInLink'));
+    expect(reply?.text).not.toContain('No Standcast account in this organization uses this email');
+  });
+
+  test('a click in a space not linked to an organization gets notConnected and no token', async () => {
+    const { deps } = await setup();
+    await bindElsewhere('spaces/AAAA', INST);
+    const reply = await handleGoogleChatEvent(
+      deps,
+      click('alice@acme.com', 'users/123', LINK_CHAT_ACCOUNT_ACTION, 'spaces/ZZZZ'),
+    );
+    expect(reply).toEqual({ text: t('en', 'googleChat.notConnected'), privateTo: 'users/123' });
+    expect(await db.select().from(memberIdentities)).toEqual([]);
+    expect(await db.select().from(googleChatSignInTokens)).toEqual([]);
+  });
+
+  test('a linked space whose organization lost its connection answers notConnected', async () => {
+    const { deps } = await setup();
+    await bindElsewhere('spaces/AAAA', INST);
+    await db.delete(connections);
+    const reply = await handleGoogleChatEvent(deps, click('alice@acme.com'));
+    expect(reply).toEqual({ text: t('en', 'googleChat.notConnected'), privateTo: 'users/123' });
+    expect(await db.select().from(memberIdentities)).toEqual([]);
   });
 
   test('a verified email that is not the primary one links the member', async () => {
@@ -567,8 +696,8 @@ describe('handleGoogleChatEvent in a direct message', () => {
       verifiedEmails: ['alice@personal.dev', 'Alice@Acme.com'],
     });
     await bindElsewhere('spaces/AAAA', INST);
-    const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
-    expect(reply).toEqual({ text: "You're linked, @Alice." });
+    const reply = await handleGoogleChatEvent(deps, click('alice@acme.com'));
+    expect(reply).toEqual({ text: "You're linked, @Alice.", privateTo: 'users/123' });
     expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
   });
 
@@ -581,8 +710,8 @@ describe('handleGoogleChatEvent in a direct message', () => {
       verifiedEmails: ['alice@personal.dev'],
     });
     await bindElsewhere('spaces/AAAA', INST);
-    const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
-    expect(reply?.text).toContain('No Standcast account uses this email');
+    const reply = await handleGoogleChatEvent(deps, click('alice@acme.com'));
+    expect(reply?.text).toContain('No Standcast account in this organization uses this email');
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
   });
 
@@ -598,8 +727,8 @@ describe('handleGoogleChatEvent in a direct message', () => {
       .update(members)
       .set({ verifiedEmailsSyncedAt: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000) });
     await bindElsewhere('spaces/AAAA', INST);
-    const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
-    expect(reply?.text).toContain('No Standcast account uses this email');
+    const reply = await handleGoogleChatEvent(deps, click('alice@acme.com'));
+    expect(reply?.text).toContain('No Standcast account in this organization uses this email');
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
   });
 
@@ -614,19 +743,19 @@ describe('handleGoogleChatEvent in a direct message', () => {
     await setMemberInstallations(db, twin.id, [INST]);
     await bindElsewhere('spaces/AAAA', INST);
     await setIdentity(db, INST, member.id, 'google-chat', 'users/555');
-    const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
+    const reply = await handleGoogleChatEvent(deps, click('alice@acme.com'));
+    expect(reply?.privateTo).toBe('users/123');
     expect(reply?.text).toContain('more than one GitHub account');
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
   });
 
-  test('an email shared by two accounts links nobody and quarantines their links', async () => {
+  test('ambiguity quarantines links only in the space organization', async () => {
     const { deps, member } = await setup();
     const twin = await upsertMember(db, { githubUserId: 2, login: 'bob', email: 'Alice@acme.com' });
     const carol = await upsertMember(db, { githubUserId: 3, login: 'carol', email: null });
     await seedOrg(googleConfig(), { id: OTHER, accountLogin: 'beta' });
-    await seedOrg(googleConfig(), { id: 13, accountLogin: 'gamma' });
-    await setMemberInstallations(db, member.id, [INST, 13]);
-    await setMemberInstallations(db, twin.id, [INST]);
+    await setMemberInstallations(db, member.id, [INST, OTHER]);
+    await setMemberInstallations(db, twin.id, [INST, OTHER]);
     await setMemberInstallations(db, carol.id, [INST, OTHER]);
     await bindElsewhere('spaces/AAAA', INST);
     await bindElsewhere('spaces/BBBB', OTHER);
@@ -635,130 +764,18 @@ describe('handleGoogleChatEvent in a direct message', () => {
     await setIdentity(db, INST, carol.id, 'google-chat', 'users/123');
     await setIdentity(db, INST, member.id, 'slack', 'U123');
     await setIdentity(db, OTHER, member.id, 'google-chat', 'users/555');
+    await setIdentity(db, OTHER, twin.id, 'google-chat', 'users/777');
     await setIdentity(db, OTHER, carol.id, 'google-chat', 'users/123');
-    await setIdentity(db, 13, member.id, 'google-chat', 'users/555');
-    const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
+    const reply = await handleGoogleChatEvent(deps, click('alice@acme.com'));
     expect(reply?.text).toContain('more than one GitHub account');
     expect(reply?.text).not.toContain('mais de uma conta do GitHub');
-    expect(reply?.text).toContain('google_chat');
     expect(reply?.text).toContain('google_chat: users/123');
     expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
     expect((await getIdentities(db, INST, 'slack')).get('alice')).toBe('U123');
     const other = await getIdentities(db, OTHER, 'google-chat');
     expect(other.get('alice')).toBe('users/555');
+    expect(other.get('bob')).toBe('users/777');
     expect(other.get('carol')).toBe('users/123');
-    expect((await getIdentities(db, 13, 'google-chat')).get('alice')).toBe('users/555');
-  });
-
-  test('a member with no installation on google chat is told so', async () => {
-    const { deps } = await setup();
-    const reply = await handleGoogleChatEvent(deps, dm('alice@acme.com'));
-    expect(reply?.text).toContain('Google Chat');
-    expect(reply?.text).not.toContain("You're linked");
-    expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
-  });
-
-  test('an invalid user name links nobody', async () => {
-    const { deps } = await setup();
-    await bindElsewhere('spaces/AAAA', INST);
-    await handleGoogleChatEvent(deps, dm('alice@acme.com', 'users/abc'));
-    expect((await getIdentities(db, INST, 'google-chat')).size).toBe(0);
-  });
-
-  test('a failed member lookup never carries the email', async () => {
-    const { deps } = await setup();
-    const email = 'secret.person@acme.com';
-    const failing = {
-      now: deps.now,
-      db: new Proxy(db, {
-        get(target, prop, receiver) {
-          if (prop === 'select') {
-            return () => {
-              throw new Error(`Failed query: select ... params: ${email}`);
-            };
-          }
-          return Reflect.get(target, prop, receiver);
-        },
-      }),
-    };
-    const error = await handleGoogleChatEvent(failing, dm(email)).catch((e: unknown) => e);
-    expect(error).toBeInstanceOf(Error);
-    expect(String((error as Error).message)).not.toContain(email);
-    expect(JSON.stringify(error)).not.toContain(email);
-    expect((error as Error).stack ?? '').not.toContain(email);
-    expect((error as Error).cause).toBeUndefined();
-  });
-
-  test('the dm link stores the dm user and the override only names the mention', async () => {
-    const cfg = googleConfig({ members: 'members:\n  Alice: { google_chat: users/999 }' });
-    const { deps } = await setup(cfg);
-    await bindElsewhere('spaces/AAAA', INST);
-    await handleGoogleChatEvent(deps, dm('alice@acme.com'));
-    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
-    expect(await chatUserIdFor(deps, INST, cfg, 'google-chat', 'alice')).toBe('users/999');
-  });
-});
-
-const click = (
-  email: string | undefined,
-  user = 'users/123',
-  action: string | null = LINK_CHAT_ACCOUNT_ACTION,
-): GoogleChatEvent => ({
-  type: 'CARD_CLICKED',
-  space: { name: 'spaces/AAAA', type: 'ROOM', spaceType: 'SPACE' },
-  user: { name: user, ...(email === undefined ? {} : { email }) },
-  ...(action === null ? {} : { action }),
-});
-
-describe('handleGoogleChatEvent from a space', () => {
-  test('the link button links the member and answers only to them', async () => {
-    const { deps } = await setup();
-    await bindElsewhere('spaces/AAAA', INST);
-    const reply = await handleGoogleChatEvent(deps, click('alice@acme.com'));
-    expect(reply).toEqual({ text: "You're linked, @Alice.", privateTo: 'users/123' });
-    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
-  });
-
-  test('clicking twice keeps one identity', async () => {
-    const { deps } = await setup();
-    await bindElsewhere('spaces/AAAA', INST);
-    await handleGoogleChatEvent(deps, click('alice@acme.com'));
-    const again = await handleGoogleChatEvent(deps, click('alice@acme.com'));
-    expect(again).toEqual({ text: "You're linked, @Alice.", privateTo: 'users/123' });
-    const rows = await db.select().from(memberIdentities);
-    expect(rows.map((row) => [row.provider, row.externalId])).toEqual([
-      ['google-chat', 'users/123'],
-    ]);
-  });
-
-  test('an unknown email answers the guidance privately and stores nothing', async () => {
-    const { deps } = await setup();
-    await bindElsewhere('spaces/AAAA', INST);
-    const reply = await handleGoogleChatEvent(deps, click('alice@personal.com'));
-    expect(reply?.privateTo).toBe('users/123');
-    expect(reply?.text).toContain('No Standcast account uses this email');
-    expect(reply?.text).toContain('google_chat: users/123');
-    expect(reply?.text).not.toContain('O seu id no Google Chat é users/123');
-    expect(await db.select().from(memberIdentities)).toEqual([]);
-  });
-
-  test('an unknown email answers in the language of the team on the space', async () => {
-    const { deps } = await setup(googleConfig({ language: 'pt-BR' }));
-    await bindElsewhere('spaces/AAAA', INST);
-    const reply = await handleGoogleChatEvent(deps, click('alice@personal.com'));
-    expect(reply?.text).toContain('O seu id no Google Chat é users/123');
-    expect(reply?.text).not.toContain('No Standcast account uses this email');
-  });
-
-  test('an email shared by two accounts answers the ambiguous message privately', async () => {
-    const { deps } = await setup();
-    const twin = await upsertMember(db, { githubUserId: 2, login: 'bob', email: 'alice@acme.com' });
-    await setMemberInstallations(db, twin.id, [INST]);
-    await bindElsewhere('spaces/AAAA', INST);
-    const reply = await handleGoogleChatEvent(deps, click('alice@acme.com'));
-    expect(reply?.privateTo).toBe('users/123');
-    expect(reply?.text).toContain('more than one GitHub account');
-    expect(await db.select().from(memberIdentities)).toEqual([]);
   });
 
   test('a click without the link action or without a valid user answers nothing', async () => {
@@ -771,7 +788,53 @@ describe('handleGoogleChatEvent from a space', () => {
       await handleGoogleChatEvent(deps, click('alice@acme.com', 'users/123', null)),
     ).toBeNull();
     expect(await handleGoogleChatEvent(deps, click('alice@acme.com', 'users/abc'))).toBeNull();
+    expect(await handleGoogleChatEvent(deps, click('stranger@other.com', 'users/abc'))).toBeNull();
     expect(await db.select().from(memberIdentities)).toEqual([]);
+    expect(await db.select().from(googleChatSignInTokens)).toEqual([]);
+  });
+
+  test('a failed member lookup never carries the email', async () => {
+    const { deps } = await setup();
+    await bindElsewhere('spaces/AAAA', INST);
+    const email = 'secret.person@acme.com';
+    const failing = {
+      now: deps.now,
+      env: deps.env,
+      db: new Proxy(db, {
+        get(target, prop, receiver) {
+          if (prop !== 'select') return Reflect.get(target, prop, receiver);
+          return (...args: Parameters<typeof db.select>) => {
+            const query = target.select(...args);
+            return new Proxy(query, {
+              get(builder, key, builderReceiver) {
+                if (key !== 'from') return Reflect.get(builder, key, builderReceiver);
+                return (table: Parameters<typeof query.from>[0]) => {
+                  if (table === members) {
+                    throw new Error(`Failed query: select ... params: ${email}`);
+                  }
+                  return builder.from(table);
+                };
+              },
+            });
+          };
+        },
+      }),
+    };
+    const error = await handleGoogleChatEvent(failing, click(email)).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(Error);
+    expect(String((error as Error).message)).not.toContain(email);
+    expect(JSON.stringify(error)).not.toContain(email);
+    expect((error as Error).stack ?? '').not.toContain(email);
+    expect((error as Error).cause).toBeUndefined();
+  });
+
+  test('the link stores the clicking user and the override only names the mention', async () => {
+    const cfg = googleConfig({ members: 'members:\n  Alice: { google_chat: users/999 }' });
+    const { deps } = await setup(cfg);
+    await bindElsewhere('spaces/AAAA', INST);
+    await handleGoogleChatEvent(deps, click('alice@acme.com'));
+    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
+    expect(await chatUserIdFor(deps, INST, cfg, 'google-chat', 'alice')).toBe('users/999');
   });
 
   test('a mention in a space links the member and answers only to them', async () => {
@@ -783,6 +846,20 @@ describe('handleGoogleChatEvent from a space', () => {
     });
     expect(reply).toEqual({ text: 'Vínculo feito, @Alice.', privateTo: 'users/123' });
     expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
+  });
+
+  test('a mention in a space behaves like a click', async () => {
+    const { deps } = await setup();
+    await bindElsewhere('spaces/AAAA', INST);
+    const reply = await handleGoogleChatEvent(deps, {
+      ...click('stranger@other.com'),
+      type: 'MESSAGE',
+    });
+    expect(reply?.privateTo).toBe('users/123');
+    expect(reply?.text).toContain(t('en', 'googleChat.signInLink'));
+    const token = await findGoogleChatSignInToken(db, signInTokenHash(reply?.text), deps.now());
+    expect(token?.installationId).toBe(INST);
+    expect(token?.spaceName).toBe('spaces/AAAA');
   });
 });
 

@@ -271,15 +271,19 @@ const ptBR = {
   'googleChat.spaceLinked':
     'Este espaço agora recebe os consolidados da organização {org} no Standcast. Se não era isso, remova o app do espaço para desfazer.',
   'googleChat.linked': 'Vínculo feito, {logins}.',
-  'googleChat.notFound':
-    'Nenhuma conta do Standcast usa este e-mail. Rode `standcast login` primeiro e depois me mande uma mensagem de novo.',
+  'googleChat.notFound': 'Nenhuma conta do Standcast nesta organização usa este e-mail.',
   'googleChat.notConnected':
-    'Achei a sua conta, mas nenhuma organização sua conectou o Google Chat ao Standcast ainda. Peça a um admin para vincular um espaço e me mande uma mensagem de novo.',
+    'Este espaço ainda não está vinculado a uma organização no Standcast. Peça a um admin para vinculá-lo e depois clique em Vincular minha conta de novo.',
   'googleChat.ambiguous':
     'Este e-mail pertence a mais de uma conta do GitHub no Standcast, então não vinculei nenhuma. Peça a um admin para definir `google_chat` para você em `members` no standcast.yml, ou deixe o e-mail certo só na sua conta do GitHub e rode `standcast login` de novo.',
   'googleChat.linkPrompt':
     'Aparece como @login em vez do seu nome? Vincule a sua conta do Google Chat para o Standcast mencionar você.',
   'googleChat.linkButton': 'Vincular minha conta',
+  'googleChat.signInLink': 'Entrar com GitHub para vincular a sua conta',
+  'googleChat.useSpace':
+    'Eu vinculo contas pelo espaço do seu time. Clique em Vincular minha conta abaixo do consolidado do time, ou me mencione nesse espaço.',
+  'googleChat.replaced':
+    'Outra conta do Google Chat foi vinculada a @{login} em {org}, então esta não está mais. Se não foi você, avise um admin.',
   'googleChat.mapHint':
     'O seu id no Google Chat é {userId}. Se nenhum e-mail verificado da sua conta do GitHub é este, um admin pode vincular você à mão: em `members` no standcast.yml, defina `google_chat: {userId}` para o seu login do GitHub.',
 } as const;
@@ -555,15 +559,19 @@ const en = {
   'googleChat.spaceLinked':
     'This space now gets the digests of the {org} organization on Standcast. If that is not right, remove the app from the space to undo it.',
   'googleChat.linked': "You're linked, {logins}.",
-  'googleChat.notFound':
-    'No Standcast account uses this email; run `standcast login` first, then message me again.',
+  'googleChat.notFound': 'No Standcast account in this organization uses this email.',
   'googleChat.notConnected':
-    'I found your account, but none of your organizations has connected Google Chat to Standcast yet. Ask an admin to link a space, then message me again.',
+    'This space is not linked to an organization on Standcast yet. Ask an admin to link it, then click Link my account again.',
   'googleChat.ambiguous':
     'This email belongs to more than one GitHub account on Standcast, so I linked none of them. Ask an admin to set `google_chat` for you under `members` in standcast.yml, or keep the email only on your own GitHub account and run `standcast login` again.',
   'googleChat.linkPrompt':
     'Shown as @login instead of your name? Link your Google Chat account so Standcast can mention you.',
   'googleChat.linkButton': 'Link my account',
+  'googleChat.signInLink': 'Sign in with GitHub to link your account',
+  'googleChat.useSpace':
+    "I link accounts from your team's space. Click Link my account under your team's digest, or mention me in that space.",
+  'googleChat.replaced':
+    "Another Google Chat account was linked to @{login} in {org}, so this one no longer is. If that wasn't you, tell an admin.",
   'googleChat.mapHint':
     'Your Google Chat id is {userId}. If none of the verified emails of your GitHub account is this one, an admin can link you by hand: under `members` in standcast.yml, set `google_chat: {userId}` for your GitHub login.',
 } as const satisfies Record<keyof typeof ptBR, string>;

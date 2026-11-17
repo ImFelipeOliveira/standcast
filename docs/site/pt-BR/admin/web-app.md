@@ -46,6 +46,10 @@ Gestores e admins veem **Marcar férias** no card de uma pessoa, com o primeiro 
 
 Veja [Como funciona](/pt-BR/how-it-works#ferias) para saber o que muda nesses dias.
 
+## Vincular o Google Chat
+
+O link de entrada privado que o app do Google Chat manda abre `/link/google-chat` no app web. A página mostra qual conta do Google Chat será vinculada ao seu GitHub, e em qual organização, e só vincula quando você clica em **Vincular**. Veja [Google Chat](/pt-BR/admin/google-chat#o-link-para-entrar).
+
 ## O que o app não mostra
 
 O Standcast existe para destravar o time, não para vigiar pessoas:

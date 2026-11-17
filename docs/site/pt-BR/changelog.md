@@ -10,6 +10,9 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- Google Chat: quando nenhum membro da organização do espaço tem o seu e-mail do Google, **Vincular minha conta** e uma menção agora respondem com um link privado para entrar. Ele abre uma página de confirmação no app web, depois do login com o GitHub quando preciso, e confirmar vincula o seu usuário do Google Chat sem os e-mails precisarem ser iguais. Entrar antes deixou de ser necessário.
+- Os vínculos do Google Chat, por e-mail ou pelo link, agora valem só para a organização do espaço onde você clica ou menciona o app. Uma mensagem direta para o app não vincula mais: ela manda você usar o espaço do time. Quando um vínculo substitui outra conta sua do Google Chat, essa conta recebe uma mensagem direta.
+
 ### 0.17.0 — 16/11/2026
 
 - Cada daily publicada no chat segue um formato: o que foi realizado ontem, com os dias que cobre (na segunda, de sexta a domingo), o foco para hoje com a data, impedimentos e solicitações de apoio. Uma seção vazia diz isso, como "Nenhum impedimento.", e cada link vai numa linha própria abaixo do item, depois de 🔗. No Google Chat, uma linha em branco separa as seções, e no Slack o texto seguido vai numa seção só, para um consolidado longo caber no limite de blocos do Slack.

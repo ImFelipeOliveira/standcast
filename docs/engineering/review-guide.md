@@ -7,6 +7,8 @@ Patterns Standcast follows, code smells to flag and bugs that have actually happ
 - **Business rules live in use cases.** They take `deps` and throw `DomainError` with a stable `code`. Each module lives in `packages/orchestrator/src/modules/<name>` and owns its use cases: `access`, `beta`, `chat`, `daily`, `delivery`, `github`, `linear`, `org`, `retention`, `session` and `setup`. Shared helpers (`deps`, logging, tokens, teams, membership) stay at the package root.
 - **Routes, jobs, the CLI and the MCP server stay thin.** They parse input, call one use case and map the result.
   - Smell: a branch on business state, a database query or a GitHub/Slack/Linear call inside a route, a job or the CLI.
+- **No front end in the API.** User-facing pages live in the web app (`apps/web`). The API returns JSON and redirects: login and OAuth callbacks redirect to web app routes instead of rendering HTML.
+  - Smell: a new `c.html(...)`, a JSX page or a style in `apps/api/src/web`. The pages left there are legacy and are being removed.
 - **Pure rules live in `@standcast/core`:** config parsing, calendar, fingerprints, URL parsing, CODEOWNERS, message builders.
   - They have no I/O and no `Date.now()`. They take `now` as a parameter.
 - **Adapters** (`packages/adapters/*`) translate external APIs into small typed functions. They do not decide product behaviour.
@@ -117,7 +119,7 @@ Read the change as the code will run, not as the description says it runs. For e
   - Never log tokens, secrets, emails, daily or card text, request bodies or Drizzle params.
   - Smell: `console.error(error)` or `console.log(payload)`.
 - **Secrets.** Store them encrypted (`encryptSecret`). Never render them in HTML or put them in error messages.
-- **Server pages** (`apps/api/src/web`) run under a strict CSP:
+- **Legacy server pages** (`apps/api/src/web`, being removed; do not add new ones) run under a strict CSP:
   - no `style="…"` attributes and no `<script>`;
   - styles come only from classes in `styles.ts`;
   - forms that change state carry the CSRF field;
