@@ -27,6 +27,7 @@ reviews:
         Review against docs/engineering/review-guide.md. In particular flag:
         - any comment added to code (the project allows none);
         - business rules, database queries or external API calls inside routes, jobs, the CLI or the MCP server instead of a use case;
+        - any front end in the API: a new `c.html(...)`, JSX page or style in `apps/api/src/web`; user-facing pages belong in `apps/web`;
         - a database query not scoped by installation_id (and member_id for personal data);
         - logging outside logError, or logs containing tokens, emails, daily or card text, request bodies or SQL params;
         - user-visible text not going through t(lang, key) with both pt-BR and en keys;

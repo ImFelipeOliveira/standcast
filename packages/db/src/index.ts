@@ -7,6 +7,7 @@ export * from './repo/blocker-states';
 export * from './repo/connections';
 export * from './repo/dailies';
 export * from './repo/deliveries';
+export * from './repo/google-chat-sign-in-tokens';
 export * from './repo/google-chat-spaces';
 export * from './repo/installations';
 export * from './repo/members';

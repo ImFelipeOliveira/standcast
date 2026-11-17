@@ -10,7 +10,7 @@ Reminders go only to people who have not sent the daily, at most once per day, a
 
 Standcast has no Slack user for you, so it cannot send you a reminder or a routed blocker. The failed delivery shows on the setup page. Sign in again with `standcast login` after Slack was connected, or ask your admin to add `members.<your-login>.slack` to `standcast.yml`. See [My name shows as @login](#my-name-shows-as-login).
 
-On Google Chat, Standcast has no Google Chat user for you. Click **Link my account** under your team digest, send the Standcast app a direct message in Google Chat, or ask your admin to add `members.<your-login>.google_chat`. Linking does not open a direct message, so send the Standcast app a direct message to receive reminders. See [Google Chat does not link me](#google-chat-does-not-link-me).
+On Google Chat, Standcast has no Google Chat user for you. Click **Link my account** under your team digest, or ask your admin to add `members.<your-login>.google_chat`. Linking does not open a direct message, so send the Standcast app a direct message to receive reminders. See [Google Chat does not link me](#google-chat-does-not-link-me).
 
 ## `no_route_target`
 
@@ -37,9 +37,9 @@ The notice says that a GitHub team named in `standcast.yml` was not found, or is
 
 ## Google Chat does not link me
 
-You link yourself in Google Chat by clicking **Link my account** under the team digest, mentioning the Standcast app in a space, or sending the app a direct message. Check the app's answer, which only you see:
+You link yourself in Google Chat from your team's space, by clicking **Link my account** under the team digest or mentioning the Standcast app there. A direct message to the app does not link. Check the app's answer, which only you see:
 
-1. **"No Standcast account uses this email"**: run `standcast login` first, then message the app again. If your Google account uses another email than your GitHub account, ask your admin to add `members.<your-login>.google_chat` with your user id, such as `users/123456789`.
+1. **"No Standcast account in this organization uses this email"**: open the sign-in link in the answer, sign in with GitHub and confirm. It works even when your Google email is not on your GitHub account. If the link expired, click again. If you cannot sign in, ask your admin to add `members.<your-login>.google_chat` with your user id, such as `users/123456789`.
 2. **"none of your organizations has connected Google Chat"**: an admin must first link a space. See [Google Chat](/admin/google-chat#_2-link-the-space).
 3. **No answer at all**: the app may not be available in your Google Workspace yet. See [Availability](/admin/google-chat#availability).
 
@@ -129,4 +129,4 @@ It failed 20 deliveries in a row. Fix the receiver, add the endpoint again on th
 
 A push or pull request in the `.github-private` or `.github` repository changed `standcast.yml` and it has errors. Open the check: each error is an annotation on its line, and the summary lists all of them. Fix them and push again. The last valid version stays in effect meanwhile. If the file does not exist, there is no check.
 
-When the title is "standcast.yml exposes personal data", the file is valid but sits in a public repository with identity overrides under `members`. Move the file to `.github-private` (or make the repository private), or remove the overrides and let people link through the verified email of their GitHub account at `standcast login` and, in Google Chat, a direct message to the app. See [Identity mapping](/admin/configuration#identity-mapping).
+When the title is "standcast.yml exposes personal data", the file is valid but sits in a public repository with identity overrides under `members`. Move the file to `.github-private` (or make the repository private), or remove the overrides and let people link through the verified email of their GitHub account at `standcast login` and, in Google Chat, a click or a mention in their team's space. See [Identity mapping](/admin/configuration#identity-mapping).

@@ -70,28 +70,51 @@ When the organization has no linked space left, Google Chat is disconnected. Peo
 
 ## How people are linked
 
-Google Chat does not let the app find a person by email, so each person links themselves once:
+Google Chat does not let the app find a person by email, so each person links themselves once, from their team's space. Signing in to Standcast first is optional. In the team's space, do one of these:
 
-1. Run `standcast login`, so Standcast knows your GitHub account.
-2. In Google Chat, do one of these:
-   - click **Link my account** under the team digest;
-   - mention the Standcast app in a space where it is, for example `@Standcast hi`;
-   - send the Standcast app a direct message. Any text works.
+- click **Link my account** under the team digest;
+- mention the Standcast app, for example `@Standcast hi`.
+
+A link applies only to the organization of the space where you click or mention the app, never to your other organizations. To link in another organization, do it from a space of that organization.
+
+A direct message to the app does not link: it belongs to no organization. The app answers that it links accounts from your team's space.
 
 The digest shows the **Link my account** button only while someone in it is not linked and shows as `@login`. The button works for whoever clicks it: it links the person who clicked, never the people named in the digest.
 
-All three ways do the same thing. Standcast matches the email of your Google account with any verified email of your GitHub account, primary or not, and links you in every organization of yours that has a linked space. It stores only your Google Chat user id. Clicking again, or messaging the app again, keeps a single link. The app answers; after a click or a mention in a space, the answer is visible only to you:
+Both ways do the same thing. If you signed in before, Standcast matches the email of your Google account with any verified email of your GitHub account, primary or not, among the members of the space's organization, and links you there. It stores only your Google Chat user id. Clicking again, or mentioning the app again, keeps a single link. The app answers, and the answer is visible only to you:
 
 | Answer | What it means |
 | --- | --- |
 | You're linked, @your-login. | Done. |
-| No Standcast account uses this email; run `standcast login` first, then message me again. | Standcast has no account with this email. Sign in first. If none of your verified GitHub emails is this one, see below. |
-| I found your account, but none of your organizations has connected Google Chat to Standcast yet. Ask an admin to link a space, then message me again. | Link a space first, then message the app again. |
-| This email belongs to more than one GitHub account on Standcast, so I linked none of them. Ask an admin to set `google_chat` for you under `members` in standcast.yml, or keep the email only on your own GitHub account and run `standcast login` again. | Two or more GitHub accounts signed in to Standcast share this email, so Standcast links none of them. In each of their organizations that use Google Chat, it also removes the Google Chat links of those accounts and any link to this Google Chat user. Map the person by hand, as below, or remove the email from the other accounts. |
+| No Standcast account in this organization uses this email. The answer also carries a private sign-in link, "Sign in with GitHub to link your account". | No member of this organization has this email. Open the link, sign in with GitHub and confirm. It is valid for 15 minutes and works once. You can also sign in on the web app or with `standcast login` and click again. If you cannot sign in, see below. |
+| I link accounts from your team's space. Click Link my account under your team's digest, or mention me in that space. | You sent the app a direct message. Do it from the team's space instead. |
+| This space is not linked to an organization on Standcast yet. Ask an admin to link it, then click Link my account again. | The space is not linked to an organization, or the organization no longer has Google Chat connected. An admin links the space with a code; then click **Link my account** or mention the app again. |
+| This email belongs to more than one GitHub account on Standcast, so I linked none of them. Ask an admin to set `google_chat` for you under `members` in standcast.yml, or keep the email only on your own GitHub account and run `standcast login` again. | Two or more GitHub accounts signed in to Standcast share this email, so Standcast links none of them. In the space's organization, it also removes the Google Chat links of those accounts and any link to this Google Chat user. Map the person by hand, as below, or remove the email from the other accounts. |
 
-The answer is in one language only: the language of your teams, or of the teams on the space when you click the button or mention the app there. When Standcast cannot tell, or your teams have different languages, it is in English. When no account or more than one account has the email, the app also tells the person their Google Chat id (`users/` followed by digits), ready for the mapping below.
+The answer is in one language only: the language of the teams on the space where you click the button or mention the app. When Standcast cannot tell, or those teams have different languages, it is in English. When no account or more than one account has the email, the app also tells the person their Google Chat id (`users/` followed by digits), ready for the mapping below.
 
-GitHub sends Standcast your verified emails when you run `standcast login` or sign in to the web app. Your primary email always matches. Your other verified emails match only for 30 days after that sign-in, so an email you remove from GitHub stops matching by then. After you add and verify your Google email on GitHub, sign in again in one of these ways and message the app within 30 days. If your GitHub account has 1,000 emails or more, Standcast cannot read them all and keeps the list from your previous sign-in until its 30 days run out; ask an admin to map you by hand, as below.
+### The sign-in link
+
+The link works even when the email of your Google account is not a verified email of your GitHub account. It proves the two sides itself: only you got the link, and you sign in with GitHub. The emails do not need to match.
+
+1. Open the link. It opens the Standcast web app, at `/link/google-chat`. If you are not signed in, the app asks you to sign in with GitHub and brings you back to the same page.
+2. The web app shows a page: "Link the Google Chat account you@company.com to your GitHub account @login in your-org?" Check that the Google account is yours.
+3. Click **Link**. The page says "You're linked in your-org, @login. You can close this page." and the app sends you a direct message with "You're linked, @login." **Cancel** changes nothing.
+
+The link is single use and expires after 15 minutes. It links your Google Chat user only in the organization of the space where you clicked, and only when your GitHub account is a member of that organization. Otherwise the page says "Your GitHub account @login is not a member of your-org on Standcast. Sign in with the GitHub account you use there."
+
+Other pages you may see:
+
+| Page | What it means |
+| --- | --- |
+| This link expired. Click Link my account in Google Chat again. | The link expired or was used already. Ask for a new one. |
+| your-org no longer has Google Chat connected to Standcast. Ask an admin to link a space. | The organization has no linked space now. |
+| Your admin set your Google Chat account in standcast.yml, so nothing changed. | An admin mapping in `standcast.yml` wins over the link. |
+| This replaces your current Google Chat link in your-org. | Shown before you confirm when you were already linked to another Google Chat account in that organization. |
+
+A Google Chat user is one person: when you link, any other member of that organization linked to the same Google Chat user is unlinked. When your link replaces another Google Chat account of yours, that account gets a direct message: "Another Google Chat account was linked to @login in your-org, so this one no longer is. If that wasn't you, tell an admin."
+
+GitHub sends Standcast your verified emails when you run `standcast login` or sign in to the web app. Your primary email always matches. Your other verified emails match only for 30 days after that sign-in, so an email you remove from GitHub stops matching by then. After you add and verify your Google email on GitHub, sign in again in one of these ways, then click **Link my account** or mention the app in the team's space within 30 days. If your GitHub account has 1,000 emails or more, Standcast cannot read them all and keeps the list from your previous sign-in until its 30 days run out; ask an admin to map you by hand, as below.
 
 When the Google email is not a verified email of the GitHub account, an admin maps the person by hand in `standcast.yml`, with their Google Chat user id:
 
@@ -102,7 +125,7 @@ members:
 
 The value must be `users/` followed by digits. The digits are the person's Google user id, the same id the Google Workspace Admin SDK and the People API use.
 
-The digest mentions use the mapping as is, with no check. Direct messages check it only when the mapping is a different user from the one the person linked by direct message: before each such direct message, Standcast asks Google Chat whether that user is in one of your linked spaces. It checks every linked space, up to 5 at a time and up to 4 seconds per check, and stops at the first one where the person is a member. If they are in none of them, nothing is sent and the delivery fails with `no_chat_identity`. If Google Chat does not answer in time, the delivery fails with `timeout`: reminders and routed blockers are retried, a suggested blocker message is not. When the mapping is the same user the person linked by direct message, Standcast sends without the check. A linked space can include external guests, so map only people you trust.
+The digest mentions use the mapping as is, with no check. Direct messages check it only when the mapping is a different user from the one the person linked from the chat: before each such direct message, Standcast asks Google Chat whether that user is in one of your linked spaces. It checks every linked space, up to 5 at a time and up to 4 seconds per check, and stops at the first one where the person is a member. If they are in none of them, nothing is sent and the delivery fails with `no_chat_identity`. If Google Chat does not answer in time, the delivery fails with `timeout`: reminders and routed blockers are retried, a suggested blocker message is not. When the mapping is the same user the person linked from the chat, Standcast sends without the check. A linked space can include external guests, so map only people you trust.
 
 The digest mentions each linked person with their Google Chat user, and shows `@` followed by their GitHub login as plain text otherwise.
 
@@ -123,12 +146,12 @@ When a post fails, the web app lists it under "Latest failed deliveries". Standc
 | `no_dm_space` | The person has not messaged the Standcast app yet. Not retried. | Ask the person to send the app a direct message. |
 | `channel_not_found` | The space does not exist, or `chat.channel` is not a valid `spaces/...` name. | Check `chat.channel`. Copy the name from the Google Chat card. |
 | `not_in_channel` | The app is not in the space, or cannot post there. | Add the Standcast app to the space. |
-| `user_not_found` | Google Chat does not know the person's user. Standcast removes the stored link. | Ask the person to message the app again, or fix `members.<login>.google_chat`. |
+| `user_not_found` | Google Chat does not know the person's user. Standcast removes the stored link. | Ask the person to click **Link my account** or mention the app in the team's space again, or fix `members.<login>.google_chat`. |
 | `invalid_auth` | Google Chat rejected the credentials of the Standcast app. | Contact support. |
 | `ratelimited` | Google Chat asked Standcast to slow down. | Nothing to do; it is retried. |
 | `timeout`, `request_failed`, `http_error`, `invalid_response` | Google Chat did not answer in time, could not be reached, or answered with an error. | Nothing to do; it is retried. Contact support if it repeats. |
 | `no_chat_connection` | No space is linked to this organization, or the server has no Google Chat app. | Link a space. If Settings says Google Chat is not available on this server, contact the server operator to configure Google Chat. |
-| `no_chat_identity` | The person, or the manager a blocker fell back to, has no Google Chat link, or their `members.<login>.google_chat` user is in none of your linked spaces. | Ask the person to message the app, or add them to a linked space. |
+| `no_chat_identity` | The person, or the manager a blocker fell back to, has no Google Chat link, or their `members.<login>.google_chat` user is in none of your linked spaces. | Ask the person to click **Link my account** or mention the app in the team's space, or add them to a linked space. |
 | `no_route_target` | A blocker had no recipient at all, for example because the author is the team's only manager. | Add another manager to the team. |
 | `worker_died` | The worker stopped three times while sending. | Contact support if it repeats. |
 | `internal_error` | Unexpected error. | Contact support if it repeats. |
@@ -136,7 +159,8 @@ When a post fails, the web app lists it under "Latest failed deliveries". Standc
 ## Limits worth knowing
 
 - Messages are plain text, plus the **Link my account** card under a digest. A digest longer than 4,096 characters is cut and ends with "… see Standcast".
-- The app reacts only to being added to or removed from a space, to direct messages, to mentions in a space and to the **Link my account** button. A mention in a space or a click only links the person; the app does not read the text.
+- The app reacts only to being added to or removed from a space, to direct messages, to mentions in a space and to the **Link my account** button. A direct message only gets the answer above. A mention in a space or a click only links the person; the app does not read the text.
+- Sign-in links: valid for 15 minutes, single use. A new link for the same person and organization replaces the previous unused one.
 - The button needs the Standcast server to know its public address: on a server you run, set `PUBLIC_URL` on the worker. Without it, the digest has no button.
 - Link codes: 8 characters, valid for 24 hours, single use. Link attempts are limited to 10 per minute.
 - Standcast handles at most 120 Google Chat events per space per minute.

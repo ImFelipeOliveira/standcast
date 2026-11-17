@@ -45,7 +45,7 @@ The Standcast app for Google Chat calls the Google Chat API as itself, with the 
 Google sends Standcast an event only when the app is added to a space, removed from a space, sent a direct message, mentioned in a space, or when someone clicks **Link my account** under a digest. From these events Standcast uses:
 
 - the space name (`spaces/...`) and its display name, to link the space to your organization;
-- from a direct message, a mention or a click, the Google Chat user id and email of that person, only to link them to their Standcast account. The answer to a mention or a click is visible only to that person.
+- from a mention or a click, the Google Chat user id and email of that person, only to link them to their Standcast account in the organization of that space. A direct message is only answered, with no link. The answer to a mention or a click is visible only to that person.
 
 Standcast keeps nothing from the text of the messages people send the app. It does not read messages in spaces, and it does not look people up by email in Google Chat. A click links only the person who clicked; nobody learns anything about another person from it.
 
@@ -88,6 +88,7 @@ Standcast does not connect to Jira, ClickUp, Asana, GitHub Projects, Microsoft T
 | Slack connection | Workspace id and name, and the bot token | Bot token encrypted with AES-256-GCM |
 | Google Chat spaces | For each space that has the app: its name and display name, when the app was added, and, once linked, the organization and when it was linked. While a link code is pending, a SHA-256 hash of the code and when it expires. An expired code is cleared, and a space that was never linked is deleted, by a cleanup that runs once a day, at the latest the day after the code expires | Only the hash of the link code |
 | Google Chat identity | The Google Chat user id of each person, per installation. The email is never stored | |
+| Google Chat sign-in token | Created when someone clicks **Link my account** or mentions the app and no member of the space's organization has their email: a SHA-256 hash of the token, the Google Chat user id, the Google email, the organization, the space name and when it was created, expires and was used. The token expires after 15 minutes and works once. A cleanup that runs once a day deletes it at its first run at least 1 day after it expires, so it can stay stored for up to about 2 days after it expires | Only the hash of the token |
 | Google Chat connection | Marks Google Chat as connected for the installation, with the name of the first linked space | |
 | Linear connection | Workspace id, name and URL key, and the access and refresh tokens | Tokens encrypted with AES-256-GCM |
 | Linear identity | The Linear user id of each person, per installation. The email is never stored | |
@@ -148,6 +149,7 @@ Standcast does not delete dailies on a schedule today. Dailies and digest delive
 - resolved suggestions, those whose signal went away: after 90 days;
 - delivery records about one person (reminders, routed blockers, suggestion DMs, scan markers and posted dailies): after 90 days;
 - Google Chat spaces that were never linked: the day after their link code expires;
+- Google Chat sign-in tokens: at the first daily cleanup at least 1 day after their 15-minute expiry, so up to about 2 days after it;
 - ignored and confirmed suggestions are kept, so they do not come back;
 - rate limit counters: after about 10 minutes.
 

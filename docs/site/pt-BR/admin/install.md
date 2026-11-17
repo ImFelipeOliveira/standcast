@@ -44,7 +44,7 @@ Cada time publica no Slack ou no Google Chat, conforme o `standcast.yml`. Conect
 
 **Slack.** Um admin clica em **Conectar Slack** e aprova o app no workspace do Slack. A etapa do Slack passa a mostrar um visto, o selo **Conectado** e "Conectado a" com o nome do workspace, e um botão **Reconectar Slack** para conectar de novo. Os outros membros veem a conexão só para leitura. Enquanto o Slack ainda não está conectado, eles veem "Só um admin pode conectar ou reconectar o Slack." Veja [Slack](/pt-BR/admin/slack) para as permissões e os canais privados.
 
-**Google Chat.** Adicione o app do Standcast ao espaço do Google Chat; ele publica um código de vínculo. Um admin cola o código na etapa **Google Chat**, ou no card do Google Chat do [app web](/pt-BR/admin/web-app), e clica em **Vincular espaço**. Depois, cada pessoa manda uma mensagem direta para o app uma vez, para vincular o usuário dela no Google Chat. Veja [Google Chat](/pt-BR/admin/google-chat).
+**Google Chat.** Adicione o app do Standcast ao espaço do Google Chat; ele publica um código de vínculo. Um admin cola o código na etapa **Google Chat**, ou no card do Google Chat do [app web](/pt-BR/admin/web-app), e clica em **Vincular espaço**. Depois, cada pessoa clica em **Vincular minha conta** embaixo do consolidado do time, ou menciona o app no espaço, para vincular o usuário dela no Google Chat. Veja [Google Chat](/pt-BR/admin/google-chat).
 
 ## 4. Crie o `standcast.yml`
 
@@ -76,7 +76,7 @@ teams:
 
 Apague o time do chat que você não usa. Troque o nome do time, o fuso, os horários, as pessoas e o canal e faça o commit. No Google Chat, o canal é o nome do espaço que aparece no card do Google Chat. O arquivo tem que ficar na **raiz** do repositório, na branch padrão. Se nem o `.github-private` nem o `.github` existirem, a página mostra **Criar o repositório .github-private**, que abre o formulário de novo repositório do GitHub com a sua organização como dona, o nome preenchido e a visibilidade privada. Se o GitHub App só tem acesso a repositórios selecionados, a página também avisa e mostra **Escolher repositórios no GitHub**: depois de criar o repositório, adicione-o ao app ali, ou o Standcast não vai encontrá-lo.
 
-O modelo lista o seu login. Para um time maior, prefira um time do GitHub (`members: ["@org/team-slug"]`), para o arquivo não listar logins, e deixe de fora o mapa `members` do nível de cima: as pessoas são vinculadas pelo e-mail verificado da conta do GitHub quando rodam `standcast login`, e no Google Chat por uma mensagem direta para o app. Os overrides em `members.<login>` são só para exceções, e são rejeitados em repositório público. Veja [Mapeamento de identidades](/pt-BR/admin/configuration#mapeamento-de-identidades).
+O modelo lista o seu login. Para um time maior, prefira um time do GitHub (`members: ["@org/team-slug"]`), para o arquivo não listar logins, e deixe de fora o mapa `members` do nível de cima: as pessoas são vinculadas pelo e-mail verificado da conta do GitHub quando rodam `standcast login`, e no Google Chat por um clique ou uma menção no espaço do time. Os overrides em `members.<login>` são só para exceções, e são rejeitados em repositório público. Veja [Mapeamento de identidades](/pt-BR/admin/configuration#mapeamento-de-identidades).
 
 Referência completa: [standcast.yml](/pt-BR/admin/configuration).
 
@@ -125,6 +125,6 @@ Quando um push em qualquer branch do repositório `.github-private` ou `.github`
 ## Próximos passos
 
 - Peça a cada membro para seguir o guia [Escreva sua primeira daily](/pt-BR/members/getting-started). As pessoas são ligadas ao usuário do Slack quando entram, então elas devem entrar depois que o Slack estiver conectado.
-- No Google Chat, peça a cada membro para entrar e depois mandar uma mensagem direta para o app do Standcast uma vez.
+- No Google Chat, peça a cada membro para clicar em **Vincular minha conta** embaixo do consolidado do time ou mencionar o app no espaço. Entrar antes é opcional.
 - Se você usa o Linear, peça a cada membro para entrar depois que o Linear estiver conectado, para o usuário dele no Linear ser ligado.
 - Crie [API keys](/pt-BR/admin/api-keys) ou [webhooks](/pt-BR/admin/webhooks) se outros sistemas precisarem dos dados.

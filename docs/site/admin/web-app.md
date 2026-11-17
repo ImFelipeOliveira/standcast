@@ -46,6 +46,10 @@ Managers and admins see **Mark away** on a person's card, with the first and las
 
 See [How it works](/how-it-works#away-periods) for what changes on those days.
 
+## Link Google Chat
+
+The private sign-in link the Google Chat app sends opens `/link/google-chat` in the web app. It shows which Google Chat account will be linked to your GitHub account, and in which organization, and links it only when you click **Link**. See [Google Chat](/admin/google-chat#the-sign-in-link).
+
 ## What the app does not show
 
 Standcast exists to unblock the team, not to watch people:
