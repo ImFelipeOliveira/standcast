@@ -6,16 +6,6 @@ const chatLinkKeys: MessageKey[] = [
   'googleChat.signInLink',
   'googleChat.useSpace',
   'googleChat.replaced',
-  'web.chatLink.title',
-  'web.chatLink.confirm',
-  'web.chatLink.replaces',
-  'web.chatLink.submit',
-  'web.chatLink.cancel',
-  'web.chatLink.linked',
-  'web.chatLink.expired',
-  'web.chatLink.notMember',
-  'web.chatLink.notConnected',
-  'web.chatLink.mapped',
 ];
 
 describe('chat link copy', () => {
@@ -27,11 +17,5 @@ describe('chat link copy', () => {
         expect(text).not.toBe(key);
       }
     }
-  });
-
-  test('pt-BR confirm interpolates account, login and org', () => {
-    expect(
-      t('pt-BR', 'web.chatLink.confirm', { account: 'a@x.com', login: 'ana', org: 'acme' }),
-    ).toBe('Vincular a conta do Google Chat a@x.com ao seu GitHub @ana em acme?');
   });
 });

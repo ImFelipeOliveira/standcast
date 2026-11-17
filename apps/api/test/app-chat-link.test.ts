@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import { parseConfig } from '@standcast/core';
 import {
   createSession,
@@ -103,9 +103,16 @@ describe('GET and POST /v1/app/google-chat/link', () => {
 
   test('POST with the csrf header links and returns linked', async () => {
     const { post, found, linked } = await setup();
-    const res = await post({ token: TOKEN });
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ status: 'linked', login: 'ana', org: 'acme' });
+    const spy = spyOn(console, 'error');
+    try {
+      const res = await post({ token: TOKEN });
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ status: 'linked', login: 'ana', org: 'acme' });
+      expect(JSON.stringify(spy.mock.calls)).not.toContain('google chat link notice failed');
+      expect(JSON.stringify(spy.mock.calls)).not.toContain(TOKEN);
+    } finally {
+      spy.mockRestore();
+    }
     expect(await linked()).toBe('users/1');
     expect(await found()).toBe(false);
   });

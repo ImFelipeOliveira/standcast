@@ -1,17 +1,14 @@
 import { negotiateLanguage } from '@standcast/core';
 import { type MemberRow, resolveSession } from '@standcast/db';
 import {
-  completeGoogleChatSignInLink,
   completeLinearConnect,
   completeSlackConnect,
   completeWebLogin,
   createMembershipCheck,
-  csrfToken,
   type Deps,
   DomainError,
   logError,
   logoutWebSession,
-  previewGoogleChatSignInLink,
   readLoginState,
   startLinearConnect,
   startSlackConnect,
@@ -24,7 +21,6 @@ import { secureHeaders } from 'hono/secure-headers';
 import { STATUS } from '../http/errors';
 import { type GetClientIp, ipRateLimit } from '../middleware/rate-limit';
 import { WEB_COOKIE, WEB_COOKIE_PATH, WEB_SESSION_SECONDS } from '../middleware/web-session';
-import { ChatLinkPage } from '../web/chat-link';
 import { ErrorPage } from '../web/error';
 import { PAGE_CSS } from '../web/layout';
 
@@ -35,7 +31,7 @@ const SIGN_IN_CODES = ['unauthorized', 'forbidden', 'invalid_state', 'access_den
 export const WEB_IP_LIMIT = 60;
 const RESYNC_CODES = ['forbidden', 'installation_pending'];
 const APP_SIGN_IN_CODES = ['access_denied', 'invalid_state', 'unauthorized'];
-const PAGE_PATHS = ['/setup/*', '/connect/*', '/auth/*', '/oauth/*', '/link/*', '/logout'];
+const PAGE_PATHS = ['/setup/*', '/connect/*', '/auth/*', '/oauth/*', '/logout'];
 const STYLE_HASH = `'sha256-${new Bun.CryptoHasher('sha256').update(PAGE_CSS).digest('base64')}'`;
 
 const pageHeaders = secureHeaders({
@@ -201,28 +197,6 @@ export function webRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
   });
 
   app.get('/setup', (c) => appSetup(c));
-
-  app.get('/link/google-chat', async (c) => {
-    const session = await readSession(c);
-    if (!session) return loginRedirect(c);
-    const token = c.req.query('token') ?? '';
-    const view = await previewGoogleChatSignInLink(deps, { member: session.member, token });
-    return c.html(
-      <ChatLinkPage
-        view={view}
-        token={token}
-        csrf={csrfToken(deps.env.sessionSecret, session.token)}
-      />,
-    );
-  });
-
-  app.post('/link/google-chat', async (c) => {
-    const session = await requireSession(c);
-    const form = await readForm(c, session);
-    const token = typeof form.token === 'string' ? form.token : '';
-    const view = await completeGoogleChatSignInLink(deps, { member: session.member, token });
-    return c.html(<ChatLinkPage view={view} />);
-  });
 
   app.get('/connect/slack', async (c) => {
     const session = await readSession(c);

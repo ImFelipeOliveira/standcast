@@ -85,21 +85,6 @@ const ptBR = {
   'web.googleChat.code': 'Código de vínculo',
   'web.googleChat.link': 'Vincular espaço',
   'web.googleChat.adminOnly': 'Só um admin pode vincular um espaço do Google Chat.',
-  'web.chatLink.title': 'Vincular o Google Chat',
-  'web.chatLink.confirm':
-    'Vincular a conta do Google Chat {account} ao seu GitHub @{login} em {org}?',
-  'web.chatLink.replaces': 'Isso substitui o seu vínculo atual com o Google Chat em {org}.',
-  'web.chatLink.submit': 'Vincular',
-  'web.chatLink.cancel': 'Cancelar',
-  'web.chatLink.linked': 'Vínculo feito em {org}, @{login}. Pode fechar esta página.',
-  'web.chatLink.expired':
-    'Este link expirou. Clique em Vincular minha conta no Google Chat de novo.',
-  'web.chatLink.notMember':
-    'A sua conta do GitHub @{login} não é membro de {org} no Standcast. Entre com a conta do GitHub que você usa lá.',
-  'web.chatLink.notConnected':
-    '{org} não tem mais o Google Chat conectado ao Standcast. Peça a um admin para vincular um espaço.',
-  'web.chatLink.mapped':
-    'Um admin definiu a sua conta do Google Chat no standcast.yml, então nada mudou.',
   'web.template.teamName': 'Time',
   'web.apiKeys.title': 'API keys',
   'web.apiKeys.description':
@@ -388,20 +373,6 @@ const en = {
   'web.googleChat.code': 'Link code',
   'web.googleChat.link': 'Link space',
   'web.googleChat.adminOnly': 'Only an admin can link a Google Chat space.',
-  'web.chatLink.title': 'Link Google Chat',
-  'web.chatLink.confirm':
-    'Link the Google Chat account {account} to your GitHub account @{login} in {org}?',
-  'web.chatLink.replaces': 'This replaces your current Google Chat link in {org}.',
-  'web.chatLink.submit': 'Link',
-  'web.chatLink.cancel': 'Cancel',
-  'web.chatLink.linked': "You're linked in {org}, @{login}. You can close this page.",
-  'web.chatLink.expired': 'This link expired. Click Link my account in Google Chat again.',
-  'web.chatLink.notMember':
-    'Your GitHub account @{login} is not a member of {org} on Standcast. Sign in with the GitHub account you use there.',
-  'web.chatLink.notConnected':
-    '{org} no longer has Google Chat connected to Standcast. Ask an admin to link a space.',
-  'web.chatLink.mapped':
-    'Your admin set your Google Chat account in standcast.yml, so nothing changed.',
   'web.template.teamName': 'Team',
   'web.apiKeys.title': 'API keys',
   'web.apiKeys.description':
