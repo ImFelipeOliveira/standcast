@@ -1,7 +1,7 @@
 import type { AwayPeriod, RemindNowResult, SetupStatus } from '@standcast/orchestrator';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiDelete, apiPost } from './client';
-import { setupStatusQuery, teamTodayQuery } from './queries';
+import { type ChatLinkResultView, setupStatusQuery, teamTodayQuery } from './queries';
 
 type ManagedKeys = Extract<SetupStatus['apiKeys'], { manage: true }>;
 type ManagedWebhooks = Extract<SetupStatus['webhooks'], { manage: true }>;
@@ -179,4 +179,12 @@ export function useCancelAway(installationId: number) {
   return useAwayMutation(installationId, (periodId: string) =>
     cancelAwayRequest(installationId, periodId),
   );
+}
+
+export function completeChatLinkRequest(token: string) {
+  return apiPost<ChatLinkResultView>('/v1/app/google-chat/link', { token });
+}
+
+export function useCompleteChatLink(token: string) {
+  return useMutation({ mutationFn: () => completeChatLinkRequest(token) });
 }

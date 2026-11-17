@@ -579,4 +579,18 @@ export const en: Record<MessageKey, string> = {
   'palette.hint': '↑ ↓ to pick, Enter to open, Esc to close.',
   'palette.results': '{count} result(s)',
   'history.exportTitle': '{team} · shipped {from} to {to}',
+  'chatLink.title': 'Link Google Chat',
+  'chatLink.confirm':
+    'Link the Google Chat account {account} to your GitHub account @{login} in {org}?',
+  'chatLink.replaces': 'This replaces your current Google Chat link in {org}.',
+  'chatLink.submit': 'Link',
+  'chatLink.cancel': 'Cancel',
+  'chatLink.linked': "You're linked in {org}, @{login}. You can close this page.",
+  'chatLink.expired': 'This link expired. Click Link my account in Google Chat again.',
+  'chatLink.notMember':
+    'Your GitHub account @{login} is not a member of {org} on Standcast. Sign in with the GitHub account you use there.',
+  'chatLink.notConnected':
+    '{org} no longer has Google Chat connected to Standcast. Ask an admin to link a space.',
+  'chatLink.mapped':
+    'Your admin set your Google Chat account in standcast.yml, so nothing changed.',
 };

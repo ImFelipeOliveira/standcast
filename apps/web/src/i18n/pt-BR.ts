@@ -587,4 +587,17 @@ export const ptBR = {
   'palette.hint': '↑ ↓ para escolher, Enter para abrir, Esc para fechar.',
   'palette.results': '{count} resultado(s)',
   'history.exportTitle': '{team} · entregas de {from} a {to}',
+  'chatLink.title': 'Vincular o Google Chat',
+  'chatLink.confirm': 'Vincular a conta do Google Chat {account} ao seu GitHub @{login} em {org}?',
+  'chatLink.replaces': 'Isso substitui o seu vínculo atual com o Google Chat em {org}.',
+  'chatLink.submit': 'Vincular',
+  'chatLink.cancel': 'Cancelar',
+  'chatLink.linked': 'Vínculo feito em {org}, @{login}. Pode fechar esta página.',
+  'chatLink.expired': 'Este link expirou. Clique em Vincular minha conta no Google Chat de novo.',
+  'chatLink.notMember':
+    'A sua conta do GitHub @{login} não é membro de {org} no Standcast. Entre com a conta do GitHub que você usa lá.',
+  'chatLink.notConnected':
+    '{org} não tem mais o Google Chat conectado ao Standcast. Peça a um admin para vincular um espaço.',
+  'chatLink.mapped':
+    'Um admin definiu a sua conta do Google Chat no standcast.yml, então nada mudou.',
 } as const;
