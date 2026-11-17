@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+### 0.18.0 — 2026-11-17
+
 - Google Chat: when no member of the space's organization has your Google email, **Link my account** and a mention now answer with a private sign-in link. It opens a confirmation page in the web app, after GitHub sign-in when needed, and confirming links your Google Chat user without the emails having to match. Signing in first is no longer needed.
 - Google Chat links, by email or by sign-in link, now apply only to the organization of the space where you click or mention the app. A direct message to the app no longer links: it tells you to use your team's space. When a link replaces another Google Chat account of yours, that account gets a direct message.
 
