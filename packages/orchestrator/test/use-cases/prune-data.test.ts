@@ -229,12 +229,15 @@ describe('pruneData', () => {
         spaceName: 'spaces/A',
         expiresAt,
       });
-    await issue('1', daysAgo(2));
-    await issue('2', new Date(NOW.getTime() - 60 * 60 * 1000));
+    const cutoff = daysAgo(1).getTime();
+    await issue('before', new Date(cutoff - 1));
+    await issue('at', new Date(cutoff));
+    await issue('after', new Date(cutoff + 1));
+    await issue('live', new Date(NOW.getTime() + 60 * 60 * 1000));
     const { deps } = fakeDeps();
     deps.now = () => NOW;
     expect((await pruneData(deps)).googleChatSignInTokens).toBe(1);
     const rows = await db.select().from(googleChatSignInTokens);
-    expect(rows.map((r) => r.chatUserId)).toEqual(['users/2']);
+    expect(rows.map((r) => r.chatUserId).sort()).toEqual(['users/after', 'users/at', 'users/live']);
   });
 });

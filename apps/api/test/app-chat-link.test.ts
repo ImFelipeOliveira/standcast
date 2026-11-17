@@ -11,7 +11,7 @@ import {
 import { csrfToken, hashLinkCode } from '@standcast/orchestrator';
 import { db, useCleanDb } from '../../../packages/db/test/setup';
 import { INST, linkSpace, seedOrg } from '../../../packages/orchestrator/test/use-cases/fakes';
-import { createTestApp } from './support';
+import { createTestApp, type FakeRequest } from './support';
 
 useCleanDb();
 
@@ -34,8 +34,18 @@ teams:
   return parsed.config;
 }
 
+const githubOrgMember: FakeRequest = async (route, params) => {
+  if (route === 'GET /user/{account_id}') {
+    return { status: 200, data: { login: Number(params.account_id) === 5 ? 'ana' : 'someone' } };
+  }
+  if (route === 'GET /orgs/{org}/members/{username}' && params.username === 'ana') {
+    return { status: 204 };
+  }
+  throw Object.assign(new Error('not found'), { status: 404 });
+};
+
 async function setup() {
-  const { app, deps } = createTestApp();
+  const { app, deps } = createTestApp({ request: githubOrgMember });
   await seedOrg(googleConfig());
   await linkSpace('spaces/AAAA', INST);
   const ana = await upsertMember(db, { githubUserId: 5, login: 'ana', email: null });

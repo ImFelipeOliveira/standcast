@@ -157,7 +157,7 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
   });
 
   app.get('/v1/app/google-chat/link', async (c) => {
-    const { language: _, ...view } = await previewGoogleChatSignInLink(deps, {
+    const { language: _, ...view } = await previewGoogleChatSignInLink(deps, isMember, {
       member: c.get('member'),
       token: c.req.query('token') ?? '',
     });
@@ -166,7 +166,7 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
 
   app.post('/v1/app/google-chat/link', async (c) => {
     const { token } = await parseBody(c, chatLinkBody);
-    const { language: _, ...result } = await completeGoogleChatSignInLink(deps, {
+    const { language: _, ...result } = await completeGoogleChatSignInLink(deps, isMember, {
       member: c.get('member'),
       token,
     });

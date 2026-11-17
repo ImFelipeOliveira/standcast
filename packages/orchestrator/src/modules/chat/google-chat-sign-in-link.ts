@@ -14,12 +14,14 @@ import {
   getInstallation,
   type InstallationRow,
   listGoogleChatSpaceConfigs,
-  listMemberInstallations,
   type MemberRow,
   operationalConfig,
 } from '@standcast/db';
 import type { Deps } from '../../deps';
 import { guarded } from '../../guarded';
+import { authorizeInstallation } from '../access/authorize-installation';
+import { DomainError } from '../access/errors';
+import type { MembershipCheck } from '../access/org-context';
 import { writeGoogleChatIdentity } from './google-chat-events';
 import { googleChatSpaceLanguage, hashLinkCode } from './link-google-chat-space';
 
@@ -51,14 +53,29 @@ function isMapped(config: StandcastConfig, login: string, chatUserId: string): b
   );
 }
 
+async function canAccess(
+  deps: Deps,
+  isMember: MembershipCheck,
+  member: MemberRow,
+  installationId: number,
+): Promise<boolean> {
+  try {
+    await authorizeInstallation(deps, isMember, member, installationId);
+    return true;
+  } catch (error) {
+    if (error instanceof DomainError) return false;
+    throw error;
+  }
+}
+
 async function failureFor(
   deps: Deps,
+  isMember: MembershipCheck,
   member: MemberRow,
   found: GoogleChatSignInToken,
   installation: InstallationRow,
 ): Promise<ChatLinkFailure | null> {
-  const memberships = await listMemberInstallations(deps.db, member.id);
-  if (!memberships.some((row) => row.installationId === installation.id)) return 'not_member';
+  if (!(await canAccess(deps, isMember, member, installation.id))) return 'not_member';
   if (!(await getConnectionExternalId(deps.db, installation.id, 'google-chat'))) {
     return 'not_connected';
   }
@@ -67,7 +84,11 @@ async function failureFor(
   return null;
 }
 
-async function checkLink(deps: Deps, input: LinkInput): Promise<Checked> {
+async function checkLink(
+  deps: Deps,
+  isMember: MembershipCheck,
+  input: LinkInput,
+): Promise<Checked> {
   const found = await findGoogleChatSignInToken(deps.db, hashLinkCode(input.token), deps.now());
   const installation = found ? await getInstallation(deps.db, found.installationId) : null;
   if (!found || !installation) return expired(input.member);
@@ -77,15 +98,16 @@ async function checkLink(deps: Deps, input: LinkInput): Promise<Checked> {
     login: input.member.login,
     org: installation.accountLogin,
   };
-  const failure = await failureFor(deps, input.member, found, installation);
+  const failure = await failureFor(deps, isMember, input.member, found, installation);
   return failure ? { context, failure } : { context, failure: null, found };
 }
 
 export async function previewGoogleChatSignInLink(
   deps: Deps,
+  isMember: MembershipCheck,
   input: LinkInput,
 ): Promise<ChatLinkPreview> {
-  const checked = await checkLink(deps, input);
+  const checked = await checkLink(deps, isMember, input);
   if (checked.failure) return { ...checked.context, status: checked.failure };
   const { chatUserId, chatEmail, installationId } = checked.found;
   const current = await getIdentityByLogin(
@@ -154,9 +176,10 @@ async function notifyLinked(
 
 export async function completeGoogleChatSignInLink(
   deps: Deps,
+  isMember: MembershipCheck,
   input: LinkInput,
 ): Promise<ChatLinkResult> {
-  const checked = await checkLink(deps, input);
+  const checked = await checkLink(deps, isMember, input);
   if (checked.failure) return { ...checked.context, status: checked.failure };
   const consumed = await consumeGoogleChatSignInToken(
     deps.db,
