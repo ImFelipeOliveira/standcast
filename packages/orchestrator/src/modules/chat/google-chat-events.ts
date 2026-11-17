@@ -10,6 +10,7 @@ import {
 import {
   deleteGoogleChatConnectionIfUnused,
   deleteInstallationIdentities,
+  findMemberByIdentity,
   findMembersByEmail,
   getConnectionExternalId,
   getLinkedGoogleChatSpaceInstallation,
@@ -174,8 +175,7 @@ async function linkIdentity(
   const installationId = await getLinkedGoogleChatSpaceInstallation(deps.db, space.name);
   if (installationId === null) return reply(language, 'googleChat.notConnected');
   const email = user.email?.trim();
-  if (!email) return reply(language, 'googleChat.notFound');
-  const members = await membersWithEmail(deps, email, installationId);
+  const members = email ? await membersWithEmail(deps, email, installationId) : [];
   if (members.length > 1) {
     await deleteInstallationIdentities(deps.db, installationId, 'google-chat', {
       memberIds: members.map((member) => member.id),
@@ -183,6 +183,9 @@ async function linkIdentity(
     });
     return replyWithMapHint(language, 'googleChat.ambiguous', user.name);
   }
+  const linked = await findMemberByIdentity(deps.db, installationId, 'google-chat', user.name);
+  if (linked) return reply(language, 'googleChat.linked', { logins: `@${linked.login}` });
+  if (!email) return reply(language, 'googleChat.notFound');
   const [member] = members;
   if (!member) {
     return offerSignInLink(deps, language, {

@@ -593,6 +593,19 @@ describe('handleGoogleChatEvent link from a space', () => {
     ]);
   });
 
+  test('a chat user already linked without an email match is told they are linked and gets no link', async () => {
+    const { deps, member } = await setup();
+    await bindElsewhere('spaces/AAAA', INST);
+    await setIdentity(db, INST, member.id, 'google-chat', 'users/123');
+    const reply = await handleGoogleChatEvent(deps, click('alice@personal.com'));
+    expect(reply).toEqual({
+      text: t('en', 'googleChat.linked', { logins: `@${member.login}` }),
+      privateTo: 'users/123',
+    });
+    expect(await db.select().from(googleChatSignInTokens)).toEqual([]);
+    expect((await getIdentities(db, INST, 'google-chat')).get('alice')).toBe('users/123');
+  });
+
   test('a member found by email only in another organization gets the sign-in link', async () => {
     const { deps, member } = await setup();
     await seedOrg(googleConfig(), { id: OTHER, accountLogin: 'beta' });
