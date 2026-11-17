@@ -10,7 +10,7 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
-- Google Chat: quando nenhum membro da organização do espaço tem o seu e-mail do Google, **Vincular minha conta** e uma menção agora respondem com um link privado para entrar. Ele passa pelo login do GitHub até uma página de confirmação, e confirmar vincula o seu usuário do Google Chat sem os e-mails precisarem ser iguais. Entrar antes deixou de ser necessário.
+- Google Chat: quando nenhum membro da organização do espaço tem o seu e-mail do Google, **Vincular minha conta** e uma menção agora respondem com um link privado para entrar. Ele abre uma página de confirmação no app web, depois do login com o GitHub quando preciso, e confirmar vincula o seu usuário do Google Chat sem os e-mails precisarem ser iguais. Entrar antes deixou de ser necessário.
 - Os vínculos do Google Chat, por e-mail ou pelo link, agora valem só para a organização do espaço onde você clica ou menciona o app. Uma mensagem direta para o app não vincula mais: ela manda você usar o espaço do time. Quando um vínculo substitui outra conta sua do Google Chat, essa conta recebe uma mensagem direta.
 
 ### 0.17.0 — 16/11/2026

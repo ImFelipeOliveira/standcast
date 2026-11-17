@@ -97,8 +97,8 @@ A resposta vem em um idioma só: o dos times do espaço onde você clica no bot�
 
 O link funciona mesmo quando o e-mail da sua conta do Google não é um e-mail verificado da sua conta do GitHub. Ele prova os dois lados: só você recebeu o link, e você entra com o GitHub. Os e-mails não precisam ser iguais.
 
-1. Abra o link e entre com o GitHub, se você ainda não entrou.
-2. O Standcast mostra uma página: "Vincular a conta do Google Chat voce@empresa.com ao seu GitHub @login em sua-org?" Confira que a conta do Google é sua.
+1. Abra o link. Ele abre o app web do Standcast, em `/link/google-chat`. Se você ainda não entrou, o app pede para entrar com o GitHub e traz você de volta para a mesma página.
+2. O app web mostra uma página: "Vincular a conta do Google Chat voce@empresa.com ao seu GitHub @login em sua-org?" Confira que a conta do Google é sua.
 3. Clique em **Vincular**. A página diz "Vínculo feito em sua-org, @login. Pode fechar esta página." e o app manda uma mensagem direta com "Vínculo feito, @login." **Cancelar** não muda nada.
 
 O link vale uma vez e expira em 15 minutos. Ele vincula o seu usuário do Google Chat só na organização do espaço onde você clicou, e só quando a sua conta do GitHub é membro dela. Senão, a página diz "A sua conta do GitHub @login não é membro de sua-org no Standcast. Entre com a conta do GitHub que você usa lá."

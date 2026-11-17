@@ -97,8 +97,8 @@ The answer is in one language only: the language of the teams on the space where
 
 The link works even when the email of your Google account is not a verified email of your GitHub account. It proves the two sides itself: only you got the link, and you sign in with GitHub. The emails do not need to match.
 
-1. Open the link and sign in with GitHub if you are not signed in.
-2. Standcast shows a page: "Link the Google Chat account you@company.com to your GitHub account @login in your-org?" Check that the Google account is yours.
+1. Open the link. It opens the Standcast web app, at `/link/google-chat`. If you are not signed in, the app asks you to sign in with GitHub and brings you back to the same page.
+2. The web app shows a page: "Link the Google Chat account you@company.com to your GitHub account @login in your-org?" Check that the Google account is yours.
 3. Click **Link**. The page says "You're linked in your-org, @login. You can close this page." and the app sends you a direct message with "You're linked, @login." **Cancel** changes nothing.
 
 The link is single use and expires after 15 minutes. It links your Google Chat user only in the organization of the space where you clicked, and only when your GitHub account is a member of that organization. Otherwise the page says "Your GitHub account @login is not a member of your-org on Standcast. Sign in with the GitHub account you use there."
