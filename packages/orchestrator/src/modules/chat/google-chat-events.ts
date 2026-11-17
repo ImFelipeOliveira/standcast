@@ -121,8 +121,8 @@ export function generateSignInToken(): string {
   return randomBytes(32).toString('base64url');
 }
 
-export function signInLinkUrl(publicUrl: string, token: string): string {
-  return `${publicUrl}/link/google-chat?token=${token}`;
+export function signInLinkUrl(appUrl: string, token: string): string {
+  return `${appUrl}/link/google-chat?token=${token}`;
 }
 
 async function membersWithEmail(
@@ -156,7 +156,7 @@ async function offerSignInLink(
     spaceName: input.spaceName,
     expiresAt: new Date(deps.now().getTime() + SIGN_IN_TOKEN_TTL_MS),
   });
-  const link = `<${signInLinkUrl(deps.env.publicUrl, token)}|${t(language, 'googleChat.signInLink')}>`;
+  const link = `<${signInLinkUrl(deps.env.appUrl, token)}|${t(language, 'googleChat.signInLink')}>`;
   return {
     text: [
       t(language, 'googleChat.notFound'),

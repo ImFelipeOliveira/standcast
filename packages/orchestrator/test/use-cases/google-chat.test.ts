@@ -552,7 +552,7 @@ const click = (
   ...(action === null ? {} : { action }),
 });
 
-const SIGN_IN_TOKEN = /https:\/\/sw\.test\/link\/google-chat\?token=([A-Za-z0-9_-]+)\|/;
+const SIGN_IN_TOKEN = /https:\/\/app\.test\/link\/google-chat\?token=([A-Za-z0-9_-]+)\|/;
 
 function signInTokenHash(text: string | undefined): string {
   const token = SIGN_IN_TOKEN.exec(text ?? '')?.[1];
@@ -613,7 +613,7 @@ describe('handleGoogleChatEvent link from a space', () => {
     await bindElsewhere('spaces/AAAA', INST);
     await bindElsewhere('spaces/BBBB', OTHER);
     const reply = await handleGoogleChatEvent(deps, click('alice@acme.com'));
-    expect(reply?.text).toContain('/link/google-chat?token=');
+    expect(reply?.text).toContain('https://app.test/link/google-chat?token=');
     expect(reply?.text).toContain(t('en', 'googleChat.signInLink'));
     expect(await db.select().from(memberIdentities)).toEqual([]);
     const tokens = await db.select().from(googleChatSignInTokens);
@@ -634,7 +634,7 @@ describe('handleGoogleChatEvent link from a space', () => {
     expect(lines[0]).toBe(t('en', 'googleChat.notFound'));
     expect(lines[1]).toMatch(
       new RegExp(
-        `^<https://sw\\.test/link/google-chat\\?token=[A-Za-z0-9_-]+\\|${t('en', 'googleChat.signInLink')}>$`,
+        `^<https://app\\.test/link/google-chat\\?token=[A-Za-z0-9_-]+\\|${t('en', 'googleChat.signInLink')}>$`,
       ),
     );
     expect(lines[2]).toBe(t('en', 'googleChat.mapHint', { userId: 'users/123' }));
