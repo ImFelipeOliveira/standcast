@@ -62,6 +62,13 @@ describe('google chat sign-in tokens', () => {
     expect(await consumeGoogleChatSignInToken(db, 'h1', now)).toBeNull();
   });
 
+  test('a token expiring exactly now is neither found nor consumed', async () => {
+    await seed();
+    await issue('h1', { expiresAt: now });
+    expect(await findGoogleChatSignInToken(db, 'h1', now)).toBeNull();
+    expect(await consumeGoogleChatSignInToken(db, 'h1', now)).toBeNull();
+  });
+
   test('a new token for the same user and installation replaces the unused one', async () => {
     await seed();
     await issue('h1');

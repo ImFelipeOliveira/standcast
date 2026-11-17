@@ -760,6 +760,29 @@ describe('connections', () => {
     expect((await getIdentities(db, INST, 'slack')).get('ana')).toBe('U1');
   });
 
+  test('concurrent takeovers of the same chat user leave it with exactly one member', async () => {
+    const ana = await seed();
+    const bob = await upsertMember(db, { githubUserId: 2, login: 'bob', email: null });
+    const carol = await upsertMember(db, { githubUserId: 3, login: 'carol', email: null });
+    await saveConnection(db, INST, 'google-chat', 'app', 'tok', key);
+    const take = (memberId: string) =>
+      writeIdentityIfConnected(db, {
+        installationId: INST,
+        memberId,
+        provider: 'google-chat',
+        connectionExternalId: 'app',
+        externalId: 'users/1',
+        takeFromOthers: true,
+      });
+    for (let round = 0; round < 5; round++) {
+      await Promise.all([take(ana.id), take(bob.id), take(carol.id)]);
+      const holders = [...(await getIdentities(db, INST, 'google-chat')).values()].filter(
+        (id) => id === 'users/1',
+      );
+      expect(holders).toHaveLength(1);
+    }
+  });
+
   test('an identity is written or removed only while the expected workspace is connected', async () => {
     const member = await seed();
     const write = (connectionExternalId: string, externalId: string | null) =>

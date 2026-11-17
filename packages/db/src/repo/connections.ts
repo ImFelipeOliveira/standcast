@@ -92,6 +92,9 @@ export async function writeIdentityIfConnected(
       return true;
     }
     if (input.takeFromOthers) {
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtext(${`identity:${installationId}:${provider}:${externalId}`}))`,
+      );
       await tx
         .delete(memberIdentities)
         .where(
