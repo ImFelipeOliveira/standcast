@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- Google Chat: the sign-in link in the private answer to **Link my account** is now a plain address on its own line. Before, Google Chat showed the link markup as text and opened an address with extra characters, so the page said the link had expired.
+
 ### 0.18.0 — 2026-11-17
 
 - Google Chat: when no member of the space's organization has your Google email, **Link my account** and a mention now answer with a private sign-in link. It opens a confirmation page in the web app, after GitHub sign-in when needed, and confirming links your Google Chat user without the emails having to match. Signing in first is no longer needed.
