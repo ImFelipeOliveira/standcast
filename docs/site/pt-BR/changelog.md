@@ -10,6 +10,9 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- App web: a página de vincular o Google Chat abre dentro do painel, com a barra lateral, como as outras páginas. Sem nenhuma organização ainda, ela mostra o logo e a troca de tema.
+- Google Chat: o link para entrar na resposta privada a **Vincular minha conta** agora é um endereço simples, numa linha própria. Antes, o Google Chat mostrava a marcação do link como texto e abria um endereço com caracteres a mais, e a página dizia que o link tinha expirado.
+
 ### 0.18.0 — 17/11/2026
 
 - Google Chat: quando nenhum membro da organização do espaço tem o seu e-mail do Google, **Vincular minha conta** e uma menção agora respondem com um link privado para entrar. Ele abre uma página de confirmação no app web, depois do login com o GitHub quando preciso, e confirmar vincula o seu usuário do Google Chat sem os e-mails precisarem ser iguais. Entrar antes deixou de ser necessário.
