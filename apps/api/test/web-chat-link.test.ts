@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import { parseConfig, t } from '@standcast/core';
 import {
   createSession,
@@ -60,7 +60,7 @@ async function setup(language = 'en') {
   const get = (token = TOKEN) => app.request(`${PATH}?token=${token}`, { headers: { cookie } });
   const found = async () =>
     (await findGoogleChatSignInToken(db, hashLinkCode(TOKEN), deps.now())) !== null;
-  return { app, get, post, csrf, found };
+  return { app, deps, get, post, csrf, found };
 }
 
 describe('GET and POST /link/google-chat', () => {
@@ -78,9 +78,11 @@ describe('GET and POST /link/google-chat', () => {
     const res = await get();
     const body = await res.text();
     expect(res.status).toBe(200);
-    expect(body).toContain('ana@acme.com');
-    expect(body).toContain('@ana');
-    expect(body).toContain('acme');
+    expect(body).toContain(
+      t('en', 'web.chatLink.confirm', { account: 'ana@acme.com', login: 'ana', org: 'acme' }),
+    );
+    expect(body).not.toContain('class="card error-card"');
+    expect(body).not.toContain('icon-alert');
     expect(body).toContain(`name="token" value="${TOKEN}"`);
     expect(body).toContain('name="csrf"');
     expect(await found()).toBe(true);
@@ -88,9 +90,15 @@ describe('GET and POST /link/google-chat', () => {
 
   test('posting with the csrf field links and shows the linked text', async () => {
     const { post, csrf, found } = await setup();
-    const res = await post({ token: TOKEN, csrf });
-    expect(res.status).toBe(200);
-    expect(await res.text()).toContain('linked in acme, @ana. You can close this page.');
+    const spy = spyOn(console, 'error');
+    try {
+      const res = await post({ token: TOKEN, csrf });
+      expect(res.status).toBe(200);
+      expect(await res.text()).toContain('linked in acme, @ana. You can close this page.');
+      expect(JSON.stringify(spy.mock.calls)).not.toContain('google chat link notice failed');
+    } finally {
+      spy.mockRestore();
+    }
     expect(await getIdentityByLogin(db, INST, 'google-chat', 'ana')).toBe('users/1');
     expect(await found()).toBe(false);
   });
@@ -112,6 +120,40 @@ describe('GET and POST /link/google-chat', () => {
     const posted = await post({ token: 'unknown', csrf });
     expect(posted.status).toBe(200);
     expect(await posted.text()).toContain(text);
+  });
+
+  test('a token past its expiry shows the expired text and links nothing', async () => {
+    const { deps, get, post, csrf } = await setup();
+    await issueGoogleChatSignInToken(db, {
+      tokenHash: hashLinkCode('token-old'),
+      chatUserId: 'users/1',
+      chatEmail: 'ana@acme.com',
+      installationId: INST,
+      spaceName: 'spaces/AAAA',
+      expiresAt: new Date(deps.now().getTime() - 1000),
+    });
+    const text = t('en', 'web.chatLink.expired');
+    expect(await (await get('token-old')).text()).toContain(text);
+    expect(await (await post({ token: 'token-old', csrf })).text()).toContain(text);
+    expect(await getIdentityByLogin(db, INST, 'google-chat', 'ana')).toBeNull();
+  });
+
+  test('a failed or cancelled GitHub sign-in from the link stays on the API pages', async () => {
+    const { app } = createTestApp();
+    const detour = await app.request(`${PATH}?token=abc`);
+    const login = await app.request(detour.headers.get('location') ?? '');
+    const state = new URL(login.headers.get('location') ?? '').searchParams.get('state') ?? '';
+    for (const query of [
+      `error=access_denied&state=${encodeURIComponent(state)}`,
+      `code=abc&state=${encodeURIComponent(state)}`,
+    ]) {
+      const res = await app.request(`/auth/github/callback?${query}`, {
+        headers: { cookie: 'sc_login=other' },
+      });
+      expect(res.headers.get('location') ?? '').not.toContain('app.test');
+      expect(res.status).toBeGreaterThanOrEqual(400);
+      expect(await res.text()).toContain('<html');
+    }
   });
 
   test("the page answers in the space's language", async () => {

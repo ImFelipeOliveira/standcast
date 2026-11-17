@@ -19,7 +19,12 @@ import {
   signJwt,
   type TestKeys,
 } from '../../../packages/adapters/google-chat/test/keys';
-import { googleChatSpaces, memberIdentities, rateLimits } from '../../../packages/db/src/schema';
+import {
+  googleChatSignInTokens,
+  googleChatSpaces,
+  memberIdentities,
+  rateLimits,
+} from '../../../packages/db/src/schema';
 import { db, useCleanDb } from '../../../packages/db/test/setup';
 import { FAILED_AUTH_LIMIT, LINK_CODE_LIMIT } from '../src/middleware/rate-limit';
 import { createTestApp, type FakeRequest, TEST_IP } from './support';
@@ -484,7 +489,7 @@ describe('google chat link button', () => {
     ]);
   });
 
-  test('a click with an email no account uses answers the guidance and stores nothing', async () => {
+  test('a click with an email no account uses answers the guidance with one sign-in token and no identity', async () => {
     const h = await harness();
     await withLinkedSpace(h, 'alice@personal.com');
     const res = await event(h, clicked('alice@acme.com'), `Bearer ${await token(h, h.keys)}`);
@@ -494,6 +499,7 @@ describe('google chat link button', () => {
     expect(body.text).toContain('google_chat: users/123');
     expect(body.text).not.toContain('Nenhuma conta do Standcast nesta organização usa este e-mail');
     expect(await db.select().from(memberIdentities)).toEqual([]);
+    expect(await db.select().from(googleChatSignInTokens)).toHaveLength(1);
   });
 
   test('a click on another button answers nothing and stores nothing', async () => {
