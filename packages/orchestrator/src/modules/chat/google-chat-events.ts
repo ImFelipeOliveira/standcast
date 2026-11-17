@@ -156,11 +156,11 @@ async function offerSignInLink(
     spaceName: input.spaceName,
     expiresAt: new Date(deps.now().getTime() + SIGN_IN_TOKEN_TTL_MS),
   });
-  const link = `<${signInLinkUrl(deps.env.appUrl, token)}|${t(language, 'googleChat.signInLink')}>`;
   return {
     text: [
       t(language, 'googleChat.notFound'),
-      link,
+      `${t(language, 'googleChat.signInLink')}:`,
+      signInLinkUrl(deps.env.appUrl, token),
       t(language, 'googleChat.mapHint', { userId: input.chatUserId }),
     ].join('\n'),
   };

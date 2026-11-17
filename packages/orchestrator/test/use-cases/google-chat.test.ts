@@ -552,7 +552,7 @@ const click = (
   ...(action === null ? {} : { action }),
 });
 
-const SIGN_IN_TOKEN = /https:\/\/app\.test\/link\/google-chat\?token=([A-Za-z0-9_-]+)\|/;
+const SIGN_IN_TOKEN = /https:\/\/app\.test\/link\/google-chat\?token=([A-Za-z0-9_-]+)$/m;
 
 function signInTokenHash(text: string | undefined): string {
   const token = SIGN_IN_TOKEN.exec(text ?? '')?.[1];
@@ -632,12 +632,9 @@ describe('handleGoogleChatEvent link from a space', () => {
     expect(reply?.privateTo).toBe('users/123');
     const lines = reply?.text.split('\n') ?? [];
     expect(lines[0]).toBe(t('en', 'googleChat.notFound'));
-    expect(lines[1]).toMatch(
-      new RegExp(
-        `^<https://app\\.test/link/google-chat\\?token=[A-Za-z0-9_-]+\\|${t('en', 'googleChat.signInLink')}>$`,
-      ),
-    );
-    expect(lines[2]).toBe(t('en', 'googleChat.mapHint', { userId: 'users/123' }));
+    expect(lines[1]).toBe(`${t('en', 'googleChat.signInLink')}:`);
+    expect(lines[2]).toMatch(/^https:\/\/app\.test\/link\/google-chat\?token=[A-Za-z0-9_-]{43}$/);
+    expect(lines[3]).toBe(t('en', 'googleChat.mapHint', { userId: 'users/123' }));
     expect(reply?.text).not.toContain('O seu id no Google Chat é users/123');
     const token = await findGoogleChatSignInToken(db, signInTokenHash(reply?.text), deps.now());
     expect(token).toEqual({
