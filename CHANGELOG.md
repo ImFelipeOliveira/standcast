@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.19.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.18.0...standcast-v0.19.0) (2026-11-17)
+
+
+### Features
+
+* **web:** show the Google Chat link page inside the panel ([aa110ab](https://github.com/ImFelipeOliveira/standcast/commit/aa110abb773e256cbc3e2bb184490f4816702c05))
+* **web:** show the Google Chat link page inside the panel ([#237](https://github.com/ImFelipeOliveira/standcast/issues/237)) ([5253280](https://github.com/ImFelipeOliveira/standcast/commit/5253280f775e46c857a917ddd552e4dff42e2126))
+
+
+### Bug Fixes
+
+* **chat:** send the Google Chat sign-in link as a plain address ([a1fc59b](https://github.com/ImFelipeOliveira/standcast/commit/a1fc59bb9f5b64e276b988bbd1d33375cb2a10a9))
+* **chat:** send the Google Chat sign-in link as a plain address ([#236](https://github.com/ImFelipeOliveira/standcast/issues/236)) ([2b964c5](https://github.com/ImFelipeOliveira/standcast/commit/2b964c520c3903e38b29178f085f149b39de78d9))
+
 ## [0.18.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.17.0...standcast-v0.18.0) (2026-11-17)
 
 
