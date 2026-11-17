@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.18.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.17.0...standcast-v0.18.0) (2026-11-17)
+
+
+### Features
+
+* **api:** preview and complete the Google Chat link over /v1/app ([3d7a424](https://github.com/ImFelipeOliveira/standcast/commit/3d7a424794a0dd735884c95c6839685ad8989552))
+* **chat:** link a Google Chat account by signing in from the team space ([#233](https://github.com/ImFelipeOliveira/standcast/issues/233)) ([ce8d2e3](https://github.com/ImFelipeOliveira/standcast/commit/ce8d2e3fec567bea1dfd55374032a6cfffc5eeea))
+* **chat:** link Google Chat accounts only in the space's organization and offer a sign-in link ([69470a0](https://github.com/ImFelipeOliveira/standcast/commit/69470a0ab0d6b234e9a956388f460111330b61bf))
+* **chat:** preview and complete the Google Chat sign-in link ([7ccbbca](https://github.com/ImFelipeOliveira/standcast/commit/7ccbbcaae165abe1990b0e63e8f8067a0593a503))
+* **chat:** send the Google Chat sign-in link to the web app ([a3f8c11](https://github.com/ImFelipeOliveira/standcast/commit/a3f8c110b30ffc5dfc4d07cd4c8dfd5b95ae337d))
+* **core:** copy for the Google Chat sign-in link ([e569747](https://github.com/ImFelipeOliveira/standcast/commit/e569747e9b1ba914bc41d16d3a014ecac44260b6))
+* **db:** store single-use Google Chat sign-in tokens ([dc2c029](https://github.com/ImFelipeOliveira/standcast/commit/dc2c029c8760caa832b596a1b8c97320fdd3218e))
+* **web:** confirm and complete the Google Chat sign-in link ([80c73af](https://github.com/ImFelipeOliveira/standcast/commit/80c73af81e326e3475060835918c2f63419c7cd9))
+* **web:** confirm the Google Chat link in the web app ([6784ad4](https://github.com/ImFelipeOliveira/standcast/commit/6784ad458adee3eab02a9dc877c6b572753b3b37))
+
+
+### Bug Fixes
+
+* **chat:** authorize the Google Chat link through the installation access check ([218d9fd](https://github.com/ImFelipeOliveira/standcast/commit/218d9fdf799efbe6ded6da1a433d66bb480ccc2f))
+* **chat:** take over the Google Chat link atomically and bound the confirmation messages ([396feb0](https://github.com/ImFelipeOliveira/standcast/commit/396feb0c2af9c9bf4a009ae3d0d990a73832810a))
+* **chat:** tell an already linked Google Chat user they are linked ([86bc270](https://github.com/ImFelipeOliveira/standcast/commit/86bc270ad937684a600e108a4ba98c76ad907bed))
+* **db:** serialize Google Chat identity takeovers and test token expiry boundaries ([b364fb4](https://github.com/ImFelipeOliveira/standcast/commit/b364fb412bab523ef8ab5687a9b35adb2bde7b31))
+* **web:** show the Google Chat link confirmation as a plain card ([68c8c6c](https://github.com/ImFelipeOliveira/standcast/commit/68c8c6c69a30129475dd7c02053717c9cf6534d7))
+
+
+### Refactoring
+
+* **api:** drop the server-rendered Google Chat link page ([fa24817](https://github.com/ImFelipeOliveira/standcast/commit/fa24817f907cc2655a4eceb72c54c697b8f080a3))
+
 ## [0.17.0](https://github.com/ImFelipeOliveira/standcast/compare/standcast-v0.16.0...standcast-v0.17.0) (2026-11-16)
 
 
