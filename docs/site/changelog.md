@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+### 0.19.0 — 2026-11-17
+
 - Web app: the Google Chat link page opens inside the panel, with the sidebar, like the other pages. Without an organization yet, it shows the logo and the theme switch.
 - Google Chat: the sign-in link in the private answer to **Link my account** is now a plain address on its own line. Before, Google Chat showed the link markup as text and opened an address with extra characters, so the page said the link had expired.
 
