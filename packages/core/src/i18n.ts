@@ -288,7 +288,7 @@ const ptBR = {
   'googleChat.linked': 'Vínculo feito, {logins}.',
   'googleChat.notFound': 'Nenhuma conta do Standcast nesta organização usa este e-mail.',
   'googleChat.notConnected':
-    'Achei a sua conta, mas nenhuma organização sua conectou o Google Chat ao Standcast ainda. Peça a um admin para vincular um espaço e me mande uma mensagem de novo.',
+    'Este espaço ainda não está vinculado a uma organização no Standcast. Peça a um admin para vinculá-lo e depois clique em Vincular minha conta de novo.',
   'googleChat.ambiguous':
     'Este e-mail pertence a mais de uma conta do GitHub no Standcast, então não vinculei nenhuma. Peça a um admin para definir `google_chat` para você em `members` no standcast.yml, ou deixe o e-mail certo só na sua conta do GitHub e rode `standcast login` de novo.',
   'googleChat.linkPrompt':
@@ -590,7 +590,7 @@ const en = {
   'googleChat.linked': "You're linked, {logins}.",
   'googleChat.notFound': 'No Standcast account in this organization uses this email.',
   'googleChat.notConnected':
-    'I found your account, but none of your organizations has connected Google Chat to Standcast yet. Ask an admin to link a space, then message me again.',
+    'This space is not linked to an organization on Standcast yet. Ask an admin to link it, then click Link my account again.',
   'googleChat.ambiguous':
     'This email belongs to more than one GitHub account on Standcast, so I linked none of them. Ask an admin to set `google_chat` for you under `members` in standcast.yml, or keep the email only on your own GitHub account and run `standcast login` again.',
   'googleChat.linkPrompt':
