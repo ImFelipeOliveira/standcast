@@ -65,12 +65,12 @@ The `ambiguous` and `notConnected` answers stay as they are: signing in does not
 
 ### The web flow
 
-Two routes in `apps/api/src/routes/web.tsx`, both thin: they read input, call a use case in `packages/orchestrator/src/modules/chat/` and render.
+The confirmation page lives in the web app (`apps/web`) at `/link/google-chat?token=…`, and the private Chat answer links there (`APP_URL`). It is backed by two thin JSON routes in `apps/api/src/routes/app.ts`, `GET` and `POST /v1/app/google-chat/link`, behind the `/v1/app/*` session, CORS, rate limit and CSRF header checks; they call a use case in `packages/orchestrator/src/modules/chat/` and return its result without the language. Decided by the user on 2026-11-16, replacing an earlier server-rendered page in `apps/api`.
 
-- `GET /link/google-chat?token=…` shows the confirmation page. It never consumes the token.
-  - Without a session it uses the existing `loginRedirect`, so the person goes through `/auth/github/login?next=/link/google-chat?token=…` and comes back to the same URL after GitHub. The token rides in `next` inside the signed login state; it is not logged.
+- `GET /v1/app/google-chat/link?token=…` returns the confirmation view. It never consumes the token.
+  - Without a session it answers 401 and the web app sends the person to `/sign-in?next=/link/google-chat?token=…`, through GitHub and back to the same page. The token rides in `next` inside the signed login state; it is not logged.
   - With a session it calls `previewGoogleChatSignInLink(deps, { memberId, token })`, which reads the token without consuming it. A missing, used or expired token shows the "expired" result. When the signed-in member does not belong to the token's installation (`member_installations`), the page shows the "not in this organization" result without consuming the token. Otherwise the page shows the Google email of the Chat account (`chat_email`; the Chat user id when the email is missing), the person's GitHub login, the organization name (the installation's account login), and, when the member is already linked to a different Chat user in that installation, that it replaces the current link (with that account's email when known). Buttons: **Link** and **Cancel**.
-- `POST /link/google-chat` with the token in the form body and the CSRF field, checked with the existing `readForm`/`verifyCsrf`. It calls `completeGoogleChatSignInLink(deps, { memberId, token })`:
+- `POST /v1/app/google-chat/link` with the JSON body `{ token }` and the CSRF header of every `/v1/app/*` write. It calls `completeGoogleChatSignInLink(deps, { memberId, token })`:
   - consumes the token by CAS (see above);
   - checks again that the member belongs to the token's installation; if not, the result is "not in this organization" (the token is already used, so they need a new one);
   - links `chat_user_id` to the member in that installation only, with the same per-installation write the email path uses (`writeIdentityIfConnected`). Extract that write so both paths share it. The mapping check below runs only on this path, before the shared write; the email path keeps its own rules, now scoped to the space's installation;
@@ -80,7 +80,7 @@ Two routes in `apps/api/src/routes/web.tsx`, both thin: they read input, call a 
 
 ### Results
 
-The page shows one of these, in the language of the person's teams, English when unknown (same rule as the chat answers):
+The page shows one of these, in the web app's language (the person's choice there, else the browser's):
 
 | Result | Page text (en) |
 | --- | --- |
