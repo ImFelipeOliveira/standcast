@@ -1,6 +1,7 @@
 import { API_KEY_SCOPES, listMemberInstallations, WEBHOOK_EVENTS } from '@standcast/db';
 import {
   cancelAway,
+  completeGoogleChatSignInLink,
   createInstallationApiKey,
   createMembershipCheck,
   createWebhookEndpoint,
@@ -22,6 +23,7 @@ import {
   listAway,
   logoutWebSession,
   markAway,
+  previewGoogleChatSignInLink,
   redeliverWebhook,
   remindNow,
   revokeAllWebSessions,
@@ -71,6 +73,8 @@ const markAwayBody = z.object({
 });
 
 const linkSpaceBody = z.object({ code: z.string() });
+
+const chatLinkBody = z.strictObject({ token: z.string().max(200) });
 
 const ORG = '/v1/app/orgs/:installationId';
 
@@ -150,6 +154,23 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
     await revokeAllWebSessions(deps, c.get('member').id);
     deleteCookie(c, WEB_COOKIE, { path: WEB_COOKIE_PATH, secure: true });
     return c.body(null, 204);
+  });
+
+  app.get('/v1/app/google-chat/link', async (c) => {
+    const { language: _, ...view } = await previewGoogleChatSignInLink(deps, {
+      member: c.get('member'),
+      token: c.req.query('token') ?? '',
+    });
+    return c.json(view, 200);
+  });
+
+  app.post('/v1/app/google-chat/link', async (c) => {
+    const { token } = await parseBody(c, chatLinkBody);
+    const { language: _, ...result } = await completeGoogleChatSignInLink(deps, {
+      member: c.get('member'),
+      token,
+    });
+    return c.json(result, 200);
   });
 
   app.get(`${ORG}/context`, async (c) =>
