@@ -10,7 +10,12 @@ import type { ComponentProps } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ApiError, apiUrl, forgetSession } from '../../api/client';
 import { completeChatLinkRequest } from '../../api/mutations';
-import { type ChatLinkPreviewView, chatLinkQuery, createQueryClient } from '../../api/queries';
+import {
+  type ChatLinkPreviewView,
+  chatLinkQuery,
+  createQueryClient,
+  sessionQuery,
+} from '../../api/queries';
 import { applyLang, translate } from '../../i18n';
 import { createAppRouter } from '../../router';
 import { ChatLinkCard } from './ChatLinkPage';
@@ -59,6 +64,12 @@ async function renderAt(
   prepare: (queryClient: ReturnType<typeof createQueryClient>) => unknown,
 ) {
   const queryClient = createQueryClient();
+  queryClient.setQueryData(sessionQuery.queryKey, {
+    login: 'ana',
+    avatarUrl: 'https://github.com/ana.png',
+    csrf: 'csrf-1',
+    installations: [],
+  });
   await prepare(queryClient);
   const router = createAppRouter(queryClient, {
     history: createMemoryHistory({ initialEntries: [path] }),

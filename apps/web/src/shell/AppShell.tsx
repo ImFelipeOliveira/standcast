@@ -1,12 +1,18 @@
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from '../api/queries';
 import { DESKTOP_QUERY, watchDesktop } from './desktop';
 import { NavDrawerContext } from './nav-drawer';
 import { Sidebar } from './Sidebar';
 import { PAGE_PATHS, sectionOf } from './sections';
 
-export function AppShell({ installationId }: { installationId: number }) {
+export function AppShell({
+  installationId,
+  children,
+}: {
+  installationId: number;
+  children?: ReactNode;
+}) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const search = useRouterState({ select: (state) => state.location.search });
@@ -52,9 +58,7 @@ export function AppShell({ installationId }: { installationId: number }) {
           inert={open || undefined}
           className="box-border min-w-0 flex-[999_1_640px] px-4 pb-12 desk:px-9"
         >
-          <div className="mx-auto flex max-w-[1180px] flex-col gap-6">
-            <Outlet />
-          </div>
+          <div className="mx-auto flex max-w-[1180px] flex-col gap-6">{children ?? <Outlet />}</div>
         </main>
       </div>
     </NavDrawerContext.Provider>

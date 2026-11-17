@@ -10,6 +10,7 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- Web app: the Google Chat link page opens inside the panel, with the sidebar, like the other pages. Without an organization yet, it shows the logo and the theme switch.
 ### 0.18.0 — 2026-11-17
 
 - Google Chat: when no member of the space's organization has your Google email, **Link my account** and a mention now answer with a private sign-in link. It opens a confirmation page in the web app, after GitHub sign-in when needed, and confirming links your Google Chat user without the emails having to match. Signing in first is no longer needed.

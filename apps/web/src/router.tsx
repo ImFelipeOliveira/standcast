@@ -16,7 +16,13 @@ import {
   safeNext,
   signInUrl,
 } from './api/client';
-import { configQuery, orgContextQuery, sessionQuery, useSetupStatus } from './api/queries';
+import {
+  configQuery,
+  orgContextQuery,
+  sessionQuery,
+  useSession,
+  useSetupStatus,
+} from './api/queries';
 import { useT } from './i18n';
 import { AccountPage } from './pages/account/AccountPage';
 import { BlockersPage } from './pages/blockers/BlockersPage';
@@ -32,9 +38,11 @@ import { Loading, NotFound, RouteError } from './pages/RouteStates';
 import { SetupPending } from './pages/SetupPending';
 import { SignIn } from './pages/SignIn';
 import { AppShell } from './shell/AppShell';
+import { Logo } from './shell/Logo';
 import { PageHeader } from './shell/PageHeader';
 import { teamsOf } from './shell/roles';
 import { SectionHeader } from './shell/SectionHeader';
+import { ThemeToggle } from './shell/ThemeToggle';
 
 type RouterContext = { queryClient: QueryClient };
 
@@ -216,11 +224,19 @@ const chatLinkRoute = createRoute({
   validateSearch: (search: Record<string, unknown>): { token: string } => ({
     token: typeof search.token === 'string' ? search.token : '',
   }),
+  beforeLoad: ({ context }) => context.queryClient.ensureQueryData(sessionQuery),
   component: function GoogleChatLink() {
     const { token } = chatLinkRoute.useSearch();
+    const first = useSession().data?.installations[0];
+    const page = <ChatLinkPage key={token} token={token} />;
+    if (first) return <AppShell installationId={first.id}>{page}</AppShell>;
     return (
-      <main className="mx-auto box-border flex min-h-screen max-w-[808px] flex-col gap-6 px-4 pb-12 text-sm leading-normal">
-        <ChatLinkPage key={token} token={token} />
+      <main className="mx-auto box-border flex min-h-screen max-w-xl flex-col gap-6 px-4 py-10 text-sm leading-normal">
+        <div className="flex items-center gap-2.5">
+          <Logo />
+          <ThemeToggle />
+        </div>
+        {page}
       </main>
     );
   },

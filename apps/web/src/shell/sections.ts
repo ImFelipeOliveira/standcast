@@ -32,6 +32,6 @@ export const SOON_SECTIONS: ReadonlySet<Section> = new Set<Section>([]);
 
 export function sectionOf(pathname: string): ShellPage {
   const last = pathname.replace(/\/+$/, '').split('/').pop() ?? '';
-  if (last === 'account') return 'account';
+  if (last === 'account' || pathname.startsWith('/link/')) return 'account';
   return (SECTIONS as readonly string[]).includes(last) ? (last as Section) : 'settings';
 }
