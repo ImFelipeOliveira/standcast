@@ -28,7 +28,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.6.6",
     "@playwright/test": "1.64.1",
-    "@seriousme/openapi-schema-validator": "^2.11.0",
+    "@seriousme/openapi-schema-validator": "^2.12.0",
     "@testcontainers/postgresql": "^12.2.1",
     "@types/bun": "^1.4.4",
     "ajv": "^8.20.0",
