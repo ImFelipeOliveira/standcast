@@ -72,6 +72,7 @@ const record = (pulls: Pull[]) =>
       url: p.text.url,
       authorLogin: p.author ?? 'alice',
       branch: p.branch ?? 'main',
+      isRevert: p.text.title.startsWith('Revert "'),
       reachedAt: new Date(p.reachedAt ?? INSIDE),
       recordedAt: new Date(p.recordedAt ?? p.reachedAt ?? INSIDE),
     })),
@@ -233,6 +234,56 @@ describe('sendProductionReport', () => {
     ]);
     await sendProductionReport(deps, job);
     expect((await storedItems()).map((i) => i.title)).toEqual(['import']);
+  });
+
+  test('a revert by someone outside the team cancels a team feature in the same window', async () => {
+    const { deps } = await setup([
+      { text: pr(1, 'feat: export') },
+      { text: pr(2, 'Revert "feat: export"', { body: 'Reverts acme/api#1' }), author: 'oncall' },
+      { text: pr(3, 'feat: import') },
+    ]);
+    await sendProductionReport(deps, job);
+    expect((await storedItems()).map((i) => i.title)).toEqual(['import']);
+  });
+
+  test('a revert by someone outside the team of an earlier reported item becomes Removed', async () => {
+    const { deps } = await setup([
+      { text: pr(10, 'Revert "feat: export"', { body: 'Reverts acme/api#9' }), author: 'oncall' },
+    ]);
+    await saveProductionReport(db, INST, {
+      teamName: 'Alpha',
+      date: '2026-11-20',
+      windowStart: new Date('2026-11-13T12:00:00.000Z'),
+      windowEnd: CUTOFF,
+      items: [
+        {
+          kind: 'new',
+          title: 'Export to CSV',
+          liveSince: '2026-11-18T12:00:00.000Z',
+          links: [{ label: 'api#9', url: 'https://github.com/acme/api/pull/9' }],
+        },
+      ],
+    });
+    await sendProductionReport(deps, job);
+    expect(await storedItems()).toEqual([
+      {
+        kind: 'removed',
+        title: 'Export to CSV',
+        liveSince: INSIDE,
+        links: [{ label: 'api#10', url: 'https://github.com/acme/api/pull/10' }],
+      },
+    ]);
+  });
+
+  test('pull requests from outside the team are left out unless they revert a team item', async () => {
+    const { deps } = await setup([
+      { text: pr(1, 'feat: export') },
+      { text: pr(2, 'feat: outsider'), author: 'carol' },
+      { text: pr(3, 'Revert "feat: outsider"', { body: 'Reverts acme/api#2' }), author: 'carol' },
+      { text: pr(4, 'Revert "feat: hand edited"', { body: 'no reverts line' }), author: 'carol' },
+    ]);
+    await sendProductionReport(deps, job);
+    expect((await storedItems()).map((i) => i.title)).toEqual(['export']);
   });
 
   test('a revert of an item reported in an earlier report becomes Removed with the stored title', async () => {

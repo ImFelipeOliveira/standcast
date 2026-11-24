@@ -107,6 +107,7 @@ export async function recordProductionPush(
       url: pr.url,
       authorLogin: pr.author,
       branch: job.branch,
+      isRevert: pr.title.startsWith('Revert "'),
       reachedAt: new Date(job.receivedAt),
     })),
   );

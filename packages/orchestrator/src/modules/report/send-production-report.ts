@@ -115,13 +115,16 @@ async function pullRequestText(
   }
 }
 
-async function teamPullRequests(deps: WorkerDeps, ctx: Context): Promise<ItemPullRequest[]> {
+type WindowPullRequests = { team: ItemPullRequest[]; outsideReverts: ItemPullRequest[] };
+
+async function windowPullRequests(deps: WorkerDeps, ctx: Context): Promise<WindowPullRequests> {
   const { installation, team, report } = ctx;
   const [resolved] = await resolveMemberTeams(deps, installation.id, installation.accountLogin, {
     ...ctx.config,
     teams: [team],
   });
   const members = new Set(resolved?.memberLogins.map((login) => login.toLowerCase()));
+  const isMember = (row: ProductionPullRequestRow) => members.has(row.authorLogin.toLowerCase());
   const rows = (
     await listProductionPullRequests(deps.db, {
       installationId: installation.id,
@@ -129,23 +132,25 @@ async function teamPullRequests(deps: WorkerDeps, ctx: Context): Promise<ItemPul
       after: report.cutoffAt,
       upTo: ctx.windowEnd,
     })
-  ).filter((row) => members.has(row.authorLogin.toLowerCase()));
-  if (rows.length === 0) return [];
+  ).filter((row) => isMember(row) || row.isRevert);
+  const found: WindowPullRequests = { team: [], outsideReverts: [] };
+  if (rows.length === 0) return found;
   const octokit = await deps.github.installationOctokit(installation.id);
-  const pulls: ItemPullRequest[] = [];
   for (const row of rows) {
     const text = await pullRequestText(deps, octokit, installation.accountLogin, row);
     if (!text || isInternal(text.title, row.authorLogin)) continue;
-    pulls.push({ ...text, repository: row.repository, reachedAt: row.reachedAt });
+    const pull = { ...text, repository: row.repository, reachedAt: row.reachedAt };
+    (isMember(row) ? found.team : found.outsideReverts).push(pull);
   }
-  return pulls;
+  return found;
 }
 
 async function applyReverts(
   deps: WorkerDeps,
   ctx: Context,
-  pulls: ItemPullRequest[],
+  { team, outsideReverts }: WindowPullRequests,
 ): Promise<{ kept: ItemPullRequest[]; removed: ReportItem[] }> {
+  const pulls = [...team, ...outsideReverts];
   const since = new Date(ctx.windowEnd.getTime() - REPORT_LOOKBACK_DAYS * DAY_MS);
   const earlier = (
     await listProductionReportsSince(deps.db, ctx.installation.id, ctx.team.name, since)
@@ -173,7 +178,7 @@ async function applyReverts(
       links: [{ label: githubRefLabel(pr.url) ?? pr.url, url: pr.url }],
     });
   }
-  return { kept: pulls.filter((pr) => !dropped.has(pr.url.toLowerCase())), removed };
+  return { kept: team.filter((pr) => !dropped.has(pr.url.toLowerCase())), removed };
 }
 
 async function groupByCard(
@@ -242,8 +247,7 @@ async function describeAll(
 }
 
 async function buildReport(deps: WorkerDeps, ctx: Context): Promise<ProductionReportRow> {
-  const pulls = await teamPullRequests(deps, ctx);
-  const { kept, removed } = await applyReverts(deps, ctx, pulls);
+  const { kept, removed } = await applyReverts(deps, ctx, await windowPullRequests(deps, ctx));
   const sources = await groupByCard(deps, ctx, kept);
   const described = await describeAll(deps, ctx.installation.id, sources, ctx.team.language);
   const items = [...described, ...removed].sort(

@@ -134,6 +134,26 @@ describe('recordProductionPush', () => {
     expect(rows[0]?.repository).toBe('api');
   });
 
+  test('a pull request whose title starts with Revert " is recorded as a revert', async () => {
+    await seedOrg(undefined, { id: INST });
+    const { deps } = fakeDeps({
+      production: {
+        compareCommitShas: async () => ({ shas: ['c1'], truncated: false }),
+        mergedPullRequestsForCommits: async () => [
+          pr(7, 'main', 'feat'),
+          { ...pr(8, 'main', 'revert-7'), title: 'Revert "PR 7"' },
+          { ...pr(9, 'main', 'docs'), title: 'Docs: Revert "x" explained' },
+        ],
+      },
+    });
+    await recordProductionPush(deps, job);
+    expect((await stored()).map((r) => [r.number, r.isRevert])).toEqual([
+      [7, false],
+      [8, true],
+      [9, false],
+    ]);
+  });
+
   test('a pull request merged into the production branch is expanded one level (squash release)', async () => {
     await seedOrg(undefined, { id: INST });
     const { deps } = fakeDeps({
