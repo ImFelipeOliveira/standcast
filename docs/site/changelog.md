@@ -10,6 +10,8 @@ What changed in Standcast. Versions match the [GitHub releases](https://github.c
 
 ### Unreleased
 
+- Production report for sales and support. Each team can turn on, in **Settings → Reports**, a weekly report of the pull requests that reached its production branch (default `main`), posted to a Slack channel or Google Chat space. The main message lists **New**, **Fixed** and, when something already reported was reverted, **Removed**; each item gets a thread reply with details. With a DeepSeek key set by an admin, items are rewritten for people who do not read code, without customer data or people's names; without one, the report uses the pull request titles. See [Production report](/admin/production-report).
+
 ### 0.19.0 — 2026-11-17
 
 - Web app: the Google Chat link page opens inside the panel, with the sidebar, like the other pages. Without an organization yet, it shows the logo and the theme switch.

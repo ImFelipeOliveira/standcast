@@ -10,6 +10,8 @@ O que mudou no Standcast. As versões são as mesmas dos [releases no GitHub](ht
 
 ### Não lançado
 
+- Report de produção para comercial e suporte. Cada time pode ligar, em **Configuração → Reports**, um report semanal dos pull requests que chegaram na sua branch de produção (padrão `main`), postado num canal do Slack ou espaço do Google Chat. A mensagem principal lista **Novidades**, **Correções** e, quando algo já reportado foi revertido, **Retirado do ar**; cada item ganha uma resposta na thread com os detalhes. Com uma chave da DeepSeek cadastrada por um admin, os itens são reescritos para quem não lê código, sem dados de clientes nem nomes de pessoas; sem chave, o report usa os títulos dos pull requests. Veja [Report de produção](/pt-BR/admin/production-report).
+
 ### 0.19.0 — 17/11/2026
 
 - App web: a página de vincular o Google Chat abre dentro do painel, com a barra lateral, como as outras páginas. Sem nenhuma organização ainda, ela mostra o logo e a troca de tema.
