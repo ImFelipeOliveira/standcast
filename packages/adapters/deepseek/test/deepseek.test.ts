@@ -43,15 +43,13 @@ describe('createDeepSeekModel', () => {
     });
   });
 
-  test('401 and 403 are rejected_key', async () => {
-    for (const status of [401, 403]) {
-      const error = await failure(() => setup(status, `bad ${KEY}`).model.completeJson(request));
-      expect(error.code).toBe('rejected_key');
-    }
+  test('401 is rejected_key', async () => {
+    const error = await failure(() => setup(401, `bad ${KEY}`).model.completeJson(request));
+    expect(error.code).toBe('rejected_key');
   });
 
-  test('429 and 5xx are http_error', async () => {
-    for (const status of [429, 500, 503]) {
+  test('403, 429 and 5xx are http_error', async () => {
+    for (const status of [403, 429, 500, 503]) {
       const error = await failure(() => setup(status, {}).model.completeJson(request));
       expect(error.code).toBe('http_error');
     }

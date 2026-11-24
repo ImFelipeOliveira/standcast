@@ -40,12 +40,9 @@ export function createDeepSeekModel(
         }
         throw new TextModelError('request_failed', 'text model request failed');
       }
-      if (response.status === 401 || response.status === 403) {
+      if (response.status === 401) {
         await response.body?.cancel().catch(() => {});
-        throw new TextModelError(
-          'rejected_key',
-          `text model rejected the key (${response.status})`,
-        );
+        throw new TextModelError('rejected_key', 'text model rejected the key (401)');
       }
       if (!response.ok) {
         await response.body?.cancel().catch(() => {});
