@@ -104,4 +104,42 @@ describe('buildProductionReportItem', () => {
     expect(text).toContain('Removed · Boleto');
     expect(text).toContain('Removed since: 2026-11-20');
   });
+
+  test('new item shows its ticket', () => {
+    const text = toPlainText(
+      buildProductionReportItem({
+        lang: 'pt-BR',
+        timezone: 'UTC',
+        item: {
+          kind: 'new',
+          title: 'Pix',
+          liveSince: '2026-11-20T10:00:00Z',
+          ticket: 'PAG-1',
+          links: [],
+        },
+      }).blocks,
+    );
+    expect(text).toContain('Chamado: PAG-1');
+  });
+
+  test('removed item ignores detail fields', () => {
+    const text = toPlainText(
+      buildProductionReportItem({
+        lang: 'en',
+        timezone: 'UTC',
+        item: {
+          kind: 'removed',
+          title: 'Boleto',
+          liveSince: '2026-11-20T10:00:00Z',
+          problem: 'P',
+          whatChanges: 'W',
+          ticket: 'T-1',
+          links: [],
+        },
+      }).blocks,
+    );
+    expect(text).not.toContain('Problem');
+    expect(text).not.toContain('What changes');
+    expect(text).not.toContain('Ticket');
+  });
 });

@@ -26,9 +26,9 @@ export const REPORT_MESSAGE_BUDGET = 2800;
 const KINDS: ReportItemKind[] = ['new', 'fixed', 'removed'];
 
 const FIELDS = {
-  new: ['whatChanges', 'whoFor', 'whereToFind'],
+  new: ['whatChanges', 'whoFor', 'whereToFind', 'ticket'],
   fixed: ['problem', 'whoWasAffected', 'customerAction', 'ticket'],
-  removed: ['whatChanges', 'whoWasAffected', 'customerAction', 'ticket'],
+  removed: [],
 } as const satisfies Record<ReportItemKind, readonly (keyof ReportItem)[]>;
 
 const linkInlines = (links: ReportLink[]): Inline[] =>
