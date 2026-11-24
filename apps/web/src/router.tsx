@@ -464,7 +464,7 @@ const settingsReportsRoute = createRoute({
           title={t('setup.heading')}
           actions={<SettingsTabs installationId={installationId} current="reports" />}
         />
-        <ReportsTab installationId={installationId} />
+        <ReportsTab key={installationId} installationId={installationId} />
       </>
     );
   },
