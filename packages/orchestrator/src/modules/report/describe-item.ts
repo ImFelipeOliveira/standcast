@@ -38,14 +38,10 @@ function systemPrompt(lang: Language): string {
   ].join('\n');
 }
 
+const defang = (value: string): string => value.replaceAll('<', '‹').replaceAll('>', '›');
+
 function sourceText({ pullRequests, card }: ItemSource): string {
-  const parts = pullRequests.map((pr) =>
-    [
-      `Pull request: ${pr.title}`,
-      `Body: ${pr.body.slice(0, BODY_MAX)}`,
-      `Labels: ${pr.labels.join(', ')}`,
-    ].join('\n'),
-  );
+  const parts: string[] = [];
   if (card) {
     parts.push(
       [
@@ -53,11 +49,35 @@ function sourceText({ pullRequests, card }: ItemSource): string {
         `Card title: ${card.title}`,
         `Card description: ${card.description.slice(0, BODY_MAX)}`,
         `Card labels: ${card.labels.join(', ')}`,
-      ].join('\n'),
+      ]
+        .map(defang)
+        .join('\n'),
+    );
+  }
+  for (const pr of pullRequests) {
+    parts.push(
+      [
+        `Pull request: ${pr.title}`,
+        `Body: ${pr.body.slice(0, BODY_MAX)}`,
+        `Labels: ${pr.labels.join(', ')}`,
+      ]
+        .map(defang)
+        .join('\n'),
     );
   }
   return parts.join('\n\n').slice(0, MAX_SOURCE_CHARS);
 }
+
+function isTicketUrl(value: string): boolean {
+  try {
+    return ['http:', 'https:'].includes(new URL(value).protocol);
+  } catch {
+    return false;
+  }
+}
+
+const ticketAllowed = (value: string, data: string, links: { url: string }[]): boolean =>
+  isTicketUrl(value) && data.includes(value) && !links.some((l) => l.url === value);
 
 const clean = (value: string | undefined, max: number): string | undefined =>
   stripContacts(value ?? '')
@@ -91,15 +111,16 @@ export async function describeItem(
   if (parsed.kind === 'internal') return 'internal';
   const title = clean(parsed.title, TITLE_MAX);
   if (!title) return raw;
+  const links = itemLinks(source);
   const item: ReportItem = {
     kind: parsed.kind,
     title,
     liveSince: raw.liveSince,
-    links: itemLinks(source),
+    links,
   };
   for (const field of FIELDS[parsed.kind]) {
     const value = clean(parsed[field], FIELD_MAX);
-    if (!value || (field === 'ticket' && !data.includes(value))) continue;
+    if (!value || (field === 'ticket' && !ticketAllowed(value, data, links))) continue;
     item[field] = value;
   }
   return item;
