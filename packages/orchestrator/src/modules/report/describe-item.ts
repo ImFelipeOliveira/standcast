@@ -1,6 +1,7 @@
 import { type Language, type ReportItem, type TextModel, TextModelError } from '@standcast/core';
 import { z } from 'zod';
-import { type ItemSource, itemLinks, rawItem, stripContacts } from './report-items';
+import { errorFields, logError } from '../../log-error';
+import { hasEmail, type ItemSource, itemLinks, rawItem, stripContacts } from './report-items';
 
 export const MAX_SOURCE_CHARS = 4000;
 export const FIELD_MAX = 400;
@@ -69,16 +70,40 @@ function sourceText({ pullRequests, card }: ItemSource): string {
   return parts.join('\n\n').slice(0, MAX_SOURCE_CHARS);
 }
 
+const contactFree = (part: string): boolean => {
+  const decoded = decodeURIComponent(part);
+  return stripContacts(decoded) === decoded;
+};
+
 function isTicketUrl(value: string): boolean {
   try {
-    return ['http:', 'https:'].includes(new URL(value).protocol);
+    const url = new URL(value);
+    return (
+      ['http:', 'https:'].includes(url.protocol) &&
+      !url.username &&
+      !url.password &&
+      contactFree(url.search) &&
+      contactFree(url.hash)
+    );
   } catch {
     return false;
   }
 }
 
-const ticketAllowed = (value: string, data: string, links: { url: string }[]): boolean =>
-  isTicketUrl(value) && data.includes(value) && !links.some((l) => l.url === value);
+function ticketFrom(
+  value: string | undefined,
+  data: string,
+  links: { url: string }[],
+): string | undefined {
+  const ticket = value?.trim() ?? '';
+  const allowed =
+    ticket.length <= FIELD_MAX &&
+    !hasEmail(ticket) &&
+    isTicketUrl(ticket) &&
+    data.includes(ticket) &&
+    !links.some((l) => l.url === ticket);
+  return allowed ? ticket : undefined;
+}
 
 const clean = (value: string | undefined, max: number): string | undefined =>
   stripContacts(value ?? '')
@@ -101,6 +126,8 @@ export async function describeItem(
     });
   } catch (error) {
     if (error instanceof TextModelError && error.code === 'rejected_key') return { error };
+    const { name, code } = errorFields(error);
+    logError('production report model failed', { name, code });
     return raw;
   }
   let parsed: z.infer<typeof answerSchema>;
@@ -120,9 +147,9 @@ export async function describeItem(
     links,
   };
   for (const field of FIELDS[parsed.kind]) {
-    const value = clean(parsed[field], FIELD_MAX);
-    if (!value || (field === 'ticket' && !ticketAllowed(value, data, links))) continue;
-    item[field] = value;
+    const value =
+      field === 'ticket' ? ticketFrom(parsed.ticket, data, links) : clean(parsed[field], FIELD_MAX);
+    if (value) item[field] = value;
   }
   return item;
 }

@@ -13,7 +13,7 @@ const CARD_KEY = /\b([A-Za-z][A-Za-z0-9]{0,9})-(\d{1,7})\b/g;
 const LINEAR_URL = /https?:\/\/linear\.app\/\S+/g;
 const REVERT = /^Reverts\s+([\w.-]+)\/([\w.-]+)#(\d+)/m;
 const EMAIL = /[^\s@]+@[^\s@]+\.[^\s@]+/g;
-const MENTION = /(^|[\s(])@[A-Za-z0-9][A-Za-z0-9-]*/g;
+const MENTION = /(^|[\s(,"'[])@[A-Za-z0-9][A-Za-z0-9-]*/g;
 const DIGIT_RUN = /\d{4}-\d{2}-\d{2}(?!\d)|\+?\(?\d(?:(?!\d{4}-\d{2}-\d{2})[\d\s.\-()])*/g;
 const MIN_CONTACT_DIGITS = 8;
 const CONVENTIONAL_PREFIX =
@@ -47,6 +47,8 @@ export function revertTarget(body: string): { owner: string; repo: string; numbe
   const m = REVERT.exec(body);
   return m ? { owner: m[1] as string, repo: m[2] as string, number: Number(m[3]) } : null;
 }
+
+export const hasEmail = (text: string): boolean => text.search(EMAIL) !== -1;
 
 export function stripContacts(text: string): string {
   return text

@@ -71,6 +71,10 @@ test('stripContacts removes @mentions after emails, keeping the text around them
   expect(stripContacts('price@2x stays')).toBe('price@2x stays');
 });
 
+test('stripContacts removes @mentions after a comma, quote or bracket', () => {
+  expect(stripContacts('thanks,@bob and "@carol" [@dan] \'@eve\'')).toBe('thanks, and "" [] \'\'');
+});
+
 test('raw item drops the conventional prefix, is fixed for fix titles or bug labels, else new', () => {
   expect(rawItem(src({ title: 'fix(app): recibo duplicado' })).kind).toBe('fixed');
   expect(rawItem(src({ title: 'fix(app): recibo duplicado' })).title).toBe('recibo duplicado');
