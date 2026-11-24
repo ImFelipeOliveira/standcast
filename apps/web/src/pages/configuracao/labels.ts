@@ -52,6 +52,8 @@ export const FAILURE_KIND_LABELS: Record<FailureKind, MessageKey> = {
   digest: 'setup.failed.kind.digest',
   late_daily: 'setup.failed.kind.late_daily',
   daily: 'setup.failed.kind.daily',
+  production_report: 'setup.failed.kind.production_report',
+  production_report_post: 'setup.failed.kind.production_report_post',
   reminder: 'setup.failed.kind.reminder',
   blocker_route: 'setup.failed.kind.blocker_route',
 };

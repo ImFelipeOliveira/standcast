@@ -2,17 +2,21 @@ import type { ChatChannel, ChatProvider } from '@standcast/core';
 import type { Db } from '@standcast/db';
 import type {
   App,
+  compareCommitShas,
   createCheckRun,
   fetchCodeowners,
   fetchConfigSource,
   fetchRepositorySelection,
   getPullRequest,
+  getPullRequestText,
   getUserProfile,
   listActivity,
   listOpenPullRequestSnapshots,
   listPendingPullRequests,
+  listPullRequestCommitShas,
   listPullRequestFiles,
   lookupPlannedPullRequests,
+  mergedPullRequestsForCommits,
   Octokit,
   pullRequestMerged,
   resolveTeamMembers,
@@ -22,6 +26,7 @@ import type { JobQueue } from '@standcast/queue';
 import type { EmailMessage } from '@standcast/resend';
 import type { exchangeSlackCode } from '@standcast/slack';
 import type { TrackerFor } from './modules/linear/linear-tracker';
+import type { TextModelFor } from './modules/report/text-model-for';
 import type { SafeFetchOptions } from './safe-fetch';
 
 export type Deps = {
@@ -92,6 +97,13 @@ export type WorkerDeps = Pick<
   | 'linear'
 > & {
   email: EmailSender | null;
+  githubProduction: {
+    compareCommitShas: typeof compareCommitShas;
+    mergedPullRequestsForCommits: typeof mergedPullRequestsForCommits;
+    listPullRequestCommitShas: typeof listPullRequestCommitShas;
+    getPullRequestText: typeof getPullRequestText;
+  };
+  textModelFor: TextModelFor;
   env: Pick<Deps['env'], 'linearClientId' | 'linearClientSecret' | 'supportEmail'> & {
     betaEmailFrom: string;
   };

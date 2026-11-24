@@ -6,6 +6,7 @@ import type {
   EditableConfig,
   OrgBlockers,
   PeopleLinks,
+  ReportSettings,
   SearchResult,
   SetupStatus,
   TeamDigest,
@@ -186,6 +187,17 @@ export function peopleQuery(installationId: number) {
     queryKey: ['org', installationId, 'people'],
     queryFn: () => apiGet<PeopleLinks>(`/v1/app/orgs/${installationId}/people`),
   });
+}
+
+export function reportSettingsQuery(installationId: number) {
+  return queryOptions({
+    queryKey: ['org', installationId, 'reports'],
+    queryFn: () => apiGet<ReportSettings>(`/v1/app/orgs/${installationId}/reports`),
+  });
+}
+
+export function useReportSettings(installationId: number) {
+  return useQuery(reportSettingsQuery(installationId));
 }
 
 export function configQuery(installationId: number) {

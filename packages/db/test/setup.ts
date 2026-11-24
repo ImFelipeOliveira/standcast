@@ -17,7 +17,8 @@ export function useCleanDb(): void {
         TRUNCATE installations, members, member_installations, member_identities,
           connections, sessions, dailies, deliveries, rate_limits, api_keys,
           webhook_endpoints, webhook_deliveries, suggestions, beta_requests, blocker_states,
-          google_chat_spaces, google_chat_sign_in_tokens CASCADE
+          google_chat_spaces, google_chat_sign_in_tokens, llm_settings, team_reports,
+          production_pull_requests, production_reports CASCADE
       `),
     );
   });

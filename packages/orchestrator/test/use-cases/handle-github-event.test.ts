@@ -1,5 +1,5 @@
 import { describe, expect, spyOn, test } from 'bun:test';
-import { getInstallation, upsertInstallation } from '@standcast/db';
+import { getInstallation, upsertInstallation, upsertTeamReport } from '@standcast/db';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { handleGitHubEvent, loadConfig, resolveTeams, scanMemberSignals } from '../../src';
 import { config, fakeDeps, found, seedOrg } from './fakes';
@@ -106,6 +106,63 @@ describe('handleGitHubEvent', () => {
       },
       { name: 'load-config', data: { installationId: INST, owner: 'acme' } },
     ]);
+  });
+
+  test('a .github push with an enabled production report loads the config and records nothing', async () => {
+    await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
+    await upsertTeamReport(
+      db,
+      {
+        installationId: INST,
+        teamName: 'Sales',
+        enabled: true,
+        channel: '#sales',
+        weekday: 'fri',
+        time: '09:00',
+        productionBranch: 'main',
+      },
+      new Date('2026-11-24T12:00:00.000Z'),
+    );
+    const { deps, queue } = fakeDeps({ source: found(VALID) });
+    noGitHub(deps);
+    await handleGitHubEvent(deps, 'push', {
+      ...push('.github', 'refs/heads/main', { added: ['standcast.yml'] }),
+      before: 'sha-before',
+    });
+    expect(configJobs(queue).map((j) => j.name)).toEqual(['validate-config', 'load-config']);
+    expect(queue.enqueued.filter((j) => j.name === 'record-production-push')).toEqual([]);
+  });
+
+  test('a failing production enqueue is logged and does not fail the push', async () => {
+    await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
+    await upsertTeamReport(
+      db,
+      {
+        installationId: INST,
+        teamName: 'Sales',
+        enabled: true,
+        channel: '#sales',
+        weekday: 'fri',
+        time: '09:00',
+        productionBranch: 'main',
+      },
+      new Date('2026-11-24T12:00:00.000Z'),
+    );
+    const { deps, queue } = fakeDeps({ source: found(VALID) });
+    noGitHub(deps);
+    const enqueue = queue.enqueue.bind(queue);
+    queue.enqueue = (async (name: string, data: object, opts?: object) => {
+      if (name === 'record-production-push') throw new Error('queue down');
+      return enqueue(name, data, opts);
+    }) as typeof queue.enqueue;
+    const log = spyOn(console, 'error').mockImplementation(() => {});
+    await handleGitHubEvent(deps, 'push', {
+      ...push('api', 'refs/heads/main', { modified: ['src/x.ts'] }),
+      before: 'sha-before',
+    });
+    expect(log).toHaveBeenCalledWith('production push enqueue failed', expect.anything());
+    log.mockRestore();
+    expect(queue.enqueued).toEqual([]);
   });
 
   test('push on a non-default branch validates but does not load', async () => {

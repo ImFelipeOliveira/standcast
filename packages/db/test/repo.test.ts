@@ -316,6 +316,17 @@ describe('admin-visible failed deliveries', () => {
     ]);
   });
 
+  test('team failures list failed production reports and their chunk posts', async () => {
+    await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
+    await fail({ ...dkey, kind: 'production_report' }, 'not_in_channel: x');
+    await fail({ ...dkey, kind: 'production_report_post', subject: '0' }, 'ratelimited: x');
+    const listed = await listFailedTeamDeliveries(db, INST, 5);
+    expect(listed.map((d) => [d.kind, d.team, d.date]).sort()).toEqual([
+      ['production_report', 'core', '2026-10-27'],
+      ['production_report_post', 'core', '2026-10-27'],
+    ]);
+  });
+
   test('person failures are grouped by kind and error and never include hidden kinds', async () => {
     await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
     await upsertInstallation(db, { id: 2, accountLogin: 'other', accountType: 'Organization' });

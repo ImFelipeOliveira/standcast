@@ -79,6 +79,8 @@ function harness(resolved: string[] = ['93.184.216.34']) {
       },
     },
     email: null,
+    githubProduction: {} as WorkerDeps['githubProduction'],
+    textModelFor: async () => null,
     env: {
       linearClientId: 'lid',
       linearClientSecret: 'lsecret',

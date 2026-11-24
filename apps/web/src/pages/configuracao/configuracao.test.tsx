@@ -577,6 +577,23 @@ describe('configuração', () => {
     expect(english).toContain('The chat channel or space was not found.');
   });
 
+  test('failed production report deliveries are labeled', () => {
+    const at = new Date('2026-11-27T12:00:00Z');
+    const status = baseStatus({
+      teamFailures: [
+        { kind: 'production_report', team: 'plataforma', date: '2026-11-27', at, error: '' },
+        { kind: 'production_report_post', team: 'vendas', date: '2026-11-27', at, error: '' },
+      ],
+    });
+    const html = renderPage(status);
+    expect(html).toContain('Report de produção');
+    expect(html).toContain('Mensagem do report de produção');
+    applyLang('en');
+    const english = renderPage(status);
+    expect(english).toContain('Production report');
+    expect(english).toContain('Production report message');
+  });
+
   test('no failures shows the empty state', () => {
     const html = renderPage(baseStatus());
     expect(html).toContain('Nenhuma entrega com falha.');

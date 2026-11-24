@@ -275,6 +275,8 @@ const TEAM_FAILURE_KINDS = [
   'digest',
   'late_daily',
   'daily',
+  'production_report',
+  'production_report_post',
 ] as const satisfies readonly DeliveryKind[];
 const PERSON_FAILURE_KINDS = [
   'reminder',

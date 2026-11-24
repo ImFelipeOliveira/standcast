@@ -52,6 +52,10 @@ const SECTIONS: Section[] = [
       },
       { page: 'admin/slack', text: same('Slack') },
       { page: 'admin/google-chat', text: same('Google Chat') },
+      {
+        page: 'admin/production-report',
+        text: { en: 'Production report', 'pt-BR': 'Relatório de produção' },
+      },
       { page: 'admin/api-keys', text: same('API keys') },
       { page: 'admin/webhooks', text: same('Webhooks') },
     ],

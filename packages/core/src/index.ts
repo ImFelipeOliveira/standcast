@@ -19,6 +19,8 @@ export * from './language';
 export * from './linear-ref';
 export * from './message';
 export * from './ports';
+export * from './production-report';
 export * from './reminder';
 export * from './signals';
 export * from './suggestion-dm';
+export * from './text-model';

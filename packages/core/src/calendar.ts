@@ -33,9 +33,12 @@ export function calendarDaysBetween(from: string, to: string): number {
   return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS);
 }
 
+export function weekdayOf(date: string): Weekday {
+  return WEEKDAYS[plain(date).getDay()] as Weekday;
+}
+
 export function isWorkday(date: string, cal: Calendar): boolean {
-  const day = WEEKDAYS[plain(date).getDay()] as Weekday;
-  return cal.workdays.includes(day);
+  return cal.workdays.includes(weekdayOf(date));
 }
 
 function walk(

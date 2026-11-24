@@ -1,5 +1,5 @@
-import { inArray } from 'drizzle-orm';
-import { deliveries, sessions, suggestions } from '../src/schema';
+import { eq, inArray } from 'drizzle-orm';
+import { deliveries, productionReports, sessions, suggestions } from '../src/schema';
 import { db } from './setup';
 
 export type AgedSession = {
@@ -39,4 +39,8 @@ export async function listSuggestionFingerprints(): Promise<string[]> {
 
 export async function ageDeliveries(subjects: string[], updatedAt: Date): Promise<void> {
   await db.update(deliveries).set({ updatedAt }).where(inArray(deliveries.subject, subjects));
+}
+
+export async function ageProductionReport(date: string, createdAt: Date): Promise<void> {
+  await db.update(productionReports).set({ createdAt }).where(eq(productionReports.date, date));
 }

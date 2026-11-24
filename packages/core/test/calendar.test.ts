@@ -9,6 +9,7 @@ import {
   localDate,
   previousWorkday,
   startOfLocalDay,
+  weekdayOf,
 } from '../src/calendar';
 
 const cal: Calendar = {
@@ -78,4 +79,8 @@ describe('calendar', () => {
     expect(calendarDaysBetween('2026-10-28', '2026-10-28')).toBe(0);
     expect(calendarDaysBetween('2026-10-28', '2026-10-27')).toBe(-1);
   });
+});
+
+test('weekdayOf', () => {
+  expect(weekdayOf('2026-11-24')).toBe('tue');
 });

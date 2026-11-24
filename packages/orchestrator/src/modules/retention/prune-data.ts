@@ -2,6 +2,7 @@ import {
   deleteBetaRequestsCreatedBefore,
   deleteExpiredSessions,
   deletePersonDeliveriesBefore,
+  deleteProductionDataBefore,
   deleteResolvedSuggestionsBefore,
   deleteWebhookDeliveriesBefore,
   pruneExpiredGoogleChatLinkCodes,
@@ -13,6 +14,7 @@ export const PRUNE_DATA_JOB = 'prune-data';
 export const WEBHOOK_DELIVERY_RETENTION_DAYS = 30;
 const SUGGESTION_RETENTION_DAYS = 90;
 const PERSON_DELIVERY_RETENTION_DAYS = 90;
+const PRODUCTION_RETENTION_DAYS = 90;
 const BETA_REQUEST_RETENTION_DAYS = 365;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -25,11 +27,14 @@ export type PruneResult = {
   betaRequests: number;
   googleChatSpaces: number;
   googleChatSignInTokens: number;
+  productionPullRequests: number;
+  productionReports: number;
 };
 
 export async function pruneData(deps: Pick<WorkerDeps, 'db' | 'now'>): Promise<PruneResult> {
   const now = deps.now();
   const daysAgo = (days: number) => new Date(now.getTime() - days * DAY_MS);
+  const production = await deleteProductionDataBefore(deps.db, daysAgo(PRODUCTION_RETENTION_DAYS));
   return {
     webhookDeliveries: await deleteWebhookDeliveriesBefore(
       deps.db,
@@ -47,5 +52,7 @@ export async function pruneData(deps: Pick<WorkerDeps, 'db' | 'now'>): Promise<P
     ),
     googleChatSpaces: await pruneExpiredGoogleChatLinkCodes(deps.db, now),
     googleChatSignInTokens: await pruneGoogleChatSignInTokens(deps.db, daysAgo(1)),
+    productionPullRequests: production.pullRequests,
+    productionReports: production.reports,
   };
 }

@@ -3,7 +3,7 @@ import { useSetupStatus } from '../../api/queries';
 import { type MessageKey, useT } from '../../i18n';
 import { cn } from '../../lib/utils';
 
-export type SettingsTab = 'general' | 'people' | 'config' | 'api';
+export type SettingsTab = 'general' | 'people' | 'config' | 'api' | 'reports';
 
 const TABS: { tab: SettingsTab; to: string; label: MessageKey }[] = [
   { tab: 'general', to: '/orgs/$installationId/settings', label: 'settings.tab.general' },
@@ -14,7 +14,16 @@ const TABS: { tab: SettingsTab; to: string; label: MessageKey }[] = [
     label: 'settings.tab.config',
   },
   { tab: 'api', to: '/orgs/$installationId/settings/api', label: 'settings.tab.api' },
+  {
+    tab: 'reports',
+    to: '/orgs/$installationId/settings/reports',
+    label: 'settings.tab.reports',
+  },
 ];
+
+export function tabsFor(admin: boolean) {
+  return admin ? TABS : TABS.filter((item) => item.tab === 'general' || item.tab === 'reports');
+}
 
 export function SettingsTabs({
   installationId,
@@ -25,10 +34,9 @@ export function SettingsTabs({
 }) {
   const t = useT();
   const setup = useSetupStatus(installationId);
-  if (!setup.data?.apiKeys.manage) return null;
   return (
     <nav aria-label={t('settings.tabs')} className="flex flex-wrap gap-1 rounded-lg bg-hover p-0.5">
-      {TABS.map((item) => (
+      {tabsFor(setup.data?.apiKeys.manage === true).map((item) => (
         <Link
           key={item.tab}
           to={item.to}

@@ -1,7 +1,18 @@
-import type { AwayPeriod, RemindNowResult, SetupStatus } from '@standcast/orchestrator';
+import type {
+  AwayPeriod,
+  LlmSettingsView,
+  RemindNowResult,
+  SetupStatus,
+  TeamReportView,
+} from '@standcast/orchestrator';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiDelete, apiPost } from './client';
-import { type ChatLinkResultView, setupStatusQuery, teamTodayQuery } from './queries';
+import {
+  type ChatLinkResultView,
+  reportSettingsQuery,
+  setupStatusQuery,
+  teamTodayQuery,
+} from './queries';
 
 type ManagedKeys = Extract<SetupStatus['apiKeys'], { manage: true }>;
 type ManagedWebhooks = Extract<SetupStatus['webhooks'], { manage: true }>;
@@ -187,4 +198,50 @@ export function completeChatLinkRequest(token: string) {
 
 export function useCompleteChatLink(token: string) {
   return useMutation({ mutationFn: () => completeChatLinkRequest(token) });
+}
+
+export type LlmSettingsInput = { provider: 'deepseek'; model: string; apiKey?: string };
+export type TeamReportInput = NonNullable<TeamReportView['report']>;
+export type TeamReportSaved = {
+  report: TeamReportView['report'];
+  channel: 'ok' | 'not_found' | 'not_member' | 'not_linked';
+};
+
+function useReportMutation<TInput, TResult>(
+  installationId: number,
+  run: (input: TInput) => Promise<TResult>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: run,
+    gcTime: 0,
+    onSuccess: () => queryClient.invalidateQueries(reportSettingsQuery(installationId)),
+  });
+}
+
+export function useSaveLlmSettings(installationId: number) {
+  return useReportMutation(installationId, (input: LlmSettingsInput) =>
+    apiPost<LlmSettingsView>(`${orgPath(installationId)}/reports/llm`, input),
+  );
+}
+
+export function useRemoveLlmSettings(installationId: number) {
+  return useReportMutation(installationId, () =>
+    apiDelete<void>(`${orgPath(installationId)}/reports/llm`),
+  );
+}
+
+export function useSaveTeamReport(installationId: number, team: string) {
+  return useReportMutation(installationId, (input: TeamReportInput) =>
+    apiPost<TeamReportSaved>(
+      `${orgPath(installationId)}/teams/${encodeURIComponent(team)}/report`,
+      input,
+    ),
+  );
+}
+
+export function useRemoveTeamReport(installationId: number) {
+  return useReportMutation(installationId, (team: string) =>
+    apiDelete<void>(`${orgPath(installationId)}/teams/${encodeURIComponent(team)}/report`),
+  );
 }

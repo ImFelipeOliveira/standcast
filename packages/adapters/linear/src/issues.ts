@@ -85,3 +85,53 @@ export async function getIssue(
     blockedBy,
   };
 }
+
+export type LinearIssueText = {
+  identifier: string;
+  url: string;
+  title: string;
+  description: string;
+  labels: string[];
+};
+
+const ISSUE_TEXT_QUERY = `query IssueText($identifier: String!) {
+  issue(id: $identifier) {
+    identifier
+    url
+    title
+    description
+    labels(first: 20) { nodes { name } }
+  }
+}`;
+
+const issueTextNode = z.object({
+  identifier: z.string().min(1),
+  url: z.string().min(1),
+  title: z.string(),
+  description: z.string().nullish(),
+  labels: z.object({ nodes: z.array(z.object({ name: z.string() })) }).nullish(),
+});
+
+export async function getIssueText(
+  client: LinearClient,
+  identifier: string,
+): Promise<LinearIssueText | null> {
+  let data: { issue?: unknown } | null;
+  try {
+    data = await client.query<{ issue?: unknown } | null>(ISSUE_TEXT_QUERY, { identifier });
+  } catch (e) {
+    if (isNotFound(e)) return null;
+    throw e;
+  }
+  if (!data?.issue) return null;
+  const parsed = issueTextNode.safeParse(data.issue);
+  if (!parsed.success) return null;
+  const node = parsed.data;
+  return {
+    identifier: node.identifier,
+    url: node.url,
+    title: node.title,
+    description: node.description ?? '',
+    labels: node.labels?.nodes.map((label) => label.name) ?? [],
+  };
+}

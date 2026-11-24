@@ -1,0 +1,1 @@
+ALTER TABLE "production_pull_requests" ADD COLUMN "is_revert" boolean DEFAULT false NOT NULL;

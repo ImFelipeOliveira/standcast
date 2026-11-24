@@ -20,6 +20,7 @@ import {
   upsertDaily,
   upsertInstallation,
   upsertMember,
+  upsertTeamReport,
 } from '@standcast/db';
 import { recordBlockers } from '@standcast/orchestrator';
 
@@ -202,6 +203,19 @@ export async function seed(databaseUrl: string): Promise<{ db: Db; token: string
     date,
     blockers,
   });
+  await upsertTeamReport(
+    db,
+    {
+      installationId: INSTALLATION_ID,
+      teamName: TEAM_NAME,
+      enabled: false,
+      channel: '#plataforma',
+      weekday: 'fri',
+      time: '17:00',
+      productionBranch: 'main',
+    },
+    new Date(),
+  );
   await seedHistory(db, member.id, bob.id, date);
   await seedIntegrations(db, member.id);
   const token = await createSession(db, member.id, 'web');

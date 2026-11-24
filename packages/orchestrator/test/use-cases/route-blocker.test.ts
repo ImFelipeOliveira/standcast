@@ -398,6 +398,7 @@ describe('resolveRouteTarget', () => {
           assignee: null,
           creator: null,
         }),
+        cardText: async () => null,
         listActivity: async () => [],
         listStaleInProgress: async () => ({ cards: [], truncated: false }),
         listAssignedOpen: async () => ({ items: [], truncated: false }),

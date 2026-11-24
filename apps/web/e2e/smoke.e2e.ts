@@ -123,6 +123,36 @@ test('admins move between settings tabs and redeliver a failed webhook', async (
   await expect(redeliver).toHaveCount(0);
 });
 
+test('removing a team report asks first and shows an error when it fails', async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.goto(`/orgs/${INSTALLATION_ID}/settings/reports`);
+  const remove = page.getByRole('button', { name: 'Remover report' });
+  await remove.click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText(`Remover o report de ${TEAM_NAME}?`);
+
+  const reportUrl = `**/teams/${TEAM_NAME}/report`;
+  await page.route(reportUrl, (route) =>
+    route.request().method() === 'DELETE'
+      ? route.fulfill({
+          status: 500,
+          contentType: 'application/json',
+          body: '{"error":{"code":"internal","message":"boom"}}',
+        })
+      : route.continue(),
+  );
+  await dialog.getByRole('button', { name: 'Remover report' }).click();
+  await expect(dialog.getByRole('alert')).toContainText('Não foi possível concluir agora');
+
+  await page.unroute(reportUrl);
+  await dialog.getByRole('button', { name: 'Remover report' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(remove).toHaveCount(0);
+});
+
 test('an anonymous visit lands on the sign-in page', async ({ page }) => {
   await page.goto(`/orgs/${INSTALLATION_ID}/today?team=${TEAM_NAME}`);
   await expect(page).toHaveURL(/\/sign-in\?next=/);
