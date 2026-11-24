@@ -1,3 +1,4 @@
+import { LLM_PROVIDERS } from '@standcast/core';
 import { API_KEY_SCOPES, listMemberInstallations, WEBHOOK_EVENTS } from '@standcast/db';
 import {
   cancelAway,
@@ -13,6 +14,7 @@ import {
   getOrgBlockers,
   getOrgContext,
   getPeopleLinks,
+  getReportSettings,
   getSetupStatus,
   getTeamDigest,
   getTeamHistory,
@@ -26,8 +28,12 @@ import {
   previewGoogleChatSignInLink,
   redeliverWebhook,
   remindNow,
+  removeLlmSettings,
+  removeTeamReport,
   revokeAllWebSessions,
   revokeInstallationApiKey,
+  saveLlmSettings,
+  saveTeamReport,
   searchTeamDailies,
   sendTestEvent,
   setBlockerResolved,
@@ -75,6 +81,20 @@ const markAwayBody = z.object({
 const linkSpaceBody = z.object({ code: z.string() });
 
 const chatLinkBody = z.strictObject({ token: z.string().max(200) });
+
+const llmSettingsBody = z.strictObject({
+  provider: z.enum(LLM_PROVIDERS),
+  model: z.string(),
+  apiKey: z.string().optional(),
+});
+
+const teamReportBody = z.strictObject({
+  enabled: z.boolean(),
+  channel: z.string(),
+  weekday: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
+  time: z.string(),
+  productionBranch: z.string(),
+});
 
 const ORG = '/v1/app/orgs/:installationId';
 
@@ -276,6 +296,39 @@ export function appRoutes(deps: Deps, options: { getClientIp: GetClientIp }): Ho
       installationIdOf(c),
       c.req.param('deliveryId'),
     );
+    return c.body(null, 204);
+  });
+
+  app.get(`${ORG}/reports`, async (c) =>
+    c.json(await getReportSettings(deps, isMember, c.get('member'), installationIdOf(c)), 200),
+  );
+
+  app.post(`${ORG}/reports/llm`, async (c) => {
+    const body = await parseBody(c, llmSettingsBody);
+    return c.json(
+      await saveLlmSettings(deps, isMember, c.get('member'), {
+        installationId: installationIdOf(c),
+        ...body,
+      }),
+      200,
+    );
+  });
+
+  app.delete(`${ORG}/reports/llm`, async (c) => {
+    await removeLlmSettings(deps, isMember, c.get('member'), installationIdOf(c));
+    return c.body(null, 204);
+  });
+
+  app.post(`${ORG}/teams/:team/report`, async (c) => {
+    const body = await parseBody(c, teamReportBody);
+    return c.json(
+      await saveTeamReport(deps, isMember, c.get('member'), { ...teamInput(c), ...body }),
+      200,
+    );
+  });
+
+  app.delete(`${ORG}/teams/:team/report`, async (c) => {
+    await removeTeamReport(deps, isMember, c.get('member'), teamInput(c));
     return c.body(null, 204);
   });
 
