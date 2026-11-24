@@ -611,6 +611,9 @@ export const ptBR = {
   'report.llm.rejected': 'Chave rejeitada pela DeepSeek',
   'report.llm.save': 'Salvar',
   'report.llm.remove': 'Remover chave',
+  'report.llm.removeTitle': 'Remover a chave da DeepSeek?',
+  'report.llm.removeBody':
+    'Os reports usam os títulos dos pull requests até uma nova chave ser salva.',
   'report.team.title': 'Report do time {team}',
   'report.team.enabled': 'Enviar o report semanal',
   'report.team.channelSlack': 'Canal do Slack',
@@ -620,6 +623,8 @@ export const ptBR = {
   'report.team.branch': 'Branch de produção',
   'report.team.save': 'Salvar',
   'report.team.remove': 'Remover report',
+  'report.team.removeTitle': 'Remover o report de {team}?',
+  'report.team.removeBody': 'O report semanal para e as configurações dele são apagadas.',
   'report.readonly.on': 'Ligado, toda semana: {day} às {time}, canal {channel}',
   'report.readonly.off': 'Desligado',
   'report.orphans.title': 'Reports de times que não estão mais no standcast.yml',

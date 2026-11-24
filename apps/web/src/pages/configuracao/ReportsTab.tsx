@@ -14,6 +14,16 @@ import { Alert } from '../../components/ui/alert';
 import { Button } from '../../components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Checkbox } from '../../components/ui/checkbox';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import {
@@ -77,6 +87,75 @@ export function ChannelWarning({
     <Alert variant="warn">
       <p className="m-0">{t(key, { team, reference: channel })}</p>
     </Alert>
+  );
+}
+
+function ConfirmRemove({
+  label,
+  title,
+  body,
+  onConfirm,
+}: {
+  label: string;
+  title: string;
+  body: string;
+  onConfirm: () => Promise<unknown>;
+}) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+
+  const confirm = async () => {
+    setPending(true);
+    setProblem(null);
+    try {
+      await onConfirm();
+      setOpen(false);
+    } catch (error) {
+      setProblem(errorMessage(t, error));
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (pending) return;
+        setOpen(next);
+        setProblem(null);
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button type="button" variant="outline">
+          {label}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{body}</DialogDescription>
+        </DialogHeader>
+        {problem ? <Alert variant="destructive">{problem}</Alert> : null}
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="outline">
+              {t('setup.cancel')}
+            </Button>
+          </DialogClose>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={pending}
+            onClick={() => void confirm()}
+          >
+            {label}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -147,14 +226,12 @@ function LlmCard({
             {t('report.llm.save')}
           </Button>
           {settings ? (
-            <Button
-              type="button"
-              variant="outline"
-              disabled={remove.isPending}
-              onClick={() => remove.mutate()}
-            >
-              {t('report.llm.remove')}
-            </Button>
+            <ConfirmRemove
+              label={t('report.llm.remove')}
+              title={t('report.llm.removeTitle')}
+              body={t('report.llm.removeBody')}
+              onConfirm={() => remove.mutateAsync()}
+            />
           ) : null}
         </div>
       </form>
@@ -287,14 +364,12 @@ function TeamCard({ installationId, view }: { installationId: number; view: Team
             {t('report.team.save')}
           </Button>
           {view.report ? (
-            <Button
-              type="button"
-              variant="outline"
-              disabled={remove.isPending}
-              onClick={() => remove.mutate(view.team)}
-            >
-              {t('report.team.remove')}
-            </Button>
+            <ConfirmRemove
+              label={t('report.team.remove')}
+              title={t('report.team.removeTitle', { team: view.team })}
+              body={t('report.team.removeBody')}
+              onConfirm={() => remove.mutateAsync(view.team)}
+            />
           ) : null}
         </div>
       </form>
@@ -348,14 +423,12 @@ export function ReportsTab({ installationId }: { installationId: number }) {
             {orphans.map((team) => (
               <li key={team} className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-mono">{team}</span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={removeTeam.isPending}
-                  onClick={() => removeTeam.mutate(team)}
-                >
-                  {t('report.orphans.remove', { team })}
-                </Button>
+                <ConfirmRemove
+                  label={t('report.orphans.remove', { team })}
+                  title={t('report.team.removeTitle', { team })}
+                  body={t('report.team.removeBody')}
+                  onConfirm={() => removeTeam.mutateAsync(team)}
+                />
               </li>
             ))}
           </ul>

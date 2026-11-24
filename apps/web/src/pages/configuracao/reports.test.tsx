@@ -59,6 +59,11 @@ describe('reports tab', () => {
     expect(html).not.toContain('value="••');
   });
 
+  test('removing the key, a team report or an orphan report opens a confirmation first', () => {
+    const html = render(admin);
+    expect(html.match(/aria-haspopup="dialog"/g)).toHaveLength(3);
+  });
+
   test('a manager sees only the editable team form and no DeepSeek card', () => {
     const html = render(manager);
     expect(html).not.toContain('DeepSeek');
