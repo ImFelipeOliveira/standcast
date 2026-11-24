@@ -21,6 +21,7 @@ import { logError } from '../../log-error';
 import { resolveMemberTeams } from '../../teams';
 import { enqueueBlockerAlertsIfDue } from '../delivery/send-blocker-alerts';
 import { enqueueDigestIfOpen } from '../delivery/send-digest';
+import { enqueueProductionReportsIfDue } from '../report/send-production-report';
 import { enqueueScanJob } from './scan-member-signals';
 
 type OperationalInstallation = Awaited<ReturnType<typeof listOperationalInstallations>>[number];
@@ -158,6 +159,9 @@ async function isolated(label: string, run: () => Promise<void>): Promise<void> 
 export async function runTick(deps: WorkerDeps): Promise<void> {
   const now = deps.now();
   for (const installation of await listOperationalInstallations(deps.db)) {
+    await isolated('production report enqueue failed', () =>
+      enqueueProductionReportsIfDue(deps, installation, now),
+    );
     for (const team of installation.config.teams) {
       await isolated('signal scan enqueue failed', () =>
         enqueueScans(deps, installation, team, now),
