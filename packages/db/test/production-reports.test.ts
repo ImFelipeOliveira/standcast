@@ -135,6 +135,21 @@ describe('production report repo', () => {
     expect(Math.abs((rows[0]?.recordedAt.getTime() ?? 0) - Date.now())).toBeLessThan(60_000);
   });
 
+  test('a pull request is not a revert unless recorded as one', async () => {
+    await seed();
+    await recordProductionPullRequests(db, INST, [pr(1, T0), { ...pr(2, T0), isRevert: true }]);
+    const rows = await listProductionPullRequests(db, {
+      installationId: INST,
+      branch: 'main',
+      after: new Date(0),
+      upTo: new Date(Date.now() + 86_400_000),
+    });
+    expect(rows.map((r) => [r.number, r.isRevert])).toEqual([
+      [1, false],
+      [2, true],
+    ]);
+  });
+
   test('listProductionPullRequests windows on recorded_at, excludes after, includes upTo, oldest reached first', async () => {
     await seed();
     const mid = new Date('2026-11-05T10:00:00Z');

@@ -197,11 +197,16 @@ export type ProductionPullRequestRow = {
   url: string;
   authorLogin: string;
   branch: string;
+  isRevert: boolean;
   reachedAt: Date;
   recordedAt: Date;
 };
 
-export type ProductionPullRequestInput = Omit<ProductionPullRequestRow, 'recordedAt'> & {
+export type ProductionPullRequestInput = Omit<
+  ProductionPullRequestRow,
+  'recordedAt' | 'isRevert'
+> & {
+  isRevert?: boolean;
   recordedAt?: Date;
 };
 
@@ -211,6 +216,7 @@ const pullRequestColumns = {
   url: productionPullRequests.url,
   authorLogin: productionPullRequests.authorLogin,
   branch: productionPullRequests.branch,
+  isRevert: productionPullRequests.isRevert,
   reachedAt: productionPullRequests.reachedAt,
   recordedAt: productionPullRequests.recordedAt,
 };

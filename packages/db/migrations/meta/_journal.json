@@ -169,6 +169,13 @@
       "when": 1795549804195,
       "tag": "0023_productive_paper_doll",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795552176437,
+      "tag": "0024_outgoing_franklin_storm",
+      "breakpoints": true
     }
   ]
 }

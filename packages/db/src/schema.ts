@@ -405,6 +405,7 @@ export const productionPullRequests = pgTable(
     url: text('url').notNull(),
     authorLogin: text('author_login').notNull(),
     branch: text('branch').notNull(),
+    isRevert: boolean('is_revert').notNull().default(false),
     reachedAt: timestamp('reached_at', { withTimezone: true }).notNull(),
     recordedAt: timestamp('recorded_at', { withTimezone: true }).notNull().defaultNow(),
   },
