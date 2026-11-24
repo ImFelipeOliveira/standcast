@@ -93,13 +93,20 @@ class LinearTracker implements ProjectTracker {
   }
 
   async cardText(identifier: string): Promise<CardText | null> {
+    if (!this.ownsCard(identifier)) return null;
+    let card: CardText | null;
     try {
-      return await getIssueText(this.access.client, identifier);
+      card = await getIssueText(this.access.client, identifier);
     } catch (error) {
       logError('linear card text failed', error, { installationId: String(this.installationId) });
       if (error instanceof LinearAuthError) await this.invalidateQuietly();
       return null;
     }
+    return card && this.ownsCard(card.identifier) ? card : null;
+  }
+
+  private ownsCard(identifier: string): boolean {
+    return identifier.toUpperCase().startsWith(`${this.teamKey.toUpperCase()}-`);
   }
 
   async listActivity(login: string, since: Date): Promise<ActivityItem[]> {

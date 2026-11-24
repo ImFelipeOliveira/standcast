@@ -148,6 +148,33 @@ describe('trackerFor', () => {
 });
 
 describe('cardText', () => {
+  test('reads only cards of the team Linear team, without querying others', async () => {
+    const fake = await setup();
+    const tracker = await fake.build();
+    fake.linear.state.issues.set('ENG-1', issue({ description: 'Steps' }));
+    fake.linear.state.issues.set(
+      'SEC-7',
+      issue({
+        identifier: 'SEC-7',
+        url: 'https://linear.app/acme/issue/SEC-7/x',
+        title: 'Private',
+      }),
+    );
+    expect(await tracker.cardText('SEC-7')).toBeNull();
+    expect(fake.linear.calls.queries.some((q) => q.variables.identifier === 'SEC-7')).toBe(false);
+    expect((await tracker.cardText('ENG-1'))?.title).toBe('Fix login');
+  });
+
+  test('a card that moved to another team is rejected', async () => {
+    const fake = await setup();
+    const tracker = await fake.build();
+    fake.linear.state.issues.set(
+      'ENG-2',
+      issue({ identifier: 'SEC-3', url: 'https://linear.app/acme/issue/SEC-3/x', title: 'Moved' }),
+    );
+    expect(await tracker.cardText('ENG-2')).toBeNull();
+  });
+
   test('an auth error invalidates the connection and returns null', async () => {
     const fake = await setup();
     const tracker = await fake.build();

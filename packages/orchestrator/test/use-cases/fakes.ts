@@ -122,7 +122,7 @@ export function fakeLinear() {
     };
     const name = /query (\w+)/.exec(body.query ?? '')?.[1] ?? '';
     calls.queries.push({ name, variables: { ...body.variables } });
-    if (name === 'Issue') {
+    if (name === 'Issue' || name === 'IssueText') {
       const issue = state.issues.get(body.variables?.identifier ?? '');
       if (issue) return Response.json({ data: { issue } });
       return Response.json({
