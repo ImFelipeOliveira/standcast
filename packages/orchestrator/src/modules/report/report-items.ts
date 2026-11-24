@@ -13,12 +13,16 @@ const CARD_KEY = /\b([A-Za-z][A-Za-z0-9]{0,9})-(\d{1,7})\b/g;
 const LINEAR_URL = /https?:\/\/linear\.app\/\S+/g;
 const REVERT = /^Reverts\s+([\w.-]+)\/([\w.-]+)#(\d+)/m;
 const EMAIL = /[^\s@]+@[^\s@]+\.[^\s@]+/g;
-const PHONE = /(?:\+\d{1,3}[\s.-]?)?(?:\(\d{2,3}\)[\s.-]?|\d{2,3}[\s.-])?\d{4,5}[\s.-]?\d{4}\b/g;
-const CONVENTIONAL_PREFIX = /^\w+(\([^)]*\))?!?:\s*/;
-const FIX_TITLE = /^\s*fix(?=[(!:\s])/i;
+const DIGIT_RUN = /\d{4}-\d{2}-\d{2}(?!\d)|\+?\(?\d(?:(?!\d{4}-\d{2}-\d{2})[\d\s.\-()])*/g;
+const MIN_CONTACT_DIGITS = 8;
+const CONVENTIONAL_PREFIX =
+  /^(feat|fix|chore|ci|build|test|docs|style|refactor|perf|revert|hotfix|bugfix)(\([^)]*\))?!?:\s*/i;
+const FIX_TITLE = /^\s*(fix|fixes|fixed|hotfix|bugfix)(?=[(!:\s])/i;
+
+export type ItemPullRequest = PullRequestText & { repository: string; reachedAt: Date };
 
 export type ItemSource = {
-  pullRequests: (PullRequestText & { repository: string; reachedAt: Date })[];
+  pullRequests: [ItemPullRequest, ...ItemPullRequest[]];
   card: CardText | null;
 };
 
@@ -44,7 +48,16 @@ export function revertTarget(body: string): { owner: string; repo: string; numbe
 }
 
 export function stripContacts(text: string): string {
-  return text.replace(EMAIL, '').replace(PHONE, '').replace(/ {2,}/g, ' ').trim();
+  return text
+    .replace(EMAIL, '')
+    .replace(DIGIT_RUN, (run) => {
+      const core = run.replace(/[\s.\-(]+$/, '');
+      const digits = core.replace(/\D/g, '').length;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(core) || digits < MIN_CONTACT_DIGITS) return run;
+      return run.slice(core.length);
+    })
+    .replace(/ {2,}/g, ' ')
+    .trim();
 }
 
 export function itemLinks({ pullRequests, card }: ItemSource): ReportLink[] {
@@ -57,18 +70,17 @@ export function itemLinks({ pullRequests, card }: ItemSource): ReportLink[] {
 
 export function rawItem(source: ItemSource): ReportItem {
   const { pullRequests, card } = source;
-  const original = pullRequests[0]?.title ?? card?.title ?? '';
-  const stripped = original.replace(CONVENTIONAL_PREFIX, '');
+  const first = pullRequests[0];
   const isBug = (label: string) => label.toLowerCase() === 'bug';
   const fixed =
     pullRequests.some((pr) => FIX_TITLE.test(pr.title) || pr.labels.some(isBug)) ||
     (card?.labels.some(isBug) ?? false);
   const kind: ReportItemKind = fixed ? 'fixed' : 'new';
   const oldest = Math.min(...pullRequests.map((pr) => pr.reachedAt.getTime()));
-  return {
-    kind,
-    title: stripContacts(stripped || original),
-    liveSince: new Date(oldest).toISOString(),
-    links: itemLinks(source),
-  };
+  const stripped = first.title.replace(CONVENTIONAL_PREFIX, '') || first.title;
+  const title =
+    stripContacts(stripped) ||
+    stripContacts(card?.title ?? '') ||
+    (githubRefLabel(first.url) ?? first.url);
+  return { kind, title, liveSince: new Date(oldest).toISOString(), links: itemLinks(source) };
 }

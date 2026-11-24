@@ -84,3 +84,73 @@ test('item links list pull requests then the card', () => {
   };
   expect(itemLinks(s).map((l) => l.label)).toEqual(['api#1', 'PAG-1']);
 });
+
+test('phones and long digit runs are removed whole; versions, dates, money and refs stay', () => {
+  for (const phone of [
+    '+1 415-555-2671',
+    '+1 (415) 555-2671',
+    '415-555-2671',
+    '+351 912 345 678',
+    '0800 123 4567',
+    '(11) 9 1234-5678',
+    '+55 11 9 1234-5678',
+    '(11) 91234-5678',
+    '+55 11 91234-5678',
+  ]) {
+    expect(stripContacts(`ligar ${phone} hoje`)).toBe('ligar hoje');
+  }
+  expect(stripContacts('pedido 123456789012')).toBe('pedido');
+  expect(stripContacts('acct_1234567890')).toBe('acct_');
+  for (const keep of [
+    '5.2.1',
+    '1.2.3.4567',
+    '2026-11-24',
+    'R$ 1.234,56',
+    '#12345',
+    '30 dias',
+    'PR 412',
+  ]) {
+    expect(stripContacts(keep)).toBe(keep);
+  }
+  expect(stripContacts('em 2026-11-24 30 dias')).toBe('em 2026-11-24 30 dias');
+});
+
+test('titles are never empty and fall back to the card title, then the pull request label', () => {
+  expect(rawItem(src({ title: 'feat: ana@x.com' })).title).toBe('api#1');
+  const withCard = {
+    ...src({ title: 'feat: ana@x.com' }),
+    card: {
+      identifier: 'PAG-1',
+      url: 'https://linear.app/a/issue/PAG-1',
+      title: 'Pix agendado',
+      description: '',
+      labels: [],
+    },
+  };
+  expect(rawItem(withCard).title).toBe('Pix agendado');
+});
+
+test('grouped pull requests use the first title and the oldest reachedAt', () => {
+  const [a] = src({ title: 'feat: primeiro' }).pullRequests;
+  const item = rawItem({
+    card: null,
+    pullRequests: [
+      { ...a, reachedAt: new Date('2026-11-20T00:00:00.000Z') },
+      { ...a, title: 'feat: segundo', reachedAt: new Date('2026-11-19T00:00:00.000Z') },
+    ],
+  });
+  expect(item.title).toBe('primeiro');
+  expect(item.liveSince).toBe('2026-11-19T00:00:00.000Z');
+  expect(item.links).toHaveLength(2);
+});
+
+test('card identifiers are capped at three', () => {
+  expect(cardIdentifiers('A-1 B-2 C-3 D-4')).toEqual(['A-1', 'B-2', 'C-3']);
+});
+
+test('only known conventional prefixes are stripped; fix detection is word-bounded', () => {
+  expect(rawItem(src({ title: 'Pix: agendamento' })).title).toBe('Pix: agendamento');
+  expect(rawItem(src({ title: 'hotfix: x' })).kind).toBe('fixed');
+  expect(rawItem(src({ title: 'Fixes login' })).kind).toBe('fixed');
+  expect(rawItem(src({ title: 'fixture: x' })).kind).toBe('new');
+});
