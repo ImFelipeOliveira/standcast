@@ -7,6 +7,7 @@ import {
   TextModelError,
 } from '@standcast/core';
 import {
+  claimDelivery,
   getDelivery,
   getLlmSettings,
   getProductionReport,
@@ -29,6 +30,7 @@ import {
   runTick,
   SEND_PRODUCTION_REPORT_JOB,
   sendProductionReport,
+  WINDOW_SETTLE_MS,
 } from '../../src';
 import { config, type FakeOptions, fakeChat, fakeDeps, INST, linkSpace, seedOrg } from './fakes';
 
@@ -36,6 +38,7 @@ useCleanDb();
 
 const DATE = '2026-11-27';
 const NOW = new Date('2026-11-27T12:05:00.000Z');
+const SETTLED = new Date(NOW.getTime() - WINDOW_SETTLE_MS);
 const CUTOFF = new Date('2026-11-20T12:00:00.000Z');
 const INSIDE = '2026-11-23T12:00:00.000Z';
 const job = { installationId: INST, teamName: 'Alpha', date: DATE };
@@ -51,7 +54,28 @@ const pr = (number: number, title: string, over: Partial<PullRequestText> = {}) 
   ...over,
 });
 
-type Pull = { text: PullRequestText; author?: string; branch?: string; reachedAt?: string };
+type Pull = {
+  text: PullRequestText;
+  author?: string;
+  branch?: string;
+  reachedAt?: string;
+  recordedAt?: string;
+};
+
+const record = (pulls: Pull[]) =>
+  recordProductionPullRequests(
+    db,
+    INST,
+    pulls.map((p) => ({
+      repository: 'api',
+      number: p.text.number,
+      url: p.text.url,
+      authorLogin: p.author ?? 'alice',
+      branch: p.branch ?? 'main',
+      reachedAt: new Date(p.reachedAt ?? INSIDE),
+      recordedAt: new Date(p.recordedAt ?? p.reachedAt ?? INSIDE),
+    })),
+  );
 
 const enableReport = (over: { enabled?: boolean; teamName?: string; channel?: string } = {}) =>
   upsertTeamReport(
@@ -69,13 +93,13 @@ const enableReport = (over: { enabled?: boolean; teamName?: string; channel?: st
   );
 
 function rewriter(
-  answer: () => string | Promise<string> = () => '{"kind":"new","title":"Rewritten"}',
+  answer: (user: string) => string | Promise<string> = () => '{"kind":"new","title":"Rewritten"}',
 ) {
   const calls: string[] = [];
   const textModel: TextModel = {
     completeJson: async ({ user }) => {
       calls.push(user);
-      return answer();
+      return answer(user);
     },
   };
   return { calls, textModel };
@@ -84,18 +108,7 @@ function rewriter(
 async function setup(pulls: Pull[], opts: FakeOptions & { cfg?: StandcastConfig } = {}) {
   await seedOrg(opts.cfg ?? config());
   await enableReport();
-  await recordProductionPullRequests(
-    db,
-    INST,
-    pulls.map((p) => ({
-      repository: 'api',
-      number: p.text.number,
-      url: p.text.url,
-      authorLogin: p.author ?? 'alice',
-      branch: p.branch ?? 'main',
-      reachedAt: new Date(p.reachedAt ?? INSIDE),
-    })),
-  );
+  await record(pulls);
   const texts = new Map(pulls.map((p) => [p.text.number, p.text]));
   const fake = fakeDeps({
     production: { getPullRequestText: async (_o, _owner, _repo, n) => texts.get(n) ?? null },
@@ -154,6 +167,7 @@ describe('sendProductionReport', () => {
       { text: pr(3, 'feat: other branch'), branch: 'release' },
       { text: pr(4, 'feat: before the window'), reachedAt: '2026-11-19T12:00:00.000Z' },
       { text: pr(5, 'feat: after the window'), reachedAt: '2026-11-27T12:06:00.000Z' },
+      { text: pr(8, 'feat: still settling'), reachedAt: '2026-11-27T12:04:30.000Z' },
       { text: pr(6, 'feat: member in another case'), author: 'Bob' },
       { text: pr(7, 'feat: gone from GitHub') },
     ]);
@@ -257,6 +271,44 @@ describe('sendProductionReport', () => {
     ]);
   });
 
+  test('a revert of a revert in the same window removes nothing and both reverts drop', async () => {
+    const { deps } = await setup([
+      { text: pr(10, 'Revert "feat: export"', { body: 'Reverts acme/api#9' }) },
+      { text: pr(11, 'Revert "Revert "feat: export""', { body: 'Reverts acme/api#10' }) },
+      { text: pr(12, 'feat: import') },
+    ]);
+    await saveProductionReport(db, INST, {
+      teamName: 'Alpha',
+      date: '2026-11-20',
+      windowStart: new Date('2026-11-13T12:00:00.000Z'),
+      windowEnd: CUTOFF,
+      items: [
+        {
+          kind: 'new',
+          title: 'Export to CSV',
+          liveSince: '2026-11-18T12:00:00.000Z',
+          links: [{ label: 'api#9', url: 'https://github.com/acme/api/pull/9' }],
+        },
+      ],
+    });
+    await sendProductionReport(deps, job);
+    expect((await storedItems()).map((i) => [i.kind, i.title])).toEqual([['new', 'import']]);
+  });
+
+  test('a pull request recorded after the window end with an old reached_at goes in the next report', async () => {
+    const { deps, setNow } = await setup([{ text: pr(1, 'feat: export') }]);
+    await sendProductionReport(deps, job);
+    await record([{ text: pr(2, 'feat: import'), recordedAt: NOW.toISOString() }]);
+    deps.githubProduction.getPullRequestText = async (_o, _owner, _repo, n) =>
+      pr(n, n === 1 ? 'feat: export' : 'feat: import');
+    const next = { ...job, date: '2026-12-04' };
+    setNow(new Date('2026-12-04T12:05:00.000Z'));
+    await sendProductionReport(deps, next);
+    const nextItems = (await getProductionReport(db, INST, 'Alpha', next.date))?.items ?? [];
+    expect(nextItems.map((i) => [i.title, i.liveSince])).toEqual([['import', INSIDE]]);
+    expect((await storedItems()).map((i) => i.title)).toEqual(['export']);
+  });
+
   test('a revert of something never reported is dropped', async () => {
     const { deps, posted } = await setup([
       { text: pr(10, 'Revert "feat: export"', { body: 'Reverts acme/api#99' }) },
@@ -307,7 +359,7 @@ describe('sendProductionReport', () => {
     setNow(new Date(NOW.getTime() + 60_000));
     await sendProductionReport(deps, job);
     expect(posted).toHaveLength(2);
-    expect((await getTeamReport(db, INST, 'Alpha'))?.cutoffAt).toEqual(NOW);
+    expect((await getTeamReport(db, INST, 'Alpha'))?.cutoffAt).toEqual(SETTLED);
     expect(replyJobs(queue).map((j) => [j.data.index, j.data.thread])).toEqual([
       [0, { channel: 'C1', id: '1.0' }],
       [1, { channel: 'C1', id: '2.0' }],
@@ -319,7 +371,7 @@ describe('sendProductionReport', () => {
     await sendProductionReport(deps, job);
     expect(posted).toEqual([]);
     expect((await getDelivery(db, reportKey))?.status).toBe('sent');
-    expect((await getTeamReport(db, INST, 'Alpha'))?.cutoffAt).toEqual(NOW);
+    expect((await getTeamReport(db, INST, 'Alpha'))?.cutoffAt).toEqual(SETTLED);
   });
 
   test('a retry reuses the stored report and does not repost a chunk already sent', async () => {
@@ -443,11 +495,30 @@ describe('postReportItem', () => {
     expect((await getDelivery(db, key))?.status).toBe('sent');
   });
 
+  test('a reply whose delivery is in progress elsewhere throws so the job is retried', async () => {
+    const { deps, queue, replies } = await setup([{ text: pr(1, 'feat: export') }]);
+    await sendProductionReport(deps, job);
+    const [reply] = replyJobs(queue);
+    if (!reply) throw new Error('no reply job');
+    await claimDelivery(db, { ...job, kind: 'production_report_item', subject: '0' });
+    await expect(postReportItem(deps, reply.data)).rejects.toThrow(
+      'production_report_item_in_progress',
+    );
+    expect(replies).toEqual([]);
+  });
+
   test('no message contains an author login', async () => {
-    const { deps, queue, posted, replies } = await setup([
-      { text: pr(1, 'feat: export', { body: 'by alice' }) },
-      { text: pr(2, 'fix: import crash'), author: 'bob' },
-    ]);
+    const model = rewriter((user) => {
+      if (user.includes('import')) throw new TextModelError('timeout', 'slow');
+      return '{"kind":"new","title":"Export by @alice","whatChanges":"Thanks @alice and (@bob) for it"}';
+    });
+    const { deps, queue, posted, replies } = await setup(
+      [
+        { text: pr(1, 'feat: export', { body: 'by alice' }) },
+        { text: pr(2, 'fix: import crash, thanks @bob'), author: 'bob' },
+      ],
+      { textModel: model.textModel },
+    );
     await sendProductionReport(deps, job);
     for (const reply of replyJobs(queue)) await postReportItem(deps, reply.data);
     expect(replies).toHaveLength(2);

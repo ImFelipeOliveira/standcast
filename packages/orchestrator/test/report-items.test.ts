@@ -63,6 +63,14 @@ test('stripContacts removes emails and phones but keeps versions, dates and plai
   );
 });
 
+test('stripContacts removes @mentions after emails, keeping the text around them', () => {
+  expect(stripContacts('cc @alice')).toBe('cc');
+  expect(stripContacts('@bob-dev fixed it')).toBe('fixed it');
+  expect(stripContacts('export (@bob) done')).toBe('export () done');
+  expect(stripContacts('ask ana@x.com or @carol today')).toBe('ask or today');
+  expect(stripContacts('price@2x stays')).toBe('price@2x stays');
+});
+
 test('raw item drops the conventional prefix, is fixed for fix titles or bug labels, else new', () => {
   expect(rawItem(src({ title: 'fix(app): recibo duplicado' })).kind).toBe('fixed');
   expect(rawItem(src({ title: 'fix(app): recibo duplicado' })).title).toBe('recibo duplicado');

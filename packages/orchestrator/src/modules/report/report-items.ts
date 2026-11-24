@@ -13,6 +13,7 @@ const CARD_KEY = /\b([A-Za-z][A-Za-z0-9]{0,9})-(\d{1,7})\b/g;
 const LINEAR_URL = /https?:\/\/linear\.app\/\S+/g;
 const REVERT = /^Reverts\s+([\w.-]+)\/([\w.-]+)#(\d+)/m;
 const EMAIL = /[^\s@]+@[^\s@]+\.[^\s@]+/g;
+const MENTION = /(^|[\s(])@[A-Za-z0-9][A-Za-z0-9-]*/g;
 const DIGIT_RUN = /\d{4}-\d{2}-\d{2}(?!\d)|\+?\(?\d(?:(?!\d{4}-\d{2}-\d{2})[\d\s.\-()])*/g;
 const MIN_CONTACT_DIGITS = 8;
 const CONVENTIONAL_PREFIX =
@@ -56,6 +57,7 @@ export function stripContacts(text: string): string {
       if (/^\d{4}-\d{2}-\d{2}$/.test(core) || digits < MIN_CONTACT_DIGITS) return run;
       return run.slice(core.length);
     })
+    .replace(MENTION, '$1')
     .replace(/ {2,}/g, ' ')
     .trim();
 }

@@ -31,6 +31,7 @@ export async function postReportItem(deps: WorkerDeps, job: PostReportItemJob): 
     subject: String(job.index),
   };
   const claim = await claimDelivery(deps.db, key);
+  if (claim.status === 'in_progress') throw new Error('production_report_item_in_progress');
   if (claim.status !== 'claimed') return;
   const provider = team.chat.provider;
   try {

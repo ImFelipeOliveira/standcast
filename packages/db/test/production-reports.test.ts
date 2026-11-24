@@ -39,13 +39,14 @@ const teamInput = (over: Partial<Parameters<typeof upsertTeamReport>[1]> = {}) =
   ...over,
 });
 
-const pr = (number: number, reachedAt: Date, branch = 'main') => ({
+const pr = (number: number, reachedAt: Date, branch = 'main', recordedAt?: Date) => ({
   repository: 'acme/app',
   number,
   url: `https://github.com/acme/app/pull/${number}`,
   authorLogin: 'dev',
   branch,
   reachedAt,
+  ...(recordedAt ? { recordedAt } : {}),
 });
 
 describe('production report repo', () => {
@@ -124,25 +125,37 @@ describe('production report repo', () => {
     const rows = await listProductionPullRequests(db, {
       installationId: INST,
       branch: 'main',
-      after: new Date('2026-10-01T00:00:00Z'),
-      upTo: new Date('2026-12-01T00:00:00Z'),
+      after: new Date(0),
+      upTo: new Date(Date.now() + 86_400_000),
     });
     expect(rows.map((r) => [r.number, r.reachedAt])).toEqual([
       [1, T0],
       [2, T1],
     ]);
+    expect(Math.abs((rows[0]?.recordedAt.getTime() ?? 0) - Date.now())).toBeLessThan(60_000);
   });
 
-  test('listProductionPullRequests window excludes after and includes upTo', async () => {
+  test('listProductionPullRequests windows on recorded_at, excludes after, includes upTo, oldest reached first', async () => {
     await seed();
-    await recordProductionPullRequests(db, INST, [pr(1, T0), pr(2, T1), pr(3, T1, 'other')]);
+    const mid = new Date('2026-11-05T10:00:00Z');
+    const old = new Date('2026-10-20T10:00:00Z');
+    await recordProductionPullRequests(db, INST, [
+      pr(1, mid, 'main', T0),
+      pr(2, mid, 'main', T1),
+      pr(3, old, 'main', T1),
+      pr(4, mid, 'other', mid),
+      pr(5, mid, 'main', new Date('2026-11-08T10:00:01Z')),
+    ]);
     const rows = await listProductionPullRequests(db, {
       installationId: INST,
       branch: 'main',
       after: T0,
       upTo: T1,
     });
-    expect(rows.map((r) => r.number)).toEqual([2]);
+    expect(rows.map((r) => [r.number, r.recordedAt])).toEqual([
+      [3, T1],
+      [2, T1],
+    ]);
   });
 
   test('saveProductionReport never overwrites an existing report', async () => {

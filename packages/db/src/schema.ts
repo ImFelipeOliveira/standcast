@@ -406,10 +406,11 @@ export const productionPullRequests = pgTable(
     authorLogin: text('author_login').notNull(),
     branch: text('branch').notNull(),
     reachedAt: timestamp('reached_at', { withTimezone: true }).notNull(),
+    recordedAt: timestamp('recorded_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     unique().on(t.installationId, t.repository, t.number, t.branch),
-    index('production_pull_requests_window_idx').on(t.installationId, t.branch, t.reachedAt),
+    index('production_pull_requests_window_idx').on(t.installationId, t.branch, t.recordedAt),
   ],
 );
 

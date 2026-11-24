@@ -198,6 +198,11 @@ export type ProductionPullRequestRow = {
   authorLogin: string;
   branch: string;
   reachedAt: Date;
+  recordedAt: Date;
+};
+
+export type ProductionPullRequestInput = Omit<ProductionPullRequestRow, 'recordedAt'> & {
+  recordedAt?: Date;
 };
 
 const pullRequestColumns = {
@@ -207,12 +212,13 @@ const pullRequestColumns = {
   authorLogin: productionPullRequests.authorLogin,
   branch: productionPullRequests.branch,
   reachedAt: productionPullRequests.reachedAt,
+  recordedAt: productionPullRequests.recordedAt,
 };
 
 export async function recordProductionPullRequests(
   db: Db,
   installationId: number,
-  rows: ProductionPullRequestRow[],
+  rows: ProductionPullRequestInput[],
 ): Promise<number> {
   if (rows.length === 0) return 0;
   const inserted = await db
@@ -234,8 +240,8 @@ export async function listProductionPullRequests(
       and(
         eq(productionPullRequests.installationId, input.installationId),
         eq(productionPullRequests.branch, input.branch),
-        gt(productionPullRequests.reachedAt, input.after),
-        lte(productionPullRequests.reachedAt, input.upTo),
+        gt(productionPullRequests.recordedAt, input.after),
+        lte(productionPullRequests.recordedAt, input.upTo),
       ),
     )
     .orderBy(asc(productionPullRequests.reachedAt), asc(productionPullRequests.number));

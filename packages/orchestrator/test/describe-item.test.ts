@@ -61,6 +61,7 @@ test('the prompt marks source text as data and names the language', async () => 
   const { model, requests } = fake(ok({}));
   await describeItem(model, source, 'pt-BR');
   expect(requests[0]?.system).toContain('pt-BR');
+  expect(requests[0]?.system).toContain("Never include people's names, usernames or @mentions.");
   expect(requests[0]?.user).toContain('<source>');
   expect(requests[0]?.user).toContain('ACME-12');
 });

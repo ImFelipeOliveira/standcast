@@ -95,8 +95,8 @@ describe('recordProductionPush', () => {
     listProductionPullRequests(db, {
       installationId: INST,
       branch: 'main',
-      after: new Date('2026-11-01T00:00:00Z'),
-      upTo: new Date('2026-12-01T00:00:00Z'),
+      after: new Date(0),
+      upTo: new Date(Date.now() + 86_400_000),
     });
 
   test('records merged pull requests found from compared commits with reached_at = receivedAt', async () => {

@@ -54,6 +54,7 @@ export const SEND_PRODUCTION_REPORT_JOB = 'send-production-report';
 export const REPLY_SPACING_MS = 1500;
 export const DESCRIBE_CONCURRENCY = 4;
 export const REPORT_LOOKBACK_DAYS = 90;
+export const WINDOW_SETTLE_MS = 60_000;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const KIND_ORDER = { new: 0, fixed: 1, removed: 2 };
@@ -152,19 +153,17 @@ async function applyReverts(
     .filter((r) => r.date !== ctx.date)
     .flatMap((r) => r.items)
     .filter((item) => item.kind !== 'removed');
+  const reverts = pulls.flatMap((pr) => {
+    const t = revertTarget(pr.body);
+    const url = t && `https://github.com/${t.owner}/${t.repo}/pull/${t.number}`.toLowerCase();
+    return url ? [{ pr, url }] : [];
+  });
   const inWindow = new Set(pulls.map((pr) => pr.url.toLowerCase()));
-  const dropped = new Set<string>();
+  const targets = new Set(reverts.map((r) => r.url));
+  const dropped = new Set([...reverts.map((r) => r.pr.url.toLowerCase()), ...targets]);
   const removed: ReportItem[] = [];
-  for (const pr of pulls) {
-    const target = revertTarget(pr.body);
-    if (!target) continue;
-    const url =
-      `https://github.com/${target.owner}/${target.repo}/pull/${target.number}`.toLowerCase();
-    dropped.add(pr.url.toLowerCase());
-    if (inWindow.has(url)) {
-      dropped.add(url);
-      continue;
-    }
+  for (const { pr, url } of reverts) {
+    if (inWindow.has(url) || targets.has(pr.url.toLowerCase())) continue;
     const reported = earlier.find((item) => item.links.some((l) => l.url.toLowerCase() === url));
     if (!reported) continue;
     removed.push({
@@ -295,7 +294,7 @@ export async function sendProductionReport(
   const key = reportKey(job);
   const claim = await claimDelivery(deps.db, key);
   if (claim.status !== 'claimed') return;
-  const windowEnd = deps.now();
+  const windowEnd = new Date(deps.now().getTime() - WINDOW_SETTLE_MS);
   const provider = team.chat.provider;
   try {
     const chat = await deps.chatFor(job.installationId, provider);
