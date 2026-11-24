@@ -42,6 +42,18 @@ describe('compareCommitShas', () => {
     });
   });
 
+  test('404 after some pages keeps the collected shas, truncated', async () => {
+    const { octokit } = octokitWith({
+      'GET /repos/acme/api/compare/a...b': (url) =>
+        url.searchParams.get('page') === '1'
+          ? { body: shaPage(0, 100) }
+          : { status: 404, body: '{}' },
+    });
+    const result = await compareCommitShas(octokit, 'acme', 'api', 'a', 'b');
+    expect(result.shas).toHaveLength(100);
+    expect(result.truncated).toBe(true);
+  });
+
   test('500 propagates', async () => {
     const { octokit } = octokitWith({ 'GET /repos/acme/api/compare/a...b': { status: 500 } });
     await expect(compareCommitShas(octokit, 'acme', 'api', 'a', 'b')).rejects.toThrow();
@@ -159,5 +171,22 @@ describe('getPullRequestText', () => {
       headRef: 'feat/login',
     });
     expect(await getPullRequestText(octokit, 'acme', 'api', 8)).toBeNull();
+  });
+});
+
+describe('timeouts', () => {
+  test('every REST call carries an abort signal', async () => {
+    const { octokit, calls } = octokitWith({
+      'GET /repos/acme/api/compare/a...b': { body: shaPage(0, 1) },
+      'GET /repos/acme/api/pulls/7/commits': { body: '[]' },
+      'GET /repos/acme/api/pulls/7': {
+        body: JSON.stringify({ html_url: 'u', title: 't', head: { ref: 'h' } }),
+      },
+    });
+    await compareCommitShas(octokit, 'acme', 'api', 'a', 'b');
+    await listPullRequestCommitShas(octokit, 'acme', 'api', 7);
+    await getPullRequestText(octokit, 'acme', 'api', 7);
+    expect(calls).toHaveLength(3);
+    for (const call of calls) expect(call.signal).toBeInstanceOf(AbortSignal);
   });
 });

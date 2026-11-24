@@ -3,6 +3,7 @@ import { httpStatus } from './errors';
 import { queryGraphql } from './graphql';
 
 const PER_PAGE = 100;
+const REQUEST_TIMEOUT_MS = 5000;
 const MAX_PULL_COMMIT_PAGES = 3;
 
 export const MAX_COMPARE_PAGES = 10;
@@ -44,6 +45,7 @@ export async function compareCommitShas(
         basehead: `${base}...${head}`,
         per_page: PER_PAGE,
         page,
+        request: { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) },
       });
       const commits = (response.data as { commits?: { sha: string }[] }).commits ?? [];
       for (const commit of commits) shas.push(commit.sha);
@@ -52,7 +54,9 @@ export async function compareCommitShas(
     }
   } catch (error) {
     const status = httpStatus(error);
-    if (status === 404 || status === 422) return { shas: [head], truncated: true };
+    if (status === 404 || status === 422) {
+      return { shas: shas.length > 0 ? shas : [head], truncated: true };
+    }
     throw error;
   }
   return { shas, truncated: full };
@@ -138,6 +142,7 @@ export async function listPullRequestCommitShas(
         pull_number: number,
         per_page: PER_PAGE,
         page,
+        request: { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) },
       },
     );
     const batch = response.data as { sha: string }[];
@@ -158,6 +163,7 @@ export async function getPullRequestText(
       owner,
       repo,
       pull_number: number,
+      request: { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) },
     });
     const data = response.data as {
       html_url: string;
