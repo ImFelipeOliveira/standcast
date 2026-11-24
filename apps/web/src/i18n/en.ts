@@ -270,6 +270,8 @@ export const en: Record<MessageKey, string> = {
   'setup.failed.kind.digest': 'Digest',
   'setup.failed.kind.late_daily': 'Late daily',
   'setup.failed.kind.daily': 'Daily',
+  'setup.failed.kind.production_report': 'Production report',
+  'setup.failed.kind.production_report_post': 'Production report message',
   'setup.failed.kind.reminder': 'Reminder',
   'setup.failed.kind.blocker_route': 'Blocker routing',
   'setup.failure.not_in_channel':

@@ -275,6 +275,8 @@ export const ptBR = {
   'setup.failed.kind.digest': 'Consolidado',
   'setup.failed.kind.late_daily': 'Daily atrasada',
   'setup.failed.kind.daily': 'Daily',
+  'setup.failed.kind.production_report': 'Report de produção',
+  'setup.failed.kind.production_report_post': 'Mensagem do report de produção',
   'setup.failed.kind.reminder': 'Lembrete',
   'setup.failed.kind.blocker_route': 'Encaminhamento de impedimento',
   'setup.failure.not_in_channel':
