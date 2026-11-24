@@ -101,7 +101,11 @@ async function onPush(deps: Deps, payload: GitHubEventPayload): Promise<void> {
   const installationId = payload.installation?.id;
   const repository = payload.repository;
   if (installationId === undefined || !repository || !payload.after) return;
-  await enqueueProductionPush(deps, payload);
+  try {
+    await enqueueProductionPush(deps, payload);
+  } catch (error) {
+    logError('production push enqueue failed', error);
+  }
   const repo = repository.name;
   if (!isConfigRepo(repo) || payload.deleted || !repository.owner?.login) return;
   const onDefaultBranch = payload.ref === `refs/heads/${repository.default_branch}`;

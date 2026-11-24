@@ -63,9 +63,17 @@ describe('enqueueProductionPush', () => {
     expect(queue.enqueued).toContainEqual(
       expect.objectContaining({
         name: 'record-production-push',
-        data: expect.objectContaining({ repo: 'api', branch: 'main', before: 'b', after: 'a' }),
+        data: expect.objectContaining({
+          repo: 'api',
+          branch: 'main',
+          before: 'b',
+          after: 'a',
+          receivedAt: deps.now().toISOString(),
+        }),
       }),
     );
+    await handleGitHubEvent(deps, 'push', pushTo('refs/heads/main'));
+    expect(queue.enqueued.filter((j) => j.name === 'record-production-push')).toHaveLength(1);
   });
 
   test('push to another branch, a created or deleted branch, or with no enabled report enqueues nothing', async () => {
