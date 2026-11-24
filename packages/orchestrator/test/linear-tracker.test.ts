@@ -139,10 +139,41 @@ describe('trackerFor', () => {
   test('the null tracker answers nothing', async () => {
     expect(nullTracker.connected).toBe(false);
     expect(await nullTracker.cardOwners(card())).toBeNull();
+    expect(await nullTracker.cardText('ENG-1')).toBeNull();
     expect(await nullTracker.listActivity('alice', new Date())).toEqual([]);
     expect(await nullTracker.listStaleInProgress('alice')).toEqual({ cards: [], truncated: false });
     expect(await nullTracker.listAssignedOpen('alice')).toEqual({ items: [], truncated: false });
     expect(await nullTracker.lookupCards('alice', [], new Date())).toEqual(new Map());
+  });
+});
+
+describe('cardText', () => {
+  test('an auth error invalidates the connection and returns null', async () => {
+    const fake = await setup();
+    const tracker = await fake.build();
+    fake.linear.state.graphqlStatus = 401;
+    const spy = quiet();
+    try {
+      expect(await tracker.cardText('ENG-1')).toBeNull();
+      expect(JSON.stringify(spy.mock.calls)).toContain('LinearAuthError');
+    } finally {
+      spy.mockRestore();
+    }
+    expect((await getConnection(db, INST, 'linear', KEY))?.invalidatedAt).toBeInstanceOf(Date);
+  });
+
+  test('any other error is logged and returns null without invalidating', async () => {
+    const fake = await setup();
+    const tracker = await fake.build();
+    fake.linear.state.graphqlStatus = 500;
+    const spy = quiet();
+    try {
+      expect(await tracker.cardText('ENG-1')).toBeNull();
+      expect(spy).toHaveBeenCalled();
+    } finally {
+      spy.mockRestore();
+    }
+    expect((await getConnection(db, INST, 'linear', KEY))?.invalidatedAt).toBeNull();
   });
 });
 

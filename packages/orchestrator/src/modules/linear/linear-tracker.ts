@@ -11,6 +11,7 @@ import {
 import { getIdentityByLogin } from '@standcast/db';
 import {
   getIssue,
+  getIssueText,
   LinearAuthError,
   type LinearIssue,
   type LinearUser,
@@ -24,6 +25,7 @@ import { logError } from '../../log-error';
 import { type LinearAccess, type LinearAccessDeps, linearClientFor } from './linear-access';
 import {
   type CardOwners,
+  type CardText,
   nullTracker,
   type ProjectTracker,
   type StaleCards,
@@ -86,6 +88,16 @@ class LinearTracker implements ProjectTracker {
       };
     } catch (error) {
       logError('tracker people resolution failed', error, extra);
+      return null;
+    }
+  }
+
+  async cardText(identifier: string): Promise<CardText | null> {
+    try {
+      return await getIssueText(this.access.client, identifier);
+    } catch (error) {
+      logError('linear card text failed', error, { installationId: String(this.installationId) });
+      if (error instanceof LinearAuthError) await this.invalidateQuietly();
       return null;
     }
   }

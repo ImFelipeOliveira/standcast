@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { createLinearClient, getIssue } from '../src';
+import { createLinearClient, getIssue, getIssueText } from '../src';
 import { fakeFetch, fixture } from './helpers';
 
 test('maps assignee, creator and only blocks relations as blockers', async () => {
@@ -47,4 +47,34 @@ test('null issue or malformed node gives null', async () => {
 test('other errors propagate', async () => {
   const f = fakeFetch({ status: 401, body: '{}' });
   await expect(getIssue(createLinearClient('t', f.fetch), 'ENG-1')).rejects.toThrow();
+});
+
+test('getIssueText maps title, description and label names', async () => {
+  const body = JSON.stringify({
+    data: {
+      issue: {
+        identifier: 'ENG-12',
+        url: 'https://linear.app/acme/issue/ENG-12/fix',
+        title: 'Fix login',
+        description: null,
+        labels: { nodes: [{ name: 'bug' }, { name: 'auth' }] },
+      },
+    },
+  });
+  const f = fakeFetch({ body });
+  expect(await getIssueText(createLinearClient('t', f.fetch), 'ENG-12')).toEqual({
+    identifier: 'ENG-12',
+    url: 'https://linear.app/acme/issue/ENG-12/fix',
+    title: 'Fix login',
+    description: '',
+    labels: ['bug', 'auth'],
+  });
+  expect(JSON.parse(f.calls[0]?.body ?? '').variables).toEqual({ identifier: 'ENG-12' });
+});
+
+test('getIssueText gives null when not found or malformed', async () => {
+  const a = fakeFetch({ body: fixture('issue-not-found.json') });
+  expect(await getIssueText(createLinearClient('t', a.fetch), 'ENG-999')).toBeNull();
+  const b = fakeFetch({ body: '{"data":{"issue":{"title":"x"}}}' });
+  expect(await getIssueText(createLinearClient('t', b.fetch), 'ENG-1')).toBeNull();
 });

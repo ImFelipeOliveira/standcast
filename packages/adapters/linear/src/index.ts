@@ -7,7 +7,7 @@ export {
   type LinearFetch,
 } from './client';
 export { LinearAuthError, LinearGraphqlError, LinearRateLimitError } from './errors';
-export { getIssue, type LinearIssue } from './issues';
+export { getIssue, getIssueText, type LinearIssue, type LinearIssueText } from './issues';
 export {
   exchangeLinearCode,
   type LinearTokens,
