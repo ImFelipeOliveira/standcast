@@ -1,10 +1,13 @@
 import type {
   ConfigError,
+  LlmProvider,
   MessageRef,
   Ref,
+  ReportItem,
   SignalKind,
   StandcastConfig,
   StoredDaily,
+  Weekday,
 } from '@standcast/core';
 import { sql } from 'drizzle-orm';
 import {
@@ -171,7 +174,10 @@ export type DeliveryKind =
   | 'signal_scan'
   | 'blocker_alert'
   | 'blocker_alert_post'
-  | 'away_notice';
+  | 'away_notice'
+  | 'production_report'
+  | 'production_report_post'
+  | 'production_report_item';
 
 export const deliveries = pgTable(
   'deliveries',
@@ -359,4 +365,65 @@ export const betaRequests = pgTable(
     uniqueIndex('beta_requests_email_idx').on(t.email),
     index('beta_requests_created_at_idx').on(t.createdAt),
   ],
+);
+
+export const llmSettings = pgTable('llm_settings', {
+  installationId: installationRef().primaryKey(),
+  provider: text('provider').$type<LlmProvider>().notNull(),
+  model: text('model').notNull(),
+  keyCiphertext: text('key_ciphertext').notNull(),
+  keyLast4: text('key_last4').notNull(),
+  rejectedAt: timestamp('rejected_at', { withTimezone: true }),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const teamReports = pgTable(
+  'team_reports',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    installationId: installationRef(),
+    teamName: text('team_name').notNull(),
+    enabled: boolean('enabled').notNull(),
+    channel: text('channel').notNull(),
+    weekday: text('weekday').$type<Weekday>().notNull(),
+    time: text('time').notNull(),
+    productionBranch: text('production_branch').notNull().default('main'),
+    cutoffAt: timestamp('cutoff_at', { withTimezone: true }).notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.installationId, t.teamName)],
+);
+
+export const productionPullRequests = pgTable(
+  'production_pull_requests',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    installationId: installationRef(),
+    repository: text('repository').notNull(),
+    number: integer('number').notNull(),
+    url: text('url').notNull(),
+    authorLogin: text('author_login').notNull(),
+    branch: text('branch').notNull(),
+    reachedAt: timestamp('reached_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    unique().on(t.installationId, t.repository, t.number, t.branch),
+    index('production_pull_requests_window_idx').on(t.installationId, t.branch, t.reachedAt),
+  ],
+);
+
+export const productionReports = pgTable(
+  'production_reports',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    installationId: installationRef(),
+    teamName: text('team_name').notNull(),
+    date: date('date', { mode: 'string' }).notNull(),
+    windowStart: timestamp('window_start', { withTimezone: true }).notNull(),
+    windowEnd: timestamp('window_end', { withTimezone: true }).notNull(),
+    items: jsonb('items').$type<ReportItem[]>().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [unique().on(t.installationId, t.teamName, t.date)],
 );

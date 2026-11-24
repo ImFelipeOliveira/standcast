@@ -11,6 +11,7 @@ export * from './repo/google-chat-sign-in-tokens';
 export * from './repo/google-chat-spaces';
 export * from './repo/installations';
 export * from './repo/members';
+export * from './repo/production-reports';
 export * from './repo/rate-limits';
 export * from './repo/sessions';
 export * from './repo/suggestions';
