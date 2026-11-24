@@ -9,5 +9,6 @@ export * from './members';
 export * from './oauth';
 export * from './pending';
 export * from './plan';
+export * from './production';
 export * from './pulls';
 export * from './user';
