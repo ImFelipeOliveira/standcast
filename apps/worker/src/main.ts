@@ -33,12 +33,15 @@ import {
   LOAD_CONFIG_JOB,
   NOTIFY_BETA_REQUEST_JOB,
   POST_DAILY_JOB,
+  POST_REPORT_ITEM_JOB,
   PRUNE_DATA_JOB,
+  RECORD_PRODUCTION_PUSH_JOB,
   RESOLVE_CHECK_SUITE_JOB,
   ROUTE_BLOCKER_JOB,
   SCAN_MEMBER_SIGNALS_JOB,
   SEND_AWAY_NOTICE_JOB,
   SEND_BLOCKER_ALERTS_JOB,
+  SEND_PRODUCTION_REPORT_JOB,
   VALIDATE_CONFIG_JOB,
   type WorkerDeps,
 } from '@standcast/orchestrator';
@@ -52,13 +55,16 @@ import { linkTrackerIdentityJob } from './jobs/link-tracker-identity';
 import { loadConfigJob } from './jobs/load-config';
 import { notifyBetaRequestJob } from './jobs/notify-beta-request';
 import { postDailyJob } from './jobs/post-daily';
+import { postReportItemJob } from './jobs/post-report-item';
 import { pruneDataJob } from './jobs/prune-data';
+import { recordProductionPushJob } from './jobs/record-production-push';
 import { resolveCheckSuiteJob } from './jobs/resolve-check-suite';
 import { routeBlockerJob } from './jobs/route-blocker';
 import { scanMemberSignalsJob } from './jobs/scan-member-signals';
 import { sendAwayNoticeJob } from './jobs/send-away-notice';
 import { sendBlockerAlertsJob } from './jobs/send-blocker-alerts';
 import { sendDigestJob } from './jobs/send-digest';
+import { sendProductionReportJob } from './jobs/send-production-report';
 import { sendReminderJob } from './jobs/send-reminder';
 import { tickJob } from './jobs/tick';
 import { validateConfigJob } from './jobs/validate-config';
@@ -144,6 +150,9 @@ const stately = { policies: ['stately'] } as const;
 await queue.work('tick', tickJob(deps), plain);
 await queue.work('send-digest', sendDigestJob(deps), keyed);
 await queue.work(SEND_BLOCKER_ALERTS_JOB, sendBlockerAlertsJob(deps), keyed);
+await queue.work(RECORD_PRODUCTION_PUSH_JOB, recordProductionPushJob(deps), keyed);
+await queue.work(SEND_PRODUCTION_REPORT_JOB, sendProductionReportJob(deps), keyed);
+await queue.work(POST_REPORT_ITEM_JOB, postReportItemJob(deps), keyed);
 await queue.work(POST_DAILY_JOB, postDailyJob(deps), plain);
 await queue.work('send-reminder', sendReminderJob(deps), keyed);
 await queue.work(SEND_AWAY_NOTICE_JOB, sendAwayNoticeJob(deps), keyed);
