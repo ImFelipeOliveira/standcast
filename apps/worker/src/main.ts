@@ -1,5 +1,7 @@
 import { createDb } from '@standcast/db';
+import { createDeepSeekModel } from '@standcast/deepseek';
 import {
+  compareCommitShas,
   createCheckRun,
   createGitHubApp,
   exchangeWebCode,
@@ -7,12 +9,15 @@ import {
   fetchConfigSource,
   fetchRepositorySelection,
   getPullRequest,
+  getPullRequestText,
   getUserProfile,
   listActivity,
   listOpenPullRequestSnapshots,
   listPendingPullRequests,
+  listPullRequestCommitShas,
   listPullRequestFiles,
   lookupPlannedPullRequests,
+  mergedPullRequestsForCommits,
   pullRequestMerged,
   resolveTeamMembers,
 } from '@standcast/github';
@@ -20,6 +25,7 @@ import { googleChatEndpoint } from '@standcast/google-chat';
 import { exchangeLinearCode, refreshLinearToken } from '@standcast/linear';
 import {
   createChatFor,
+  createTextModelFor,
   createTrackerFor,
   DELIVER_WEBHOOK_JOB,
   LINK_TRACKER_IDENTITIES_JOB,
@@ -111,6 +117,16 @@ const deps: WorkerDeps = {
   ),
   trackerFor: (...args) => createTrackerFor(deps)(...args),
   linear: { exchangeCode: exchangeLinearCode, refreshToken: refreshLinearToken },
+  githubProduction: {
+    compareCommitShas,
+    mergedPullRequestsForCommits,
+    listPullRequestCommitShas,
+    getPullRequestText,
+  },
+  textModelFor: createTextModelFor(
+    { db, encryptionKey: env.STANDCAST_ENCRYPTION_KEY },
+    { deepseek: (key, model) => createDeepSeekModel(key, model) },
+  ),
   email: resendApiKey ? { send: (message) => sendEmail(resendApiKey, message) } : null,
   env: {
     linearClientId: env.LINEAR_CLIENT_ID,

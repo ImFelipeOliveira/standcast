@@ -7,6 +7,7 @@ import {
   parseConfig,
   parseTeamReference,
   type StandcastConfig,
+  type TextModel,
 } from '@standcast/core';
 import {
   createAwayPeriod,
@@ -78,6 +79,8 @@ export type FakeOptions = {
   truncatedTeams?: string[];
   merged?: Record<string, { merged: boolean; mergedAt: string | null } | null | Error>;
   channels?: Record<string, ChannelCheck>;
+  production?: Partial<WorkerDeps['githubProduction']>;
+  textModel?: TextModel | null;
 };
 
 export function fakeLinear() {
@@ -224,7 +227,10 @@ export function fakeDeps(opts: FakeOptions = {}) {
     }
     throw new Error(route);
   };
-  const deps: Deps & Pick<WorkerDeps, 'email'> & { env: { betaEmailFrom: string } } = {
+  const deps: Deps &
+    Pick<WorkerDeps, 'email' | 'githubProduction' | 'textModelFor'> & {
+      env: { betaEmailFrom: string };
+    } = {
     db,
     queue,
     now: () => now,
@@ -324,6 +330,14 @@ export function fakeDeps(opts: FakeOptions = {}) {
       }) as never,
     trackerFor: (...args) => createTrackerFor(deps)(...args),
     email: null,
+    githubProduction: {
+      compareCommitShas: async () => ({ shas: [], truncated: false }),
+      mergedPullRequestsForCommits: async () => [],
+      listPullRequestCommitShas: async () => [],
+      getPullRequestText: async () => null,
+      ...opts.production,
+    },
+    textModelFor: async () => opts.textModel ?? null,
     env: {
       betaEmailFrom: 'Standcast <beta@sw.test>',
       publicUrl: 'https://sw.test',
