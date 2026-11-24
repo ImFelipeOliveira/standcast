@@ -30,6 +30,7 @@ import { ChatLinkPage } from './pages/chat-link/ChatLinkPage';
 import { ConfigEditor, configEditUrl } from './pages/configuracao/ConfigEditor';
 import { ConfiguracaoPage, LoadError } from './pages/configuracao/ConfiguracaoPage';
 import { PeopleTab } from './pages/configuracao/PeopleTab';
+import { ReportsTab } from './pages/configuracao/ReportsTab';
 import { SettingsTabs } from './pages/configuracao/SettingsTabs';
 import { HistoryPage, type HistorySearch } from './pages/history/HistoryPage';
 import { HojePage } from './pages/hoje/HojePage';
@@ -451,6 +452,24 @@ const settingsApiRoute = createRoute({
   },
 });
 
+const settingsReportsRoute = createRoute({
+  getParentRoute: () => orgRoute,
+  path: 'settings/reports',
+  component: function SettingsReports() {
+    const t = useT();
+    const { installationId } = orgRoute.useParams();
+    return (
+      <>
+        <PageHeader
+          title={t('setup.heading')}
+          actions={<SettingsTabs installationId={installationId} current="reports" />}
+        />
+        <ReportsTab installationId={installationId} />
+      </>
+    );
+  },
+});
+
 const legacyTodayRoute = createRoute({
   getParentRoute: () => orgRoute,
   path: 'hoje',
@@ -502,6 +521,7 @@ export const routeTree = rootRoute.addChildren([
     settingsPeopleRoute,
     settingsApiRoute,
     settingsConfigRoute,
+    settingsReportsRoute,
     legacyTodayRoute,
     legacyHistoryRoute,
     legacySettingsRoute,
