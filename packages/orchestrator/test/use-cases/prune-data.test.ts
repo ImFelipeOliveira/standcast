@@ -9,11 +9,14 @@ import {
   issueGoogleChatSignInToken,
   listRecentWebhookDeliveries,
   markDeliverySent,
+  recordProductionPullRequests,
+  saveProductionReport,
   upsertBetaRequest,
 } from '@standcast/db';
 import { googleChatSignInTokens, googleChatSpaces } from '../../../db/src/schema';
 import {
   ageDeliveries,
+  ageProductionReport,
   insertAgedSessions,
   insertAgedSuggestion,
   listSessionTokens,
@@ -239,5 +242,34 @@ describe('pruneData', () => {
     expect((await pruneData(deps)).googleChatSignInTokens).toBe(1);
     const rows = await db.select().from(googleChatSignInTokens);
     expect(rows.map((r) => r.chatUserId).sort()).toEqual(['users/after', 'users/at', 'users/live']);
+  });
+
+  test('prune removes production rows older than 90 days', async () => {
+    await seedOrg();
+    const pr = (number: number, reachedAt: Date) => ({
+      repository: 'acme/api',
+      number,
+      url: `https://github.com/acme/api/pull/${number}`,
+      authorLogin: 'alice',
+      branch: 'main',
+      reachedAt,
+    });
+    await recordProductionPullRequests(db, INST, [pr(1, daysAgo(91)), pr(2, daysAgo(89))]);
+    const report = (date: string, windowEnd: Date) => ({
+      teamName: 'Alpha',
+      date,
+      windowStart: daysAgo(100),
+      windowEnd,
+      items: [],
+    });
+    await saveProductionReport(db, INST, report('2026-07-01', daysAgo(91)));
+    await saveProductionReport(db, INST, report('2026-10-01', daysAgo(89)));
+    await ageProductionReport('2026-07-01', daysAgo(91));
+    await ageProductionReport('2026-10-01', daysAgo(89));
+    const { deps } = fakeDeps();
+    deps.now = () => NOW;
+    const result = await pruneData(deps);
+    expect(result.productionPullRequests).toBe(1);
+    expect(result.productionReports).toBe(1);
   });
 });
