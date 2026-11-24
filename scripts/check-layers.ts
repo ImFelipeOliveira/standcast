@@ -9,6 +9,7 @@ const ALLOWED: Record<string, readonly string[]> = {
   '@standcast/db': ['@standcast/core'],
   '@standcast/queue': ['@standcast/core'],
   '@standcast/github': ['@standcast/core'],
+  '@standcast/deepseek': ['@standcast/core'],
   '@standcast/google-chat': ['@standcast/core'],
   '@standcast/linear': ['@standcast/core'],
   '@standcast/resend': ['@standcast/core'],
@@ -34,6 +35,7 @@ const ALLOWED: Record<string, readonly string[]> = {
   ],
   '@standcast/worker': [
     '@standcast/db',
+    '@standcast/deepseek',
     '@standcast/github',
     '@standcast/google-chat',
     '@standcast/linear',

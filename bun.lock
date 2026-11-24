@@ -85,6 +85,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@standcast/db": "workspace:*",
+        "@standcast/deepseek": "workspace:*",
         "@standcast/github": "workspace:*",
         "@standcast/google-chat": "workspace:*",
         "@standcast/linear": "workspace:*",
@@ -93,6 +94,13 @@
         "@standcast/resend": "workspace:*",
         "@standcast/slack": "workspace:*",
         "zod": "^4.6.7",
+      },
+    },
+    "packages/adapters/deepseek": {
+      "name": "@standcast/deepseek",
+      "version": "0.0.0",
+      "dependencies": {
+        "@standcast/core": "workspace:*",
       },
     },
     "packages/adapters/github": {
@@ -672,6 +680,8 @@
     "@standcast/core": ["@standcast/core@workspace:packages/core"],
 
     "@standcast/db": ["@standcast/db@workspace:packages/db"],
+
+    "@standcast/deepseek": ["@standcast/deepseek@workspace:packages/adapters/deepseek"],
 
     "@standcast/github": ["@standcast/github@workspace:packages/adapters/github"],
 
