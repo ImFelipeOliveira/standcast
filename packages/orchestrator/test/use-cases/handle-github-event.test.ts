@@ -108,7 +108,7 @@ describe('handleGitHubEvent', () => {
     ]);
   });
 
-  test('config handling is unchanged for .github pushes with an enabled production report', async () => {
+  test('a .github push with an enabled production report loads the config and records nothing', async () => {
     await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
     await upsertTeamReport(
       db,
@@ -130,23 +130,10 @@ describe('handleGitHubEvent', () => {
       before: 'sha-before',
     });
     expect(configJobs(queue).map((j) => j.name)).toEqual(['validate-config', 'load-config']);
-    expect(queue.enqueued.filter((j) => j.name === 'record-production-push')).toEqual([
-      {
-        name: 'record-production-push',
-        data: {
-          installationId: INST,
-          owner: 'acme',
-          repo: '.github',
-          branch: 'main',
-          before: 'sha-before',
-          after: 'sha-after',
-          receivedAt: deps.now().toISOString(),
-        },
-      },
-    ]);
+    expect(queue.enqueued.filter((j) => j.name === 'record-production-push')).toEqual([]);
   });
 
-  test('a failing production enqueue does not break config handling', async () => {
+  test('a failing production enqueue is logged and does not fail the push', async () => {
     await upsertInstallation(db, { id: INST, accountLogin: 'acme', accountType: 'Organization' });
     await upsertTeamReport(
       db,
@@ -170,12 +157,12 @@ describe('handleGitHubEvent', () => {
     }) as typeof queue.enqueue;
     const log = spyOn(console, 'error').mockImplementation(() => {});
     await handleGitHubEvent(deps, 'push', {
-      ...push('.github', 'refs/heads/main', { added: ['standcast.yml'] }),
+      ...push('api', 'refs/heads/main', { modified: ['src/x.ts'] }),
       before: 'sha-before',
     });
     expect(log).toHaveBeenCalledWith('production push enqueue failed', expect.anything());
     log.mockRestore();
-    expect(configJobs(queue).map((j) => j.name)).toEqual(['validate-config', 'load-config']);
+    expect(queue.enqueued).toEqual([]);
   });
 
   test('push on a non-default branch validates but does not load', async () => {

@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import { listProductionPullRequests, upsertTeamReport } from '@standcast/db';
 import { db, useCleanDb } from '../../../db/test/setup';
 import { handleGitHubEvent, recordProductionPush } from '../../src';
@@ -17,12 +17,12 @@ const pushTo = (ref: string, over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
-const enableReport = (productionBranch = 'main') =>
+const enableReport = (productionBranch = 'main', teamName = 'Sales') =>
   upsertTeamReport(
     db,
     {
       installationId: INST,
-      teamName: 'Sales',
+      teamName,
       enabled: true,
       channel: '#sales',
       weekday: 'fri',
@@ -88,6 +88,26 @@ describe('enqueueProductionPush', () => {
     await handleGitHubEvent(deps, 'push', pushTo('refs/tags/v1'));
     expect(queue.enqueued.filter((j) => j.name === 'record-production-push')).toEqual([]);
   });
+
+  test('the same commit pushed to two production branches enqueues one job per branch', async () => {
+    await seedOrg(undefined, { id: INST });
+    await enableReport('main');
+    await enableReport('release', 'Support');
+    const { deps, queue } = fakeDeps({});
+    await handleGitHubEvent(deps, 'push', pushTo('refs/heads/main'));
+    await handleGitHubEvent(deps, 'push', pushTo('refs/heads/release'));
+    const jobs = queue.enqueued.filter((j) => j.name === 'record-production-push');
+    expect(jobs.map((j) => (j.data as { branch: string }).branch)).toEqual(['main', 'release']);
+  });
+
+  test('a push to the config repository enqueues nothing', async () => {
+    await seedOrg(undefined, { id: INST });
+    await enableReport();
+    const { deps, queue } = fakeDeps({});
+    const repository = { name: '.github', default_branch: 'main', owner: { login: 'acme' } };
+    await handleGitHubEvent(deps, 'push', pushTo('refs/heads/main', { repository }));
+    expect(queue.enqueued.filter((j) => j.name === 'record-production-push')).toEqual([]);
+  });
 });
 
 describe('recordProductionPush', () => {
@@ -123,11 +143,35 @@ describe('recordProductionPush', () => {
           if (shas.includes('sq')) return [pr(50, 'main', 'dev')];
           return shas.flatMap((s) => (s === 'c1' ? [pr(41, 'dev', 'f1')] : [pr(42, 'dev', 'f2')]));
         },
-        listPullRequestCommitShas: async () => ['c1', 'c2'],
+        listPullRequestCommitShas: async () => ({ shas: ['c1', 'c2'], truncated: false }),
       },
     });
     await recordProductionPush(deps, job);
     expect((await stored()).map((r) => r.number).sort()).toEqual([41, 42, 50]);
+  });
+
+  test('a squash release with more commits than the cap is logged', async () => {
+    await seedOrg(undefined, { id: INST });
+    const { deps } = fakeDeps({
+      production: {
+        compareCommitShas: async () => ({ shas: ['sq'], truncated: false }),
+        mergedPullRequestsForCommits: async (_o, _ow, _r, shas) =>
+          shas.includes('sq') ? [pr(50, 'main', 'dev')] : [],
+        listPullRequestCommitShas: async () => ({ shas: ['c1'], truncated: true }),
+      },
+    });
+    const logged: unknown[][] = [];
+    const spy = spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
+      logged.push(args);
+    });
+    try {
+      await recordProductionPush(deps, job);
+    } finally {
+      spy.mockRestore();
+    }
+    expect(logged.map((args) => args[0])).toEqual([
+      'production push pull request commits truncated',
+    ]);
   });
 
   test('compare fallback still records the head commit pull request', async () => {

@@ -333,7 +333,7 @@ export function fakeDeps(opts: FakeOptions = {}) {
     githubProduction: {
       compareCommitShas: async () => ({ shas: [], truncated: false }),
       mergedPullRequestsForCommits: async () => [],
-      listPullRequestCommitShas: async () => [],
+      listPullRequestCommitShas: async () => ({ shas: [], truncated: false }),
       getPullRequestText: async () => null,
       ...opts.production,
     },

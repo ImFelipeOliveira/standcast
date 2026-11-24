@@ -1,3 +1,4 @@
+import { isConfigRepo } from '@standcast/core';
 import {
   getInstallation,
   listProductionBranches,
@@ -32,11 +33,11 @@ export async function enqueueProductionPush(
   if (installationId === undefined || !repo || !login || !after) return;
   if (payload.deleted || payload.created) return;
   if (!before || /^0+$/.test(before)) return;
-  if (!ref?.startsWith(BRANCH_PREFIX)) return;
-  const installation = await getInstallation(deps.db, installationId);
-  if (!installation || installation.accountLogin.toLowerCase() !== login.toLowerCase()) return;
+  if (!ref?.startsWith(BRANCH_PREFIX) || isConfigRepo(repo)) return;
   const branch = ref.slice(BRANCH_PREFIX.length);
   if (!(await listProductionBranches(deps.db, installationId)).includes(branch)) return;
+  const installation = await getInstallation(deps.db, installationId);
+  if (!installation || installation.accountLogin.toLowerCase() !== login.toLowerCase()) return;
   const job: RecordProductionPushJob = {
     installationId,
     owner: installation.accountLogin,
@@ -47,7 +48,7 @@ export async function enqueueProductionPush(
     receivedAt: deps.now().toISOString(),
   };
   await deps.queue.enqueue(RECORD_PRODUCTION_PUSH_JOB, job, {
-    singletonKey: `production-push:${installationId}:${repo}:${after}`,
+    singletonKey: `production-push:${installationId}:${repo}:${branch}:${after}`,
   });
 }
 
@@ -82,11 +83,17 @@ export async function recordProductionPush(
   );
   for (const pr of [...found.values()].filter((p) => p.baseRef === job.branch)) {
     const inner = await github.listPullRequestCommitShas(octokit, job.owner, job.repo, pr.number);
+    if (inner.truncated) {
+      logError('production push pull request commits truncated', new Error('commits truncated'), {
+        repo: job.repo,
+        branch: job.branch,
+      });
+    }
     for (const nested of await github.mergedPullRequestsForCommits(
       octokit,
       job.owner,
       job.repo,
-      inner,
+      inner.shas,
     )) {
       if (!found.has(nested.number)) found.set(nested.number, nested);
     }

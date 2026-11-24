@@ -136,15 +136,26 @@ describe('mergedPullRequestsForCommits', () => {
 });
 
 describe('listPullRequestCommitShas', () => {
-  test('lists commit shas, at most 3 pages', async () => {
+  test('lists commit shas, at most 3 pages, truncated when the last page is full', async () => {
     const { octokit, calls } = octokitWith({
       'GET /repos/acme/api/pulls/7/commits': {
         body: JSON.stringify(Array.from({ length: 100 }, (_, index) => ({ sha: `s${index}` }))),
       },
     });
-    const shas = await listPullRequestCommitShas(octokit, 'acme', 'api', 7);
+    const { shas, truncated } = await listPullRequestCommitShas(octokit, 'acme', 'api', 7);
     expect(calls).toHaveLength(3);
     expect(shas).toHaveLength(300);
+    expect(truncated).toBe(true);
+  });
+
+  test('a short page is not truncated', async () => {
+    const { octokit } = octokitWith({
+      'GET /repos/acme/api/pulls/7/commits': { body: JSON.stringify([{ sha: 's1' }]) },
+    });
+    expect(await listPullRequestCommitShas(octokit, 'acme', 'api', 7)).toEqual({
+      shas: ['s1'],
+      truncated: false,
+    });
   });
 });
 

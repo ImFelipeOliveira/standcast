@@ -131,8 +131,9 @@ export async function listPullRequestCommitShas(
   owner: string,
   repo: string,
   number: number,
-): Promise<string[]> {
+): Promise<{ shas: string[]; truncated: boolean }> {
   const shas: string[] = [];
+  let full = false;
   for (let page = 1; page <= MAX_PULL_COMMIT_PAGES; page++) {
     const response = await octokit.request(
       'GET /repos/{owner}/{repo}/pulls/{pull_number}/commits',
@@ -147,9 +148,10 @@ export async function listPullRequestCommitShas(
     );
     const batch = response.data as { sha: string }[];
     for (const commit of batch) shas.push(commit.sha);
-    if (batch.length < PER_PAGE) break;
+    full = batch.length >= PER_PAGE;
+    if (!full) break;
   }
-  return shas;
+  return { shas, truncated: full };
 }
 
 export async function getPullRequestText(
