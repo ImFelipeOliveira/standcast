@@ -8,6 +8,7 @@ import {
 import type { Deps } from '../../deps';
 import { logError } from '../../log-error';
 import { invalidateResolvedTeams } from '../../teams';
+import { enqueueProductionPush } from '../report/record-production-push';
 import { enqueueLoadConfig } from './load-installation-config';
 import {
   MAX_CHECK_SUITE_LOOKUPS,
@@ -22,7 +23,9 @@ type Account = { id?: number; login?: string; type?: string };
 export type GitHubEventPayload = {
   action?: string;
   ref?: string;
+  before?: string;
   after?: string;
+  created?: boolean;
   deleted?: boolean;
   forced?: boolean;
   installation?: { id?: number; account?: Account };
@@ -98,6 +101,7 @@ async function onPush(deps: Deps, payload: GitHubEventPayload): Promise<void> {
   const installationId = payload.installation?.id;
   const repository = payload.repository;
   if (installationId === undefined || !repository || !payload.after) return;
+  await enqueueProductionPush(deps, payload);
   const repo = repository.name;
   if (!isConfigRepo(repo) || payload.deleted || !repository.owner?.login) return;
   const onDefaultBranch = payload.ref === `refs/heads/${repository.default_branch}`;
